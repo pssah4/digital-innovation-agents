@@ -1,175 +1,175 @@
-Digital Innovation Agents
+# Digital Innovation Agents
 
-AI-Powered Software Development Workflow - From idea to production-ready code through structured, quality-gated phases.
+> **AI-Powered Software Development Workflow** - From idea to production-ready code through structured, quality-gated phases.
 
 A comprehensive system of specialized AI agents that guide software development from initial business concept through requirements engineering, architecture design, implementation, and debugging. Built for GitHub Copilot with automated quality gates and validation.
 
-🎯 What This Is
-Digital Innovation Agents transforms how software is built by providing a structured, agent-based workflow that ensures quality at every stage. Instead of jumping straight into code, projects follow a systematic path:
+---
+
+## 🎯 What This Is
+
+**Digital Innovation Agents** transforms how software is built by providing a structured, agent-based workflow that ensures quality at every stage. Instead of jumping straight into code, projects follow a systematic path:
+
+```
 Business Idea → Requirements → Architecture → Implementation → Quality Assurance
      ↓              ↓              ↓              ↓                ↓
    BA Agent    RE Agent    Architect Agent  Developer Agent  Debugger Agent
+```
+
 Each agent specializes in one phase, has built-in quality checks, and produces standardized outputs that feed into the next phase.
 
-🤖 The Five Agents
-1. Business Analyst (@business-analyst)
-Role: Transform raw ideas into structured business requirements
-When to use:
+---
 
-Starting a new project from scratch
-Have a problem but unclear on the solution
-Need to explore requirements systematically
+## 🤖 The Five Agents
 
-Input: Raw project idea or problem description
-Output: docs/business-analysis/BA-[PROJECT].md
-Key Features:
+### 1. **Business Analyst** (`@business-analyst`)
+**Role:** Transform raw ideas into structured business requirements
 
-Scope detection (Simple Test / PoC / MVP)
-Structured interviews (5-50 questions based on scope)
-Jobs-to-be-Done analysis
-Value proposition development
-Success metrics definition
+**When to use:**
+- Starting a new project from scratch
+- Have a problem but unclear on the solution
+- Need to explore requirements systematically
 
+**Input:** Raw project idea or problem description  
+**Output:** `docs/business-analysis/BA-[PROJECT].md`
 
-2. Requirements Engineer (@requirements-engineer)
-Role: Convert business analysis into architect-ready requirements
-When to use:
+**Key Features:**
+- Scope detection (Simple Test / PoC / MVP)
+- Structured interviews (5-50 questions based on scope)
+- Jobs-to-be-Done analysis
+- Value proposition development
+- Success metrics definition
 
-Have a business analysis document
-Need structured epics and features
-Ready to define technical requirements
+---
 
-Input: Business Analysis document OR direct user input
-Output:
+### 2. **Requirements Engineer** (`@requirements-engineer`)
+**Role:** Convert business analysis into architect-ready requirements
 
-requirements/epics/EPIC-*.md
-requirements/features/FEATURE-*.md
-requirements/handoff/architect-handoff.md
+**When to use:**
+- Have a business analysis document
+- Need structured epics and features
+- Ready to define technical requirements
 
-Key Features:
+**Input:** Business Analysis document OR direct user input  
+**Output:**
+- `requirements/epics/EPIC-*.md`
+- `requirements/features/FEATURE-*.md`
+- `requirements/handoff/architect-handoff.md`
 
-Epic creation with hypothesis statements
-Feature breakdown with acceptance criteria
-NFR quantification (Performance, Security, Scalability)
-ASR identification (Architecture-Significant Requirements)
-Comprehensive architect handoff package
+**Key Features:**
+- Epic creation with hypothesis statements
+- Feature breakdown with acceptance criteria
+- NFR quantification (Performance, Security, Scalability)
+- **ASR identification** (Architecture-Significant Requirements)
+- Comprehensive architect handoff package
 
-Quality Gate 1 (QG1):
+**Quality Gate 1 (QG1):**
+- ✅ All NFRs quantified (with numbers!)
+- ✅ All ASRs identified and marked (🔴/🟡)
+- ✅ Acceptance criteria testable
+- ✅ Architect handoff complete
 
-✅ All NFRs quantified (with numbers!)
-✅ All ASRs identified and marked (🔴/🟡)
-✅ Acceptance criteria testable
-✅ Architect handoff complete
+---
 
+### 3. **Architect** (`@architect`)
+**Role:** Design technical architecture and create developer-ready issues
 
-3. Architect (@architect)
-Role: Design technical architecture and create developer-ready issues
-When to use:
+**When to use:**
+- Requirements are complete (QG1 passed)
+- Need architectural decisions documented
+- Ready to plan implementation
 
-Requirements are complete (QG1 passed)
-Need architectural decisions documented
-Ready to plan implementation
+**Input:** `requirements/handoff/architect-handoff.md`  
+**Output:**
+- `docs/decisions/ADR-*.md` (Architecture Decision Records in MADR format)
+- `docs/arc42/ARC42-DOCUMENTATION.md` (arc42 architecture docs)
+- `backlog/ISSUE-*.md` (Developer-ready issues)
+- `backlog/Backlog.md` (Single source of truth for work breakdown)
 
-Input: requirements/handoff/architect-handoff.md
-Output:
+**Key Features:**
+- Adaptive complexity (Simple Test / PoC / MVP)
+- ADR creation with research (web_search + @azure)
+- arc42 documentation (sections 1-7 for MVP)
+- Atomic issue creation (1-3 days each)
+- System design with Mermaid diagrams
 
-docs/decisions/ADR-*.md (Architecture Decision Records in MADR format)
-docs/arc42/ARC42-DOCUMENTATION.md (arc42 architecture docs)
-backlog/ISSUE-*.md (Developer-ready issues)
-backlog/Backlog.md (Single source of truth for work breakdown)
+**Quality Gate 2 (QG2):**
+- ✅ ADRs for all major decisions (MADR format, 3+ options)
+- ✅ arc42 complete for scope
+- ✅ Atomic issues created (clear single responsibility)
+- ✅ Backlog.md created (work overview)
+- ✅ Developer handoff complete
 
-Key Features:
+---
 
-Adaptive complexity (Simple Test / PoC / MVP)
-ADR creation with research (web_search + @azure)
-arc42 documentation (sections 1-7 for MVP)
-Atomic issue creation (1-3 days each)
-System design with Mermaid diagrams
+### 4. **Developer** (`@developer`)
+**Role:** Implement atomic tasks with mandatory testing
 
-Quality Gate 2 (QG2):
+**When to use:**
+- Architecture complete (QG2 passed)
+- Ready to write code
+- Have developer-ready issues in backlog
 
-✅ ADRs for all major decisions (MADR format, 3+ options)
-✅ arc42 complete for scope
-✅ Atomic issues created (clear single responsibility)
-✅ Backlog.md created (work overview)
-✅ Developer handoff complete
+**Input:** Issues from `backlog/ISSUE-*.md`  
+**Output:**
+- Production code (`src/**/*`)
+- Test code (`tests/**/*`)
+- Error logs if tests fail (`logs/ERROR-TASK-*.md`)
 
+**Key Features:**
+- **5-Phase Streamlined Workflow:**
+  1. Task Analysis & Setup
+  2. Implementation (code + tests)
+  3. Testing & Validation (ALL tests MANDATORY)
+  4. Validation & Commit
+  5. Completion & Metrics
 
-4. Developer (@developer)
-Role: Implement atomic tasks with mandatory testing
-When to use:
+**Quality Gate 3 (QG3):**
+- ✅ ALL tests written (from task test plan)
+- ✅ ALL tests executed (full suite)
+- ✅ ALL tests passing OR error log created
+- ✅ Coverage ≥90%
+- ✅ Clean code principles applied
+- ✅ No TODOs or placeholders
 
-Architecture complete (QG2 passed)
-Ready to write code
-Have developer-ready issues in backlog
+**Critical Rule:** **Tests are MANDATORY, not optional!**
 
-Input: Issues from backlog/ISSUE-*.md
-Output:
+---
 
-Production code (src/**/*)
-Test code (tests/**/*)
-Error logs if tests fail (logs/ERROR-TASK-*.md)
+### 5. **Debugger** (`@debugger`)
+**Role:** Systematic error analysis and resolution
 
-Key Features:
+**When to use:**
+- Tests failed after implementation
+- Have error log from Developer
+- Need root cause analysis
 
-5-Phase Streamlined Workflow:
+**Input:** `logs/ERROR-TASK-*.md`  
+**Output:**
+- Fixed code
+- Updated tests
+- Resolution documentation
 
-Task Analysis & Setup
-Implementation (code + tests)
-Testing & Validation (ALL tests MANDATORY)
-Validation & Commit
-Completion & Metrics
+**Key Features:**
+- **Fast Path:** Simple fixes in minutes (typos, missing imports)
+- **Systematic Path:** Complex issues with full analysis
+  - Root cause identification (not symptoms!)
+  - Fix strategy with multiple options
+  - Comprehensive testing
+  - No regressions
 
+**Quality Gate Debug (QGD):**
+- ✅ Root cause identified (not symptom)
+- ✅ Clean fix (no workarounds)
+- ✅ ALL tests run and passing
+- ✅ No regressions
+- ✅ Resolution documented
 
+---
 
-Quality Gate 3 (QG3):
+## 📁 Repository Structure
 
-✅ ALL tests written (from task test plan)
-✅ ALL tests executed (full suite)
-✅ ALL tests passing OR error log created
-✅ Coverage ≥90%
-✅ Clean code principles applied
-✅ No TODOs or placeholders
-
-Critical Rule: Tests are MANDATORY, not optional!
-
-5. Debugger (@debugger)
-Role: Systematic error analysis and resolution
-When to use:
-
-Tests failed after implementation
-Have error log from Developer
-Need root cause analysis
-
-Input: logs/ERROR-TASK-*.md
-Output:
-
-Fixed code
-Updated tests
-Resolution documentation
-
-Key Features:
-
-Fast Path: Simple fixes in minutes (typos, missing imports)
-Systematic Path: Complex issues with full analysis
-
-Root cause identification (not symptoms!)
-Fix strategy with multiple options
-Comprehensive testing
-No regressions
-
-
-
-Quality Gate Debug (QGD):
-
-✅ Root cause identified (not symptom)
-✅ Clean fix (no workarounds)
-✅ ALL tests run and passing
-✅ No regressions
-✅ Resolution documented
-
-
-📁 Repository Structure
+```
 digital-innovation-agents/
 ├── .github/
 │   ├── chatmodes/                    # Agent definitions
@@ -211,16 +211,23 @@ digital-innovation-agents/
 ├── src/                              # Developer outputs (code)
 ├── tests/                            # Developer outputs (tests)
 └── logs/                             # Error logs (when tests fail)
+```
 
-🚀 Getting Started
-Prerequisites
+---
 
-GitHub Copilot with Chat enabled
-Project with .github/chatmodes/ directory
-Understanding of your project scope (Simple Test / PoC / MVP)
+## 🚀 Getting Started
 
-Quick Start
-Option 1: Starting from Scratch (No Requirements)
+### Prerequisites
+
+- **GitHub Copilot** with Chat enabled
+- Project with `.github/chatmodes/` directory
+- Understanding of your project scope (Simple Test / PoC / MVP)
+
+### Quick Start
+
+**Option 1: Starting from Scratch (No Requirements)**
+
+```
 Step 1: Use @business-analyst
 → Conducts structured discovery interview
 → Creates business analysis document
@@ -238,7 +245,11 @@ Step 4: Use @developer
 
 Step 5: Use @debugger (if tests fail)
 → Fixes issues systematically
-Option 2: Starting with Requirements
+```
+
+**Option 2: Starting with Requirements**
+
+```
 Skip @business-analyst
 
 Step 1: Use @requirements-engineer directly
@@ -246,17 +257,27 @@ Step 1: Use @requirements-engineer directly
 → Creates epics, features, handoff
 
 [Continue with Steps 3-5 above]
-Option 3: Starting with Architecture
+```
+
+**Option 3: Starting with Architecture**
+
+```
 Skip @business-analyst and @requirements-engineer
 
 Step 1: Use @architect with your requirements
 → Creates architecture artifacts
 
 [Continue with Steps 4-5 above]
+```
 
-💡 Example Usage
-Starting a New Project
-markdownUser: I want to build a Notion importer that processes markdown files
+---
+
+## 💡 Example Usage
+
+### Starting a New Project
+
+```markdown
+User: I want to build a Notion importer that processes markdown files
 
 AI: [Detects @business-analyst should be used]
 
@@ -416,109 +437,115 @@ No phase proceeds until quality criteria met:
    - Add/remove tools
 
 3. **Use in GitHub Copilot Chat:**
-```
+   ```
    @business-analyst [your request]
    @requirements-engineer [your request]
    @architect [your request]
    @developer [your request]
    @debugger [your request]
-Agent Selection in Copilot
-GitHub Copilot automatically detects available agents from .github/chatmodes/ and presents them in the agent picker.
+   ```
 
-📚 Documentation
+### Agent Selection in Copilot
 
-Global Overview - Complete workflow and agent integration
-Business Analyst Guide - Discovery and ideation
-Requirements Engineer Guide - Epics and features
-Architect Guide - ADRs and system design
-Developer Guide - Test-driven implementation
-Debugger Guide - Systematic debugging
+GitHub Copilot automatically detects available agents from `.github/chatmodes/` and presents them in the agent picker.
 
-Validation Rules
+---
 
-Architect Instructions - ADR and arc42 validation
-Developer Instructions - Test enforcement
-Debugger Instructions - Error log validation
-RE Instructions - NFR and ASR validation
+## 📚 Documentation
 
-Templates
+- **[Global Overview](.github/copilot-instructions.md)** - Complete workflow and agent integration
+- **[Business Analyst Guide](.github/chatmodes/business-analyst.chatmode.md)** - Discovery and ideation
+- **[Requirements Engineer Guide](.github/chatmodes/requirements-engineer.chatmode.md)** - Epics and features
+- **[Architect Guide](.github/chatmodes/architect.chatmode.md)** - ADRs and system design
+- **[Developer Guide](.github/chatmodes/developer.chatmode.md)** - Test-driven implementation
+- **[Debugger Guide](.github/chatmodes/debugger.chatmode.md)** - Systematic debugging
 
-Epic Template
-Feature Template
-Issue Template
-Bugfix Template
-Improvement Template
+### Validation Rules
+- **[Architect Instructions](.github/instructions/architect.instructions.md)** - ADR and arc42 validation
+- **[Developer Instructions](.github/instructions/developer.instructions.md)** - Test enforcement
+- **[Debugger Instructions](.github/instructions/debugger.instructions.md)** - Error log validation
+- **[RE Instructions](.github/instructions/requirements-engineer.instructions.md)** - NFR and ASR validation
 
+### Templates
+- **[Epic Template](.github/templates/EPIC-TEMPLATE.md)**
+- **[Feature Template](.github/templates/FEATURE-TEMPLATE.md)**
+- **[Issue Template](.github/templates/ISSUE-TEMPLATE.md)**
+- **[Bugfix Template](.github/templates/BUGFIX-TEMPLATE.md)**
+- **[Improvement Template](.github/templates/IMPROVEMENT-TEMPLATE.md)**
 
-🎓 Best Practices
-When to Use Which Agent
-Use @business-analyst when:
+---
 
-❓ Starting with a vague idea
-🆕 New project from scratch
-🤔 Need to explore problem space
+## 🎓 Best Practices
 
-Use @requirements-engineer when:
+### When to Use Which Agent
 
-📄 Have business analysis document
-✍️ Have clear requirements but need structure
-🎯 Want to skip discovery and jump to features
+**Use @business-analyst when:**
+- ❓ Starting with a vague idea
+- 🆕 New project from scratch
+- 🤔 Need to explore problem space
 
-Use @architect when:
+**Use @requirements-engineer when:**
+- 📄 Have business analysis document
+- ✍️ Have clear requirements but need structure
+- 🎯 Want to skip discovery and jump to features
 
-🏗️ Requirements complete (QG1 passed)
-📋 Need technical design decisions
-🔧 Ready to plan implementation
+**Use @architect when:**
+- 🏗️ Requirements complete (QG1 passed)
+- 📋 Need technical design decisions
+- 🔧 Ready to plan implementation
 
-Use @developer when:
+**Use @developer when:**
+- 💻 Architecture complete (QG2 passed)
+- 📝 Have developer-ready issues
+- 🧪 Ready to implement with tests
 
-💻 Architecture complete (QG2 passed)
-📝 Have developer-ready issues
-🧪 Ready to implement with tests
+**Use @debugger when:**
+- 🐛 Tests failing
+- 📋 Have error log from Developer
+- 🔍 Need systematic root cause analysis
 
-Use @debugger when:
+### Common Pitfalls to Avoid
 
-🐛 Tests failing
-📋 Have error log from Developer
-🔍 Need systematic root cause analysis
+❌ **DON'T:**
+- Skip quality gates (they catch problems early!)
+- Write code without tests
+- Use vague NFRs ("fast", "secure")
+- Create oversized issues (>3 days)
+- Commit with failing tests
 
-Common Pitfalls to Avoid
-❌ DON'T:
+✅ **DO:**
+- Follow the workflow sequentially
+- Let each agent do its job
+- Quantify all NFRs with numbers
+- Keep issues atomic (1-3 days)
+- Run ALL tests before commit
 
-Skip quality gates (they catch problems early!)
-Write code without tests
-Use vague NFRs ("fast", "secure")
-Create oversized issues (>3 days)
-Commit with failing tests
+---
 
-✅ DO:
+## 🤝 Contributing
 
-Follow the workflow sequentially
-Let each agent do its job
-Quantify all NFRs with numbers
-Keep issues atomic (1-3 days)
-Run ALL tests before commit
-
-
-🤝 Contributing
 This is an evolving system. Contributions welcome for:
+- New agent types
+- Improved validation rules
+- Additional templates
+- Documentation improvements
+- Bug fixes
 
-New agent types
-Improved validation rules
-Additional templates
-Documentation improvements
-Bug fixes
+---
 
+## 📄 License
 
-📄 License
-[Add your license here]
+MIT
 
-🙏 Acknowledgments
+---
+
+## 🙏 Acknowledgments
+
 Built with:
+- GitHub Copilot Chat Modes
+- Inspired by SAFe Framework (Epics, Features)
+- arc42 Architecture Documentation
+- MADR (Markdown Architectural Decision Records)
+- Clean Code Principles
+- Test-Driven Development
 
-GitHub Copilot Chat Modes
-Inspired by SAFe Framework (Epics, Features)
-arc42 Architecture Documentation
-MADR (Markdown Architectural Decision Records)
-Clean Code Principles
-Test-Driven Development
