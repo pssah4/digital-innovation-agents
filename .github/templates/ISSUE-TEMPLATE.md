@@ -1,299 +1,282 @@
-# ISSUE-XXX: [Issue Title]
+# ISSUE-XXX: [Action-Oriented Title - What to Build]
 
-> **Epic:** [EPIC-XXX](../epics/EPIC-XXX-epic-name.md) - [Epic Name]  
-> **Feature:** [FEATURE-XXX](../features/FEATURE-XXX-feature-name.md) - [Feature Name]  
+> **Feature:** [FEATURE-XXX](../features/FEATURE-XXX-*.md) - [Feature Name]  
 > **ID:** ISSUE-XXX  
-> **Story Points:** X (Fibonacci: 1,2,3,5,8,13)  
+> **Type:** Feature | Bug Fix | Refactor | Test | Documentation  
 > **Priority:** P0-Critical | P1-High | P2-Medium | P3-Low  
-> **Status:** 📋 Not Started | 🚧 In Progress | ✅ Done | 🔄 In Review  
-> **Owner:** [Developer Name]  
+> **Effort:** Tiny (2-4h) | Small (4-8h) | Medium (1-2d) | Large (2-3d)  
+> **Status:** 📋 Ready | 🔵 In Progress | ✅ Done | ❌ Blocked  
 > **Sprint:** Sprint X | Backlog  
+> **Created:** YYYY-MM-DD  
 
 ---
 
-## 📝 Business Context
-
-**Why This Issue Matters:**
-[Explain how this issue contributes to the feature's business value]
-
-**Contribution to Feature:**
-[Specific capability this issue enables within the parent feature]
-
-**User Impact:**
-[How end-users will experience this functionality]
+> ⚠️ **ATOMIC ISSUE PRINCIPLE:** Dieses Issue muss in 1-3 Tagen abschließbar sein!  
+> Falls >3 Tage geschätzt → Issue muss aufgeteilt werden.
 
 ---
 
-## 📖 User Story
+## 📝 Context
 
-**As a** [specific user persona]  
-**I want to** [specific capability]  
-**So that** [specific benefit/value]
+[1-2 Absätze: Warum existiert dieses Issue? Welches Problem löst es? Business Context.]
 
-**Example Scenario:**
-[Concrete example of user using this functionality]
+**Contribution to Feature:**  
+[Wie ermöglicht dieses Issue das Parent Feature?]
 
----
-
-## ✅ Acceptance Criteria
-
-**This issue is complete when:**
-
-1. **Criterion 1:** [Specific, testable requirement]
-   - Measurement: [How we verify it]
-   - Pass Condition: [What success looks like]
-
-2. **Criterion 2:** [Specific, testable requirement]
-   - Measurement: [How we verify it]
-   - Pass Condition: [What success looks like]
-
-3. **Criterion 3:** [Specific, testable requirement]
-   - Measurement: [How we verify it]
-   - Pass Condition: [What success looks like]
-
-4. **Criterion 4:** [Specific, testable requirement]
-   - Measurement: [How we verify it]
-   - Pass Condition: [What success looks like]
-
-5. **Criterion 5:** [Specific, testable requirement]
-   - Measurement: [How we verify it]
-   - Pass Condition: [What success looks like]
+**User Impact:**  
+[Wie werden End-User diese Funktionalität erleben?]
 
 ---
 
-## 🥒 Gherkin Scenarios
+## 🏗️ Architectural Context
 
-### Scenario 1: [Happy Path - Successful Case]
+**Related ADRs:**
+- [ADR-XXX](../../architecture/ADR-XXX-*.md) - [Decision Title]
+- [ADR-YYY](../../architecture/ADR-YYY-*.md) - [Decision Title]
 
-```gherkin
-Feature: [Feature Name from FEATURE-XXX]
+**arc42 Reference:**  
+Section [X.X] - [Section Name]
 
-Scenario: [Descriptive scenario name with specific conditions]
-  Given a registered user with email "user@example.com"
-  And the user has password "SecurePass123!"
-  And the user is on the login page at "/login"
-  And the user's account is active and verified
-  When the user enters email "user@example.com" into the email field
-  And the user enters password "SecurePass123!" into the password field
-  And the user clicks the "Login" button
-  Then the user is redirected to the dashboard at "/dashboard"
-  And a welcome message "Welcome back, User!" is displayed in the header
-  And a session token is created with 24-hour expiry
-  And the user's last login timestamp is updated to current time
-  And the user sees their personalized dashboard widgets
+**Architectural Decision Summary:**  
+> Wir haben uns für [Entscheidung] entschieden, weil [Rationale aus ADR].  
+> Dies bedeutet für dieses Issue: [Implikation].
+
+**Component:**  
+[Welche architektonische Komponente betrifft dieses Issue?]
+
+**System Context:**
 ```
+[Einfaches Diagramm oder Beschreibung wo dieses Issue im System liegt]
 
-### Scenario 2: [Error/Edge Case - Failure Case]
-
-```gherkin
-Scenario: [Descriptive scenario name for error condition]
-  Given a registered user with email "user@example.com"
-  And the user has password "SecurePass123!"
-  And the user is on the login page at "/login"
-  And the user's account has been locked after 5 failed attempts
-  When the user enters email "user@example.com" into the email field
-  And the user enters password "SecurePass123!" into the password field
-  And the user clicks the "Login" button
-  Then the user remains on the login page at "/login"
-  And an error message is displayed: "Account locked due to multiple failed login attempts"
-  And the error message includes text "Please contact support or wait 30 minutes"
-  And no session token is created
-  And no redirect occurs
-  And the login form is disabled for 30 minutes
-  And an email is sent to "user@example.com" about the locked account
-```
-
-### Scenario 3: [Additional Edge Case - Optional but Recommended]
-
-```gherkin
-Scenario: [Another important edge case or variation]
-  Given [specific preconditions with concrete values]
-  And [additional context]
-  When [specific user action with concrete values]
-  And [additional actions if needed]
-  Then [specific expected outcome with concrete values]
-  And [additional expected results]
-  And [state changes or side effects]
+[Component A] → [DIESES ISSUE] → [Component B]
+                      ↓
+               [External API]
 ```
 
 ---
 
-## 🔧 Technical Notes
+## 📋 Requirements
 
-**Implementation Approach:**
-[High-level technical approach, but NOT detailed implementation]
+### Functional Requirements
 
-**Components Involved:**
-- [Component 1]: [Responsibility]
-- [Component 2]: [Responsibility]
-- [Component 3]: [Responsibility]
+**Was gebaut werden muss:**
 
-**Data Models:**
-- [Entity 1]: [Fields needed]
-- [Entity 2]: [Fields needed]
+1. [Spezifische Anforderung 1]
+2. [Spezifische Anforderung 2]
+3. [Spezifische Anforderung 3]
 
-**APIs/Endpoints:**
-- [Endpoint 1]: [Method, Purpose]
-- [Endpoint 2]: [Method, Purpose]
+**Beispiel (falls hilfreich):**
+```python
+# Erwartete Struktur/Pattern (NICHT vollständige Implementation!)
+class UserModel:
+    email: str
+    password_hash: str
+    created_at: datetime
+```
 
-**Technology Constraints:**
-- [Framework/Library]: [Version, requirement]
-- [Database]: [Schema changes needed]
-- [External Service]: [Integration point]
+### Non-Functional Requirements
 
----
+**Performance (falls relevant):**
+- [Requirement mit konkretem Wert]
 
-## 🔀 Dependencies
-
-**Blocked By (Must complete first):**
-- [ISSUE-XXX](./ISSUE-XXX-issue-name.md) - [Why this blocks us]
-- [External Dependency] - [What we need]
-
-**Blocks (This must be done before):**
-- [ISSUE-XXX](./ISSUE-XXX-issue-name.md) - [What this enables]
-
-**Related Issues:**
-- [ISSUE-XXX](./ISSUE-XXX-issue-name.md) - [How they relate]
+**Security (falls relevant):**
+- [Requirement mit konkretem Standard]
 
 ---
 
-## 🚨 Edge Cases
+## 🎯 Acceptance Criteria
 
-**Edge Case 1: [Scenario Name]**
-- **Description:** [What makes this an edge case]
-- **Trigger:** [Specific condition that causes it]
-- **Expected Behavior:** [How system should respond]
-- **Covered in Scenario:** [Which Gherkin scenario covers this]
+> ⚠️ **Jedes Kriterium muss eindeutig testbar sein!**
 
-**Edge Case 2: [Scenario Name]**
-- **Description:** [What makes this an edge case]
-- **Trigger:** [Specific condition that causes it]
-- **Expected Behavior:** [How system should respond]
-- **Covered in Scenario:** [Which Gherkin scenario covers this]
+**Dieses Issue ist fertig wenn:**
 
-**Edge Case 3: [Scenario Name]**
-- **Description:** [What makes this an edge case]
-- **Trigger:** [Specific condition that causes it]
-- **Expected Behavior:** [How system should respond]
-- **Covered in Scenario:** [Which Gherkin scenario covers this]
+- [ ] **AC1:** [Spezifisch und testbar]
+  - Verification: [Wie wird das verifiziert?]
+  
+- [ ] **AC2:** [Spezifisch und testbar]
+  - Verification: [Wie wird das verifiziert?]
+  
+- [ ] **AC3:** [Spezifisch und testbar]
+  - Verification: [Wie wird das verifiziert?]
+
+**Gherkin Scenarios (aus Feature):**
+- [Scenario aus FEATURE-XXX](../features/FEATURE-XXX-*.md#scenario-1)
 
 ---
 
-## 🚫 Out of Scope
+## 🔧 Implementation Guidance
 
-**NOT included in this issue:**
+> ℹ️ **High-Level Guidance, NICHT Step-by-Step!** Developer entscheidet über Details.
 
-1. **[Feature/Behavior]** - [Reason] - [Where it will be handled]
-2. **[Feature/Behavior]** - [Reason] - [Where it will be handled]
-3. **[Feature/Behavior]** - [Reason] - [Where it will be handled]
+**Files to Create/Modify:**
+```
+src/models/user.py      # Create
+src/services/auth.py    # Modify
+tests/test_user.py      # Create
+docs/api/users.md       # Update
+```
+
+**Suggested Approach:**
+1. [High-Level Schritt - z.B. "Define User model mit SQLAlchemy"]
+2. [High-Level Schritt - z.B. "Add validation methods"]
+3. [High-Level Schritt - z.B. "Create database migration"]
+
+**Key Patterns/Standards:**
+- Follow [Pattern aus ADR-XXX]
+- Use [Library] for [Purpose]
+- Reference [Example in Codebase]
+
+---
+
+## 🔒 Architectural Constraints (Non-Negotiable!)
+
+> ⚠️ **MUST/MUST NOT - Diese Constraints sind nicht verhandelbar!**
+
+**MUST:**
+- [Constraint 1 - z.B. "Use bcrypt for password hashing (ADR-XXX)"]
+- [Constraint 2 - z.B. "Follow RESTful conventions"]
+- [Constraint 3 - z.B. "All endpoints require authentication"]
+
+**MUST NOT:**
+- [Anti-Pattern 1 - z.B. "Store passwords in plain text"]
+- [Anti-Pattern 2 - z.B. "Use synchronous calls to external APIs"]
+- [Anti-Pattern 3 - z.B. "Hardcode configuration values"]
+
+**Performance Constraints (falls kritisch):**
+- [z.B. "Query must complete in <100ms"]
+
+**Security Constraints (falls kritisch):**
+- [z.B. "All user input must be sanitized"]
+
+---
+
+## 🔓 Open for Developer Decision
+
+> ✅ **Developer hat volle Autonomie über diese Aspekte:**
+
+- **Internal Code Structure:** [z.B. "How to organize helper functions"]
+- **Variable/Method Naming:** [Developer's choice within style guide]
+- **Algorithm Choice:** [z.B. "Choice of sorting algorithm" - unless constrained]
+- **Library Selection:** [z.B. "Choice of validation library within stack"]
+- **Error Message Wording:** [Developer's choice]
+- **Logging Details:** [What/how much to log]
+- **Test Organization:** [How to structure test files]
 
 ---
 
 ## 🧪 Testing Requirements
 
-**Unit Tests Required:**
+> ⚠️ **MANDATORY - Issue ist nicht Done ohne Tests!**
+
+### Unit Tests (PFLICHT)
+
 - [ ] Test happy path scenario
 - [ ] Test error handling (invalid input)
-- [ ] Test edge cases (null, empty, boundary values)
+- [ ] Test edge cases: [spezifische Edge Cases]
 - [ ] Test validation logic
 - [ ] Test error messages
-- [ ] Test state changes
-- [ ] Minimum 90% code coverage
 
-**Integration Tests Required:**
-- [ ] Test full workflow end-to-end
+**Minimum Coverage:** 80% für neuen Code
+
+### Integration Tests (falls relevant)
+
+- [ ] Test [Integration Scenario 1]
+- [ ] Test [Integration Scenario 2]
 - [ ] Test database interactions
 - [ ] Test API responses
-- [ ] Test external service integrations
-- [ ] Test authentication/authorization
-- [ ] Test concurrent operations
-- [ ] Test rollback scenarios
 
-**Performance Tests:**
-- [ ] Response time < [X]ms for 95th percentile
+### Performance Tests (falls NFR definiert)
+
+- [ ] Response time < [X]ms
 - [ ] Can handle [X] concurrent requests
-- [ ] Memory usage stays below [X]MB
-
-**Security Tests:**
-- [ ] Input validation prevents injection
-- [ ] Authorization checks enforced
-- [ ] Sensitive data encrypted/masked
-- [ ] Rate limiting works correctly
 
 ---
 
-## 📊 Definition of Done
+## ✅ Definition of Done
 
-**Technical Completion:**
-- [ ] All acceptance criteria met
-- [ ] All Gherkin scenarios pass
-- [ ] Unit tests written and passing (≥90% coverage)
-- [ ] Integration tests written and passing
-- [ ] Performance requirements met
-- [ ] Security requirements met
-- [ ] Code follows style guidelines
-- [ ] No code smells or technical debt
-- [ ] Error handling implemented
-- [ ] Logging implemented
-- [ ] No hardcoded values (use config)
+**Code:**
+- [ ] Code implementiert wie spezifiziert
+- [ ] Alle Acceptance Criteria erfüllt
+- [ ] Alle Architectural Constraints eingehalten
+- [ ] Code follows Style Guide
+- [ ] Keine Linting Errors
+
+**Tests:**
+- [ ] Unit Tests geschrieben und bestanden
+- [ ] Integration Tests bestanden (falls relevant)
+- [ ] Coverage > 80% für neuen Code
+
+**Quality:**
+- [ ] Self-Review durchgeführt
+- [ ] Code Review bestanden
+- [ ] Keine bekannten Bugs
 
 **Documentation:**
-- [ ] Inline code comments added
-- [ ] API documentation updated
-- [ ] README updated (if needed)
-- [ ] Architectural docs updated (if significant change)
-
-**Quality Assurance:**
-- [ ] Code reviewed and approved
-- [ ] Manual testing completed
-- [ ] Exploratory testing completed
-- [ ] Edge cases validated
-- [ ] Error scenarios validated
+- [ ] Inline Comments wo nötig
+- [ ] API Documentation aktualisiert (falls API geändert)
+- [ ] README aktualisiert (falls nötig)
 
 **Deployment:**
-- [ ] Database migrations created (if needed)
-- [ ] Configuration changes documented
-- [ ] Environment variables defined
-- [ ] Deployment script updated (if needed)
-- [ ] Rollback plan documented
+- [ ] Committed mit klarer Message
+- [ ] CI/CD Pipeline passed
+- [ ] Deployed to Staging (falls relevant)
+
+---
+
+## 🔗 Dependencies
+
+**Blocked By (Muss zuerst fertig sein):**
+- [ISSUE-XXX](./ISSUE-XXX-*.md) - [Warum blockiert]
+
+**Blocks (Wartet auf dieses Issue):**
+- [ISSUE-YYY](./ISSUE-YYY-*.md) - [Was wird ermöglicht]
+
+**Related (Keine Blockade, aber relevant):**
+- [ISSUE-ZZZ](./ISSUE-ZZZ-*.md) - [Wie sie zusammenhängen]
+
+---
+
+## 💡 Notes for Developer
+
+**Helpful Context:**
+[Zusätzlicher Kontext, Gotchas, oder Implementation Tips]
+
+**Common Pitfalls:**
+- [Pitfall 1 zu vermeiden]
+- [Pitfall 2 zu vermeiden]
+
+**Helpful Resources:**
+- [Documentation Link]
+- [Example in Codebase]
+- [Stack Overflow / Blog Post]
 
 ---
 
 ## 📚 References
 
-**Related Documents:**
-- [Epic](../epics/EPIC-XXX-epic-name.md)
-- [Feature](../features/FEATURE-XXX-feature-name.md)
-- [Technical Specs]
-- [Design Docs]
+**Architecture:**
+- ADR: [Link zu relevantem ADR]
+- arc42: [Link zu relevantem Section]
 
-**External Resources:**
-- [API Documentation]
-- [Framework Docs]
-- [Industry Standards]
+**Requirements:**
+- Feature: [Link zu FEATURE-XXX]
+- Gherkin Scenarios: [Link]
 
----
-
-## 💡 Implementation Hints
-
-**Suggested Approach:**
-[High-level guidance on how to approach this, but not prescriptive implementation details]
-
-**Common Pitfalls:**
-[Known issues or mistakes to avoid]
-
-**Testing Tips:**
-[Suggestions for effective testing]
+**Technical:**
+- [Framework Documentation]
+- [API Reference]
 
 ---
 
-## 📝 Notes
+## 📝 Change Log
 
-[Any additional context, considerations, or information]
+| Datum | Änderung | Autor |
+|-------|----------|-------|
+| YYYY-MM-DD | Issue erstellt | Architect |
 
 ---
 
-**Created:** YYYY-MM-DD  
-**Last Updated:** YYYY-MM-DD  
-**Reviewed By:** [Name]  
-**Approved By:** [Name]
+**Template Version:** 2.0  
+**Workflow:** RE (Feature) → Architect (erstellt Issue) → Developer (implementiert)  
+**Erstellt von:** Architect  
+**Atomic Principle:** Max 1-3 Tage Effort!
