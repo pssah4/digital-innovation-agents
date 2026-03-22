@@ -1,573 +1,287 @@
-
-
 # Digital Innovation Agents
 
-> **AI-Powered Software Development Workflow** - From idea to production-ready code through structured, quality-gated phases.
+> **AI-Powered Software Development Workflow** -- From idea to production-ready code through structured, quality-gated phases.
 
-A comprehensive system of specialized AI agents that guide software development from initial business concept through requirements engineering, architecture design, implementation, and debugging. Built for GitHub Copilot with automated quality gates and validation.
+A comprehensive system of specialized AI agents that guide software development from initial business concept through requirements engineering, architecture design, implementation, testing, and security audit. Available for **GitHub Copilot** and **Claude Code**.
 
 ---
 
-## 🎯 What This Is
+## What This Is
 
 **Digital Innovation Agents** transforms how software is built by providing a structured, agent-based workflow that ensures quality at every stage. Instead of jumping straight into code, projects follow a systematic path:
 
 ```
-Business Idea → Requirements → Architecture → Implementation → Quality Assurance
-     ↓              ↓              ↓              ↓                ↓
-   BA Agent    RE Agent    Architect Agent  Developer Agent  Debugger Agent
+Business Idea -> Requirements -> Architecture -> Implementation -> Testing -> Security Audit
+      |               |              |               |              |             |
+   BA Agent      RE Agent     Architect Agent   Coding Agent   Test Agent   Security Agent
 ```
 
 Each agent specializes in one phase, has built-in quality checks, and produces standardized outputs that feed into the next phase.
 
 ---
 
-## 🤖 The Five Agents
+## Two Platforms, One Workflow
 
-### 1. **Business Analyst** (`@business-analyst`)
-**Role:** Transform raw ideas into structured business requirements
+### GitHub Copilot (`.github/`)
 
-**When to use:**
-- Starting a new project from scratch
-- Have a problem but unclear on the solution
-- Need to explore requirements systematically
+The original implementation using Copilot's custom agents, instructions, and templates. Activate agents with `@agent-name` in Copilot Chat.
 
-**Input:** Raw project idea or problem description  
-**Output:** `docs/business-analysis/BA-[PROJECT].md`
+See [GitHub Copilot Setup](#github-copilot-setup) below.
 
-**Key Features:**
-- Scope detection (Simple Test / PoC / MVP)
-- Structured interviews (5-50 questions based on scope)
-- Jobs-to-be-Done analysis
-- Value proposition development
-- Success metrics definition
+### Claude Code (`claude-code-skills/`)
+
+Migrated to Claude Code's skill system. Activate with `/skill-name` slash commands or let Claude auto-detect the right skill. Works in Claude Code terminal, VS Code extension, and JetBrains.
+
+See [Claude Code Setup](#claude-code-setup) below.
 
 ---
 
-### 2. **Requirements Engineer** (`@requirements-engineer`)
-**Role:** Convert business analysis into architect-ready requirements
+## The Agents
 
-**When to use:**
-- Have a business analysis document
-- Need structured epics and features
-- Ready to define technical requirements
-
-**Input:** Business Analysis document OR direct user input  
-**Output:**
-- `requirements/epics/EPIC-*.md`
-- `requirements/features/FEATURE-*.md`
-- `requirements/handoff/architect-handoff.md`
-
-**Key Features:**
-- Epic creation with hypothesis statements
-- Feature breakdown with acceptance criteria
-- NFR quantification (Performance, Security, Scalability)
-- **ASR identification** (Architecture-Significant Requirements)
-- Comprehensive architect handoff package
-
-**Quality Gate 1 (QG1):**
-- ✅ All NFRs quantified (with numbers!)
-- ✅ All ASRs identified and marked (🔴/🟡)
-- ✅ Acceptance criteria testable
-- ✅ Architect handoff complete
+| Phase | Role | Copilot | Claude Code |
+|-------|------|---------|-------------|
+| Business Analysis | Problem and stakeholder analysis | `@business-analyst` | `/business-analyse` |
+| Requirements | Epics, features, success criteria | `@requirements-engineer` | `/requirements-engineering` |
+| Architecture | ADRs, arc42, plan-context.md | `@architect` | `/architecture` |
+| Implementation | Context handoff, critical review, coding | `@developer` | `/coding` |
+| Testing | Unit and integration tests | `@developer` (built-in) | `/testing` |
+| Security Audit | OWASP, SAST, SCA, Zero Trust | `@security-auditor` | `/security-audit` |
+| Debugging | Root cause analysis | `@debugger` | -- (default agent) |
+| Orchestrator | Guides through all phases | -- | `/v-model-workflow` |
+| Conventions | Project structure and naming | -- | `/project-conventions` |
 
 ---
 
-### 3. **Architect** (`@architect`)
-**Role:** Design technical architecture and create developer-ready issues
+## The Flow
 
-**When to use:**
-- Requirements are complete (QG1 passed)
-- Need architectural decisions documented
-- Ready to plan implementation
-
-**Input:** `requirements/handoff/architect-handoff.md`  
-**Output:**
-- `docs/decisions/ADR-*.md` (Architecture Decision Records in MADR format)
-- `docs/arc42/ARC42-DOCUMENTATION.md` (arc42 architecture docs)
-- `backlog/ISSUE-*.md` (Developer-ready issues)
-- `backlog/Backlog.md` (Single source of truth for work breakdown)
-
-**Key Features:**
-- Adaptive complexity (Simple Test / PoC / MVP)
-- ADR creation with research (web_search + @azure)
-- arc42 documentation (sections 1-7 for MVP)
-- Atomic issue creation (1-3 days each)
-- System design with Mermaid diagrams
-
-**Quality Gate 2 (QG2):**
-- ✅ ADRs for all major decisions (MADR format, 3+ options)
-- ✅ arc42 complete for scope
-- ✅ Atomic issues created (clear single responsibility)
-- ✅ Backlog.md created (work overview)
-- ✅ Developer handoff complete
-
----
-
-### 4. **Developer** (`@developer`)
-**Role:** Implement atomic tasks with mandatory testing
-
-**When to use:**
-- Architecture complete (QG2 passed)
-- Ready to write code
-- Have developer-ready issues in backlog
-
-**Input:** Issues from `backlog/ISSUE-*.md`  
-**Output:**
-- Production code (`src/**/*`)
-- Test code (`tests/**/*`)
-- Error logs if tests fail (`logs/ERROR-TASK-*.md`)
-
-**Key Features:**
-- **5-Phase Streamlined Workflow:**
-  1. Task Analysis & Setup
-  2. Implementation (code + tests)
-  3. Testing & Validation (ALL tests MANDATORY)
-  4. Validation & Commit
-  5. Completion & Metrics
-
-**Quality Gate 3 (QG3):**
-- ✅ ALL tests written (from task test plan)
-- ✅ ALL tests executed (full suite)
-- ✅ ALL tests passing OR error log created
-- ✅ Coverage ≥90%
-- ✅ Clean code principles applied
-- ✅ No TODOs or placeholders
-
-**Critical Rule:** **Tests are MANDATORY, not optional!**
-
----
-
-### 5. **Debugger** (`@debugger`)
-**Role:** Systematic error analysis and resolution
-
-**When to use:**
-- Tests failed after implementation
-- Have error log from Developer
-- Need root cause analysis
-
-**Input:** `logs/ERROR-TASK-*.md`  
-**Output:**
-- Fixed code
-- Updated tests
-- Resolution documentation
-
-**Key Features:**
-- **Fast Path:** Simple fixes in minutes (typos, missing imports)
-- **Systematic Path:** Complex issues with full analysis
-  - Root cause identification (not symptoms!)
-  - Fix strategy with multiple options
-  - Comprehensive testing
-  - No regressions
-
-**Quality Gate Debug (QGD):**
-- ✅ Root cause identified (not symptom)
-- ✅ Clean fix (no workarounds)
-- ✅ ALL tests run and passing
-- ✅ No regressions
-- ✅ Resolution documented
-
----
-
-## 📁 Repository Structure
+### Entwurfsphasen (Left Side of the V)
 
 ```
-digital-innovation-agents/
-├── .github/
-│   ├── chatmodes/                    # Agent definitions
-│   │   ├── business-analyst.chatmode.md
-│   │   ├── requirements-engineer.chatmode.md
-│   │   ├── architect.chatmode.md
-│   │   ├── developer.chatmode.md
-│   │   └── debugger.chatmode.md
-│   │
-│   ├── instructions/                 # Auto-validation rules
-│   │   ├── architect.instructions.md
-│   │   ├── developer.instructions.md
-│   │   ├── debugger.instructions.md
-│   │   └── requirements-engineer.instructions.md
-│   │
-│   ├── templates/                    # Document templates
-│   │   ├── EPIC-TEMPLATE.md
-│   │   ├── FEATURE-TEMPLATE.md
-│   │   ├── ISSUE-TEMPLATE.md
-│   │   ├── BUGFIX-TEMPLATE.md
-│   │   └── IMPROVEMENT-TEMPLATE.md
-│   │
-│   └── copilot-instructions.md       # Global agent overview
-│
-├── docs/                             # Documentation outputs
-│   ├── business-analysis/            # BA outputs
-│   ├── decisions/                    # ADRs from Architect
-│   └── arc42/                        # Architecture docs
-│
-├── requirements/                     # RE outputs
-│   ├── epics/                        # EPIC-*.md
-│   ├── features/                     # FEATURE-*.md
-│   └── handoff/                      # architect-handoff.md
-│
-├── backlog/                          # Architect outputs
-│   ├── Backlog.md                    # THE single source of truth
-│   └── ISSUE-*.md                    # Developer-ready issues
-│
-├── src/                              # Developer outputs (code)
-├── tests/                            # Developer outputs (tests)
-└── logs/                             # Error logs (when tests fail)
+/business-analyse
+  Output: _devprocess/analysis/BA-{PROJECT}.md
+    |
+    v
+/requirements-engineering
+  Input:  BA document
+  Output: Epics, Features, architect-handoff.md
+    |
+    v
+/architecture
+  Input:  Features, ASRs, NFRs
+  Output: ADRs, arc42, plan-context.md
+```
+
+### Implementation (Bottom of the V)
+
+```
+/coding
+  Input:  plan-context.md + ADRs + Features
+  1. Load context from design phases
+  2. Critical review against real codebase
+  3. Write changes back to artifacts BEFORE coding
+  4. Implementation (default coding agent)
+  5. Continuous writeback during implementation
+  6. Final sync -- artifacts reflect what was actually built
+```
+
+### Verification (Right Side of the V)
+
+```
+/testing
+  Input:  Implemented codebase
+  Output: Unit tests, integration tests
+
+/security-audit
+  Input:  Implemented codebase
+  Output: Security report with remediation plan
 ```
 
 ---
 
-## 🚀 Getting Started
+## Key Design Principles
+
+**Codebase-Awareness**: Every agent reads the existing codebase before producing output. No agent works in a vacuum. Your project's `CLAUDE.md` always takes precedence.
+
+**Living Documents**: ADRs, features, and architecture docs are continuously updated during implementation. At the end, documentation always reflects what was actually built -- not what was originally planned.
+
+**Tech-Agnostic Success Criteria**: Requirements separate *what* (measurable, technology-free) from *how* (technical NFRs). No OAuth, REST, or PostgreSQL in success criteria -- those go into Technical NFRs for the architect.
+
+**Lightweight Coding Bridge**: The `/coding` skill doesn't replace your coding agent. It handles context loading, critical review, and artifact writeback. You code the way you always do.
+
+**Quality Gates**: No phase proceeds until quality criteria are met. Each agent validates its own output before handoff.
+
+---
+
+## Claude Code Setup
+
+### Install
+
+```bash
+cd claude-code-skills
+chmod +x install-skills.sh
+./install-skills.sh
+```
+
+Skills are copied to `~/.claude/skills/` and available immediately in Claude Code (terminal, VS Code extension, JetBrains).
+
+### Verify
+
+Type `/` in Claude Code -- your skills should appear in the autocomplete dropdown.
+
+In VS Code: if skills don't appear after install, close and reopen the Claude Code session.
+
+### Usage
+
+**Explicit** -- type `/business-analyse` or `/testing` to start a specific phase. Deterministic and reliable.
+
+**Automatic** -- say "I need a stakeholder analysis" and Claude loads the right skill based on the description. Works most of the time, but `/slash-command` is the safe bet.
+
+**Full cycle** -- type `/v-model-workflow` to be guided through each phase step by step.
+
+### Claude Code Skills Overview
+
+| Skill | Slash-Command | Auto | Description |
+|-------|---------------|------|-------------|
+| Project Conventions | `/project-conventions` | Yes | Directory structure, naming, codebase-awareness |
+| Business Analyse | `/business-analyse` | Yes | Structured interview, problem analysis |
+| Requirements Engineering | `/requirements-engineering` | Yes | Epics, features, tech-agnostic success criteria |
+| Architecture | `/architecture` | Yes | ADRs (MADR), arc42, plan-context.md |
+| Coding | `/coding` | Yes | Critical review, context handoff, artifact writeback |
+| Testing | `/testing` | Yes | Unit and integration tests (AAA, FIRST) |
+| Security Audit | `/security-audit` | Manual only | OWASP Top 10, LLM Top 10, SAST, SCA |
+| V-Model Workflow | `/v-model-workflow` | Manual only | Orchestrator for the full cycle |
+
+### Claude Code File Structure
+
+```
+claude-code-skills/
+  install-skills.sh
+  project-conventions/
+    SKILL.md
+    references/directory-structure.md, naming-conventions.md, codebase-awareness.md
+  business-analyse/
+    SKILL.md
+    templates/BA-TEMPLATE.md
+  requirements-engineering/
+    SKILL.md
+    templates/EPIC-TEMPLATE.md, FEATURE-TEMPLATE.md
+    references/tech-agnostic-rules.md
+  architecture/
+    SKILL.md
+    templates/ADR-TEMPLATE.md, arc42-TEMPLATE.md, plan-context-TEMPLATE.md
+  coding/
+    SKILL.md
+  testing/
+    SKILL.md
+    references/test-checklist.md, test-anti-patterns.md
+  security-audit/
+    SKILL.md
+    templates/AUDIT-TEMPLATE.md
+    references/cwe-patterns.md, owasp-checklist.md, owasp-llm-checklist.md
+  v-model-workflow/
+    SKILL.md
+```
+
+---
+
+## GitHub Copilot Setup
 
 ### Prerequisites
 
-- **GitHub Copilot** with Chat enabled
-- Project with `.github/chatmodes/` directory
-- Understanding of your project scope (Simple Test / PoC / MVP)
+- GitHub Copilot with Chat enabled
+- Project with `.github/` directory from this repo
 
-### Quick Start
+### Install
 
-**Option 1: Starting from Scratch (No Requirements)**
+Copy the `.github/` directory to your project root. Agents are automatically detected by Copilot.
 
-```
-Step 1: Use @business-analyst
-→ Conducts structured discovery interview
-→ Creates business analysis document
-
-Step 2: Use @requirements-engineer  
-→ Reads BA document
-→ Creates epics, features, architect handoff
-
-Step 3: Use @architect
-→ Creates ADRs, arc42 docs, issues
-→ Prepares backlog
-
-Step 4: Use @developer
-→ Implements issues with mandatory tests
-
-Step 5: Use @debugger (if tests fail)
-→ Fixes issues systematically
-```
-
-**Option 2: Starting with Requirements**
+### Usage
 
 ```
-Skip @business-analyst
-
-Step 1: Use @requirements-engineer directly
-→ Conducts scope-specific intake
-→ Creates epics, features, handoff
-
-[Continue with Steps 3-5 above]
+@business-analyst [your request]
+@requirements-engineer [your request]
+@architect [your request]
+@developer [your request]
+@debugger [your request]
 ```
 
-**Option 3: Starting with Architecture**
+### Copilot Agents Overview
+
+| Agent | Input | Output |
+|-------|-------|--------|
+| `@business-analyst` | Raw idea | `BA-[PROJECT].md` |
+| `@requirements-engineer` | BA document | Epics, Features, architect-handoff.md |
+| `@architect` | architect-handoff.md | ADRs, arc42, Issues, Backlog.md |
+| `@developer` | Issues from Backlog | Code + Tests |
+| `@debugger` | Error logs | Fixed code + resolution docs |
+
+### Quality Gates
+
+- **QG1** (RE -> Architect): All NFRs quantified, all ASRs identified
+- **QG2** (Architect -> Developer): ADRs complete, atomic issues created
+- **QG3** (Developer): All tests passing, coverage >= 90%
+- **QGD** (Debugger): Root cause fixed, no regressions
+
+### Copilot File Structure
 
 ```
-Skip @business-analyst and @requirements-engineer
-
-Step 1: Use @architect with your requirements
-→ Creates architecture artifacts
-
-[Continue with Steps 4-5 above]
-```
-
----
-
-## 💡 Example Usage
-
-### Starting a New Project
-
-```markdown
-User: I want to build a Notion importer that processes markdown files
-
-AI: [Detects @business-analyst should be used]
-
-@business-analyst:
-🎯 What are you developing?
-A) Simple Test/Quick Script
-B) Proof of Concept (PoC)  
-C) Minimum Viable Product (MVP)
-D) Own description
-
-User: B - I want to validate technical feasibility
-
-@business-analyst: [Conducts 15-25 questions interview]
-→ Creates: docs/business-analysis/BA-notion-importer.md
-
----
-
-User: Create requirements based on the BA document
-
-@requirements-engineer: [Reads BA document]
-→ Creates: requirements/epics/EPIC-001-content-migration.md
-→ Creates: requirements/features/FEATURE-001-markdown-import.md
-→ Creates: requirements/features/FEATURE-002-asset-upload.md
-→ Creates: requirements/handoff/architect-handoff.md
-
-Quality Gate 1 ✅ PASSED
-
----
-
-User: Design the architecture
-
-@architect: [Reads architect-handoff.md]
-→ Creates: docs/decisions/ADR-001-markdown-parser-choice.md
-→ Creates: docs/arc42/ARC42-DOCUMENTATION.md (sections 1,3,4 for PoC)
-→ Creates: backlog/Backlog.md
-→ Creates: backlog/ISSUE-001-markdown-parser.md
-→ Creates: backlog/ISSUE-002-frontmatter-extractor.md
-[... 10-30 atomic issues total]
-
-Quality Gate 2 ✅ PASSED
-
----
-
-User: Implement ISSUE-001
-
-@developer: [Reads ISSUE-001-markdown-parser.md]
-→ Phase 1: Analyzes task
-→ Phase 2: Implements code + writes tests
-→ Phase 3: Runs ALL tests
-  → Result: 2 tests failing ❌
-→ Creates: logs/ERROR-TASK-001-2025-11-05-1430.md
-→ Notifies: @debugger
-→ STOPS task execution
-
----
-
-User: @debugger fix the error
-
-@debugger: [Reads ERROR-TASK-001-2025-11-05-1430.md]
-→ Root Cause Analysis: Missing import statement
-→ Fast Path: Simple fix in 5 minutes
-→ Fixes code, runs ALL tests
-→ All tests passing ✅
-→ Updates error log with resolution
-→ Notifies: @developer can continue
-
-Quality Gate Debug ✅ PASSED
-
----
-
-User: Continue implementation
-
-@developer: [Resumes from Phase 3]
-→ All tests passing ✅
-→ Phase 4: Validates acceptance criteria
-→ Phase 5: Commits with informative message
-→ Task ISSUE-001 complete ✅
-
-Quality Gate 3 ✅ PASSED
+.github/
+  agents/                     # Agent definitions
+    business-analyst.agent.md
+    requirements-engineer.agent.md
+    architect.agent.md
+    security-auditor.agent.md
+  instructions/               # Auto-validation rules
+    architect.instructions.md
+    business-analyst.instructions.md
+    requirements-engineer.instructions.md
+  templates/                  # Document templates
+    EPIC-TEMPLATE.md
+    FEATURE-TEMPLATE.md
 ```
 
 ---
 
-## 🎯 Key Principles
+## Adapt to Your Workflow
 
-### 1. **Adaptive Complexity**
-Architecture depth matches project scope:
-- **Simple Test:** Minimal (hours-days)
-- **PoC:** Focused (1-4 weeks)
-- **MVP:** Comprehensive (2-6 months)
+These agents reflect my workflow. You'll want to adjust:
 
-### 2. **Quality Gates**
-No phase proceeds until quality criteria met:
-- **QG1:** Requirements ready for architecture
-- **QG2:** Architecture ready for development
-- **QG3:** Code ready for production
-- **QGD:** Bugs fixed without regressions
-
-### 3. **Test-First Development**
-- Write tests AS you code (not after)
-- Execute ALL tests (not just affected)
-- 100% pass rate OR error log created
-- Coverage ≥90% maintained
-
-### 4. **Clean Separation**
-- **BA:** WHAT problem (business view)
-- **RE:** WHAT to build (requirements view)
-- **Architect:** HOW to structure (architectural view)
-- **Developer:** HOW to implement (code view)
-- **Debugger:** WHY it failed (root cause view)
-
-### 5. **Atomic Work Units**
-- Issues are small (1-3 days max)
-- Single responsibility per issue
-- Clear acceptance criteria
-- Independent and testable
+- **Templates**: Edit templates to match your document standards
+- **Quality gates**: Tune validation thresholds
+- **Naming conventions**: Change file naming patterns in `project-conventions`
+- **Testing patterns**: Swap framework examples for your stack
+- **Scope levels**: Adjust Simple Test / PoC / MVP complexity settings
 
 ---
 
-## 📊 Quality Standards
+## Migration Notes: Copilot -> Claude Code
 
-### Requirements Engineering
-- ✅ All NFRs quantified (no vague "fast" or "secure")
-- ✅ All ASRs identified and marked (🔴 Critical / 🟡 Moderate)
-- ✅ Acceptance criteria testable (pass/fail)
-- ✅ Traceability to business goals
-
-### Architecture
-- ✅ ADRs in MADR format (3+ options, pros/cons, research links)
-- ✅ arc42 complete for scope (Simple Test: skip, PoC: 1,3,4, MVP: 1-7)
-- ✅ Issues atomic (1-3 days each)
-- ✅ Backlog.md as single source of truth
-
-### Development
-- ✅ Tests written during implementation
-- ✅ ALL tests executed (full suite)
-- ✅ Clean code (type hints, docstrings, no TODOs)
-- ✅ Coverage ≥90%
-
-### Debugging
-- ✅ Root cause identified (not symptom)
-- ✅ Clean fix (no workarounds)
-- ✅ Comprehensive testing (no regressions)
-- ✅ Learnings documented
+| Copilot Concept | Claude Code Equivalent |
+|----------------|----------------------|
+| `.github/agents/*.agent.md` | `~/.claude/skills/*/SKILL.md` |
+| `.github/instructions/*.instructions.md` | Integrated as Quality Gates in SKILL.md |
+| `.github/templates/*.md` | `~/.claude/skills/*/templates/*.md` |
+| `@agent-name` | `/skill-name` or natural language |
+| `tools:` in frontmatter | Not needed (Claude Code has own tool system) |
+| `model:` in frontmatter | Not needed (always current model) |
+| `applyTo:` file patterns | Skill description for auto-invocation |
 
 ---
 
-## 🔧 Configuration
+## License
 
-### Enable Agents in Your Project
+MIT License -- Copyright (c) 2025 Sebastian Hanke
 
-1. **Copy the `.github/` directory** to your project root
-
-2. **Customize chatmodes** (optional):
-   - Edit `.github/chatmodes/*.chatmode.md` for your needs
-   - Adjust complexity levels
-   - Add/remove tools
-
-3. **Use in GitHub Copilot Chat:**
-   ```
-   @business-analyst [your request]
-   @requirements-engineer [your request]
-   @architect [your request]
-   @developer [your request]
-   @debugger [your request]
-   ```
-
-### Agent Selection in Copilot
-
-GitHub Copilot automatically detects available agents from `.github/chatmodes/` and presents them in the agent picker.
+See [LICENSE](LICENSE) for details.
 
 ---
 
-## 📚 Documentation
-
-- **[Global Overview](.github/copilot-instructions.md)** - Complete workflow and agent integration
-- **[Business Analyst Guide](.github/chatmodes/business-analyst.chatmode.md)** - Discovery and ideation
-- **[Requirements Engineer Guide](.github/chatmodes/requirements-engineer.chatmode.md)** - Epics and features
-- **[Architect Guide](.github/chatmodes/architect.chatmode.md)** - ADRs and system design
-- **[Developer Guide](.github/chatmodes/developer.chatmode.md)** - Test-driven implementation
-- **[Debugger Guide](.github/chatmodes/debugger.chatmode.md)** - Systematic debugging
-
-### Validation Rules
-- **[Architect Instructions](.github/instructions/architect.instructions.md)** - ADR and arc42 validation
-- **[Developer Instructions](.github/instructions/developer.instructions.md)** - Test enforcement
-- **[Debugger Instructions](.github/instructions/debugger.instructions.md)** - Error log validation
-- **[RE Instructions](.github/instructions/requirements-engineer.instructions.md)** - NFR and ASR validation
-
-### Templates
-- **[Epic Template](.github/templates/EPIC-TEMPLATE.md)**
-- **[Feature Template](.github/templates/FEATURE-TEMPLATE.md)**
-- **[Issue Template](.github/templates/ISSUE-TEMPLATE.md)**
-- **[Bugfix Template](.github/templates/BUGFIX-TEMPLATE.md)**
-- **[Improvement Template](.github/templates/IMPROVEMENT-TEMPLATE.md)**
-
----
-
-## 🎓 Best Practices
-
-### When to Use Which Agent
-
-**Use @business-analyst when:**
-- ❓ Starting with a vague idea
-- 🆕 New project from scratch
-- 🤔 Need to explore problem space
-
-**Use @requirements-engineer when:**
-- 📄 Have business analysis document
-- ✍️ Have clear requirements but need structure
-- 🎯 Want to skip discovery and jump to features
-
-**Use @architect when:**
-- 🏗️ Requirements complete (QG1 passed)
-- 📋 Need technical design decisions
-- 🔧 Ready to plan implementation
-
-**Use @developer when:**
-- 💻 Architecture complete (QG2 passed)
-- 📝 Have developer-ready issues
-- 🧪 Ready to implement with tests
-
-**Use @debugger when:**
-- 🐛 Tests failing
-- 📋 Have error log from Developer
-- 🔍 Need systematic root cause analysis
-
-### Common Pitfalls to Avoid
-
-❌ **DON'T:**
-- Skip quality gates (they catch problems early!)
-- Write code without tests
-- Use vague NFRs ("fast", "secure")
-- Create oversized issues (>3 days)
-- Commit with failing tests
-
-✅ **DO:**
-- Follow the workflow sequentially
-- Let each agent do its job
-- Quantify all NFRs with numbers
-- Keep issues atomic (1-3 days)
-- Run ALL tests before commit
-
----
-
-## 🤝 Contributing
-
-This is an evolving system. Contributions welcome for:
-- New agent types
-- Improved validation rules
-- Additional templates
-- Documentation improvements
-- Bug fixes
-
----
-
-## 📄 License
-
-MIT License
-
-Copyright (c) 2025 Sebastian Hanke
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
----
-
-## 🙏 Acknowledgments
+## Acknowledgments
 
 Built with:
-- GitHub Copilot Chat Modes
-- Inspired by SAFe Framework (Epics, Features)
+- GitHub Copilot Chat Modes and Claude Code Skills
+- SAFe Framework (Epics, Features)
 - arc42 Architecture Documentation
 - MADR (Markdown Architectural Decision Records)
-- Clean Code Principles
-- Test-Driven Development
-
+- OWASP Top 10 and LLM Top 10
+- AAA Pattern and FIRST Principles for Testing
