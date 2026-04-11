@@ -51,6 +51,51 @@ skipped or shortened:
 | PoC (B) | Shortened (User, Needs, HMW) | Full | Hypotheses + Feasibility |
 | MVP (C) | Full | Full | Full |
 
+## Interview Rules
+
+These rules apply to every question and every artifact you produce during the interview.
+
+### Co-creation, not autonomous generation
+
+Never create personas, insights, or other artifacts without the user's confirmation.
+Always propose and wait for feedback before proceeding.
+
+- **Personas:** Propose a draft persona based on what the user told you. Ask:
+  "Here is a persona based on what you described. Does this fit, or should we adjust something?"
+  Only proceed after the user confirms or corrects.
+- **Insights:** Every insight must be traceable to a specific user statement.
+  When you synthesize an insight, cite which answer it comes from:
+  "Based on what you said about [X], I see this insight: [Y]. Does that match your experience?"
+  Never invent insights that are not grounded in the conversation.
+- **Needs, Touchpoints, Potential Fields:** Same principle. Propose, cite source, confirm.
+
+### Ask before you ask
+
+Before asking a question about users, market, or competitors, first check whether
+the user already has this information:
+
+"Do you already have data on [topic], or is this something we still need to figure out?"
+
+- **If the user has the information:** Let them share it, then synthesize together.
+- **If they don't have it yet:** Briefly suggest 1-2 methods to gather it
+  (reference `references/innovation-methods.md`), then continue the interview.
+  Do not block the flow. Mark it as an open item and move on.
+
+### Apply probing techniques in your own questions
+
+Don't just list probing techniques as recommendations. Use them yourself when
+asking questions. Instead of "What are the user's needs?", ask:
+
+- "When did the user last struggle with this? What happened?"  (Concretization)
+- "If this problem disappeared tomorrow, what would change?"  (Future Projection)
+- "How does the user feel when this happens?"  (Emotional Level)
+
+### Keep it compact
+
+The interview should not become a marathon. One question at a time.
+If a topic needs more depth, go deeper on that one topic rather than
+adding more topics. Quality over quantity.
+
 ## Interview Workflow
 
 ### Phase 1: Determine Project Purpose
@@ -86,10 +131,10 @@ C) Minimum Viable Product (MVP)
 **MVP (C):** 15-20 questions -- fill complete Exploration Board
 - Research Mind Map: Structure the question
 - Stakeholder Map: Who is affected and involved?
-- User Personas: At least 2 detailed personas
-- Needs: Functional, emotional, social
-- Insights: Contextual, functional, emotional, social, analogies
-- Trends & Technology, Competitors & Partners
+- User Personas: Propose at least 2 personas, confirm with user before proceeding
+- Needs: Functional, emotional, social (cite which persona/statement each need comes from)
+- Insights: Contextual, functional, emotional, social, analogies (always cite source)
+- Trends & Technology, Competitors & Partners (ask if user has data first)
 - Facts & Figures, Potential Fields
 - Touchpoints and User Journey
 - Conclusion: How-might-we question as synthesis
