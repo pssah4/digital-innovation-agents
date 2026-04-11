@@ -38,14 +38,21 @@ Dein Fokus: **WAS & WARUM**, nicht WIE.
 
 ### Mit BA-Input (bevorzugt)
 
-Lies `_devprocess/analysis/BA-*.md` und bestaetitge:
+Lies `_devprocess/analysis/BA-*.md` und -- falls vorhanden --
+`_devprocess/analysis/EXPLORE-*.md` (EXPLORE Board). Bestaetitge:
 
 ```
 Erkannte Informationen:
 - Scope: [Simple Test / PoC / MVP]
 - Hauptziel: [aus Executive Summary]
-- User: [aus Section 4]
-- Key Features: [aus Section 9.3]
+- How-might-we: [aus Section 1.2 -- Bruecke EXPLORE->CREATE]
+- Value Proposition: [aus Section 1.3]
+- User/Personas: [aus Section 4]
+- Needs: [aus Section 4.2 -- funktional/emotional/sozial]
+- Jobs to be done: [aus Section 5.4 -- funktional/emotional/sozial]
+- Ideenpotential: [aus Section 7.1 -- Mehrwert/Uebertragbarkeit/Machbarkeit]
+- Kritische Hypothesen: [aus Section 7.3]
+- Key Features: [aus Section 10.3]
 
 Starte ich mit der Erstellung?
 ```
@@ -89,11 +96,28 @@ Technische Details gehoeren in **Technical NFRs** -> `architect-handoff.md` -> A
 
 ### 2. Epic Creation (20min, wenn PoC/MVP)
 - Lies `templates/EPIC-TEMPLATE.md`
-- Hypothesis Statement, Business Outcomes quantifizieren, Features priorisieren
+- **How-might-we -> Hypothesis:** Transformiere die HMW-Frage aus der BA in das
+  Epic Hypothesis Statement. Die HMW benennt Nutzer, Beduerfnis und Hindernis --
+  daraus werden FUER/DIE/IST DAS/EIN/DAS abgeleitet.
+- **Ideenpotential -> Priorisierung:** Die 3 Achsen (Mehrwert, Uebertragbarkeit,
+  Machbarkeit) aus der BA fliessen in die Feature-Priorisierung ein.
+- **Kritische Hypothesen -> Leading Indicators:** Die kritischen Hypothesen aus
+  der BA werden zu testbaren Leading Indicators im Epic.
+- Business Outcomes quantifizieren, Features priorisieren
 
 ### 3. Feature Definition (30-45min pro Feature)
 - Lies `templates/FEATURE-TEMPLATE.md`
 - Feature Description, User Stories
+- **Needs -> User Stories:** Die Needs (funktional/emotional/sozial) aus der BA
+  werden zu User Stories transformiert. Jeder priorisierte Need sollte in
+  mindestens einer User Story adressiert werden.
+- **Jobs to be done -> User Stories:** Die drei Job-Ebenen (funktional, emotional,
+  sozial) aus der BA ergaenzen die User Stories um die Nutzer-Motivation.
+  - Funktionaler Job → "Als [Rolle] moechte ich [Funktion] um [Job] zu erledigen"
+  - Emotionaler Job → Story beschreibt das gewuenschte Gefuehl als Outcome
+  - Sozialer Job → Story adressiert Aussenwirkung/Wahrnehmung
+- **Kritische Hypothesen -> Validation Criteria:** Features die auf kritischen
+  Hypothesen basieren erhalten eine zusaetzliche "Validation" Section.
 - **Tech-agnostische Success Criteria** (keine Tech-Begriffe!)
 - Technical NFRs (hier DUERFEN Tech-Details stehen)
 - ASRs identifizieren (Critical/Moderate)
@@ -160,4 +184,5 @@ Dateinamen: EPIC-{XXX}-{slug}.md, FEATURE-{XXX}-{slug}.md (3-stellig, kebab-case
 
 ## Keywords
 Requirements, RE, Features, Epics, User Stories, Anforderungen, Success Criteria,
-NFRs, ASRs, Acceptance Criteria, Definition of Done, Handoff
+NFRs, ASRs, Acceptance Criteria, Definition of Done, Handoff, How might we,
+Jobs to be done, Kritische Hypothesen, Needs, Value Proposition
