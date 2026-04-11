@@ -1,4 +1,4 @@
-# Explore Board: {Project Name}
+# Exploration Board: {Project Name}
 
 > **Project:** {Project Name}
 > **Created:** {Date}
@@ -62,7 +62,7 @@
 ## 5. Potential Fields
 
 > Recurring themes that concern our users.
-> Indicators of concrete needs -- precursor to ideas for the CREATE phase.
+> Indicators of concrete needs -- precursor to ideas for the IDEATION phase.
 
 1. **{Potential Field 1}**: {Description -- what pain or pattern is emerging?}
 2. **{Potential Field 2}**: {Description}
@@ -144,7 +144,7 @@
 ## 10. How Might We?
 
 > The HMW question bundles the findings of the EXPLORE module into a problem hypothesis.
-> It is the starting point for the CREATE module.
+> It is the starting point for the IDEATION module.
 >
 > Format: "How might we help [user] achieve [need], despite [obstacle]?"
 
@@ -160,7 +160,7 @@
 
 ---
 
-## Transition to CREATE
+## Transition to IDEATION
 
 The Explore phase is complete when:
 - [ ] At least 1 persona fully described

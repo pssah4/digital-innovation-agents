@@ -12,7 +12,7 @@
 {2-3 sentences: What is the problem?}
 
 ### 1.2 How-Might-We Question
-> Carried over from the EXPLORE Board. Bundles user, need, and obstacle.
+> Carried over from the Exploration Board. Bundles user, need, and obstacle.
 
 **How might we** help {user/persona} **achieve** {need/goal},
 **despite** {obstacle/constraint}?
@@ -148,7 +148,7 @@
 
 ## 7. Idea Potential & Solution Concept
 
-> CREATE phase: Assessment and sharpening of the solution idea.
+> IDEATION phase: Assessment and sharpening of the solution idea.
 
 ### 7.1 Idea Potential (3 Assessment Axes, Scale 0-10)
 
@@ -313,8 +313,8 @@
 ### A. Glossary
 {Term definitions}
 
-### B. Explore Board
-> Reference to the full EXPLORE Board (if created separately):
+### B. Exploration Board
+> Reference to the full Exploration Board (if created separately):
 > `_devprocess/analysis/EXPLORE-{PROJECT}.md`
 
 ### C. Interview Notes

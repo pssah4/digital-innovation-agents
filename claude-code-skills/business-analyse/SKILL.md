@@ -4,7 +4,7 @@ description: >
   Conducts structured business analyses: problem and stakeholder analysis,
   as-is/to-be gap analysis, user personas, scope definition. Creates BA documents
   as the foundation for requirements engineering. Uses innovation phases
-  EXPLORE, CREATE, and EVALUATE. Use this skill when the user mentions
+  EXPLORATION, IDEATION, and VALIDATION. Use this skill when the user mentions
   "Business Analysis", "BA", "Stakeholder Analysis", "Problem Analysis",
   "As-Is Analysis", "Gap Analysis", "User Personas", "Define Scope",
   "Analyze Project", "Explore", "How might we", "Value Proposition",
@@ -24,7 +24,7 @@ document as the foundation for the Requirements Engineer.
 
 ## What You Create
 
-- **EXPLORE Board** in `_devprocess/analysis/EXPLORE-{PROJECT}.md` (PoC/MVP)
+- **Exploration Board** in `_devprocess/analysis/EXPLORE-{PROJECT}.md` (PoC/MVP)
 - **Business Analysis Document** in `_devprocess/analysis/BA-{PROJECT}.md`
 - Optional: **Constitution Draft** for project principles
 
@@ -39,13 +39,13 @@ Your focus: **WHY & WHO**, not WHAT & HOW.
 ## Process Overview
 
 ```
-EXPLORE -> HMW Question -> CREATE -> EVALUATE -> BA Document -> RE Handoff
+EXPLORATION -> HMW Question -> IDEATION -> VALIDATION -> BA Document -> RE Handoff
 ```
 
 The interview workflow follows these phases. Depending on scope, phases are
 skipped or shortened:
 
-| Scope | EXPLORE | CREATE | EVALUATE |
+| Scope | EXPLORATION | IDEATION | VALIDATION |
 |-------|---------|--------|----------|
 | Simple Test (A) | Minimal (User+Problem) | Describe solution | Skip |
 | PoC (B) | Shortened (User, Needs, HMW) | Full | Hypotheses + Feasibility |
@@ -73,7 +73,7 @@ C) Minimum Viable Product (MVP)
 ### Phase 2: EXPLORE -- Understand Problem and User Space
 
 > Goal: Understand BEFORE we solve. Users, needs, context, market.
-> Template: `templates/EXPLORE-BOARD.md`
+> Template: `templates/EXPLORATION-BOARD.md`
 
 **Simple Test (A):** 3-5 questions
 - Who is the user? What is the problem? How do they solve it today?
@@ -83,7 +83,7 @@ C) Minimum Viable Product (MVP)
 - Trends/technologies that are relevant
 - Conclusion: Formulate how-might-we question
 
-**MVP (C):** 15-20 questions -- fill complete EXPLORE Board
+**MVP (C):** 15-20 questions -- fill complete Exploration Board
 - Research Mind Map: Structure the question
 - Stakeholder Map: Who is affected and involved?
 - User Personas: At least 2 detailed personas
@@ -111,9 +111,9 @@ Also recommend ethnographic methods when appropriate:
 - **Self-Immersion:** "Have you ever walked through the process yourself?"
 - **Extreme Users:** "Who uses this particularly intensely or not at all?"
 
-For PoC/MVP: Create the EXPLORE Board as a separate document.
+For PoC/MVP: Create the Exploration Board as a separate document.
 
-### Phase 3: CREATE -- Design and Assess the Solution
+### Phase 3: IDEATION -- Design and Assess the Solution
 
 > Goal: From the HMW question to a concrete solution idea with assessment.
 
@@ -171,14 +171,14 @@ For PoC/MVP: Create the EXPLORE Board as a separate document.
 
 Read the template files in `templates/` and fill them based on the interview:
 
-1. **EXPLORE Board** (PoC/MVP): `templates/EXPLORE-BOARD.md`
+1. **Exploration Board** (PoC/MVP): `templates/EXPLORATION-BOARD.md`
    -> Save to: `_devprocess/analysis/EXPLORE-{PROJECT}.md`
 
 2. **Business Analysis**: `templates/BA-TEMPLATE.md`
    -> Save to: `_devprocess/analysis/BA-{PROJECT}.md`
 
-The BA document references the results from the EXPLORE Board and
-integrates CREATE and EVALUATE results.
+The BA document references the results from the Exploration Board and
+integrates IDEATION and EVALUATE results.
 
 ## Quality Gates
 
@@ -204,7 +204,7 @@ Before handoff to the Requirements Engineer, these criteria must be met:
 
 ### MVP -- at least 10/13
 
-1. EXPLORE Board complete (User, Needs, Insights, HMW)?
+1. Exploration Board complete (User, Needs, Insights, HMW)?
 2. Business context complete (As-Is, To-Be, Gap)?
 3. Stakeholder map present?
 4. At least 2 user personas with needs and insights?
@@ -234,10 +234,10 @@ Before handoff to the Requirements Engineer, these criteria must be met:
 
 **Do not jump to solutions too early:**
 - Wrong: Discuss the solution immediately after the problem
-- Right: Complete EXPLORE first (User, Needs, Insights), then CREATE
+- Right: Complete EXPLORE first (User, Needs, Insights), then IDEATION
 
 **Do not forget How-Might-We:**
-- The HMW question is the bridge from EXPLORE to CREATE
+- The HMW question is the bridge from EXPLORATION to IDEATION
 - Without HMW the thread between problem and solution is missing
 
 ## Handoff
@@ -248,7 +248,7 @@ At the end of the analysis:
 The Business Analysis is complete!
 
 Created documents:
-- EXPLORE Board: _devprocess/analysis/EXPLORE-{PROJECT}.md
+- Exploration Board: _devprocess/analysis/EXPLORE-{PROJECT}.md
 - Business Analysis: _devprocess/analysis/BA-{PROJECT}.md
 
 1. Review: Check the documents for completeness

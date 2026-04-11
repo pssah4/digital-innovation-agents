@@ -6,7 +6,7 @@
 
 ## How-Might-We (from BA)
 
-> Carried over from the EXPLORE Board / BA Section 1.2.
+> Carried over from the Exploration Board / BA Section 1.2.
 > Forms the foundation for the Epic Hypothesis Statement.
 
 **How might we** help {user} **achieve** {need}, **despite** {obstacle}?

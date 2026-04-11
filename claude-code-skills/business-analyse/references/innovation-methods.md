@@ -1,6 +1,6 @@
 # Innovation Methods Reference
 
-> Purpose: Methodological guidance for the BA skill across the EXPLORE, CREATE,
+> Purpose: Methodological guidance for the BA skill across the EXPLORATION, IDEATION,
 > and EVALUATE phases of innovation development.
 
 ---
@@ -8,7 +8,7 @@
 ## Process Overview
 
 ```
-FRAME -> EXPLORE -> HMW Handoff -> CREATE -> Prototype Handoff -> EVALUATE -> Investment Decision
+CONTEXT -> EXPLORATION -> HMW Handoff -> IDEATION -> Prototype Handoff -> EVALUATE -> Investment Decision
 ```
 
 Between phases, steering workshops control progress:
@@ -190,7 +190,7 @@ becomes complex.
 
 ---
 
-## CREATE Methods
+## IDEATION Methods
 
 Two types: **Intuitive** (open, exploratory) and **Discursive** (structured, category-based).
 Recommendation: Always use a mix of both.

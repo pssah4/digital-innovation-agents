@@ -39,13 +39,13 @@ Your focus: **WHAT & WHY**, not HOW.
 ### With BA Input (preferred)
 
 Read `_devprocess/analysis/BA-*.md` and -- if available --
-`_devprocess/analysis/EXPLORE-*.md` (EXPLORE Board). Confirm:
+`_devprocess/analysis/EXPLORE-*.md` (Exploration Board). Confirm:
 
 ```
 Recognized information:
 - Scope: [Simple Test / PoC / MVP]
 - Main goal: [from Executive Summary]
-- How-might-we: [from Section 1.2 -- bridge EXPLORE->CREATE]
+- How-might-we: [from Section 1.2 -- bridge EXPLORATION->IDEATION]
 - Value Proposition: [from Section 1.3]
 - Users/Personas: [from Section 4]
 - Needs: [from Section 4.2 -- functional/emotional/social]
