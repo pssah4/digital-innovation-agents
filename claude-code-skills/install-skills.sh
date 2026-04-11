@@ -52,7 +52,7 @@ for skill in "${SKILLS[@]}"; do
 done
 echo ""
 echo "Usage in Claude Code:"
-echo "  /business-analyse          -- Structured problem analysis (EXPLORE/CREATE/EVALUATE)"
+echo "  /business-analyse          -- Structured problem analysis (Exploration/Ideation/Validation)"
 echo "  /requirements-engineering  -- Features, epics, success criteria"
 echo "  /architecture              -- ADRs, arc42, plan-context.md"
 echo "  /coding                    -- Context handoff from plan-context.md"
