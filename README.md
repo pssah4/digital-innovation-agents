@@ -94,7 +94,19 @@ The [innovation-methods.md](claude-code-skills/business-analyse/references/innov
 
 ### Option D: GitHub Copilot
 
-Copy the `.github/` directory to your project root. Agents are automatically detected by Copilot. Use with `@agent-name` in Copilot Chat.
+**Step 1** -- Copy the `.github/` directory to your project root. Agents are automatically detected by Copilot.
+
+**Step 2** -- Use agents in Copilot Chat:
+
+```
+@business-analyst I want to build a tool that helps teams run better retrospectives
+@requirements-engineer Here is my BA document, create epics and features
+@architect Design the architecture based on the requirements handoff
+@developer Implement the first feature
+@debugger Tests are failing, analyze the error log
+```
+
+The Copilot agents have the same EXPLORE/CREATE/EVALUATE innovation workflow, the same templates, and the same quality gates as the Claude Code skills.
 
 ---
 
@@ -108,6 +120,7 @@ Copy the `.github/` directory to your project root. Agents are automatically det
 | **Implementation** | Context handoff, critical review, artifact writeback | `/coding` | `@developer` |
 | **Testing** | Unit and integration tests with fix-loop | `/testing` | built-in |
 | **Security Audit** | OWASP Top 10, LLM Top 10, SAST, SCA, Zero Trust | `/security-audit` | `@security-auditor` |
+| **Debugging** | Root cause analysis, systematic error resolution | -- (default) | `@debugger` |
 | **Orchestrator** | Guides through all phases step by step | `/v-model-workflow` | -- |
 | **Conventions** | Project structure and naming standards | `/project-conventions` | -- |
 
@@ -266,10 +279,28 @@ digital-innovation-agents/
 │       └── SKILL.md
 │
 └── .github/                                    # GitHub Copilot Agents
-    ├── copilot-instructions.md
+    ├── copilot-instructions.md                 # Global instructions (auto-loaded)
     ├── agents/
-    ├── instructions/
+    │   ├── business-analyst.agent.md           # EXPLORE/CREATE/EVALUATE cycle
+    │   ├── requirements-engineer.agent.md      # HMW, JTBD, hypothesis tracking
+    │   └── architect.agent.md                  # ADRs, arc42, system design
+    ├── chatmodes/
+    │   ├── business-analyst.chatmode.md        # Same as agent (chat mode format)
+    │   ├── requirements-engineer.chatmode.md
+    │   ├── developer.chatmode.md               # Test-driven implementation
+    │   └── debugger.chatmode.md                # Root cause analysis
+    ├── instructions/                           # Auto-validation quality rules
+    │   ├── business-analyst.instructions.md    # EXPLORE/CREATE/EVALUATE validation
+    │   ├── requirements-engineer.instructions.md # HMW, JTBD, hypothesis validation
+    │   ├── architect.instructions.md           # ADR, arc42, issue validation
+    │   ├── developer.instructions.md           # Test enforcement, code quality
+    │   └── debugger.instructions.md            # Fix validation, regression checks
     └── templates/
+        ├── EPIC-TEMPLATE.md                    # With HMW and hypothesis tracking
+        ├── FEATURE-TEMPLATE.md                 # With JTBD and hypothesis validation
+        ├── ISSUE-TEMPLATE.md                   # Atomic issues (1-3 days)
+        ├── BUGFIX-TEMPLATE.md                  # Root cause analysis format
+        └── IMPROVEMENT-TEMPLATE.md             # Enhancement with ROI
 ```
 
 ---
