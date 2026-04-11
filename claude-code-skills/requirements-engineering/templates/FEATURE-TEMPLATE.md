@@ -7,85 +7,85 @@
 
 ## Feature Description
 
-{1-2 Absaetze: Was ist das Feature und warum wird es benoetigt?}
+{1-2 paragraphs: What is the feature and why is it needed?}
 
 ## Benefits Hypothesis
 
-**Wir glauben dass** {Beschreibung des Features}
-**Folgende messbare Outcomes liefert:**
-- {Outcome 1 mit Metrik}
-- {Outcome 2 mit Metrik}
+**We believe that** {description of the feature}
+**Delivers the following measurable outcomes:**
+- {Outcome 1 with metric}
+- {Outcome 2 with metric}
 
-**Wir wissen dass wir erfolgreich sind wenn:**
-- {Erfolgs-Metrik 1}
-- {Erfolgs-Metrik 2}
+**We know we are successful when:**
+- {Success metric 1}
+- {Success metric 2}
 
-## Jobs to be done (aus BA)
+## Jobs to be Done (from BA)
 
-> Referenz: BA Section 5.4. Bildet die Grundlage fuer User Stories.
-> Jeder priorisierte Job sollte in mindestens einer User Story adressiert werden.
+> Reference: BA Section 5.4. Forms the foundation for user stories.
+> Each prioritized job should be addressed in at least one user story.
 
-| Job-Typ | Job | Adressiert in Story |
-|---------|-----|-------------------|
-| Funktional | {Was will der Nutzer konkret erledigen?} | Story {N} |
-| Emotional | {Wie will der Nutzer sich fuehlen?} | Story {N} |
-| Sozial | {Wie will der Nutzer wahrgenommen werden?} | Story {N} |
+| Job Type | Job | Addressed in Story |
+|----------|-----|-------------------|
+| Functional | {What does the user want to accomplish concretely?} | Story {N} |
+| Emotional | {How does the user want to feel?} | Story {N} |
+| Social | {How does the user want to be perceived?} | Story {N} |
 
 ## User Stories
 
-### Story 1: {Name} (Funktionaler Job)
-**Als** {User-Rolle}
-**moechte ich** {Funktionalitaet}
-**um** {funktionalen Job} zu erledigen
+### Story 1: {Name} (Functional Job)
+**As a** {user role}
+**I want to** {functionality}
+**so that** I can accomplish {functional job}
 
-### Story 2: {Name} (Emotionaler Job)
-**Als** {User-Rolle}
-**moechte ich** {Funktionalitaet}
-**um** {gewuenschtes Gefuehl/Erlebnis} zu erreichen
+### Story 2: {Name} (Emotional Job)
+**As a** {user role}
+**I want to** {functionality}
+**so that** I experience {desired feeling/experience}
 
-### Story 3: {Name} (Sozialer Job)
-**Als** {User-Rolle}
-**moechte ich** {Funktionalitaet}
-**um** {Aussenwirkung/Wahrnehmung} zu erzielen
+### Story 3: {Name} (Social Job)
+**As a** {user role}
+**I want to** {functionality}
+**so that** I am perceived as {external perception}
 
 ---
 
 ## Success Criteria (Tech-Agnostic)
 
-> KEINE Technologie-Begriffe! Siehe references/tech-agnostic-rules.md
-> Technische Details gehoeren in "Technical NFRs" weiter unten.
+> NO technology terms! See references/tech-agnostic-rules.md
+> Technical details belong in "Technical NFRs" below.
 
 | ID | Criterion | Target | Measurement |
 |----|-----------|--------|-------------|
-| SC-01 | {User-outcome basiert} | {Zielwert} | {Wie messen} |
-| SC-02 | {Verhalten, nicht Implementierung} | {Zielwert} | {Wie messen} |
-| SC-03 | {Performance als User-Erlebnis} | {Zielwert} | {Wie messen} |
+| SC-01 | {User-outcome based} | {Target value} | {How to measure} |
+| SC-02 | {Behavior, not implementation} | {Target value} | {How to measure} |
+| SC-03 | {Performance as user experience} | {Target value} | {How to measure} |
 
 ---
 
-## Technical NFRs (fuer Architekt) -- MIT TECHNOLOGIE OK
+## Technical NFRs (for Architect) -- TECHNOLOGY OK
 
-> Diese Section DARF technische Details enthalten!
+> This section MAY contain technical details!
 
 ### Performance
-- **Response Time**: {X ms fuer Y% der Requests}
-- **Throughput**: {X Requests/Second}
+- **Response Time**: {X ms for Y% of requests}
+- **Throughput**: {X requests/second}
 - **Resource Usage**: {Max CPU/Memory}
 
 ### Security
 - **Authentication**: {OAuth 2.0, JWT, etc.}
 - **Authorization**: {RBAC, ABAC}
-- **Data Encryption**: {At Rest: AES-256, In Transit: TLS 1.3}
+- **Data Encryption**: {At rest: AES-256, In transit: TLS 1.3}
 
 ### Scalability
-- **Concurrent Users**: {X simultane User}
+- **Concurrent Users**: {X simultaneous users}
 - **Data Volume**: {Y GB/TB}
-- **Growth Rate**: {Z% pro Jahr}
+- **Growth Rate**: {Z% per year}
 
 ### Availability
-- **Uptime**: {99.9% = ~8.7h Downtime/Jahr}
-- **Recovery Time Objective (RTO)**: {X Minuten}
-- **Recovery Point Objective (RPO)**: {X Minuten}
+- **Uptime**: {99.9% = ~8.7h downtime/year}
+- **Recovery Time Objective (RTO)**: {X minutes}
+- **Recovery Point Objective (RPO)**: {X minutes}
 
 ---
 
@@ -93,63 +93,63 @@
 
 ### Architecturally Significant Requirements (ASRs)
 
-**CRITICAL ASR #1**: {Beschreibung}
-- **Warum ASR**: {Begruendung}
-- **Impact**: {Auf welche Architektur-Entscheidungen wirkt das?}
+**CRITICAL ASR #1**: {Description}
+- **Why ASR**: {Rationale}
+- **Impact**: {Which architecture decisions does this affect?}
 - **Quality Attribute**: {Performance / Security / Scalability / etc.}
 
-**MODERATE ASR #2**: {Beschreibung}
-- **Warum ASR**: {Begruendung}
-- **Impact**: {Einfluss}
-- **Quality Attribute**: {Attribut}
+**MODERATE ASR #2**: {Description}
+- **Why ASR**: {Rationale}
+- **Impact**: {Influence}
+- **Quality Attribute**: {Attribute}
 
 ### Constraints
-- **Technology**: {Muss X sein weil...}
-- **Platform**: {Cloud-Provider X wegen...}
+- **Technology**: {Must be X because...}
+- **Platform**: {Cloud provider X because...}
 - **Compliance**: {GDPR, HIPAA, etc.}
 
-### Open Questions fuer Architekt
-- {Technische Entscheidung}
-- {Architektur-Pattern-Frage}
+### Open Questions for Architect
+- {Technical decision}
+- {Architecture pattern question}
 
 ---
 
 ## Definition of Done
 
 ### Functional
-- [ ] Alle User Stories implementiert
-- [ ] Alle Success Criteria erfuellt (verifiziert)
+- [ ] All user stories implemented
+- [ ] All success criteria met (verified)
 
 ### Quality
-- [ ] Unit Tests (Coverage > {X}%)
-- [ ] Integration Tests bestanden
-- [ ] Security Scan bestanden
-- [ ] Performance Tests bestanden
+- [ ] Unit tests (coverage > {X}%)
+- [ ] Integration tests passed
+- [ ] Security scan passed
+- [ ] Performance tests passed
 
 ### Documentation
-- [ ] Feature-Spec aktualisiert (Status: Implemented)
-- [ ] Backlog aktualisiert
+- [ ] Feature spec updated (Status: Implemented)
+- [ ] Backlog updated
 
 ---
 
-## Hypothesis Validation (wenn zutreffend)
+## Hypothesis Validation (if applicable)
 
-> Nur ausfuellen wenn dieses Feature eine Kritische Hypothese aus der BA validiert.
-> Referenz: BA Section 7.3, Epic Section "Kritische Hypothesen"
+> Only fill in if this feature validates a critical hypothesis from the BA.
+> Reference: BA Section 7.3, Epic Section "Critical Hypotheses"
 
-| Hypothese (BA-Ref) | Testmethode | Erfolgskriterium | Ergebnis |
-|-------------------|-------------|-----------------|----------|
-| H-{XX}: {Hypothese} | {Wie wird getestet?} | {Wann ist validiert?} | {Offen / Validiert / Widerlegt} |
+| Hypothesis (BA Ref) | Test Method | Success Criterion | Result |
+|--------------------|-------------|-------------------|--------|
+| H-{XX}: {Hypothesis} | {How is it tested?} | {When is it validated?} | {Open / Validated / Disproven} |
 
-**Bei Widerlegung:** {Was ist der Pivot-Plan? Welche Alternative?}
+**If disproven:** {What is the pivot plan? What alternative?}
 
 ---
 
 ## Dependencies
-- **{Dependency 1}**: {Feature/System}, {Impact wenn verzoegert}
+- **{Dependency 1}**: {Feature/System}, {Impact if delayed}
 
 ## Assumptions
-- {Annahme 1}
+- {Assumption 1}
 
 ## Out of Scope
-- {Explizit nicht Teil dieses Features}
+- {Explicitly not part of this feature}

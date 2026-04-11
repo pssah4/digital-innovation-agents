@@ -1,52 +1,51 @@
-# Business Analysis: {Projektname}
+# Business Analysis: {Project Name}
 
 > **Scope:** [Simple Test / PoC / MVP]
-> **Erstellt:** {Datum}
+> **Created:** {Date}
 > **Status:** Draft / Review / Approved
-> **Methodik:** Dark Horse Innovation / Digital Innovation Playbook
 
 ---
 
 ## 1. Executive Summary
 
 ### 1.1 Problem Statement
-{2-3 Saetze: Was ist das Problem?}
+{2-3 sentences: What is the problem?}
 
-### 1.2 How-might-we-Frage
-> Aus dem EXPLORE-Board uebernommen. Buendelt User, Need und Hindernis.
+### 1.2 How-Might-We Question
+> Carried over from the EXPLORE Board. Bundles user, need, and obstacle.
 
-**How might we** {Nutzer/Persona} **helfen,** {Beduerfnis/Ziel} **zu erreichen,**
-**obwohl** {Hindernis/Constraint}?
+**How might we** help {user/persona} **achieve** {need/goal},
+**despite** {obstacle/constraint}?
 
-### 1.3 Value Proposition (Loesungshypothese)
-> Synthese aus Idee, Nutzer, Beduerfnis und Ideenpotential.
+### 1.3 Value Proposition (Solution Hypothesis)
+> Synthesis of idea, user, need, and idea potential.
 
-{2-3 Saetze: Was ist unsere Loesungshypothese?}
+{2-3 sentences: What is our solution hypothesis?}
 
 ### 1.4 High-Level Concept
-> Eine griffige Analogie, mit der wir unsere Loesungsidee beschreiben koennen.
+> A catchy analogy to describe our solution idea.
 
-"{Analogie -- z.B. 'Uber fuer Handwerker' oder 'Spotify fuer Weiterbildung'}"
+"{Analogy -- e.g. 'Uber for craftsmen' or 'Spotify for professional development'}"
 
 ### 1.5 Expected Outcomes
-- {Erwartetes Ergebnis 1}
-- {Erwartetes Ergebnis 2}
+- {Expected outcome 1}
+- {Expected outcome 2}
 
 ---
 
 ## 2. Business Context
 
 ### 2.1 Background
-{Hintergrund und Kontext}
+{Background and context}
 
 ### 2.2 Current State ("As-Is")
-{Wie funktioniert es heute?}
+{How does it work today?}
 
 ### 2.3 Desired State ("To-Be")
-{Wie soll es funktionieren?}
+{How should it work?}
 
 ### 2.4 Gap Analysis
-{Was fehlt zwischen As-Is und To-Be?}
+{What is missing between As-Is and To-Be?}
 
 ---
 
@@ -56,130 +55,130 @@
 
 | Stakeholder | Role | Interest | Influence | Needs |
 |-------------|------|----------|-----------|-------|
-| {Name/Gruppe} | {Rolle} | {H/M/L} | {H/M/L} | {Beduerfnisse} |
+| {Name/Group} | {Role} | {H/M/L} | {H/M/L} | {Needs} |
 
 ### 3.2 Key Stakeholders
 
-**Primary:** {Wer trifft Entscheidungen?}
-**Secondary:** {Wer ist betroffen?}
+**Primary:** {Who makes decisions?}
+**Secondary:** {Who is affected?}
 
 ---
 
 ## 4. User Analysis
 
-> Methoden: Qualitatives Interview (E1), Extreme Users (E3), Persona (E5.2),
-> User Motivation Analysis (E4). Details: `references/dark-horse-methods.md`
+> Methods: Qualitative Interview (E1), Extreme Users (E3), Persona (E5.2),
+> User Motivation Analysis (E4). Details: `references/innovation-methods.md`
 
 ### 4.1 User Personas
 
 **Persona 1: {Name}**
-- **Rolle:** {Job Title}
-- **Ziele:** {Was will dieser User erreichen?}
-- **Pain Points:** {Was frustriert diesen User?}
-- **Nutzungshaeufigkeit:** [Daily / Weekly / Monthly]
-- **Typisches Zitat:** "{In den Worten des Nutzers}"
-- **Nutzungskontext:** {Wann, wo, wie oft tritt das Problem auf?}
+- **Role:** {Job Title}
+- **Goals:** {What does this user want to achieve?}
+- **Pain Points:** {What frustrates this user?}
+- **Usage Frequency:** [Daily / Weekly / Monthly]
+- **Typical Quote:** "{In the user's own words}"
+- **Usage Context:** {When, where, how often does the problem occur?}
 
-### 4.2 Needs / Beduerfnisse
+### 4.2 Needs
 
-> Die Kombination aus Nutzer und Beduerfnis ist Fixpunkt fuer die Entwicklung.
+> The combination of user and need is the anchor point for development.
 
-| Need ID | Beduerfnis | Typ | Prioritaet | Persona |
-|---------|-----------|-----|------------|---------|
-| N-01 | {Beduerfnis} | {Funktional / Emotional / Sozial} | {H/M/L} | {Name} |
-| N-02 | {Beduerfnis} | {Funktional / Emotional / Sozial} | {H/M/L} | {Name} |
+| Need ID | Need | Type | Priority | Persona |
+|---------|------|------|----------|---------|
+| N-01 | {Need} | {Functional / Emotional / Social} | {H/M/L} | {Name} |
+| N-02 | {Need} | {Functional / Emotional / Social} | {H/M/L} | {Name} |
 
 ### 4.3 Insights
 
-**Funktionale Insights:** {Was tun die Nutzer konkret? Workarounds?}
-**Emotionale Insights:** {Wie fuehlen sich die Nutzer? Was frustriert/begeistert?}
-**Soziale Insights:** {Wie interagieren Nutzer miteinander?}
-**Analogien:** {Loesungen aus anderen Bereichen die uebertragbar sind}
+**Functional Insights:** {What do users actually do? Workarounds?}
+**Emotional Insights:** {How do users feel? What frustrates/delights them?}
+**Social Insights:** {How do users interact with each other?}
+**Analogies:** {Solutions from other domains that are transferable}
 
 ### 4.4 User Journey (High-Level)
-{Beschreibung der wichtigsten User-Schritte}
+{Description of the key user steps}
 
 ### 4.5 Touchpoints
 
-| Touchpoint | Phase | Kanal | Erlebnis |
-|------------|-------|-------|----------|
-| {Kontaktpunkt} | {Vor/Waehrend/Nach} | {Digital/Physisch} | {+/o/-} |
+| Touchpoint | Phase | Channel | Experience |
+|------------|-------|---------|------------|
+| {Contact point} | {Before/During/After} | {Digital/Physical} | {+/o/-} |
 
 ---
 
 ## 5. Problem Analysis
 
 ### 5.1 Problem Statement (Detailed)
-{Detaillierte Problembeschreibung}
+{Detailed problem description}
 
 ### 5.2 Root Causes
-{Was sind die Ursachen des Problems?}
+{What are the causes of the problem?}
 
 ### 5.3 Impact
-- **Business Impact:** {Kosten, Umsatzverlust, etc.}
-- **User Impact:** {Frustration, Zeitverlust, etc.}
+- **Business Impact:** {Cost, revenue loss, etc.}
+- **User Impact:** {Frustration, time loss, etc.}
 
-### 5.4 Jobs to be done
+### 5.4 Jobs to be Done
 
-> Warum entscheiden sich Nutzer fuer eine bestimmte Loesung? (Methode C7)
+> Why do users choose a specific solution? (Method C7)
 
-| Job-Typ | Job-Beschreibung | Aktuell "gehired" | Firing-Grund |
-|---------|-----------------|-------------------|-------------|
-| Funktional | {Was will der Nutzer konkret erledigen?} | {Aktuelle Loesung} | {Warum unzufrieden?} |
-| Emotional | {Wie will der Nutzer sich fuehlen?} | {Aktuelle Loesung} | {Warum unzufrieden?} |
-| Sozial | {Wie will der Nutzer wahrgenommen werden?} | {Aktuelle Loesung} | {Warum unzufrieden?} |
+| Job Type | Job Description | Currently "Hired" | Firing Reason |
+|----------|----------------|-------------------|---------------|
+| Functional | {What does the user want to accomplish concretely?} | {Current solution} | {Why dissatisfied?} |
+| Emotional | {How does the user want to feel?} | {Current solution} | {Why dissatisfied?} |
+| Social | {How does the user want to be perceived?} | {Current solution} | {Why dissatisfied?} |
 
 ---
 
 ## 6. Goals & Objectives
 
 ### 6.1 Business Goals
-{Was soll das Business erreichen?}
+{What should the business achieve?}
 
 ### 6.2 User Goals
-{Was sollen User erreichen koennen?}
+{What should users be able to achieve?}
 
 ### 6.3 Success Metrics (KPIs)
 
 | KPI | Baseline | Target | Timeframe |
 |-----|----------|--------|-----------|
-| {Metrik} | {Aktuell} | {Ziel} | {Zeitraum} |
+| {Metric} | {Current} | {Goal} | {Period} |
 
 ---
 
-## 7. Ideenpotential & Loesungskonzept
+## 7. Idea Potential & Solution Concept
 
-> CREATE-Phase: Bewertung und Schaerfung der Loesungsidee (Dark Horse Innovation)
+> CREATE phase: Assessment and sharpening of the solution idea.
 
-### 7.1 Ideenpotential (3 Bewertungsachsen, Skala 0-10)
+### 7.1 Idea Potential (3 Assessment Axes, Scale 0-10)
 
-| Achse | Score | Begruendung |
-|-------|-------|-------------|
-| **Mehrwert / Dringlichkeit**: Wie gross/dringend ist das adressierte Problem? | {0-10} | {Begruendung} |
-| **Uebertragbarkeit**: Loesung fuer Einzelne oder grosse Nutzergruppe? | {0-10} | {Begruendung} |
-| **Machbarkeit**: Wie gut passt die Idee zu Rahmenbedingungen? Einfache und schnelle Loesung oder grosse Entwicklung? | {0-10} | {Begruendung} |
+| Axis | Score | Rationale |
+|------|-------|-----------|
+| **Value / Urgency**: How big/urgent is the addressed problem? | {0-10} | {Rationale} |
+| **Transferability**: Solution for individuals or a large user group? | {0-10} | {Rationale} |
+| **Feasibility**: How well does the idea fit the constraints? Simple and fast solution or major development? | {0-10} | {Rationale} |
 
-### 7.2 Das Wow
+### 7.2 The Wow
 
-> Das eine Feature, fuer das wir in der Presse gefeiert werden wollen.
+> The one feature we want to be celebrated for in the press.
 
-{Beschreibung des herausragenden Alleinstellungsmerkmals}
+{Description of the outstanding differentiator}
 
-### 7.3 Kritische Hypothesen
+### 7.3 Critical Hypotheses
 
-> Annahmen die mit PoC oder MVP getestet und validiert werden muessen.
-> Methode: Hypothesis Generating (Evaluate)
+> Assumptions that must be tested and validated with a PoC or MVP.
+> Method: Hypothesis Generating (Evaluate)
 
-| ID | Hypothese | Typ | Testmethode | Erfolgskriterium |
-|----|----------|-----|-------------|-----------------|
-| H-01 | {Annahme} | {Problem-Solution-Fit / Tech. Machbarkeit / Datenverfuegbarkeit / Markt} | {Wie testen?} | {Wann ist validiert?} |
-| H-02 | {Annahme} | {Typ} | {Wie testen?} | {Wann ist validiert?} |
+| ID | Hypothesis | Type | Test Method | Success Criterion |
+|----|-----------|------|-------------|-------------------|
+| H-01 | {Assumption} | {Problem-Solution Fit / Tech Feasibility / Data Availability / Market} | {How to test?} | {When is it validated?} |
+| H-02 | {Assumption} | {Type} | {How to test?} | {When is it validated?} |
 
-### 7.4 Loesungsidee und Objektmodell
+### 7.4 Solution Idea and Object Model
 
-> Detaillierte Beschreibung der Loesung (inhaltlich und technisch in Wort und ggf. Skizzen)
+> Detailed description of the solution (content and technical in words and optional sketches)
 
-{Beschreibung der Loesungsidee und des dazugehoerigen Objektmodells}
+{Description of the solution idea and its object model}
 
 ---
 
@@ -190,14 +189,14 @@
 - {Feature/Capability 2}
 
 ### 8.2 Out of Scope
-- {Explizit ausgeschlossen 1}
-- {Explizit ausgeschlossen 2}
+- {Explicitly excluded 1}
+- {Explicitly excluded 2}
 
 ### 8.3 Assumptions
-- {Annahme 1}
+- {Assumption 1}
 
 ### 8.4 Constraints
-- {Constraint 1: Budget, Zeit, Technologie, etc.}
+- {Constraint 1: Budget, time, technology, etc.}
 
 ---
 
@@ -205,121 +204,121 @@
 
 | Risk | Probability | Impact | Mitigation |
 |------|-------------|--------|------------|
-| {Risiko} | {H/M/L} | {H/M/L} | {Massnahme} |
+| {Risk} | {H/M/L} | {H/M/L} | {Measure} |
 
 ---
 
 ## 10. Requirements Overview (High-Level)
 
 ### 10.1 Functional Requirements (Summary)
-{High-Level Liste der Hauptfunktionen}
+{High-level list of main functions}
 
 ### 10.2 Non-Functional Requirements (Summary)
-- **Performance:** {Erwartungen}
-- **Security:** {Erwartungen}
-- **Scalability:** {Erwartungen}
+- **Performance:** {Expectations}
+- **Security:** {Expectations}
+- **Scalability:** {Expectations}
 
-### 10.3 Key Features (fuer RE)
+### 10.3 Key Features (for RE)
 
 | Priority | Feature | Description |
 |----------|---------|-------------|
-| P0 | {Feature} | {Beschreibung} |
-| P1 | {Feature} | {Beschreibung} |
+| P0 | {Feature} | {Description} |
+| P1 | {Feature} | {Description} |
 
 ---
 
-## 11. Evaluate -- Marktbewertung & Business Viability
+## 11. Evaluate -- Market Assessment & Business Viability
 
-> EVALUATE-Phase: Systematische Bewertung der Loesungsidee (Dark Horse Innovation).
-> Nur fuer PoC/MVP Scope relevant. Bei Simple Test ueberspringen.
+> EVALUATE phase: Systematic assessment of the solution idea.
+> Only relevant for PoC/MVP scope. Skip for Simple Test.
 
-### 11.1 Value Proposition Score (Skala 0-10)
+### 11.1 Value Proposition Score (Scale 0-10)
 
-| Dimension | Score | Begruendung |
-|-----------|-------|-------------|
-| **Nutzer aktivieren**: Wie gross ist das Interesse am Wertversprechen? | {0-10} | {Begruendung} |
-| **Praeferenz gg. Substitutionsprodukten**: Wie findet der Nutzer unsere Loesung im Vergleich zu Alternativen? | {0-10} | {Begruendung} |
-| **Kaufbereitschaft**: Wie hoch ist die Bereitschaft zu zahlen? | {0-10} | {Begruendung} |
-| **Weiterempfehlungs-Potential**: Wie wahrscheinlich empfehlen Nutzer weiter? | {0-10} | {Begruendung} |
+| Dimension | Score | Rationale |
+|-----------|-------|-----------|
+| **Activate users**: How strong is the interest in the value proposition? | {0-10} | {Rationale} |
+| **Preference vs. substitutes**: How does the user rate our solution compared to alternatives? | {0-10} | {Rationale} |
+| **Willingness to pay**: How willing are users to pay? | {0-10} | {Rationale} |
+| **Referral potential**: How likely are users to recommend us? | {0-10} | {Rationale} |
 
-### 11.2 Assessment-Radar (Skala 0-10)
+### 11.2 Assessment Radar (Scale 0-10)
 
-> Strategische Bewertung aus Unternehmenssicht. 6 Achsen.
+> Strategic assessment from the company perspective. 6 axes.
 
-| Achse | Score | Begruendung |
-|-------|-------|-------------|
-| **Brand Fit**: Passt das Produkt zur bestehenden Unternehmensmarke? | {0-10} | {Begruendung} |
-| **Investment**: Monetaeres und zeitliches Invest fuer Umsetzung? | {0-10} | {0=sehr hoch, 10=gering} |
-| **Asset Fit**: Passt die Loesung zu bestehenden Assets und Capabilities? | {0-10} | {Begruendung} |
-| **Virales Potential**: Chance dass Nutzer die Loesung weiterempfehlen? | {0-10} | {Begruendung} |
-| **Neuer Kunde**: Potential komplett neue Kunden zu gewinnen? | {0-10} | {Begruendung} |
-| **Marktgroesse**: Wie gross ist der Markt fuer das Produkt/Service? | {0-10} | {Begruendung} |
+| Axis | Score | Rationale |
+|------|-------|-----------|
+| **Brand Fit**: Does the product fit the existing brand? | {0-10} | {Rationale} |
+| **Investment**: Monetary and time investment for implementation? | {0-10} | {0=very high, 10=low} |
+| **Asset Fit**: Does the solution fit existing assets and capabilities? | {0-10} | {Rationale} |
+| **Viral Potential**: Chance that users recommend the solution? | {0-10} | {Rationale} |
+| **New Customer**: Potential to acquire entirely new customers? | {0-10} | {Rationale} |
+| **Market Size**: How big is the market for the product/service? | {0-10} | {Rationale} |
 
-### 11.3 Preispunkt & Kaufbereitschaft
+### 11.3 Price Point & Willingness to Pay
 
-- **Preisspanne:** {Von ... bis ... EUR}
-- **Preismodell:** {Einmalzahlung / Abo / Freemium / Pay-per-Use}
-- **Referenzpreise im Markt:** {Was kosten vergleichbare Loesungen?}
-- **Zahlungsbereitschaft validiert?** {Ja/Nein -- wie getestet?}
+- **Price Range:** {From ... to ... EUR}
+- **Pricing Model:** {One-time / Subscription / Freemium / Pay-per-Use}
+- **Market Reference Prices:** {What do comparable solutions cost?}
+- **Willingness to Pay Validated?** {Yes/No -- how tested?}
 
-### 11.4 Kanaele
+### 11.4 Channels
 
-> Wie wollen wir die Nutzer erreichen?
+> How do we want to reach users?
 
-| Kanal | Zweck | Prioritaet |
-|-------|-------|------------|
-| {z.B. Direktvertrieb} | {Akquise / Onboarding / Support} | {H/M/L} |
-| {z.B. App Store} | {Distribution} | {H/M/L} |
+| Channel | Purpose | Priority |
+|---------|---------|----------|
+| {e.g. Direct Sales} | {Acquisition / Onboarding / Support} | {H/M/L} |
+| {e.g. App Store} | {Distribution} | {H/M/L} |
 
-### 11.5 Unfairer Vorteil
+### 11.5 Unfair Advantage
 
-> Faktoren unserer Loesung, die nur schwer oder nicht kopierbar sind.
+> Factors of our solution that are difficult or impossible to copy.
 
-- {z.B. Exklusive Daten, Netzwerkeffekte, Patente, Team-Expertise}
+- {e.g. Exclusive data, network effects, patents, team expertise}
 
 ### 11.6 Revenue Stream
 
-> Wie wollen wir mit der Loesung Geld verdienen?
+> How do we want to make money with the solution?
 
-| Revenue Stream | Beschreibung | Anteil |
-|----------------|-------------|--------|
-| {z.B. SaaS-Abo} | {Monatliches Abo fuer Kernfunktionen} | {Haupteinnahme} |
-| {z.B. Professional Services} | {Beratung und Customizing} | {Nebeneinnahme} |
+| Revenue Stream | Description | Share |
+|----------------|------------|-------|
+| {e.g. SaaS subscription} | {Monthly subscription for core features} | {Primary revenue} |
+| {e.g. Professional Services} | {Consulting and customization} | {Secondary revenue} |
 
 ### 11.7 KPIs
 
-> Messgroessen fuer den Erfolg der Loesung.
+> Metrics to measure the success of the solution.
 
-| KPI | Baseline | Target | Zeitraum | Messmethode |
-|-----|----------|--------|----------|-------------|
-| {Metrik} | {Aktuell} | {Ziel} | {Zeitraum} | {Wie messen?} |
+| KPI | Baseline | Target | Timeframe | Measurement Method |
+|-----|----------|--------|-----------|-------------------|
+| {Metric} | {Current} | {Goal} | {Period} | {How to measure?} |
 
 ### 11.8 User Experience & Emotion
 
-- **Anwendererlebnis:** {Beschreibung des angestrebten UX-Erlebnisses}
-- **Emotionale Reaktion:** {Welche Emotion soll die Loesung beim Nutzer ausloesen?}
+- **User Experience:** {Description of the intended UX}
+- **Emotional Response:** {What emotion should the solution evoke in the user?}
 
 ---
 
 ## 12. Next Steps
 
-- [ ] Review durch Stakeholder
-- [ ] Uebergabe an Requirements Engineer (`/requirements-engineering`)
-- [ ] {Weitere Schritte}
+- [ ] Review by stakeholders
+- [ ] Handoff to Requirements Engineer (`/requirements-engineering`)
+- [ ] {Additional steps}
 
 ---
 
 ## Appendix
 
-### A. Glossar
-{Begriffsdefinitionen}
+### A. Glossary
+{Term definitions}
 
 ### B. Explore Board
-> Verweis auf das vollstaendige EXPLORE-Board (wenn separat erstellt):
+> Reference to the full EXPLORE Board (if created separately):
 > `_devprocess/analysis/EXPLORE-{PROJECT}.md`
 
 ### C. Interview Notes
-{Zusammenfassung der Interview-Erkenntnisse}
+{Summary of interview findings}
 
 ### D. References
-{Links zu relevanten Dokumenten}
+{Links to relevant documents}

@@ -1,7 +1,7 @@
-# Tech-Agnostic Success Criteria -- Verbotene Begriffe
+# Tech-Agnostic Success Criteria -- Forbidden Terms
 
-Diese Begriffe duerfen NICHT in der "Success Criteria (Tech-Agnostic)" Section
-von Features erscheinen. Sie gehoeren in die "Technical NFRs" Section.
+These terms must NOT appear in the "Success Criteria (Tech-Agnostic)" section
+of features. They belong in the "Technical NFRs" section.
 
 ## Authentication / Authorization
 
@@ -47,8 +47,8 @@ Kafka, RabbitMQ, SQS, pub/sub, message queue, event-driven, async
 
 ## Transformation Guide
 
-| Technical (verboten) | Tech-Agnostic (erlaubt) |
-|----------------------|-------------------------|
+| Technical (forbidden) | Tech-Agnostic (allowed) |
+|-----------------------|-------------------------|
 | Response time < 200ms | Users experience sub-second response |
 | OAuth 2.0 authentication | Secure authentication using industry standards |
 | PostgreSQL with indexes | System efficiently handles 100K+ records |

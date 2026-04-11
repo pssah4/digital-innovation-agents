@@ -4,45 +4,45 @@
 > **Business Alignment**: _devprocess/analysis/BA-[PROJECT].md
 > **Scope**: [PoC / MVP]
 
-## How-might-we (aus BA)
+## How-Might-We (from BA)
 
-> Uebernommen aus dem EXPLORE Board / BA Section 1.2.
-> Bildet die Grundlage fuer das Epic Hypothesis Statement.
+> Carried over from the EXPLORE Board / BA Section 1.2.
+> Forms the foundation for the Epic Hypothesis Statement.
 
-**How might we** {Nutzer} **helfen,** {Beduerfnis} **zu erreichen,** **obwohl** {Hindernis}?
+**How might we** help {user} **achieve** {need}, **despite** {obstacle}?
 
 ## Epic Hypothesis Statement
 
-> Abgeleitet aus der HMW-Frage und der Value Proposition der BA.
+> Derived from the HMW question and the Value Proposition of the BA.
 
-FUER {Zielkunden-Segment -- aus HMW "Nutzer"}
-DIE {Bedarf/Problem haben -- aus HMW "Beduerfnis" + "Hindernis"}
-IST DAS {Produkt/Loesung -- aus BA Value Proposition}
-EIN {Produktkategorie -- aus BA High-Level Concept}
-DAS {Hauptnutzen bietet -- aus BA Ideenpotential "Mehrwert"}
-IM GEGENSATZ ZU {Wettbewerbs-Alternative -- aus BA Wettbewerber-Analyse}
-UNSERE LOESUNG {primaere Differenzierung -- aus BA "Das Wow" / "Unfairer Vorteil"}
+FOR {target customer segment -- from HMW "user"}
+WHO {have need/problem -- from HMW "need" + "obstacle"}
+THE {product/solution -- from BA Value Proposition}
+IS A {product category -- from BA High-Level Concept}
+THAT {provides key benefit -- from BA Idea Potential "Value"}
+UNLIKE {competitive alternative -- from BA Competitor Analysis}
+OUR SOLUTION {primary differentiator -- from BA "The Wow" / "Unfair Advantage"}
 
-## Business Outcomes (messbar)
+## Business Outcomes (measurable)
 
-1. **{Outcome 1}**: {Metrik} steigt von {Baseline} auf {Target} innerhalb {Zeitrahmen}
-2. **{Outcome 2}**: {Metrik} sinkt von {Baseline} auf {Target} innerhalb {Zeitrahmen}
+1. **{Outcome 1}**: {Metric} increases from {Baseline} to {Target} within {Timeframe}
+2. **{Outcome 2}**: {Metric} decreases from {Baseline} to {Target} within {Timeframe}
 
-## Leading Indicators (Fruehindikatoren)
+## Leading Indicators
 
-> Abgeleitet aus den Kritischen Hypothesen der BA (Section 7.3).
+> Derived from the Critical Hypotheses of the BA (Section 7.3).
 
-- {Indikator 1}: {Beschreibung, wie zu messen} -- validiert Hypothese H-{XX}
-- {Indikator 2}: {Beschreibung, wie zu messen} -- validiert Hypothese H-{XX}
+- {Indicator 1}: {Description, how to measure} -- validates Hypothesis H-{XX}
+- {Indicator 2}: {Description, how to measure} -- validates Hypothesis H-{XX}
 
-## Kritische Hypothesen (aus BA)
+## Critical Hypotheses (from BA)
 
-> Referenz auf BA Section 7.3. Diese Hypothesen muessen durch Features validiert werden.
+> Reference to BA Section 7.3. These hypotheses must be validated through features.
 
-| BA-Ref | Hypothese | Validiert durch Feature | Status |
-|--------|----------|------------------------|--------|
-| H-01 | {Hypothese aus BA} | FEATURE-{XXX} | {Offen / Validiert / Widerlegt} |
-| H-02 | {Hypothese aus BA} | FEATURE-{XXX} | {Offen / Validiert / Widerlegt} |
+| BA Ref | Hypothesis | Validated by Feature | Status |
+|--------|-----------|---------------------|--------|
+| H-01 | {Hypothesis from BA} | FEATURE-{XXX} | {Open / Validated / Disproven} |
+| H-02 | {Hypothesis from BA} | FEATURE-{XXX} | {Open / Validated / Disproven} |
 
 ## MVP Features
 
@@ -51,26 +51,26 @@ UNSERE LOESUNG {primaere Differenzierung -- aus BA "Das Wow" / "Unfairer Vorteil
 | FEATURE-001 | {Name} | P0 | M | Not Started |
 | FEATURE-002 | {Name} | P1 | L | Not Started |
 
-**Priority:** P0-Critical (ohne geht MVP nicht), P1-High (wichtig), P2-Medium (wertsteigernd)
-**Effort:** S (1-2 Sprints), M (3-5 Sprints), L (6+ Sprints)
+**Priority:** P0-Critical (MVP does not work without it), P1-High (important), P2-Medium (value-adding)
+**Effort:** S (1-2 sprints), M (3-5 sprints), L (6+ sprints)
 
-## Explizit Out-of-Scope
+## Explicitly Out-of-Scope
 
-- {Feature X}: {Begruendung}
-- {Feature Y}: Geplant fuer Phase 2
+- {Feature X}: {Rationale}
+- {Feature Y}: Planned for Phase 2
 
 ## Dependencies & Risks
 
 ### Dependencies
-- {Dependency 1}: {Team/System}, {Impact wenn verzoegert}
+- {Dependency 1}: {Team/System}, {Impact if delayed}
 
 ### Risks
 | Risk | Probability | Impact | Mitigation |
 |------|-------------|--------|------------|
 | {Risk 1} | H/M/L | H/M/L | {Mitigation} |
 
-## Technical Debt (nur PoC)
+## Technical Debt (PoC only)
 
 | Shortcut | Description | MVP Conversion Impact |
 |----------|-------------|----------------------|
-| {Shortcut 1} | {Beschreibung} | {Aufwand fuer Cleanup} |
+| {Shortcut 1} | {Description} | {Effort for cleanup} |

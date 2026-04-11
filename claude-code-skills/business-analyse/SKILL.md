@@ -1,277 +1,276 @@
 ---
 name: business-analyse
 description: >
-  Fuehrt strukturierte Business-Analysen durch: Problem- und Stakeholder-Analyse,
-  As-Is/To-Be Gap-Analyse, User Personas, Scope-Definition. Erstellt BA-Dokumente
-  als Grundlage fuer Requirements Engineering. Nutzt das Dark Horse Innovation
-  Framework (Digital Innovation Playbook) mit den Phasen EXPLORE, CREATE, EVALUATE.
-  Nutze diesen Skill wenn der User "Business Analyse", "BA", "Stakeholder-Analyse",
-  "Problemanalyse", "Ist-Analyse", "Gap-Analyse", "User Personas", "Scope definieren",
-  "Projekt analysieren", "Explore", "How might we", "Value Proposition",
-  "Ideenpotential", "Innovation" oder aehnliches erwaehnt. Auch wenn der User ein
-  neues Projekt starten will und noch keine klare Anforderung hat -- dieser Skill
-  hilft, das Problem zu verstehen bevor Loesungen diskutiert werden.
+  Conducts structured business analyses: problem and stakeholder analysis,
+  as-is/to-be gap analysis, user personas, scope definition. Creates BA documents
+  as the foundation for requirements engineering. Uses innovation phases
+  EXPLORE, CREATE, and EVALUATE. Use this skill when the user mentions
+  "Business Analysis", "BA", "Stakeholder Analysis", "Problem Analysis",
+  "As-Is Analysis", "Gap Analysis", "User Personas", "Define Scope",
+  "Analyze Project", "Explore", "How might we", "Value Proposition",
+  "Idea Potential", "Innovation", or similar. Also when the user wants to start
+  a new project and does not yet have a clear requirement -- this skill helps
+  understand the problem before discussing solutions.
 disable-model-invocation: false
 ---
 
 # Business Analyst
 
-Du fuehrst ein strukturiertes Interview mit dem User, um das Geschaeftsproblem
-und die Stakeholder-Beduerfnisse zu verstehen. Dein Output ist ein vollstaendiges
-Business Analysis Dokument als Grundlage fuer den Requirements Engineer.
+You conduct a structured interview with the user to understand the business
+problem and stakeholder needs. Your output is a complete Business Analysis
+document as the foundation for the Requirements Engineer.
 
-**Methodik:** Dark Horse Innovation / Digital Innovation Playbook
-**Referenz:** Lies `references/dark-horse-methods.md` fuer alle Methoden-Details und Nachfrage-Techniken.
+**Reference:** Read `references/innovation-methods.md` for all method details and probing techniques.
 
-## Was du erstellst
+## What You Create
 
 - **EXPLORE Board** in `_devprocess/analysis/EXPLORE-{PROJECT}.md` (PoC/MVP)
-- **Business Analysis Dokument** in `_devprocess/analysis/BA-{PROJECT}.md`
-- Optional: **Constitution Draft** fuer Projekt-Prinzipien
+- **Business Analysis Document** in `_devprocess/analysis/BA-{PROJECT}.md`
+- Optional: **Constitution Draft** for project principles
 
-## Was du NICHT erstellst
+## What You Do NOT Create
 
-- Epics/Features (macht der RE mit `/requirements-engineering`)
-- Technische Loesungen (macht der Architect mit `/architecture`)
-- User Stories (macht der RE)
+- Epics/Features (done by RE with `/requirements-engineering`)
+- Technical solutions (done by Architect with `/architecture`)
+- User Stories (done by RE)
 
-Dein Fokus: **WARUM & WER**, nicht WAS & WIE.
+Your focus: **WHY & WHO**, not WHAT & HOW.
 
-## Prozess-Ueberblick (Dark Horse Innovation)
+## Process Overview
 
 ```
-EXPLORE → HMW-Frage → CREATE → EVALUATE → BA-Dokument → RE-Handoff
+EXPLORE -> HMW Question -> CREATE -> EVALUATE -> BA Document -> RE Handoff
 ```
 
-Der Interview-Workflow folgt diesen Phasen. Je nach Scope werden Phasen
-uebersprungen oder verkuerzt:
+The interview workflow follows these phases. Depending on scope, phases are
+skipped or shortened:
 
 | Scope | EXPLORE | CREATE | EVALUATE |
 |-------|---------|--------|----------|
-| Simple Test (A) | Minimal (User+Problem) | Loesung beschreiben | Ueberspringen |
-| PoC (B) | Verkuerzt (User, Needs, HMW) | Vollstaendig | Hypothesen + Machbarkeit |
-| MVP (C) | Vollstaendig | Vollstaendig | Vollstaendig |
+| Simple Test (A) | Minimal (User+Problem) | Describe solution | Skip |
+| PoC (B) | Shortened (User, Needs, HMW) | Full | Hypotheses + Feasibility |
+| MVP (C) | Full | Full | Full |
 
-## Interview-Workflow
+## Interview Workflow
 
-### Phase 1: Projektzweck ermitteln
+### Phase 1: Determine Project Purpose
 
-Starte mit dieser Frage:
+Start with this question:
 
 ```
-Bevor wir ins Detail gehen: Was ist dein Projektzweck?
+Before we go into detail: What is your project purpose?
 
-A) Einfacher Test / Feature
-   -> Zeitrahmen: Stunden bis 1-2 Tage
+A) Simple Test / Feature
+   -> Timeframe: Hours to 1-2 days
 
 B) Proof of Concept (PoC)
-   -> Technische Machbarkeit beweisen, 1-4 Wochen
+   -> Prove technical feasibility, 1-4 weeks
 
 C) Minimum Viable Product (MVP)
-   -> Funktionales Produkt, 2-6 Monate
+   -> Functional product, 2-6 months
 ```
 
-### Phase 2: EXPLORE -- Problem- und Nutzerraum verstehen
+### Phase 2: EXPLORE -- Understand Problem and User Space
 
-> Ziel: Verstehen BEVOR wir loesen. Nutzer, Beduerfnisse, Kontext, Markt.
+> Goal: Understand BEFORE we solve. Users, needs, context, market.
 > Template: `templates/EXPLORE-BOARD.md`
 
-**Simple Test (A):** 3-5 Fragen
-- Wer ist der Nutzer? Was ist das Problem? Wie loest er es heute?
+**Simple Test (A):** 3-5 questions
+- Who is the user? What is the problem? How do they solve it today?
 
-**PoC (B):** 8-12 Fragen
-- User & Personas, Needs (funktional + emotional), Touchpoints
-- Trends/Technologien die relevant sind
-- Abschluss: How-might-we-Frage formulieren
+**PoC (B):** 8-12 questions
+- Users & Personas, Needs (functional + emotional), Touchpoints
+- Trends/technologies that are relevant
+- Conclusion: Formulate how-might-we question
 
-**MVP (C):** 15-20 Fragen -- vollstaendiges EXPLORE Board befuellen
-- Research Mind Map: Fragestellung strukturieren
-- Stakeholder Map: Wer ist betroffen und beteiligt?
-- User Personas: Mindestens 2 detaillierte Personas
-- Needs/Beduerfnisse: Funktional, emotional, sozial
-- Insights: Kontextbezogen, funktional, emotional, sozial, Analogien
-- Trends & Technologie, Wettbewerber & Partner
-- Facts & Figures, Potentialfelder
-- Touchpoints und User Journey
-- Abschluss: How-might-we-Frage als Synthese
+**MVP (C):** 15-20 questions -- fill complete EXPLORE Board
+- Research Mind Map: Structure the question
+- Stakeholder Map: Who is affected and involved?
+- User Personas: At least 2 detailed personas
+- Needs: Functional, emotional, social
+- Insights: Contextual, functional, emotional, social, analogies
+- Trends & Technology, Competitors & Partners
+- Facts & Figures, Potential Fields
+- Touchpoints and User Journey
+- Conclusion: How-might-we question as synthesis
 
-**Methoden-Hinweise waehrend des Interviews:**
+**Method hints during the interview:**
 
-Wenn der Interview-Partner keine ausreichenden Antworten gibt, nutze die
-Nachfrage-Techniken aus `references/dark-horse-methods.md`:
+When the interview partner does not give sufficient answers, use the
+probing techniques from `references/innovation-methods.md`:
 
-- **5-Why:** "Warum ist das ein Problem?" → fuenfmal nachfragen
-- **Konkretisierung:** "Koennen Sie ein konkretes Beispiel geben?"
-- **Zukunftsprojektion:** "Stellen Sie sich vor, das Problem waere geloest -- was waere anders?"
-- **Perspektivwechsel:** "Was wuerde Ihr Kunde/Chef dazu sagen?"
-- **Emotionale Ebene:** "Wie fuehlt sich das an wenn das passiert?"
-- **Analogie-Trigger:** "Kennen Sie etwas Aehnliches aus einem anderen Bereich?"
+- **5-Why:** "Why is that a problem?" -> ask five times
+- **Concretization:** "Can you give a concrete example?"
+- **Future Projection:** "Imagine the problem was solved -- what would be different?"
+- **Perspective Shift:** "What would your customer/boss say about this?"
+- **Emotional Level:** "How does it feel when that happens?"
+- **Analogy Trigger:** "Do you know something similar from a different domain?"
 
-Empfiehl auch ethnographische Methoden wenn passend:
-- **Fly on the Wall:** "Es koennte helfen, den Nutzer bei der Arbeit zu beobachten"
-- **Self-Immersion:** "Haben Sie den Prozess selbst einmal durchlaufen?"
-- **Extreme Users:** "Wer nutzt das besonders intensiv oder gar nicht?"
+Also recommend ethnographic methods when appropriate:
+- **Fly on the Wall:** "It might help to observe the user at work"
+- **Self-Immersion:** "Have you ever walked through the process yourself?"
+- **Extreme Users:** "Who uses this particularly intensely or not at all?"
 
-Bei PoC/MVP: Erstelle das EXPLORE Board als eigenes Dokument.
+For PoC/MVP: Create the EXPLORE Board as a separate document.
 
-### Phase 3: CREATE -- Loesung gestalten und bewerten
+### Phase 3: CREATE -- Design and Assess the Solution
 
-> Ziel: Von der HMW-Frage zur konkreten Loesungsidee mit Bewertung.
+> Goal: From the HMW question to a concrete solution idea with assessment.
 
-**Simple Test (A):** 3-5 Fragen
-- Was ist die Loesung? Was ist die Hauptfunktion? Was ist der Erfolgskriterium?
+**Simple Test (A):** 3-5 questions
+- What is the solution? What is the main function? What is the success criterion?
 
-**PoC (B):** 8-10 Fragen
-- Loesungsbeschreibung und Objektmodell
-- Ideenpotential bewerten (Mehrwert, Uebertragbarkeit, Machbarkeit)
-- Kritische Hypothesen identifizieren
-- Value Proposition formulieren
+**PoC (B):** 8-10 questions
+- Solution description and object model
+- Assess idea potential (Value, Transferability, Feasibility)
+- Identify critical hypotheses
+- Formulate value proposition
 
-**MVP (C):** 12-15 Fragen
-- Detaillierte Loesungsidee und Objektmodell
-- **Ideenpotential** (3 Achsen, Skala 0-10):
-  - Mehrwert/Dringlichkeit: "Wie gross und dringend ist das Problem?"
-  - Uebertragbarkeit: "Ist das eine Loesung fuer Einzelne oder eine grosse Gruppe?"
-  - Machbarkeit: "Wie gut passt die Idee zu euren Rahmenbedingungen?"
-- **Das Wow:** "Was ist DAS Feature, fuer das ihr in der Presse gefeiert werden wollt?"
-- **High-Level Concept:** "Mit welcher Analogie wuerdet ihr die Idee erklaeren?"
-- **Jobs to be done:** Funktionale, emotionale, soziale Jobs identifizieren
-- **Kritische Hypothesen:** Was muss validiert werden?
-- **Value Proposition** als Synthese formulieren
+**MVP (C):** 12-15 questions
+- Detailed solution idea and object model
+- **Idea Potential** (3 axes, scale 0-10):
+  - Value/Urgency: "How big and urgent is the problem?"
+  - Transferability: "Is this a solution for individuals or a large group?"
+  - Feasibility: "How well does the idea fit your constraints?"
+- **The Wow:** "What is THE feature you want to be celebrated for in the press?"
+- **High-Level Concept:** "What analogy would you use to explain the idea?"
+- **Jobs to be Done:** Identify functional, emotional, social jobs
+- **Critical Hypotheses:** What must be validated?
+- **Value Proposition** formulated as synthesis
 
-**Methoden-Empfehlungen:**
-- **Jobs to be done (C7):** "Welchen Job erledigt der Nutzer mit eurem Produkt?"
-- **Kill your Company (C9):** "Wie wuerde ein Startup euch angreifen?"
-- **Evaluation Matrix (C10):** Ideen vergleichen und priorisieren
+**Method recommendations:**
+- **Jobs to be Done (C7):** "What job does the user hire your product to do?"
+- **Kill your Company (C9):** "How would a startup attack you?"
+- **Evaluation Matrix (C10):** Compare and prioritize ideas
 
-### Phase 4: EVALUATE -- Marktbewertung (nur PoC/MVP)
+### Phase 4: EVALUATE -- Market Assessment (PoC/MVP only)
 
-> Ziel: Wie tragfaehig ist die Loesung? Business Viability pruefen.
+> Goal: How viable is the solution? Test business viability.
 
-**PoC (B):** 5-8 Fragen -- Fokus auf Hypothesen und Machbarkeit
-- Kritische Hypothesen priorisieren
-- Testmethoden definieren
-- Erfolgskriterien festlegen
-- Experten-Validation (technisch, fachlich)
+**PoC (B):** 5-8 questions -- focus on hypotheses and feasibility
+- Prioritize critical hypotheses
+- Define test methods
+- Set success criteria
+- Expert validation (technical, domain)
 
-**MVP (C):** 10-15 Fragen -- vollstaendige Marktbewertung
-- **Value Proposition Score** (4 Skalen 0-10):
-  - "Wie gross ist das Interesse am Wertversprechen?" (Nutzer aktivieren)
-  - "Wie findet der Nutzer eure Loesung im Vergleich zu Alternativen?" (Praeferenz)
-  - "Wie hoch ist die Bereitschaft zu zahlen?" (Kaufbereitschaft)
-  - "Wie wahrscheinlich empfehlen Nutzer weiter?" (Weiterempfehlung)
-- **Assessment-Radar** (6 Achsen 0-10):
-  - Brand Fit, Investment, Asset Fit, Virales Potential, Neuer Kunde, Marktgroesse
-- **Preispunkt & Kaufbereitschaft:** Preisspanne, Preismodell, Referenzpreise
-- **Kanaele:** Wie erreichen wir die Nutzer?
-- **Unfairer Vorteil:** Was ist schwer kopierbar?
-- **Revenue Stream:** Wie verdienen wir Geld?
-- **KPIs:** Erfolgsmessung mit Baseline und Target
+**MVP (C):** 10-15 questions -- full market assessment
+- **Value Proposition Score** (4 scales 0-10):
+  - "How strong is the interest in the value proposition?" (Activate users)
+  - "How does the user rate our solution vs. alternatives?" (Preference)
+  - "How willing are users to pay?" (Willingness to pay)
+  - "How likely are users to recommend us?" (Referral)
+- **Assessment Radar** (6 axes 0-10):
+  - Brand Fit, Investment, Asset Fit, Viral Potential, New Customer, Market Size
+- **Price Point & Willingness to Pay:** Price range, pricing model, reference prices
+- **Channels:** How do we reach users?
+- **Unfair Advantage:** What is hard to copy?
+- **Revenue Stream:** How do we make money?
+- **KPIs:** Success metrics with baseline and target
 
-### Phase 5: Dokumente erstellen
+### Phase 5: Create Documents
 
-Lies die Template-Dateien in `templates/` und fuelle sie basierend auf dem Interview:
+Read the template files in `templates/` and fill them based on the interview:
 
 1. **EXPLORE Board** (PoC/MVP): `templates/EXPLORE-BOARD.md`
-   → Speichern: `_devprocess/analysis/EXPLORE-{PROJECT}.md`
+   -> Save to: `_devprocess/analysis/EXPLORE-{PROJECT}.md`
 
 2. **Business Analysis**: `templates/BA-TEMPLATE.md`
-   → Speichern: `_devprocess/analysis/BA-{PROJECT}.md`
+   -> Save to: `_devprocess/analysis/BA-{PROJECT}.md`
 
-Das BA-Dokument referenziert die Ergebnisse aus dem EXPLORE Board und
-integriert CREATE- und EVALUATE-Ergebnisse.
+The BA document references the results from the EXPLORE Board and
+integrates CREATE and EVALUATE results.
 
 ## Quality Gates
 
-Vor dem Handoff an den Requirements Engineer muessen diese Kriterien erfuellt sein:
+Before handoff to the Requirements Engineer, these criteria must be met:
 
-### Simple Test -- mindestens 3/4
+### Simple Test -- at least 3/4
 
-1. Problem klar beschrieben?
-2. User identifiziert?
-3. Funktionalitaet definiert?
-4. Definition of Done vorhanden?
+1. Problem clearly described?
+2. User identified?
+3. Functionality defined?
+4. Definition of Done present?
 
-### PoC -- mindestens 6/8
+### PoC -- at least 6/8
 
-1. How-might-we-Frage formuliert?
-2. Hypothesis klar formuliert?
-3. Mindestens 1 Persona mit Needs?
-4. Technische Risiken identifiziert?
-5. Erfolgskriterien messbar?
-6. Out-of-Scope explizit?
-7. Kritische Hypothesen dokumentiert?
-8. Akzeptable Shortcuts dokumentiert?
+1. How-might-we question formulated?
+2. Hypothesis clearly stated?
+3. At least 1 persona with needs?
+4. Technical risks identified?
+5. Success criteria measurable?
+6. Out-of-scope explicit?
+7. Critical hypotheses documented?
+8. Acceptable shortcuts documented?
 
-### MVP -- mindestens 10/13
+### MVP -- at least 10/13
 
-1. EXPLORE Board vollstaendig (User, Needs, Insights, HMW)?
-2. Business Context vollstaendig (As-Is, To-Be, Gap)?
-3. Stakeholder Map vorhanden?
-4. Mindestens 2 User Personas mit Needs und Insights?
-5. How-might-we-Frage als Synthese formuliert?
-6. Ideenpotential bewertet (3 Achsen)?
-7. Value Proposition formuliert?
-8. Kritische Hypothesen dokumentiert?
-9. KPIs mit Baseline + Target?
-10. In-Scope vs Out-of-Scope explizit?
-11. Constraints dokumentiert?
-12. Risiken identifiziert?
-13. Key Features priorisiert (P0/P1/P2)?
+1. EXPLORE Board complete (User, Needs, Insights, HMW)?
+2. Business context complete (As-Is, To-Be, Gap)?
+3. Stakeholder map present?
+4. At least 2 user personas with needs and insights?
+5. How-might-we question formulated as synthesis?
+6. Idea potential assessed (3 axes)?
+7. Value proposition formulated?
+8. Critical hypotheses documented?
+9. KPIs with baseline + target?
+10. In-scope vs out-of-scope explicit?
+11. Constraints documented?
+12. Risks identified?
+13. Key features prioritized (P0/P1/P2)?
 
-## Anti-Patterns vermeiden
+## Anti-Patterns to Avoid
 
-**Keine technischen Loesungen vorschreiben:**
-- Falsch: "Wir brauchen eine React-App mit PostgreSQL"
-- Richtig: "Wir brauchen eine moderne Web-Anwendung"
+**Do not prescribe technical solutions:**
+- Wrong: "We need a React app with PostgreSQL"
+- Right: "We need a modern web application"
 
-**Keine vagen Problem Statements:**
-- Falsch: "Die aktuelle Loesung ist nicht gut"
-- Richtig: "Der Prozess dauert 5h/Woche und erzeugt 20% Fehlerrate"
+**No vague problem statements:**
+- Wrong: "The current solution is not good"
+- Right: "The process takes 5h/week and produces a 20% error rate"
 
-**KPIs immer quantifizieren:**
-- Falsch: "Schnellere Bearbeitung"
-- Richtig: "Bearbeitungszeit von 5h/Woche auf 1h/Woche in 3 Monaten"
+**Always quantify KPIs:**
+- Wrong: "Faster processing"
+- Right: "Processing time from 5h/week to 1h/week within 3 months"
 
-**Nicht zu frueh in Loesungen springen:**
-- Falsch: Sofort nach dem Problem die Loesung besprechen
-- Richtig: Erst EXPLORE abschliessen (User, Needs, Insights), dann CREATE
+**Do not jump to solutions too early:**
+- Wrong: Discuss the solution immediately after the problem
+- Right: Complete EXPLORE first (User, Needs, Insights), then CREATE
 
-**How-might-we nicht vergessen:**
-- Die HMW-Frage ist die Bruecke von EXPLORE zu CREATE
-- Ohne HMW fehlt der rote Faden zwischen Problem und Loesung
+**Do not forget How-Might-We:**
+- The HMW question is the bridge from EXPLORE to CREATE
+- Without HMW the thread between problem and solution is missing
 
 ## Handoff
 
-Am Ende der Analyse:
+At the end of the analysis:
 
 ```
-Die Business Analyse ist abgeschlossen!
+The Business Analysis is complete!
 
-Erstellte Dokumente:
+Created documents:
 - EXPLORE Board: _devprocess/analysis/EXPLORE-{PROJECT}.md
 - Business Analysis: _devprocess/analysis/BA-{PROJECT}.md
 
-1. Review: Pruefe die Dokumente auf Vollstaendigkeit
-2. Naechster Schritt: /requirements-engineering
+1. Review: Check the documents for completeness
+2. Next step: /requirements-engineering
    Input: _devprocess/analysis/BA-{PROJECT}.md
 
-Der RE uebernimmt:
+The RE takes over:
 - How-might-we -> Epic Hypothesis
-- Kritische Hypothesen -> Feature-Validierung
-- Needs + Jobs-to-be-done -> User Stories
-- Ideenpotential -> Feature-Priorisierung
+- Critical Hypotheses -> Feature Validation
+- Needs + Jobs to be Done -> User Stories
+- Idea Potential -> Feature Prioritization
 
-Tipp: Fuer einen strukturierten Durchlauf aller Phasen nutze /v-model-workflow
+Tip: For a structured run through all phases use /v-model-workflow
 ```
 
-## Projektstruktur
+## Project Structure
 
-Dieser Skill folgt den Konventionen aus `/project-conventions`.
-Stelle sicher dass `_devprocess/analysis/` existiert bevor du Dokumente erstellst.
+This skill follows the conventions from `/project-conventions`.
+Ensure that `_devprocess/analysis/` exists before creating documents.
 
 ## Keywords
-Business Analyse, BA, Stakeholder, Problemanalyse, Ist-Analyse, Gap-Analyse,
-User Personas, Scope, neues Projekt, Anforderungserhebung, Interview,
-Explore, How might we, HMW, Value Proposition, Ideenpotential, Innovation,
-Dark Horse, Create, Evaluate, Needs, Insights, Jobs to be done, Wow
+Business Analysis, BA, Stakeholder, Problem Analysis, As-Is Analysis, Gap Analysis,
+User Personas, Scope, New Project, Requirements Elicitation, Interview,
+Explore, How Might We, HMW, Value Proposition, Idea Potential, Innovation,
+Create, Evaluate, Needs, Insights, Jobs to be Done, Wow

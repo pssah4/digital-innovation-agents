@@ -1,172 +1,171 @@
-# Explore Board: {Projektname}
+# Explore Board: {Project Name}
 
-> **Projekt:** {Projektname}
-> **Erstellt:** {Datum}
+> **Project:** {Project Name}
+> **Created:** {Date}
 > **Phase:** EXPLORE
-> **Methodik:** Dark Horse Innovation / Digital Innovation Playbook
 
 ---
 
 ## 1. Research Mind Map
 
-> Zentrale Fragestellung in Forschungsfelder aufteilen (Methode E7)
+> Break the central question into research fields (Method E7)
 
-**Zentrale Fragestellung:** {Die eine Frage, die wir beantworten wollen}
+**Central Question:** {The one question we want to answer}
 
-| Forschungsfeld | Leitfragen | Prioritaet |
-|----------------|------------|------------|
-| User & Nutzergruppen | {Wer sind die Nutzer? Wie leben/arbeiten sie?} | {H/M/L} |
-| Markt & Wettbewerb | {Wer loest das Problem heute? Wie gross ist der Markt?} | {H/M/L} |
-| Technologie & Trends | {Welche Technologien ermoeglichen neue Loesungen?} | {H/M/L} |
-| Regulatorik & Constraints | {Welche Rahmenbedingungen bestehen?} | {H/M/L} |
-
----
-
-## 2. Trends & Technologie
-
-> Megatrends, soziokulturelle Trends, Konsum- und Zeitgeist-Trends, die Einfluss
-> auf das Projekt haben. Technologie-Trends und Entwicklungen. (Methode E9)
-
-- {Trend 1}: {Relevanz fuer das Projekt}
-- {Trend 2}: {Relevanz fuer das Projekt}
+| Research Field | Guiding Questions | Priority |
+|----------------|-------------------|----------|
+| Users & User Groups | {Who are the users? How do they live/work?} | {H/M/L} |
+| Market & Competition | {Who solves this problem today? How big is the market?} | {H/M/L} |
+| Technology & Trends | {Which technologies enable new solutions?} | {H/M/L} |
+| Regulation & Constraints | {What regulatory conditions exist?} | {H/M/L} |
 
 ---
 
-## 3. Potentielle Partner & Wettbewerber
+## 2. Trends & Technology
 
-> Relevante Partner und Mitbewerber im Markt, in dem wir innovieren.
+> Megatrends, sociocultural trends, consumer and zeitgeist trends that may
+> impact the project. Technology trends and developments. (Method E9)
 
-### Wettbewerber
+- {Trend 1}: {Relevance for the project}
+- {Trend 2}: {Relevance for the project}
 
-| Wettbewerber | Loesung | Staerken | Schwaechen |
-|--------------|---------|----------|------------|
-| {Name} | {Was bieten sie?} | {Was machen sie gut?} | {Wo sind sie schwach?} |
+---
 
-### Potentielle Partner
+## 3. Potential Partners & Competitors
 
-| Partner | Kompetenz | Synergie |
+> Relevant partners and competitors in the market we want to innovate in.
+
+### Competitors
+
+| Competitor | Solution | Strengths | Weaknesses |
+|------------|----------|-----------|------------|
+| {Name} | {What do they offer?} | {What do they do well?} | {Where are they weak?} |
+
+### Potential Partners
+
+| Partner | Competency | Synergy |
 |---------|-----------|---------|
-| {Name} | {Was bringen sie mit?} | {Wie ergaenzen sie uns?} |
+| {Name} | {What do they bring?} | {How do they complement us?} |
 
 ---
 
 ## 4. Facts & Figures
 
-> Quantitative Daten, die sich nicht den anderen Feldern zuordnen lassen,
-> aber mit dem Recherchethema zu tun haben.
+> Quantitative data that cannot be assigned to the other fields
+> but is related to the research topic.
 
-- {Fakt 1}: {Quelle}
-- {Fakt 2}: {Quelle}
+- {Fact 1}: {Source}
+- {Fact 2}: {Source}
 
 ---
 
-## 5. Potentialfelder
+## 5. Potential Fields
 
-> Wiederkehrende Themenschwerpunkte, die unsere Nutzer beschaeftigen.
-> Hinweise auf konkrete Beduerfnisse -- Vorstufe von Ideen fuer die CREATE-Phase.
+> Recurring themes that concern our users.
+> Indicators of concrete needs -- precursor to ideas for the CREATE phase.
 
-1. **{Potentialfeld 1}**: {Beschreibung -- welcher Schmerz oder welches Muster zeigt sich?}
-2. **{Potentialfeld 2}**: {Beschreibung}
+1. **{Potential Field 1}**: {Description -- what pain or pattern is emerging?}
+2. **{Potential Field 2}**: {Description}
 
 ---
 
 ## 6. User(s)
 
-> Merkmale unserer kuenftigen Nutzer. (Methoden E1, E3, E5.2)
+> Characteristics of our future users. (Methods E1, E3, E5.2)
 
 ### Persona 1: {Name}
 
-- **Rolle/Beruf:** {Job Title, Kontext}
-- **Alter/Segment:** {Demografische Eckdaten}
-- **Ziele:** {Was will dieser Mensch erreichen?}
-- **Frustrationen:** {Was nervt ihn/sie am meisten?}
-- **Typisches Zitat:** "{In den Worten des Nutzers}"
-- **Nutzungskontext:** {Wann, wo, wie oft tritt das Problem auf?}
+- **Role/Occupation:** {Job title, context}
+- **Age/Segment:** {Demographic essentials}
+- **Goals:** {What does this person want to achieve?}
+- **Frustrations:** {What annoys them the most?}
+- **Typical Quote:** "{In the user's own words}"
+- **Usage Context:** {When, where, how often does the problem occur?}
 
 ### Persona 2: {Name}
 
-- **Rolle/Beruf:** {Job Title, Kontext}
-- **Alter/Segment:** {Demografische Eckdaten}
-- **Ziele:** {Was will dieser Mensch erreichen?}
-- **Frustrationen:** {Was nervt ihn/sie am meisten?}
-- **Typisches Zitat:** "{In den Worten des Nutzers}"
-- **Nutzungskontext:** {Wann, wo, wie oft tritt das Problem auf?}
+- **Role/Occupation:** {Job title, context}
+- **Age/Segment:** {Demographic essentials}
+- **Goals:** {What does this person want to achieve?}
+- **Frustrations:** {What annoys them the most?}
+- **Typical Quote:** "{In the user's own words}"
+- **Usage Context:** {When, where, how often does the problem occur?}
 
 ---
 
-## 7. Needs / Beduerfnisse
+## 7. Needs
 
-> Was unter "Needs" notiert wird, muessen wir mit unserer Innovation (auf)loesen.
-> Die Kombination aus Nutzer und Beduerfnis ist Fixpunkt fuer digitale Produkte/Services.
+> What is noted under "Needs" is what we must solve with our innovation.
+> The combination of user and need is the anchor point for digital products/services.
 
-| Need ID | Beduerfnis | Typ | Prioritaet | Adressiert fuer Persona |
-|---------|-----------|-----|------------|------------------------|
-| N-01 | {Beduerfnis-Beschreibung} | {Funktional / Emotional / Sozial} | {H/M/L} | {Persona-Name} |
-| N-02 | {Beduerfnis-Beschreibung} | {Funktional / Emotional / Sozial} | {H/M/L} | {Persona-Name} |
+| Need ID | Need | Type | Priority | Addressed for Persona |
+|---------|------|------|----------|-----------------------|
+| N-01 | {Need description} | {Functional / Emotional / Social} | {H/M/L} | {Persona name} |
+| N-02 | {Need description} | {Functional / Emotional / Social} | {H/M/L} | {Persona name} |
 
 ---
 
 ## 8. Insights
 
-> Informationen die sowohl physische als auch emotionale Lebenswelt des Nutzers
-> betreffen. Auch Analogien die eine neue Perspektive ermoeglichen oder Empathie vertiefen.
+> Information about both the physical and emotional world of the user.
+> Also analogies that offer a new perspective or deepen empathy.
 
-### Allgemein / Kontextbezogen
-- {Insight ueber den Kontext, in dem das Problem auftritt}
+### General / Contextual
+- {Insight about the context in which the problem occurs}
 
-### Funktionale Insights
-> Handlungen der Nutzer -- wie kommen sie zum Ziel?
-- {Was tun die Nutzer konkret? Welche Workarounds nutzen sie?}
+### Functional Insights
+> User actions -- how do they reach their goal?
+- {What do users actually do? What workarounds do they use?}
 
-### Emotionale Insights
-> Erfahrungen und Gefuehle der Nutzer
-- {Wie fuehlen sich die Nutzer? Was frustriert, was begeistert?}
+### Emotional Insights
+> User experiences and feelings
+- {How do users feel? What frustrates or delights them?}
 
-### Soziale Insights
-> Sozialverhalten im Kontext des Problems
-- {Wie interagieren Nutzer miteinander? Welche sozialen Dynamiken?}
+### Social Insights
+> Social behavior in the context of the problem
+- {How do users interact with each other? What social dynamics exist?}
 
-### Analogien
-> Loesungen die in anderen Bereichen validiert wurden
-- {Analogie aus anderer Branche/Kontext}: {Was koennen wir uebertragen?}
+### Analogies
+> Solutions validated in other domains
+- {Analogy from another industry/context}: {What can we transfer?}
 
 ---
 
 ## 9. Touchpoints
 
-> Alle Beruehrungspunkte, die der Nutzer mit dem Produkt oder Service hat.
+> All points of contact the user has with the product or service.
 
-| Touchpoint | Phase | Kanal | Erlebnis (positiv/neutral/negativ) |
-|------------|-------|-------|-----------------------------------|
-| {Kontaktpunkt} | {Vor/Waehrend/Nach Nutzung} | {Digital/Physisch/Hybrid} | {Bewertung + Kurzbeschreibung} |
+| Touchpoint | Phase | Channel | Experience (positive/neutral/negative) |
+|------------|-------|---------|----------------------------------------|
+| {Contact point} | {Before/During/After usage} | {Digital/Physical/Hybrid} | {Rating + brief description} |
 
 ---
 
-## 10. How might we?
+## 10. How Might We?
 
-> Die HMW-Frage buendelt die Erkenntnisse des EXPLORE-Moduls zur Problemhypothese.
-> Sie ist der Startpunkt fuer das CREATE-Modul.
+> The HMW question bundles the findings of the EXPLORE module into a problem hypothesis.
+> It is the starting point for the CREATE module.
 >
-> Format: "How might we [Nutzer] helfen, [Beduerfnis] zu erreichen, obwohl [Hindernis]?"
+> Format: "How might we help [user] achieve [need], despite [obstacle]?"
 
-### Primaere HMW-Frage
+### Primary HMW Question
 
-**How might we** {Nutzer/Persona} **helfen,** {Beduerfnis/Ziel} **zu erreichen,**
-**obwohl** {Hindernis/Constraint}?
+**How might we** help {user/persona} **achieve** {need/goal},
+**despite** {obstacle/constraint}?
 
-### Alternative HMW-Fragen
+### Alternative HMW Questions
 
-1. How might we {Variante 1}?
-2. How might we {Variante 2}?
+1. How might we {variant 1}?
+2. How might we {variant 2}?
 
 ---
 
-## Uebergang zu CREATE
+## Transition to CREATE
 
-Die Explore-Phase ist abgeschlossen wenn:
-- [ ] Mindestens 1 Persona vollstaendig beschrieben
-- [ ] Mindestens 3 validierte Needs identifiziert
-- [ ] Mindestens 2 Insights pro Kategorie (funktional, emotional)
-- [ ] Primaere How-might-we-Frage formuliert
-- [ ] Potentialfelder identifiziert
-- [ ] Trends und Wettbewerber recherchiert
+The Explore phase is complete when:
+- [ ] At least 1 persona fully described
+- [ ] At least 3 validated needs identified
+- [ ] At least 2 insights per category (functional, emotional)
+- [ ] Primary how-might-we question formulated
+- [ ] Potential fields identified
+- [ ] Trends and competitors researched
