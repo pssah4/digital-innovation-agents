@@ -2,7 +2,7 @@
 
 > **AI-augmented Innovation & Development Workflow** -- From raw idea to production-ready code through structured, quality-gated phases.
 
-A system of specialized AI agents that guide digital innovation from initial business concept through requirements engineering, architecture design, implementation, testing, and security audit. Integrates proven innovation methods (EXPLORATION, IDEATION, VALIDATION) with structured software engineering. Available for **Claude Code** and **GitHub Copilot**.
+A system of specialized AI agents that guide digital innovation from initial business concept through requirements engineering, architecture design, implementation, testing, and security audit. Integrates proven innovation methods (Exploration, Ideation, Validation) with structured software engineering. Available for **Claude Code** and **GitHub Copilot**.
 
 ---
 
@@ -11,7 +11,7 @@ A system of specialized AI agents that guide digital innovation from initial bus
 **Digital Innovation Agents** provides a structured, agent-based workflow for building digital products. Instead of jumping straight into code, projects follow a systematic path through innovation and engineering phases:
 
 ```
-EXPLORATION -> IDEATION -> VALIDATION -> Requirements -> Architecture -> Code -> Test -> Security
+Exploration -> Ideation -> Validation -> Requirements -> Architecture -> Code -> Test -> Security
     |          |          |           |              |            |       |         |
   Understand  Design    Validate    Formalize     Decide      Build   Verify    Harden
   the problem the idea  the market  what to build  how         it      it        it
@@ -23,9 +23,9 @@ Each agent specializes in one phase, has built-in quality checks, and produces s
 
 The Business Analysis agent uses structured innovation methods to deeply understand problems before solving them:
 
-- **EXPLORE phase**: Qualitative interviews, persona synthesis, user motivation analysis, stakeholder mapping, market trend analysis, user journeys, and more -- with probing techniques when interview partners give thin answers
-- **IDEATION phase**: Jobs to be Done, idea potential assessment (value, transferability, feasibility), critical hypotheses, the "Wow" feature, and value proposition synthesis
-- **EVALUATE phase**: Value proposition scoring, 6-axis assessment radar, pricing analysis, channel strategy, unfair advantage, revenue streams, and business viability testing
+- **Exploration phase**: Qualitative interviews, persona synthesis, user motivation analysis, stakeholder mapping, market trend analysis, user journeys, and more -- with probing techniques when interview partners give thin answers
+- **Ideation phase**: Jobs to be Done, idea potential assessment (value, transferability, feasibility), critical hypotheses, the "Wow" feature, and value proposition synthesis
+- **Validation phase**: Value proposition scoring, 6-axis assessment radar, pricing analysis, channel strategy, unfair advantage, revenue streams, and business viability testing
 
 All methods include concrete guidance on **how to conduct them** and **what to do when you get stuck** -- see [innovation-methods.md](claude-code-skills/business-analyse/references/innovation-methods.md).
 
@@ -106,7 +106,7 @@ The [innovation-methods.md](claude-code-skills/business-analyse/references/innov
 @debugger Tests are failing, analyze the error log
 ```
 
-The Copilot agents have the same EXPLORATION/IDEATION/VALIDATION innovation workflow, the same templates, and the same quality gates as the Claude Code skills.
+The Copilot agents have the same Exploration/Ideation/Validation innovation workflow, the same templates, and the same quality gates as the Claude Code skills.
 
 ---
 
@@ -114,7 +114,7 @@ The Copilot agents have the same EXPLORATION/IDEATION/VALIDATION innovation work
 
 | Phase | What It Does | Claude Code | Copilot |
 |-------|-------------|-------------|---------|
-| **Business Analysis** | EXPLORATION/IDEATION/VALIDATION innovation cycle, structured interviews, problem analysis | `/business-analyse` | `@business-analyst` |
+| **Business Analysis** | Exploration, Ideation, Validation cycle with structured interviews and probing techniques | `/business-analyse` | `@business-analyst` |
 | **Requirements** | Epics, features, tech-agnostic success criteria, jobs-to-be-done | `/requirements-engineering` | `@requirements-engineer` |
 | **Architecture** | ADRs (MADR), arc42, plan-context.md | `/architecture` | `@architect` |
 | **Implementation** | Context handoff, critical review, artifact writeback | `/coding` | `@developer` |
@@ -134,21 +134,21 @@ The BA agent guides you through three innovation phases before a single line of 
 
 ```
 /business-analyse
-  Phase 1: EXPLORE -- Understand the problem space
+  Phase 1: Exploration -- Understand the problem space
     - Users, needs, insights, trends, competitors
     - Output: Exploration Board + How-Might-We question
     
-  Phase 2: IDEATION -- Design the solution
+  Phase 2: Ideation -- Design the solution
     - Idea potential, the Wow, critical hypotheses, value proposition
     - Output: Solution concept with validation plan
     
-  Phase 3: EVALUATE -- Test business viability
+  Phase 3: Validation -- Test business viability
     - VP score, assessment radar, pricing, channels, revenue
     - Output: Market assessment
 
   Final: BA Document
     Output: _devprocess/analysis/BA-{PROJECT}.md
-           _devprocess/analysis/EXPLORE-{PROJECT}.md
+           _devprocess/analysis/EXPLORATION-{PROJECT}.md
 ```
 
 ### Design Phases (Left Side of the V)
@@ -190,7 +190,7 @@ The BA agent guides you through three innovation phases before a single line of 
 
 ## Key Design Principles
 
-**Innovation Before Engineering**: Understand the problem deeply (EXPLORATION), design a validated solution (IDEATION), and test business viability (VALIDATION) before writing requirements.
+**Innovation Before Engineering**: Understand the problem deeply (Exploration), design a validated solution (Ideation), and test business viability (Validation) before writing requirements.
 
 **Codebase-Awareness**: Every agent reads the existing codebase before producing output. Your project's `CLAUDE.md` always takes precedence.
 
@@ -208,7 +208,7 @@ The BA agent guides you through three innovation phases before a single line of 
 
 The BA agent adapts its depth to your project scope:
 
-| Scope | EXPLORATION | IDEATION | VALIDATION | Typical Duration |
+| Scope | Exploration | Ideation | Validation | Typical Duration |
 |-------|---------|--------|----------|-----------------|
 | **Simple Test** | Minimal (user + problem) | Describe solution | Skip | Hours to 1-2 days |
 | **PoC** | Shortened (user, needs, HMW) | Full | Hypotheses + feasibility | 1-4 weeks |
@@ -234,7 +234,7 @@ digital-innovation-agents/
 │   │       ├── directory-structure.md
 │   │       └── naming-conventions.md
 │   │
-│   ├── business-analyse/                       # EXPLORATION/IDEATION/VALIDATION cycle
+│   ├── business-analyse/                       # Exploration/Ideation/Validation cycle
 │   │   ├── SKILL.md
 │   │   ├── templates/
 │   │   │   ├── BA-TEMPLATE.md                  # Full BA document (12 sections)
@@ -281,7 +281,7 @@ digital-innovation-agents/
 └── .github/                                    # GitHub Copilot Agents
     ├── copilot-instructions.md                 # Global instructions (auto-loaded)
     ├── agents/
-    │   ├── business-analyst.agent.md           # EXPLORATION/IDEATION/VALIDATION cycle
+    │   ├── business-analyst.agent.md           # Exploration/Ideation/Validation cycle
     │   ├── requirements-engineer.agent.md      # HMW, JTBD, hypothesis tracking
     │   └── architect.agent.md                  # ADRs, arc42, system design
     ├── chatmodes/
@@ -290,7 +290,7 @@ digital-innovation-agents/
     │   ├── developer.chatmode.md               # Test-driven implementation
     │   └── debugger.chatmode.md                # Root cause analysis
     ├── instructions/                           # Auto-validation quality rules
-    │   ├── business-analyst.instructions.md    # EXPLORATION/IDEATION/VALIDATION validation
+    │   ├── business-analyst.instructions.md    # Exploration/Ideation/Validation quality rules
     │   ├── requirements-engineer.instructions.md # HMW, JTBD, hypothesis validation
     │   ├── architect.instructions.md           # ADR, arc42, issue validation
     │   ├── developer.instructions.md           # Test enforcement, code quality
