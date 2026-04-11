@@ -1,12 +1,12 @@
 # Digital Innovation Agents
 
-> **AI-augmented Innovation & Development Workflow** -- From raw idea to production-ready code through structured, quality-gated phases.
+> **AI-augmented Innovation & Development Workflow.** From raw idea to production-ready code through structured, quality-gated phases.
 
 A system of specialized AI agents that guide digital innovation from initial business concept through requirements engineering, architecture design, implementation, testing, and security audit. Integrates proven innovation methods (Exploration, Ideation, Validation) with structured software engineering. Available for **Claude Code** and **GitHub Copilot**.
 
 ---
 
-## What This Is
+## What this is
 
 **Digital Innovation Agents** provides a structured, agent-based workflow for building digital products. Instead of jumping straight into code, projects follow a systematic path through innovation and engineering phases:
 
@@ -19,25 +19,25 @@ Exploration -> Ideation -> Validation -> Requirements -> Architecture -> Code ->
 
 Each agent specializes in one phase, has built-in quality checks, and produces standardized outputs that feed into the next phase.
 
-### Innovation Methods Built In
+### Innovation methods built in
 
 The Business Analysis agent uses structured innovation methods to deeply understand problems before solving them:
 
-- **Exploration phase**: Qualitative interviews, persona synthesis, user motivation analysis, stakeholder mapping, market trend analysis, user journeys, and more -- with probing techniques when interview partners give thin answers
+- **Exploration phase**: Qualitative interviews, persona synthesis, user motivation analysis, stakeholder mapping, market trend analysis, user journeys. Includes probing techniques for when interview partners give thin answers.
 - **Ideation phase**: Jobs to be Done, idea potential assessment (value, transferability, feasibility), critical hypotheses, the "Wow" feature, and value proposition synthesis
 - **Validation phase**: Value proposition scoring, 6-axis assessment radar, pricing analysis, channel strategy, unfair advantage, revenue streams, and business viability testing
 
-All methods include concrete guidance on **how to conduct them** and **what to do when you get stuck** -- see [innovation-methods.md](claude-code-skills/business-analyse/references/innovation-methods.md).
+All methods include concrete guidance on how to conduct them and what to do when you get stuck. See [innovation-methods.md](claude-code-skills/business-analyse/references/innovation-methods.md).
 
 ---
 
-## Quick Start
+## Quick start
 
-### Option A: Claude Code (Recommended)
+### Option A: Claude Code (recommended)
 
 Works in **Claude Code CLI**, **VS Code**, and **JetBrains**.
 
-**Step 1 -- Download the repository**
+**Step 1: Download the repository**
 
 If you have Git installed:
 ```bash
@@ -46,7 +46,7 @@ git clone https://github.com/pssah4/digital-innovation-agents.git
 
 Or download as ZIP from GitHub: Click the green **"Code"** button, then **"Download ZIP"**, and unzip the folder.
 
-**Step 2 -- Run the installer**
+**Step 2: Run the installer**
 
 Open a terminal, navigate to the downloaded folder, and run:
 
@@ -58,31 +58,31 @@ chmod +x install-skills.sh
 
 This copies all skills to `~/.claude/skills/` where Claude Code picks them up automatically.
 
-**Step 3 -- Verify**
+**Step 3: Verify**
 
 Open Claude Code (terminal, VS Code, or JetBrains) and type `/`. Your skills should appear in the autocomplete dropdown. If they don't appear in VS Code or JetBrains, close and reopen the Claude Code panel.
 
-**Step 4 -- Start using**
+**Step 4: Start using**
 
 ```
-/business-analyse          -- Start a structured business analysis
-/v-model-workflow          -- Full guided cycle from idea to security audit
+/business-analyse          Start a structured business analysis
+/v-model-workflow          Full guided cycle from idea to security audit
 ```
 
-### Option B: Claude Desktop App
+### Option B: Claude Desktop app
 
-**Step 1 -- Download the repository** (same as above)
+**Step 1: Download the repository** (same as above)
 
-**Step 2 -- Add skills via the UI**
+**Step 2: Add skills via the UI**
 
 1. Open the Claude Desktop App
 2. Go to **Customize** (bottom-left gear icon) -> **Skills**
 3. Click the **"+"** button
 4. Upload each skill folder from `claude-code-skills/` (one at a time)
 
-Alternatively, copy the skill folders manually to `~/.claude/skills/` -- the desktop app reads from the same location.
+Alternatively, copy the skill folders manually to `~/.claude/skills/`. The desktop app reads from the same location.
 
-### Option C: Use Without Installing (Any Claude Environment)
+### Option C: Use without installing
 
 You can use the templates and methods without installing skills. Simply:
 
@@ -92,11 +92,11 @@ You can use the templates and methods without installing skills. Simply:
 
 The [innovation-methods.md](claude-code-skills/business-analyse/references/innovation-methods.md) reference works as a standalone guide in any conversation.
 
-### Option D: GitHub Copilot
+### Option D: GitHub Copilot agents
 
-**Step 1** -- Copy the `.github/` directory to your project root. Agents are automatically detected by Copilot.
+**Step 1:** Copy the `.github/` directory to your project root. Agents are automatically detected by Copilot.
 
-**Step 2** -- Use agents in Copilot Chat:
+**Step 2:** Use agents in Copilot Chat:
 
 ```
 @business-analyst I want to build a tool that helps teams run better retrospectives
@@ -110,7 +110,7 @@ The Copilot agents have the same Exploration/Ideation/Validation innovation work
 
 ---
 
-## The Agents
+## The agents
 
 | Phase | What It Does | Claude Code | Copilot |
 |-------|-------------|-------------|---------|
@@ -126,9 +126,9 @@ The Copilot agents have the same Exploration/Ideation/Validation innovation work
 
 ---
 
-## The Flow
+## The flow
 
-### Innovation Phases (Business Analysis)
+### Innovation phases (business analysis)
 
 The BA agent guides you through three innovation phases before a single line of code is written:
 
@@ -151,7 +151,7 @@ The BA agent guides you through three innovation phases before a single line of 
            _devprocess/analysis/EXPLORATION-{PROJECT}.md
 ```
 
-### Design Phases (Left Side of the V)
+### Design phases (left side of the V)
 
 ```
 /requirements-engineering
@@ -164,7 +164,7 @@ The BA agent guides you through three innovation phases before a single line of 
   Output: ADRs, arc42, plan-context.md
 ```
 
-### Implementation (Bottom of the V)
+### Implementation (bottom of the V)
 
 ```
 /coding
@@ -173,10 +173,10 @@ The BA agent guides you through three innovation phases before a single line of 
   2. Critical review against real codebase
   3. Write changes back to artifacts
   4. Implementation
-  5. Final sync -- artifacts reflect what was actually built
+  5. Final sync: artifacts reflect what was actually built
 ```
 
-### Verification (Right Side of the V)
+### Verification (right side of the V)
 
 ```
 /testing
@@ -188,23 +188,21 @@ The BA agent guides you through three innovation phases before a single line of 
 
 ---
 
-## Key Design Principles
+## Design principles
 
-**Innovation Before Engineering**: Understand the problem deeply (Exploration), design a validated solution (Ideation), and test business viability (Validation) before writing requirements.
+The agents explore the problem (Exploration), design a solution (Ideation), and test business viability (Validation) before any requirements are written. Every agent reads the existing codebase before producing output, and your project's `CLAUDE.md` always takes precedence.
 
-**Codebase-Awareness**: Every agent reads the existing codebase before producing output. Your project's `CLAUDE.md` always takes precedence.
+ADRs, features, and architecture docs are updated continuously during implementation. At the end, documentation reflects what was actually built, not what was originally planned.
 
-**Living Documents**: ADRs, features, and architecture docs are continuously updated during implementation. Documentation always reflects what was actually built.
+Requirements separate *what* (measurable, technology-free) from *how* (technical NFRs). No OAuth, REST, or PostgreSQL in success criteria. Those go into Technical NFRs for the architect.
 
-**Tech-Agnostic Success Criteria**: Requirements separate *what* (measurable, technology-free) from *how* (technical NFRs). No OAuth, REST, or PostgreSQL in success criteria -- those go into Technical NFRs for the architect.
+When interview partners give thin answers, the BA agent suggests concrete follow-up techniques: 5-Why, concretization, future projection, perspective shift, emotional probing, analogy triggers.
 
-**Built-In Probing Techniques**: When interview partners give thin answers, the BA agent suggests concrete follow-up techniques: 5-Why, concretization, future projection, perspective shift, emotional probing, and analogy triggers.
-
-**Quality Gates**: No phase proceeds until quality criteria are met. Each agent validates its own output before handoff.
+No phase proceeds until its quality criteria are met. Each agent validates its own output before handoff.
 
 ---
 
-## Scope Levels
+## Scope levels
 
 The BA agent adapts its depth to your project scope:
 
@@ -216,7 +214,7 @@ The BA agent adapts its depth to your project scope:
 
 ---
 
-## File Structure
+## File structure
 
 ```
 digital-innovation-agents/
@@ -305,20 +303,20 @@ digital-innovation-agents/
 
 ---
 
-## Where It Works
+## Where it works
 
 | Environment | Skills Support | How to Install |
 |-------------|---------------|----------------|
 | **Claude Code CLI** | Full | Run `install-skills.sh` |
-| **VS Code** (Claude Code extension) | Full | Same -- inherits from `~/.claude/skills/` |
-| **JetBrains** (Claude Code plugin) | Full | Same -- inherits from `~/.claude/skills/` |
+| **VS Code** (Claude Code extension) | Full | Same (inherits from `~/.claude/skills/`) |
+| **JetBrains** (Claude Code plugin) | Full | Same (inherits from `~/.claude/skills/`) |
 | **Claude Desktop App** | Supported | Upload via Customize > Skills > "+" |
 | **Any Claude conversation** | Manual | Copy templates into your message |
 | **GitHub Copilot** | Full (agents) | Copy `.github/` to your project |
 
 ---
 
-## Adapt to Your Workflow
+## Adapt to your workflow
 
 These agents reflect a specific workflow. You will want to adjust:
 
@@ -332,7 +330,7 @@ These agents reflect a specific workflow. You will want to adjust:
 
 ---
 
-## Migration Notes: Copilot -> Claude Code
+## Migration notes: Copilot to Claude Code
 
 | Copilot Concept | Claude Code Equivalent |
 |----------------|----------------------|
@@ -348,7 +346,7 @@ These agents reflect a specific workflow. You will want to adjust:
 
 ## License
 
-MIT License -- Copyright (c) 2025 Sebastian Hanke
+MIT License. Copyright (c) 2025 Sebastian Hanke.
 
 See [LICENSE](LICENSE) for details.
 
