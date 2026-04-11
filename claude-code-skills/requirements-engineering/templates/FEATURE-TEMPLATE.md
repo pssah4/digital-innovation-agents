@@ -20,17 +20,33 @@
 - {Erfolgs-Metrik 1}
 - {Erfolgs-Metrik 2}
 
+## Jobs to be done (aus BA)
+
+> Referenz: BA Section 5.4. Bildet die Grundlage fuer User Stories.
+> Jeder priorisierte Job sollte in mindestens einer User Story adressiert werden.
+
+| Job-Typ | Job | Adressiert in Story |
+|---------|-----|-------------------|
+| Funktional | {Was will der Nutzer konkret erledigen?} | Story {N} |
+| Emotional | {Wie will der Nutzer sich fuehlen?} | Story {N} |
+| Sozial | {Wie will der Nutzer wahrgenommen werden?} | Story {N} |
+
 ## User Stories
 
-### Story 1: {Name}
+### Story 1: {Name} (Funktionaler Job)
 **Als** {User-Rolle}
 **moechte ich** {Funktionalitaet}
-**um** {Business-Wert} zu erreichen
+**um** {funktionalen Job} zu erledigen
 
-### Story 2: {Name}
+### Story 2: {Name} (Emotionaler Job)
 **Als** {User-Rolle}
 **moechte ich** {Funktionalitaet}
-**um** {Business-Wert} zu erreichen
+**um** {gewuenschtes Gefuehl/Erlebnis} zu erreichen
+
+### Story 3: {Name} (Sozialer Job)
+**Als** {User-Rolle}
+**moechte ich** {Funktionalitaet}
+**um** {Aussenwirkung/Wahrnehmung} zu erzielen
 
 ---
 
@@ -113,6 +129,19 @@
 ### Documentation
 - [ ] Feature-Spec aktualisiert (Status: Implemented)
 - [ ] Backlog aktualisiert
+
+---
+
+## Hypothesis Validation (wenn zutreffend)
+
+> Nur ausfuellen wenn dieses Feature eine Kritische Hypothese aus der BA validiert.
+> Referenz: BA Section 7.3, Epic Section "Kritische Hypothesen"
+
+| Hypothese (BA-Ref) | Testmethode | Erfolgskriterium | Ergebnis |
+|-------------------|-------------|-----------------|----------|
+| H-{XX}: {Hypothese} | {Wie wird getestet?} | {Wann ist validiert?} | {Offen / Validiert / Widerlegt} |
+
+**Bei Widerlegung:** {Was ist der Pivot-Plan? Welche Alternative?}
 
 ---
 
