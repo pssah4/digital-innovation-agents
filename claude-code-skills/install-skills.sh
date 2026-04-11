@@ -1,6 +1,6 @@
 #!/bin/bash
 # install-skills.sh
-# Installiert die V-Model Skills nach ~/.claude/skills/
+# Installs V-Model Skills to ~/.claude/skills/
 #
 # Usage: chmod +x install-skills.sh && ./install-skills.sh
 
@@ -9,15 +9,15 @@ set -euo pipefail
 SKILLS_DIR="$HOME/.claude/skills"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-echo "=== V-Model Skills Installer ==="
+echo "=== Digital Innovation Agents -- Skill Installer ==="
 echo ""
-echo "Ziel: $SKILLS_DIR"
+echo "Target: $SKILLS_DIR"
 echo ""
 
-# Verzeichnis erstellen falls noetig
+# Create directory if needed
 mkdir -p "$SKILLS_DIR"
 
-# Skills die installiert werden
+# Skills to install
 SKILLS=(
   "project-conventions"
   "business-analyse"
@@ -34,31 +34,31 @@ for skill in "${SKILLS[@]}"; do
   dest="$SKILLS_DIR/$skill"
 
   if [ -d "$dest" ]; then
-    echo "  [UPDATE] $skill (existiert bereits, wird ueberschrieben)"
+    echo "  [UPDATE] $skill (exists, will be overwritten)"
     rm -rf "$dest"
   else
-    echo "  [NEU]    $skill"
+    echo "  [NEW]    $skill"
   fi
 
   cp -r "$src" "$dest"
 done
 
 echo ""
-echo "=== Installation abgeschlossen ==="
+echo "=== Installation complete ==="
 echo ""
-echo "Installierte Skills:"
+echo "Installed skills:"
 for skill in "${SKILLS[@]}"; do
   echo "  /$skill"
 done
 echo ""
-echo "Nutzung in Claude Code:"
-echo "  /project-conventions       -- Projektstruktur & Namenskonventionen"
-echo "  /business-analyse          -- Strukturierte Problem-Analyse"
-echo "  /requirements-engineering  -- Features, Epics, Success Criteria"
+echo "Usage in Claude Code:"
+echo "  /business-analyse          -- Structured problem analysis (EXPLORE/CREATE/EVALUATE)"
+echo "  /requirements-engineering  -- Features, epics, success criteria"
 echo "  /architecture              -- ADRs, arc42, plan-context.md"
-echo "  /coding                    -- Kontext-Uebergabe aus plan-context.md"
-echo "  /testing                   -- Unit & Integration Tests"
-echo "  /security-audit            -- Security Review nach Implementierung"
-echo "  /v-model-workflow          -- Orchestrator fuer den gesamten Zyklus"
+echo "  /coding                    -- Context handoff from plan-context.md"
+echo "  /testing                   -- Unit & integration tests"
+echo "  /security-audit            -- Security review after implementation"
+echo "  /project-conventions       -- Project structure & naming conventions"
+echo "  /v-model-workflow          -- Orchestrator for the full cycle"
 echo ""
-echo "Teste mit: claude und dann /skills eingeben"
+echo "Verify: Open Claude Code and type / -- skills should appear in autocomplete."
