@@ -10,12 +10,7 @@ A system of specialized AI agents that guide digital innovation from initial bus
 
 **Digital Innovation Agents** provides a structured, agent-based workflow for building digital products. Instead of jumping straight into code, projects follow a systematic path through innovation and engineering phases:
 
-```
-Exploration -> Ideation -> Validation -> Requirements -> Architecture -> Code -> Test -> Security
-    |          |          |           |              |            |       |         |
-  Understand  Design    Validate    Formalize     Decide      Build   Verify    Harden
-  the problem the idea  the market  what to build  how         it      it        it
-```
+<img width="1317" height="675" alt="image" src="https://github.com/user-attachments/assets/c12e5e6d-e46a-4c65-8042-0f82c18db16a" />
 
 Each agent specializes in one phase, has built-in quality checks, and produces standardized outputs that feed into the next phase.
 
@@ -28,6 +23,8 @@ The Business Analysis agent uses structured innovation methods to deeply underst
 - **Validation phase**: Value proposition scoring, 6-axis assessment radar, pricing analysis, channel strategy, unfair advantage, revenue streams, and business viability testing
 
 All methods include concrete guidance on how to conduct them and what to do when you get stuck. See [innovation-methods.md](claude-code-skills/business-analyse/references/innovation-methods.md).
+
+<img width="800" height="513" alt="image" src="https://github.com/user-attachments/assets/43ed2ff6-e59e-497f-9f89-cd79267cdd18" />
 
 ---
 
