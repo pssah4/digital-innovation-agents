@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Work toward v2.0.0. See branch `main`.
 
+### Added (Phase 1 -- VitePress Docs Site)
+
+- VitePress-based documentation site under `docs/`, built with
+  `vitepress-plugin-mermaid` for V-Model and traceability diagrams
+- GitHub Pages deployment via `.github/workflows/deploy-docs.yml`
+- Landing page (`docs/index.md`) with hero section and feature tiles
+- Tutorials: installation (all 7 platforms), first-business-analysis,
+  full-v-model-run
+- Guides: one per skill. v-model-workflow, business-analyse, and
+  coding as full guides; the other 5 as structured intros linking
+  back to `skills/*/SKILL.md` as source of truth
+- Reference: commands, artifacts (`_devprocess/` layout), conventions,
+  troubleshooting
+- Concepts: The V-Model (with Mermaid diagram), Living Documents,
+  Tech-agnostic Requirements, Handoff Rituals, Verification Gates
+- About page with Sebastian Hanke bio and Buy Me A Coffee sponsorship
+- Imprint page (minimal placeholder)
+- Release notes: v1.0.0 Classic, v2.0.0 (placeholder to be finalized
+  at v2.0.0 tag)
+- Root `package.json` with VitePress + Mermaid dev dependencies
+- `.gitignore` updated for `node_modules/`, `docs/.vitepress/cache/`,
+  `docs/.vitepress/dist/`
+
 ### Added (Phase 3 -- v2 Content)
 
 - **`/coding` skill**: five new sub-phases that brief the Default Claude

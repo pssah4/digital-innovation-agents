@@ -3,3 +3,8 @@
 
 # Backup
 backup/
+
+# Node / VitePress
+node_modules/
+docs/.vitepress/cache/
+docs/.vitepress/dist/
