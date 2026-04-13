@@ -6,6 +6,20 @@ A system of specialized AI agents that guide digital innovation from initial bus
 
 ---
 
+## Versions
+
+| Version | Status | Install |
+|---------|--------|---------|
+| **v1.0.0** | Stable, frozen (no updates) | `./install-skills.sh --version v1.0.0` |
+| **main** | Active development toward v2 | `./install-skills.sh` |
+
+v1.0.0 is the Classic V-Model workflow. v2 will add runtime discipline
+(TDD, systematic debugging, verification gates, handoff rituals), a Claude Code
+plugin marketplace, a reverse-engineering skill, and a VitePress
+documentation site. See [CHANGELOG.md](CHANGELOG.md) for details.
+
+---
+
 ## What this is
 
 **Digital Innovation Agents** provides a structured, agent-based workflow for building digital products. Instead of jumping straight into code, projects follow a systematic path through innovation and engineering phases:
