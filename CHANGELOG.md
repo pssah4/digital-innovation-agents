@@ -9,7 +9,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Work toward v2.0.0. See branch `main`.
 
-### Added
+### Added (Phase 3 -- v2 Content)
+
+- **`/coding` skill**: five new sub-phases that brief the Default Claude
+  Code agent with precise guidelines -- 3a Task-breakdown guidelines,
+  3b optional TDD mode, 3c Debugging protocol with 4-phase root-cause
+  process and "architecture alarm" after 3+ failed fixes, 4a Verification
+  gate before completion, 4b Regression test cycle for bug fixes.
+  Phase 1 (Load context), Phase 2 (Critical review), Phase 4 (Final
+  synchronization) remain unchanged as the v1 differentiators.
+- **`/testing` skill**: new section "Role alongside TDD" clarifying that
+  Integration tests are the primary focus, unit-test gaps secondary, and
+  coverage check tertiary. Fallback mode remains for runs where TDD was
+  not active.
+- **`/v-model-workflow` skill**: new "Orchestrated Phase Transitions"
+  section driving phase handoffs actively, and a new **Phase 7: Release
+  Closure** that finalizes artifacts, generates release notes, updates
+  CHANGELOG, and cleans the backlog.
+- **All 6 phase skills** (business-analyse, requirements-engineering,
+  architecture, coding, testing, security-audit): mandatory 3-part
+  Handoff Ritual at end of phase -- Artifact report, Handoff context
+  (appended to `30_handoffs.md`), Explicit transition question.
+- **`_devprocess/context/20_bugs.md`**: new file convention for the
+  FIX-NN bug log, maintained by `/coding` Phase 3c.
+- **`_devprocess/context/30_handoffs.md`**: new file convention for the
+  append-only phase handoffs log, written by each phase skill.
+- **`using-digital-innovation-agents`**: new "Language in dialog" section
+  -- skill content is English, user-facing dialog adapts to user's
+  language automatically.
+
+### Changed (Phase 3)
+
+- All 6 German skill files translated to English for portability and
+  consistency with `plugin.json`, README, CHANGELOG: `coding`, `testing`,
+  `architecture`, `security-audit`, `v-model-workflow`, `project-conventions`.
+- `project-conventions/SKILL.md`: dateinamen table extended with
+  `20_bugs.md` and `30_handoffs.md` entries; new "The `_devprocess/context/`
+  files" section explains the three living logs.
+- `business-analyse/SKILL.md` and `requirements-engineering/SKILL.md`
+  (already English): existing "Handoff" section replaced by the new
+  3-part Handoff Ritual.
+
+### Added (Phase 2 -- Multi-Platform Plugin Infrastructure)
 
 - Claude Code plugin manifest (`.claude-plugin/plugin.json`)
 - Claude Code plugin marketplace (`.claude-plugin/marketplace.json`) as `pssah4-skills`

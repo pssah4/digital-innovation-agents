@@ -22,6 +22,14 @@ testing, and security audit.
 - `/security-audit` -- OWASP, SAST, SCA, Zero Trust
 - `/project-conventions` -- Project structure and naming standards
 
+## Language in dialog
+
+The skill content is written in English so it is portable across language
+contexts. **In the dialog with the user, always respond in the user's
+language.** If the user writes in German, reply in German. If Spanish,
+reply in Spanish. The skill instructions stay English internally; the
+user-facing messages adapt automatically.
+
 ## Artifact locations
 
 All project artifacts live under `_devprocess/`:
@@ -30,7 +38,9 @@ All project artifacts live under `_devprocess/`:
 - `_devprocess/requirements/epics/EPIC-*.md`, `features/FEATURE-*.md`
 - `_devprocess/requirements/handoff/architect-handoff.md`, `plan-context.md`
 - `_devprocess/architecture/ADR-*.md`, `arc42.md`
-- `_devprocess/context/10_backlog.md`
+- `_devprocess/context/10_backlog.md` (living backlog)
+- `_devprocess/context/20_bugs.md` (FIX-NN bug log, written by `/coding` Phase 3c)
+- `_devprocess/context/30_handoffs.md` (append-only phase handoffs log)
 - `_devprocess/analysis/security/AUDIT-*.md`
 
 ## When to invoke which skill

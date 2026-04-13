@@ -1,30 +1,31 @@
 ---
 name: v-model-workflow
 description: >
-  Orchestriert den V-Model Entwicklungszyklus: Business Analyse -> Requirements
-  Engineering -> Architecture -> Coding (Implementierung). Nutze diesen Skill
-  wenn der User "V-Model", "kompletter Workflow", "neues Projekt aufsetzen",
-  "von der Analyse bis zur Implementierung", "Full Cycle" oder aehnliches erwaehnt.
-  Auch wenn unklar ist, mit welcher Phase gestartet werden soll.
-  Alle Phasen folgen den Konventionen aus /project-conventions.
+  Orchestrates the V-Model development cycle: Business Analysis ->
+  Requirements Engineering -> Architecture -> Coding (Implementation) ->
+  Testing -> Security Audit -> Release Closure. Use this skill when the
+  user mentions "V-Model", "full workflow", "set up new project", "from
+  analysis to implementation", "full cycle" or similar. Also when it is
+  unclear which phase to start in. All phases follow the conventions from
+  /project-conventions.
 disable-model-invocation: true
 ---
 
 # V-Model Workflow Orchestrator
 
-Dieser Skill fuehrt dich durch den V-Model Entwicklungszyklus.
-Jede Phase baut auf der vorherigen auf und erzeugt Artefakte als Input fuer
-die naechste Phase. Alle Phasen folgen den Konventionen aus `/project-conventions`.
+This skill guides you through the V-Model development cycle. Each phase
+builds on the previous one and produces artifacts as input for the next
+phase. All phases follow the conventions from `/project-conventions`.
 
-## Workflow-Uebersicht
+## Workflow Overview
 
 ```
-Phase 1: /business-analyse                         ENTWURF
-  Output: _devprocess/analysis/BA-{PROJECT}.md       (linke Seite
-    |                                                 des V)
+Phase 1: /business-analyse                         DESIGN
+  Output: _devprocess/analysis/BA-{PROJECT}.md       (left side
+    |                                                 of the V)
     v
 Phase 2: /requirements-engineering
-  Input:  BA-Dokument
+  Input:  BA document
   Output: Epics, Features, architect-handoff.md
     |
     v
@@ -33,219 +34,291 @@ Phase 3: /architecture
   Output: ADRs, arc42, plan-context.md
     |
     v
-Phase 4: /coding                                   IMPLEMENTIERUNG
-  Input:  plan-context.md + ADRs + Features          (Spitze des V)
-  Action: Plan erstellen, ADRs finalisieren,
-          inkrementell implementieren,
-          Feature-Specs + Backlog aktualisieren
+Phase 4: /coding                                   IMPLEMENTATION
+  Input:  plan-context.md + ADRs + Features          (bottom of the V)
+  Action: Load context, critical review,
+          brief the Default agent (task breakdown,
+          optional TDD, debugging protocol,
+          verification gate), write artifacts back
     |
     v
-Post-Impl: /security-audit                         VERIFIKATION
-  Input:  Implementierte Codebase                    (rechte Seite
-  Output: Security Report + Remediation Plan          des V)
+Phase 5: /testing                                  VERIFICATION
+  Input:  Implemented codebase + Features            (right side
+  Output: Unit + integration tests, fix-loop          of the V)
+    |
+    v
+Phase 6: /security-audit
+  Input:  Implemented codebase
+  Output: Security report + remediation, fix-loop
+    |
+    v
+Phase 7: Release Closure                           CLOSING
+  Input:  All artifacts + test + security results
+  Output: Finalized artifacts, release notes,
+          CHANGELOG update, clean backlog
 ```
 
-## Projektstruktur sicherstellen
+## Orchestrated Phase Transitions
 
-Bevor eine Phase startet, pruefe ob die Verzeichnisstruktur existiert.
-Falls nicht, initialisiere sie gemaess `/project-conventions`:
+When the workflow runs via `/v-model-workflow`, the orchestrator actively
+drives phase transitions. Every phase ends with the **Handoff Ritual** of
+the respective skill (see each skill for details). The orchestrator then:
+
+1. Reads the phase-skill's artifact report and handoff context
+2. Asks the user the transition question from the phase-skill
+3. On agreement: launches the next phase-skill, passing the handoff context
+   from `_devprocess/context/30_handoffs.md` as input
+4. On rejection: pauses, reports the current state, waits for user instruction
+5. Repeats until all phases complete, ending at Phase 7
+
+**The orchestrator never runs in a loop without user consent.** Every
+transition needs either an implicit "yes" (user says "go"/"next"/"continue")
+or an explicit approval. The user can exit at any point and manually
+resume later by re-invoking `/v-model-workflow`.
+
+**When a phase-skill is invoked directly (without `/v-model-workflow`):**
+The Handoff Ritual still runs, and the handoff context is still written
+to `_devprocess/context/30_handoffs.md`. The user can then manually start
+the next skill, which will pick up the handoff entry.
+
+## Ensure project structure exists
+
+Before a phase starts, check whether the directory structure exists.
+If not, initialize it per `/project-conventions`:
 
 ```bash
 mkdir -p _devprocess/{analysis/security,requirements/{epics,features,handoff},architecture,context}
 mkdir -p src docs scripts memory
+touch _devprocess/context/10_backlog.md _devprocess/context/20_bugs.md _devprocess/context/30_handoffs.md
 ```
 
-## Start: Phase bestimmen
+## Start: Determine Phase
 
-Frage den User:
-
-```
-V-Model Workflow -- Wo stehst du?
-
-A) Ganz am Anfang -- Projekt/Feature noch nicht analysiert
-   -> Starte mit /business-analyse
-
-B) Problem ist klar, brauche strukturierte Requirements
-   -> Starte mit /requirements-engineering
-
-C) Requirements stehen, brauche Architektur-Vorschlaege
-   -> Starte mit /architecture
-
-D) Architektur steht, plan-context.md liegt vor
-   -> Starte mit /coding
-
-E) Implementierung fertig, brauche Security Review
-   -> Starte mit /security-audit
-
-F) Unsicher -- hilf mir einzuordnen
-   -> Kurzes Interview zur Standortbestimmung
-```
-
-## Phase-Uebergaenge
-
-### Nach Business Analyse -> Requirements Engineering
-
-Pruefe Quality Gates aus `/business-analyse`, dann:
+Ask the user:
 
 ```
-BA abgeschlossen! Naechster Schritt:
+V-Model Workflow -- where are you?
+
+A) Starting from scratch -- project/feature not yet analyzed
+   -> Start with /business-analyse
+
+B) Problem is clear, need structured requirements
+   -> Start with /requirements-engineering
+
+C) Requirements exist, need architecture proposals
+   -> Start with /architecture
+
+D) Architecture exists, plan-context.md is ready
+   -> Start with /coding
+
+E) Implementation done, need tests
+   -> Start with /testing
+
+F) Tests passed, need security review
+   -> Start with /security-audit
+
+G) Security audit done, need release closure
+   -> Start Phase 7 (Release Closure, see below)
+
+H) Unsure -- help me figure out where to start
+   -> Short orientation interview
+```
+
+## Phase Transitions
+
+### After Business Analysis -> Requirements Engineering
+
+Check the Quality Gates from `/business-analyse`, then hand off:
+
+```
+BA complete! Next step:
 /requirements-engineering
-Input: _devprocess/analysis/BA-{PROJECT}.md
+Input: _devprocess/analysis/BA-{PROJECT}.md + last entry in 30_handoffs.md
 ```
 
-### Nach Requirements Engineering -> Architecture
+### After Requirements Engineering -> Architecture
 
-Pruefe: Features haben tech-agnostische SC, architect-handoff.md existiert.
+Check: Features have tech-agnostic SC, architect-handoff.md exists.
 
 ```
-Requirements abgeschlossen! Naechster Schritt:
+Requirements complete! Next step:
 /architecture
 Input: _devprocess/requirements/handoff/architect-handoff.md
 ```
 
-### Nach Architecture -> Coding
+### After Architecture -> Coding
 
-Pruefe: plan-context.md existiert und ist konsistent mit ADRs.
+Check: plan-context.md exists and is consistent with ADRs.
 
 ```
-Architektur-Vorschlaege stehen! Naechster Schritt:
+Architecture proposals ready! Next step:
 /coding
 Input: _devprocess/requirements/handoff/plan-context.md
 
-Der Coding-Skill wird:
-1. plan-context.md + alle ADRs + Features lesen
-2. ADR-Vorschlaege final akzeptieren/modifizieren
-3. Implementierungsplan erstellen (Plan-Mode)
-4. Inkrementell implementieren (Build+Deploy nach jedem Schritt)
-5. Feature-Specs und Backlog aktualisieren
+/coding will:
+1. Load plan-context.md + all ADRs + Features
+2. Accept/modify ADR proposals (critical codebase review)
+3. Create an implementation plan (plan-mode) with task-breakdown guidelines
+4. Apply the verification gate before every completion claim
+5. Write Feature specs and backlog back to artifacts
 ```
 
-### Nach Coding -> Testing
+### After Coding -> Testing
 
-Coding-Skill empfiehlt automatisch Testing nach Abschluss:
+`/coding` automatically recommends testing after completion:
 
 ```
-Implementierung abgeschlossen!
+Implementation complete!
 
-Naechster Schritt:
+Next step:
 /testing
--> Erstellt Unit + Integration Tests
--> Bei fehlschlagenden Tests: Fix-Loop mit User-Freigabe
+-> Creates unit + integration tests
+-> On failing tests: fix-loop with user approval
 ```
 
-### Nach Testing -> Fix-Loop (wenn noetig)
-
-Der Testing-Skill hat einen eingebauten Fix-Loop:
+### After Testing -> Security Audit
 
 ```
-Tests fehlgeschlagen -> User waehlt:
-  A) Alle Fixes automatisch -> Fix -> Re-Test -> wiederholen bis gruen
-  B) Fixes einzeln freigeben -> Fix zeigen -> bestaetigen -> Re-Test
-  C) Nur Tests anpassen
-  D) Abbrechen
+All tests passing!
 
-Nach erfolgreichem Re-Test:
-  -> Artefakte aktualisieren (Feature-Specs, Backlog)
-  -> Weiter zu /security-audit
-```
-
-### Nach Testing -> Security Audit
-
-```
-Alle Tests bestanden!
-
-Naechster Schritt:
+Next step:
 /security-audit
--> Prueft die Codebase auf OWASP, CWE, Dependencies
--> Erstellt priorisierten Remediation-Plan
+-> Scans the codebase for OWASP, CWE, dependency vulnerabilities
+-> Creates a prioritized remediation plan
 ```
 
-### Nach Security Audit -> Fix-Loop (wenn noetig)
+### After Security Audit -> Phase 7 Release Closure
 
-Der Security-Audit-Skill hat einen eingebauten Fix-Loop:
+After the security fix-loop is closed, the orchestrator invokes Phase 7
+(see below). This is the final phase that closes the V-Model cycle.
+
+---
+
+## Phase 7: Release Closure
+
+After a successful security audit, the orchestrator explicitly runs the
+Release Closure phase. This is the endpoint that closes the cycle cleanly.
+
+**Goal:** Bring all artifacts into a consistent, release-ready state and
+prepare the next iteration.
+
+### Step 1: Final artifact synchronization (cross-phase)
+
+Check and update every artifact so it reflects the actual state:
+
+- **BA**: update the Validation section with real numbers if measurable
+- **Features**: all statuses correct (Implemented / Deferred / Removed)
+- **ADRs**: all statuses finalized (Accepted / Accepted (modified) / Deprecated)
+- **arc42**: affected sections up to date
+- **plan-context.md**: tech stack matches the actual state
+
+### Step 2: Generate release notes
+
+- List implemented features
+- Fixed bugs from `_devprocess/context/20_bugs.md` (Status=resolved)
+- Open bugs moved to backlog
+- Security findings (resolved + deferred)
+- Breaking changes if any
+
+### Step 3: Update CHANGELOG
+
+- New section: `[Unreleased]` -> `[{version}] - {date}`
+- Features, Fixes, Breaking Changes sorted in
+- Decide semver bump (patch/minor/major)
+
+### Step 4: Backlog cleanup
+
+- All open bugs from `20_bugs.md` referenced in `10_backlog.md`
+- Deferred security findings in backlog
+- New ideas from implementation (out of scope) documented as
+  future-considerations
+- Completed items archived
+
+### Step 5: Closing report to the user
 
 ```
-Findings identifiziert -> User waehlt:
-  A) Alle Findings fixen (P1+P2+P3) -> Fix -> Re-Audit -> wiederholen
-  B) Nur P1 fixen, P2/P3 ins Backlog
-  C) Fixes einzeln freigeben
-  D) Nichts fixen, nur Report
+V-Model cycle complete for {PROJECT} v{version}
 
-Nach Re-Audit:
-  -> Nicht-gefixte Findings ins Backlog
-  -> Artefakte aktualisieren
-  -> Workflow abgeschlossen
+Features: {N} implemented, {N} deferred, {N} removed
+Bugs: {N} resolved, {N} in backlog
+Security: {N} P0/P1 resolved, {N} deferred
+Tests: {N} passing, Coverage {line}/{branch}/{function}
+
+Artifacts finalized:
+- BA-{PROJECT}.md
+- {N} Epics, {N} Features
+- {N} ADRs
+- arc42 updated
+- CHANGELOG v{version}
+- Release notes generated
+
+Next iteration:
+- {recommendation based on backlog}
+
+Tip: For a new cycle, start again with /business-analyse or
+     /requirements-engineering (depending on how deep the change is).
 ```
 
-### Workflow abgeschlossen
+---
 
-```
-V-Model Workflow abgeschlossen!
-
-Zusammenfassung:
-- BA: {Dokument}
-- Requirements: {N} Features
-- Architecture: {N} ADRs
-- Implementation: Code + {N} Artefakt-Updates
-- Testing: {N} Tests, alle gruen
-- Security: {N} Findings resolved, {N} im Backlog
-
-Alle Artefakte reflektieren den tatsaechlich implementierten Zustand.
-```
-
-## Artefakt-Verzeichnisstruktur
+## Artifact Directory Structure
 
 ```
 _devprocess/
   analysis/
-    BA-{PROJECT}.md                    <- Phase 1: Business Analyse
+    BA-{PROJECT}.md                    <- Phase 1: Business Analysis
+    EXPLORE-{PROJECT}.md               <- Phase 1 (PoC/MVP)
     security/
-      AUDIT-{PROJECT}-{DATE}.md        <- Post-Impl: Security Audit
+      AUDIT-{PROJECT}-{DATE}.md        <- Phase 6: Security Audit
   requirements/
     epics/
       EPIC-{XXX}-{slug}.md             <- Phase 2: Requirements
     features/
       FEATURE-{XXX}-{slug}.md          <- Phase 2: Requirements
     handoff/
-      architect-handoff.md             <- Phase 2 -> 3: Uebergabe
-      plan-context.md                  <- Phase 3 -> 4: Uebergabe
+      architect-handoff.md             <- Phase 2 -> 3 handoff
+      plan-context.md                  <- Phase 3 -> 4 handoff
   architecture/
     ADR-{XXX}-{slug}.md                <- Phase 3: Architecture
     arc42.md                           <- Phase 3: Architecture
   context/
-    10_backlog.md                      <- Phase 4: wird aktualisiert
+    10_backlog.md                      <- living backlog
+    20_bugs.md                         <- FIX-NN bug log (Phase 4)
+    30_handoffs.md                     <- append-only handoffs log
 ```
 
-## Traceability-Kette
+## Traceability Chain
 
 ```
-BA-Dokument (Warum?)
-  -> Epic (Was, strategisch?)
-    -> Feature (Was, konkret?)
-      -> ASR (Was ist architektur-relevant?)
-        -> ADR (Wie loesen wir es?)
-          -> plan-context.md (Kontext-Bruecke)
-            -> Critical Review (Passt es zur Codebase?)
-              -> Code (Implementierung)
-                -> Tests (Funktioniert es?)
-                  -> Fix-Loop bis gruen
-                    -> Security Audit (Ist es sicher?)
-                      -> Fix-Loop bis resolved
-                        -> Backlog (Was bleibt offen?)
+BA document (Why?)
+  -> Epic (What, strategic?)
+    -> Feature (What, concrete?)
+      -> ASR (What is architecture-relevant?)
+        -> ADR (How do we solve it?)
+          -> plan-context.md (Context bridge)
+            -> Critical Review (Does it fit the codebase?)
+              -> Code (Implementation)
+                -> Tests (Does it work?)
+                  -> Fix-loop until green
+                    -> Security Audit (Is it safe?)
+                      -> Fix-loop until resolved
+                        -> Backlog (What's still open?)
+                          -> Phase 7 Release Closure (Close the cycle)
 ```
 
-Rueckkanal: Aenderungen in jeder Phase fliessen zurueck in die
-Quell-Artefakte (Features, ADRs, plan-context.md). Am Ende
-reflektiert die Dokumentation immer den Ist-Zustand.
+Backchannel: changes in every phase flow back into the source artifacts
+(Features, ADRs, plan-context.md). At the end, the documentation always
+reflects the actual state.
 
-## Konventionen
+## Conventions
 
-Dieser Workflow folgt den Standards aus `/project-conventions`:
-- Dateinamen: 3-stellige Nummern, kebab-case, Englisch
-- Sprache: Konversation Deutsch, Code/Commits Englisch
-- Verzeichnisse: `_devprocess/` fuer interne Dokumente
-- Feature-Lebenszyklus: BACKLOG -> SPEC -> PLAN -> IMPL -> UPDATE
+This workflow follows the standards from `/project-conventions`:
+- File names: 3-digit numbers, kebab-case, English
+- Language: skill instructions in English, user dialog in the user's language
+- Directories: `_devprocess/` for internal documents
+- Feature lifecycle: BACKLOG -> SPEC -> PLAN -> IMPL -> UPDATE
 
 ## Keywords
-V-Model, Workflow, Full Cycle, neues Projekt, Entwicklungszyklus,
-von Analyse bis Implementierung, kompletter Durchlauf
+V-Model, workflow, full cycle, new project, development cycle,
+from analysis to implementation, full run, orchestrator, phase transitions,
+release closure

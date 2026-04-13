@@ -163,18 +163,56 @@ Each feature MUST have:
 - Wrong: "Good user experience"
 - Right: "95% task completion rate in UAT"
 
-## Handoff
+## Handoff Ritual (mandatory at end of phase)
+
+This skill always runs the following ritual at the end, regardless of how
+it was started (directly or via `/v-model-workflow`).
+
+### Part 1: Artifact report
 
 ```
-The Requirements are ready!
-
-Next step: /architecture
-Input: _devprocess/requirements/handoff/architect-handoff.md
-
-Then: /coding takes plan-context.md + Features as input
-
-Tip: For a structured run through all phases use /v-model-workflow
+Produced / updated:
+- _devprocess/requirements/epics/EPIC-*.md: {count} epics
+- _devprocess/requirements/features/FEATURE-*.md: {count} features
+- _devprocess/requirements/handoff/architect-handoff.md: aggregated input for architect
+- ASRs identified: {critical count}, {moderate count}
 ```
+
+### Part 2: Handoff context
+
+Append a new entry to `_devprocess/context/30_handoffs.md` with:
+
+- **NFR summary**: key non-functional requirements (Performance, Security,
+  Scalability, Availability) with quantified targets
+- **Critical ASRs**: architecturally significant requirements that must
+  each have an ADR
+- **Open architecture questions**: uncertainties the architect should
+  resolve (e.g. "should auth be federated or centralized?")
+- **Constraints**: budget, timeline, compliance (GDPR, ISO 27001, etc.)
+- **Forbidden-terms check**: confirmation that no tech terms leaked into
+  Success Criteria (OAuth, REST, PostgreSQL, etc.)
+
+### Part 3: Transition question
+
+Ask the user:
+
+> "Requirements are ready. Saved to:
+> - Epics: `_devprocess/requirements/epics/`
+> - Features: `_devprocess/requirements/features/`
+> - Handoff: `_devprocess/requirements/handoff/architect-handoff.md`
+>
+> The next step in the V-Model is `/architecture`, which will create
+> ADR proposals, arc42 documentation, and plan-context.md.
+>
+> Shall I start `/architecture` now, or would you like to review the
+> requirements first?"
+
+**On agreement** ("yes" / "go" / "next") or when running inside
+`/v-model-workflow`:
+-> Start `/architecture` and pass the handoff context
+
+**On rejection** ("no" / "stop" / "I want to check first"):
+-> Pause and wait for user instruction
 
 ## Project Structure
 

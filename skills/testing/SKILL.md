@@ -1,81 +1,120 @@
 ---
 name: testing
 description: >
-  Erstellt und verwaltet Unit Tests und Integration Tests. Analysiert die bestehende
-  Codebase, erkennt das Test-Framework automatisch und generiert Tests die den
-  Projekt-Konventionen folgen. Nutze diesen Skill wenn der User "Tests schreiben",
-  "Unit Tests", "Integration Tests", "Test Coverage", "testen", "Tests fehlen",
-  "Testabdeckung", "TDD" oder aehnliches erwaehnt. Auch nach einer Implementierung
-  wenn Tests erstellt oder aktualisiert werden muessen.
+  Creates and manages unit tests and integration tests. Analyzes the existing
+  codebase, auto-detects the test framework, and generates tests that follow
+  project conventions. Use this skill when the user mentions "write tests",
+  "unit tests", "integration tests", "test coverage", "testing", "tests
+  missing", "TDD" or similar. Also after implementation when tests need to
+  be created or updated.
 disable-model-invocation: false
 ---
 
 # Testing -- Unit & Integration Tests
 
-Erstellt Tests die sich nahtlos in die bestehende Codebase einfuegen.
-Erkennt Framework, Patterns und Konventionen automatisch aus dem Projekt.
+Creates tests that fit seamlessly into the existing codebase. Detects the
+framework, patterns, and conventions automatically from the project.
 
-## Codebase-Analyse zuerst
+## Codebase analysis first
 
-Bevor du einen einzigen Test schreibst, analysiere das Projekt:
+Before writing a single test, analyze the project:
 
 ```
-1. Test-Framework erkennen:
+1. Detect test framework:
    - package.json -> jest/vitest/mocha? (scripts.test, devDependencies)
    - pyproject.toml -> pytest? (tool.pytest)
    - Cargo.toml -> Rust built-in?
-   - Bestehende Test-Dateien -> Welches Pattern?
+   - Existing test files -> which pattern?
 
-2. Bestehende Test-Struktur erkennen:
-   - Wo liegen Tests? (tests/, __tests__/, src/**/*.test.ts, *.spec.ts?)
-   - Naming Convention? (.test.ts, .spec.ts, _test.py?)
-   - Gibt es conftest.py / jest.config.ts / vitest.config.ts?
-   - Gibt es Test-Utilities, Fixtures, Factories?
+2. Detect existing test structure:
+   - Where are tests? (tests/, __tests__/, src/**/*.test.ts, *.spec.ts?)
+   - Naming convention? (.test.ts, .spec.ts, _test.py?)
+   - Is there conftest.py / jest.config.ts / vitest.config.ts?
+   - Are there test utilities, fixtures, factories?
 
-3. Bestehende Patterns uebernehmen:
-   - Wie werden Mocks erstellt? (jest.mock, vi.mock, unittest.mock?)
-   - Wie wird mit Async umgegangen?
-   - Welche Assertions werden verwendet?
-   - Gibt es Shared Test Helpers?
+3. Adopt existing patterns:
+   - How are mocks created? (jest.mock, vi.mock, unittest.mock?)
+   - How is async handled?
+   - Which assertions are used?
+   - Are there shared test helpers?
 
-4. Was wird NICHT getestet? (Luecken identifizieren)
+4. What is NOT tested? (identify gaps)
 ```
 
-Wichtig: Folge IMMER den bestehenden Patterns. Fuehre keine neuen Test-Frameworks
-oder -Patterns ein, es sei denn es gibt noch gar keine Tests.
+Always follow existing patterns. Don't introduce new test frameworks or
+patterns unless the project has none yet.
 
-## Testing-Pyramide
+## Testing Pyramid
 
 ```
         /\
-       /E2E\           Wenige, langsam, teuer
+       /E2E\           Few, slow, expensive
       /------\
-     / Integr. \       Moderate Anzahl
+     / Integr. \       Moderate count
     /------------\
-   /  Unit Tests  \    Viele, schnell, guenstig
+   /  Unit Tests  \    Many, fast, cheap
   /________________\
 ```
 
-Fokus dieses Skills: **Unit Tests** und **Integration Tests**.
-E2E-Tests sind ein separates Thema.
+Focus of this skill: **Integration Tests** (primary) and **Unit Tests**
+(either as TDD fallback or gap-filling -- see next section).
+E2E tests are a separate topic.
+
+## Role alongside TDD
+
+When `/coding` runs in TDD mode (see `coding/SKILL.md` Phase 3b), unit
+tests for new modules already exist when this skill runs. In that case,
+`/testing` focuses on three things, in this priority:
+
+### 1. Integration tests (primary)
+
+Tests that exercise multiple modules together:
+
+- API endpoints: request -> response -> side effects
+- Database interactions: with test DB or in-memory DB
+- Event and message flows between components
+- External integrations with mocked boundaries
+
+### 2. Unit test gaps (secondary)
+
+Even after TDD, gaps can remain:
+
+- Edge cases that weren't explicitly in the RED test
+- Error cases for exceptions and failure paths
+- Boundary conditions (min/max, empty arrays, null/undefined)
+
+`/testing` scans the TDD-generated test code and suggests missing cases.
+
+### 3. Coverage check (tertiary)
+
+A coverage report against the targets (85% line / 80% branch / 90%
+function). Gaps are listed but not auto-filled -- the user decides whether
+trivial code actually needs testing.
+
+## When `/coding` ran WITHOUT TDD mode (fallback)
+
+`/testing` takes over unit test creation as well (its historical role).
+In fallback mode, `/testing` analyzes the new modules and creates unit
+tests following the AAA pattern and FIRST principles, just like the
+unit-test sections below.
 
 ## Unit Tests
 
-### Wann Unit Tests schreiben
+### When to write unit tests
 
-- Fuer jede public Funktion/Methode mit Logik
-- Fuer Utility-Funktionen und Helper
-- Fuer Daten-Transformationen
-- Fuer Fehlerbehandlung und Edge Cases
-- NICHT fuer triviale Getter/Setter ohne Logik
-- NICHT fuer reine Durchreich-Funktionen
+- For every public function/method with logic
+- For utility functions and helpers
+- For data transformations
+- For error handling and edge cases
+- NOT for trivial getters/setters without logic
+- NOT for pure pass-through functions
 
 ### AAA Pattern (Arrange, Act, Assert)
 
-Jeder Test folgt dem AAA Pattern:
+Every test follows the AAA pattern:
 
 ```typescript
-// Beispiel (TypeScript/Jest -- adaptiere ans Projekt-Framework)
+// Example (TypeScript/Jest -- adapt to project framework)
 describe('ToolRegistry', () => {
   describe('registerTool', () => {
     it('should register a tool and make it retrievable by name', () => {
@@ -104,200 +143,232 @@ describe('ToolRegistry', () => {
 });
 ```
 
-### FIRST Prinzipien
+### FIRST Principles
 
-- **Fast**: Tests muessen schnell laufen (<1s pro Test)
-- **Independent**: Kein Test haengt von einem anderen ab
-- **Repeatable**: Gleicher Input = gleicher Output, immer
-- **Self-validating**: Pass oder Fail, kein manuelles Pruefen
-- **Timely**: Tests direkt mit dem Feature schreiben
+- **Fast**: tests must run quickly (< 1s per test)
+- **Independent**: no test depends on another
+- **Repeatable**: same input = same output, always
+- **Self-validating**: pass or fail, no manual checking
+- **Timely**: tests written with the feature, not later
 
-### Was testen -- Checkliste pro Funktion
+### What to test -- per-function checklist
 
-Lies `references/test-checklist.md` fuer die vollstaendige Checkliste.
+Read `references/test-checklist.md` for the complete checklist.
 
-Kurzfassung:
-- Happy Path (normaler Ablauf)
-- Edge Cases (leere Eingaben, Grenzwerte, null/undefined)
-- Error Cases (ungueltige Eingaben, fehlende Abhaengigkeiten)
-- Boundary Conditions (min/max Werte, leere Arrays, grosse Daten)
+Short version:
+- Happy path (normal flow)
+- Edge cases (empty inputs, boundary values, null/undefined)
+- Error cases (invalid inputs, missing dependencies)
+- Boundary conditions (min/max, empty arrays, large data)
 
-### Mocking-Regeln
+### Mocking rules
 
-- Mocke **externe Abhaengigkeiten** (APIs, Dateisystem, Datenbank)
-- Mocke NICHT die Einheit die du testest
-- Bevorzuge Dependency Injection ueber globale Mocks
-- Wenn das Projekt bereits Mock-Patterns hat, nutze diese
+- Mock **external dependencies** (APIs, file system, database)
+- Do NOT mock the unit under test
+- Prefer dependency injection over global mocks
+- Reuse existing mock patterns from the project
 
 ## Integration Tests
 
-### Wann Integration Tests schreiben
+### When to write integration tests
 
-- Wenn mehrere Module zusammenspielen
-- Fuer API-Endpunkte (Request -> Response)
-- Fuer Datenbankzugriffe (mit Test-DB oder In-Memory)
-- Fuer Event/Message-Flows zwischen Komponenten
+- Multiple modules interacting
+- API endpoints (request -> response)
+- Database access (test DB or in-memory)
+- Event/message flows between components
 
-### Integration Test Regeln
+### Integration test rules
 
-- Reale Abhaengigkeiten wo moeglich, nur externe Services mocken
-- Jeder Test ist unabhaengig (eigener State, eigenes Teardown)
-- Realistische Testdaten, nicht "foo" / "bar" / "test"
-- Timeouts fuer Async-Operationen setzen
-- Setup/Teardown in beforeAll/afterAll fuer geteilte Ressourcen
+- Real dependencies where possible, mock only external services
+- Each test is independent (own state, own teardown)
+- Realistic test data, not "foo" / "bar" / "test"
+- Set timeouts for async operations
+- Setup/teardown in beforeAll/afterAll for shared resources
 
-### Datei-Benennung
+### File naming
 
-Folge dem bestehenden Projekt-Pattern. Falls keines existiert:
-- Unit Tests: `{module}.test.ts` oder `{module}.spec.ts`
-- Integration Tests: `{module}.integration.test.ts`
-- Im gleichen Verzeichnis wie der Source Code, oder in `tests/`
+Follow the existing project pattern. If none exists:
 
-## Test-Workflow
+- Unit tests: `{module}.test.ts` or `{module}.spec.ts`
+- Integration tests: `{module}.integration.test.ts`
+- Same directory as source, or under `tests/`
 
-### Fuer bestehendes Feature ohne Tests
+## Test workflow
+
+### For existing feature without tests
 
 ```
-/testing {Datei oder Modul}
+/testing {file or module}
 
-1. Analysiere die Datei und ihre Abhaengigkeiten
-2. Identifiziere testbare Funktionen/Methoden
-3. Erkenne bestehende Test-Patterns im Projekt
-4. Erstelle Tests (AAA Pattern, FIRST Prinzipien)
-5. Fuehre Tests aus und verifiziere
-6. Pruefe Coverage der neuen Tests
+1. Analyze the file and its dependencies
+2. Identify testable functions/methods
+3. Recognize existing test patterns in the project
+4. Create tests (AAA pattern, FIRST principles)
+5. Run tests and verify
+6. Check coverage of new tests
 ```
 
-### Fuer neues Feature (nach /coding)
+### For new feature (after /coding)
 
 ```
 /testing
 
-1. Lies die Feature-Spec (FEATURE-*.md) fuer Success Criteria
-2. Identifiziere alle neuen/geaenderten Dateien
-3. Erstelle Unit Tests fuer neue Module
-4. Erstelle Integration Tests fuer Modul-Interaktionen
-5. Verifiziere Success Criteria aus Feature-Spec
+1. Read the feature spec (FEATURE-*.md) for Success Criteria
+2. Identify all new/changed files
+3. Create integration tests for module interactions
+4. Fill unit-test gaps if any
+5. Verify Success Criteria from the feature spec
 ```
 
-### Coverage-Ziele
+### Coverage targets
 
-| Metrik | Ziel | Minimum |
-|--------|------|---------|
+| Metric | Target | Minimum |
+|--------|--------|---------|
 | Line Coverage | 85% | 70% |
 | Branch Coverage | 80% | 65% |
 | Function Coverage | 90% | 75% |
 
-Diese sind Richtwerte. Projekt-spezifische Ziele aus CLAUDE.md oder
-Feature-Specs haben Vorrang.
+These are guidelines. Project-specific targets in `CLAUDE.md` or feature
+specs take precedence.
 
-## Anti-Patterns vermeiden
+## Anti-patterns to avoid
 
-Lies `references/test-anti-patterns.md` fuer Details.
+Read `references/test-anti-patterns.md` for details.
 
-Kurzfassung:
-- **Kein Testing von Implementierungs-Details**: Teste Verhalten, nicht interne Mechanik
-- **Kein uebertriebenes Mocking**: Wenn du 5+ Mocks brauchst, hat der Code ein Design-Problem
-- **Keine trivialen Tests**: `expect(1+1).toBe(2)` hilft niemandem
-- **Keine fragilen Tests**: Tests die bei jedem Refactoring brechen testen falsch
-- **Keine Tests die setTimeout/setInterval pruefen**: Teste das Ergebnis, nicht den Timer
+Short version:
+- **No testing of implementation details**: test behavior, not internals
+- **No excessive mocking**: if you need 5+ mocks, the code has a design problem
+- **No trivial tests**: `expect(1+1).toBe(2)` helps no one
+- **No fragile tests**: tests that break on every refactoring test the wrong thing
+- **No testing of setTimeout/setInterval**: test the result, not the timer
 
-## Codebase-Awareness
+## Codebase-awareness
 
-Vor dem Schreiben von Tests IMMER:
-- Bestehende Test-Dateien lesen und Patterns uebernehmen
-- Test-Utilities und Shared Fixtures wiederverwenden
-- Sich an bestehende Naming Conventions halten
-- Projekt-spezifische Test-Konfiguration respektieren (jest.config, vitest.config, etc.)
+Before writing tests, ALWAYS:
+- Read existing test files and adopt patterns
+- Reuse test utilities and shared fixtures
+- Follow existing naming conventions
+- Respect project-specific test configuration (jest.config, vitest.config, etc.)
 
 ---
 
 ## Fix-Loop: Tests -> Fix -> Re-Test
 
-Wenn Tests fehlschlagen, startet ein Fix-Loop. Der User entscheidet
-ueber das Vorgehen.
+When tests fail, a fix-loop starts. The user decides how to proceed.
 
-### Schritt 1: Test-Ergebnis zusammenfassen
-
-```
-=== Test-Ergebnis ===
-
-Bestanden: {N} Tests
-Fehlgeschlagen: {N} Tests
-Coverage: {Line}% / {Branch}% / {Function}%
-
-Fehlgeschlagene Tests:
-- {test-name}: {kurze Beschreibung des Fehlers}
-  Ursache: Code-Bug / Falsche Test-Erwartung / Fehlende Implementierung
-  Fix-Aufwand: S/M/L
-  Datei: {src/path/file.ts} oder {tests/path/test.ts}
-
-Coverage-Luecken:
-- {src/path/file.ts}: {Funktion} nicht getestet
-```
-
-### Schritt 2: User-Freigabe einholen
+### Step 1: Summarize test results
 
 ```
-Wie soll ich vorgehen?
+=== Test Result ===
 
-A) Alle Fixes automatisch durchfuehren
-   -> Ich fixe alle Findings, teste erneut, und wiederhole
-      bis alle Tests gruen sind
+Passed: {N} tests
+Failed: {N} tests
+Coverage: {line}% / {branch}% / {function}%
 
-B) Fixes einzeln freigeben
-   -> Ich zeige dir jeden Fix vor der Implementierung
+Failed tests:
+- {test name}: {short error description}
+  Cause: code bug / wrong test expectation / missing implementation
+  Fix effort: S/M/L
+  File: {src/path/file.ts} or {tests/path/test.ts}
 
-C) Nur die Tests anpassen (Code ist korrekt, Tests sind falsch)
-
-D) Abbrechen -- ich schaue mir die Findings erst manuell an
+Coverage gaps:
+- {src/path/file.ts}: {function} not tested
 ```
 
-### Schritt 3: Fix-Implementierung
-
-Fuer jeden Fix:
-1. Ursache identifizieren (Code-Bug vs. Test-Fehler)
-2. Fix implementieren
-3. Betroffene Tests erneut ausfuehren
-4. Bei Option B: Fix dem User zeigen bevor weiter
-
-### Schritt 4: Re-Test (automatisch)
-
-Nach allen Fixes: Gesamte Test-Suite erneut ausfuehren.
+### Step 2: Ask user how to proceed
 
 ```
-=== Re-Test Ergebnis ===
+How should I proceed?
 
-Vorher: {N} fehlgeschlagen
-Nachher: {N} fehlgeschlagen
+A) Fix all findings automatically
+   -> I fix everything, retest, repeat until all tests are green
 
-{Wenn noch Failures: zurueck zu Schritt 1}
-{Wenn alles gruen:}
+B) Approve fixes one by one
+   -> I show each fix before implementation
 
-Alle Tests bestanden! Coverage: {Line}% / {Branch}% / {Function}%
+C) Only adjust tests (the code is correct, the tests are wrong)
+
+D) Abort -- I want to look at findings manually first
 ```
 
-Der Loop wiederholt sich bis alle Tests gruen sind oder der User abbricht.
+### Step 3: Fix implementation
 
-### Schritt 5: Artefakte aktualisieren
+For each fix:
+1. Identify cause (code bug vs. test error)
+2. Implement fix
+3. Run affected tests
+4. On Option B: show fix to user before continuing
 
-Nach erfolgreichem Test-Durchlauf:
-- Feature-Specs: Test-Status aktualisieren
-- Backlog: Test-Coverage dokumentieren
-- Wenn Code-Fixes noetig waren: Aenderungen in ADRs/Features zurueckschreiben
-  (gleiche Living-Documents-Regel wie beim /coding Skill)
+### Step 4: Re-test (automatic)
 
-### Handoff
+After all fixes: run the full test suite again.
 
 ```
-Alle Tests bestanden!
+=== Re-Test Result ===
 
-Empfohlener naechster Schritt:
-  /security-audit -- Security Review der Codebase
+Before: {N} failed
+After:  {N} failed
 
-Tipp: Fuer einen strukturierten Durchlauf aller Phasen nutze /v-model-workflow
+{If still failures: back to step 1}
+{If all green:}
+
+All tests passed! Coverage: {line}% / {branch}% / {function}%
 ```
+
+The loop repeats until all tests are green or the user aborts.
+
+### Step 5: Update artifacts
+
+After a successful test run:
+- Feature specs: update test status
+- Backlog: document test coverage
+- If code fixes were needed: write the changes back into ADRs/Features
+  (same Living-Documents rule as the `/coding` skill)
+
+---
+
+## Handoff Ritual (mandatory at end of phase)
+
+`/testing` always runs this ritual at the end, regardless of how it was
+started (directly or via `/v-model-workflow`).
+
+### Part 1: Artifact report
+
+```
+Produced / updated:
+- tests/{paths}: {new or updated test files}
+- Coverage report: {line}% / {branch}% / {function}%
+- Fix-loop status: {N iterations, N fixes applied}
+- _devprocess/requirements/features/FEATURE-*.md: {test-status updates}
+- _devprocess/context/10_backlog.md: {new coverage items}
+```
+
+### Part 2: Handoff context
+
+Append a new entry to `_devprocess/context/30_handoffs.md` with:
+
+- Coverage gaps that the user accepted (with justification)
+- Open test cases deferred to the next cycle
+- Brittle tests or flaky patterns noted during the fix-loop
+- Any security-adjacent concerns (e.g. input validation holes noticed while
+  writing tests) for the security-audit phase
+
+### Part 3: Transition question
+
+Ask the user:
+
+> "Tests are complete and all green. Coverage: {line}% / {branch}% /
+> {function}%. The next step in the V-Model is `/security-audit`.
+>
+> Shall I start `/security-audit` now, or would you like to review first?"
+
+**On agreement** ("yes" / "go" / "next") or when running inside
+`/v-model-workflow`:
+-> Start `/security-audit` and pass the handoff context
+
+**On rejection** ("no" / "stop" / "I want to check first"):
+-> Pause and wait for user instruction
 
 ## Keywords
-Tests, Unit Tests, Integration Tests, Test Coverage, testen, TDD,
-Testabdeckung, Testing, Testfaelle, Testpyramide, Fix, Re-Test
+Tests, unit tests, integration tests, test coverage, testing, TDD,
+coverage gaps, test pyramid, fix-loop, re-test, regression, handoff

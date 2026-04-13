@@ -285,29 +285,60 @@ Before handoff to the Requirements Engineer, these criteria must be met:
 - The HMW question is the bridge from EXPLORATION to IDEATION
 - Without HMW the thread between problem and solution is missing
 
-## Handoff
+## Handoff Ritual (mandatory at end of phase)
 
-At the end of the analysis:
+This skill always runs the following ritual at the end, regardless of how
+it was started (directly or via `/v-model-workflow`).
+
+### Part 1: Artifact report
 
 ```
-The Business Analysis is complete!
+Produced / updated:
+- _devprocess/analysis/BA-{PROJECT}.md: full Business Analysis document
+- _devprocess/analysis/EXPLORE-{PROJECT}.md: Exploration Board (PoC/MVP only)
+- Key output: How-Might-We question, Value Proposition, Personas
+```
 
-Created documents:
-- Exploration Board: _devprocess/analysis/EXPLORE-{PROJECT}.md
-- Business Analysis: _devprocess/analysis/BA-{PROJECT}.md
+### Part 2: Handoff context
 
-1. Review: Check the documents for completeness
-2. Next step: /requirements-engineering
-   Input: _devprocess/analysis/BA-{PROJECT}.md
+Append a new entry to `_devprocess/context/30_handoffs.md` with:
 
-The RE takes over:
-- How-might-we -> Epic Hypothesis
-- Critical Hypotheses -> Feature Validation
+- **Scope**: Simple Test / PoC / MVP
+- **Personas**: list with primary persona marked
+- **HMW question**: the bridge from Exploration to Ideation
+- **Critical hypotheses**: open validation items for RE
+- **Assumptions**: anything assumed but not confirmed (e.g. market size,
+  willingness to pay) that the next phases should watch for
+- **Open questions**: research items that couldn't be answered and should
+  be flagged to the user or deferred
+
+### Part 3: Transition question
+
+Ask the user:
+
+> "Business Analysis is complete. Documents saved to:
+> - `_devprocess/analysis/BA-{PROJECT}.md`
+> - `_devprocess/analysis/EXPLORE-{PROJECT}.md` (if PoC/MVP)
+>
+> The next step in the V-Model is `/requirements-engineering`, which will
+> transform the BA into Epics, Features, and Success Criteria.
+>
+> Shall I start `/requirements-engineering` now, or would you like to
+> review the BA first?"
+
+**On agreement** ("yes" / "go" / "next") or when running inside
+`/v-model-workflow`:
+-> Start `/requirements-engineering` and pass the handoff context
+
+**On rejection** ("no" / "stop" / "I want to check first"):
+-> Pause and wait for user instruction
+
+### What RE does with this handoff
+
+- How-Might-We -> Epic Hypothesis Statement
+- Critical Hypotheses -> Feature Validation sections
 - Needs + Jobs to be Done -> User Stories
-- Idea Potential -> Feature Prioritization
-
-Tip: For a structured run through all phases use /v-model-workflow
-```
+- Idea Potential -> Feature Prioritization (P0/P1/P2)
 
 ## Project Structure
 

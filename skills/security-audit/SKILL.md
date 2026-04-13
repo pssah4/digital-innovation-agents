@@ -1,232 +1,288 @@
 ---
 name: security-audit
 description: >
-  Fuehrt umfassende Security Audits durch: SAST (CodeQL-equivalent), OWASP Top 10,
-  OWASP LLM Top 10, SCA (Dependency-Analyse), Zero Trust Validation, Code Quality.
-  Erstellt priorisierte Findings mit Remediation-Plan. Nutze diesen Skill wenn der
-  User "Security Audit", "Security Review", "Sicherheitsanalyse", "OWASP",
-  "Vulnerability Check", "Threat Model", "Dependency Audit", "CVE Check",
-  "Penetration", "Security Scan" oder aehnliches erwaehnt.
+  Performs comprehensive security audits: SAST (CodeQL-equivalent), OWASP
+  Top 10, OWASP LLM Top 10, SCA (Dependency analysis), Zero Trust Validation,
+  Code Quality. Produces prioritized findings with a remediation plan. Use
+  this skill when the user mentions "security audit", "security review",
+  "OWASP", "vulnerability check", "threat model", "dependency audit",
+  "CVE check", "penetration", "security scan" or similar.
 disable-model-invocation: true
 ---
 
 # Security Auditor
 
-Du fuehrst einen umfassenden Security Audit durch -- von Dependency-Analyse
-bis Code-Review. Dein Output ist ein priorisierter Security-Report mit
-konkretem Remediation-Plan.
+You perform a comprehensive security audit -- from dependency analysis to
+code review. Your output is a prioritized security report with a concrete
+remediation plan.
 
-**Input:** Codebase (src/), Dependencies (package.json/pyproject.toml), Konfiguration
+**Input:** Codebase (`src/`), dependencies (`package.json`/`pyproject.toml`), configuration
 **Output:** Security Audit Report in `_devprocess/analysis/security/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`
 
-## Was du machst
+## What you do
 
-- **SAST** -- Statische Code-Analyse (CWE-basiert)
-- **OWASP Top 10** -- Web-Sicherheitsmuster
-- **OWASP LLM Top 10** -- AI/LLM-spezifische Risiken (wenn applicable)
-- **SCA** -- Software Composition Analysis (Dependencies, Lizenzen)
-- **Zero Trust Validation** -- Trust Boundaries, Input Validation
-- **Code Quality Security** -- SonarQube-equivalente Patterns
+- **SAST** -- Static code analysis (CWE-based)
+- **OWASP Top 10** -- Web security patterns
+- **OWASP LLM Top 10** -- AI/LLM-specific risks (when applicable)
+- **SCA** -- Software Composition Analysis (dependencies, licenses)
+- **Zero Trust Validation** -- Trust boundaries, input validation
+- **Code Quality Security** -- SonarQube-equivalent patterns
 
-## Was du NICHT machst
+## What you do NOT do
 
-- Penetration Testing (braucht laufende Infrastruktur)
-- Compliance-Zertifizierung (braucht formalen Auditor)
-- Architektur-Design (macht `/architecture`)
+- Penetration Testing (needs running infrastructure)
+- Compliance certification (needs a formal auditor)
+- Architecture design (done by `/architecture`)
 
-## Audit-Phasen
+## Audit Phases
 
-### Phase 1: Reconnaissance (5min)
+### Phase 1: Reconnaissance (5 min)
 
-Lese und verstehe den Tech-Stack:
+Read and understand the tech stack:
 
 ```
-Projekt-Analyse:
-- Sprache(n): {identifizieren}
-- Framework(s): {identifizieren}
-- Runtime: {identifizieren}
-- Dependencies: {zaehlen}
-- Code-Umfang: {Dateien, LOC}
-- Vorhandene Security-Massnahmen: {was schon da ist}
+Project analysis:
+- Language(s): {identify}
+- Framework(s): {identify}
+- Runtime: {identify}
+- Dependencies: {count}
+- Code size: {files, LOC}
+- Existing security measures: {what's already in place}
 ```
 
 ### Phase 2: SAST -- Static Application Security Testing
 
-Pruefe den Code systematisch. Lies `references/cwe-patterns.md` fuer die
-vollstaendige Liste der Grep/Analyse-Patterns pro CWE-Kategorie.
+Systematically check the code. Read `references/cwe-patterns.md` for the
+full list of grep/analysis patterns per CWE category.
 
-Fuer jeden Fund dokumentiere nach dem Finding-Format in `templates/AUDIT-TEMPLATE.md`:
-Severity, CWE-ID, Location (Datei:Zeile), Risk, Remediation, Code-Diff.
+For each finding, document according to the Finding format in
+`templates/AUDIT-TEMPLATE.md`: Severity, CWE-ID, Location (file:line),
+Risk, Remediation, Code diff.
 
 ### Phase 3: OWASP Top 10 Analysis
 
-Pruefe alle 10 Kategorien (A01-A10). Lies `references/owasp-checklist.md`.
+Check all 10 categories (A01-A10). Read `references/owasp-checklist.md`.
 
-### Phase 4: OWASP LLM Top 10 (wenn AI/LLM im Projekt)
+### Phase 4: OWASP LLM Top 10 (when AI/LLM is in the project)
 
-Nur relevant wenn das Projekt LLM-APIs nutzt. Pruefe LLM01-LLM10.
-Lies `references/owasp-llm-checklist.md`.
+Only relevant if the project uses LLM APIs. Check LLM01-LLM10.
+Read `references/owasp-llm-checklist.md`.
 
 ### Phase 5: SCA -- Software Composition Analysis
 
 ```bash
-# Dependency-Vulnerabilities
+# Dependency vulnerabilities
 npm audit --json 2>/dev/null || pip-audit --format json 2>/dev/null
 
-# Lizenz-Check
+# License check
 npx license-checker --json 2>/dev/null || pip-licenses --format json 2>/dev/null
 ```
 
-Klassifiziere nach: Runtime Dependencies (kritisch), Dev Dependencies
-(geringeres Risiko), Transitive Dependencies (indirektes Risiko).
+Classify by: Runtime Dependencies (critical), Dev Dependencies (lower risk),
+Transitive Dependencies (indirect risk).
 
 ### Phase 6: Zero Trust & Code Quality
 
-Pruefe: Input Validation an Trust Boundaries, Least Privilege, Defense in Depth,
-Fail-Closed Defaults, Audit Trail, Error Handling, Resource Management,
-Race Conditions, Hardcoded Credentials, Debug-Code in Production.
+Check: Input validation at trust boundaries, Least Privilege, Defense in
+Depth, Fail-Closed Defaults, Audit Trail, Error Handling, Resource
+Management, Race Conditions, Hardcoded Credentials, Debug code in production.
 
-## Report erstellen
+## Create report
 
-Lies `templates/AUDIT-TEMPLATE.md` und erstelle den vollstaendigen Report.
+Read `templates/AUDIT-TEMPLATE.md` and create the full report.
 
-Speicherpfad: `_devprocess/analysis/security/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`
+Save to: `_devprocess/analysis/security/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`
 
-## Severity-Schema
+## Severity schema
 
-- **Critical**: Sofort ausnutzbar, Datenverlust/Remote Code Execution moeglich
-- **High**: Ausnutzbar mit geringem Aufwand, erheblicher Impact
-- **Medium**: Ausnutzbar unter bestimmten Bedingungen
-- **Low**: Geringes Risiko, Best Practice Verbesserung
-- **Info**: Hinweis, keine direkte Gefahr
+- **Critical**: Immediately exploitable, data loss / RCE possible
+- **High**: Exploitable with low effort, significant impact
+- **Medium**: Exploitable under specific conditions
+- **Low**: Low risk, best-practice improvement
+- **Info**: Note, no direct threat
 
-## Anti-Patterns
+## Anti-patterns
 
-**False Positives nicht markieren:**
-- Immer Status angeben: Confirmed / Mitigated / False Positive
-- Kontext beachten: DevDependencies vs Runtime unterscheiden
+**Don't mark false positives silently:**
+- Always state the status: Confirmed / Mitigated / False Positive
+- Consider context: DevDependencies vs. Runtime
 
-**Remediation zu vage:**
-- Falsch: "Fix the security issue"
-- Richtig: "In `src/api/handler.ts:42`, ersetze `JSON.parse(userInput)` durch
-  Schema-Validierung mit zod"
+**Remediation too vague:**
+- Wrong: "Fix the security issue"
+- Right: "In `src/api/handler.ts:42`, replace `JSON.parse(userInput)` with
+  schema validation using zod"
 
-**Positive Findings vergessen:**
-- Dokumentiere was bereits gut umgesetzt ist
-- Zeigt Reife der Codebase und motiviert das Team
+**Don't forget positive findings:**
+- Document what is already well implemented
+- Shows codebase maturity and motivates the team
 
-## Wann einen Audit durchfuehren
+## When to run an audit
 
-- Vor jedem Release (Full Audit)
-- Nach groesseren Security-relevanten Aenderungen
-- Periodisch (mindestens monatlich fuer aktive Projekte)
-- Nach Dependency-Updates (SCA-Phase)
+- Before every release (Full Audit)
+- After significant security-relevant changes
+- Periodically (at least monthly for active projects)
+- After dependency updates (SCA phase)
 
-## Handoff und Fix-Loop
+---
 
-Nach Abschluss des Audits startet der Fix-Loop. Der User entscheidet
-ueber Scope und Vorgehen.
+## Fix-Loop: Findings -> Fix -> Re-Audit
 
-### Schritt 1: Findings zusammenfassen
+After the audit, a fix-loop starts. The user decides scope and approach.
 
-```
-=== Security Audit Ergebnis ===
-
-Gesamt-Risiko: {Critical / High / Medium / Low}
-
-P1 -- Must Fix (Critical + High): {N} Findings
-- {H-1}: {Titel} -- {Datei:Zeile} -- Aufwand: {S/M/L}
-- {H-2}: {Titel} -- {Datei:Zeile} -- Aufwand: {S/M/L}
-
-P2 -- Should Fix (Medium): {N} Findings
-- {M-1}: {Titel} -- {Datei:Zeile} -- Aufwand: {S/M/L}
-
-P3 -- Consider (Low + Info): {N} Findings
-- {L-1}: {Titel} -- Aufwand: {S/M/L}
-
-Positive Findings: {Was bereits gut umgesetzt ist}
-```
-
-### Schritt 2: User-Freigabe einholen
+### Step 1: Summarize findings
 
 ```
-Wie soll ich mit den Findings umgehen?
+=== Security Audit Result ===
 
-A) Alle Findings fixen (P1 + P2 + P3)
-   -> Ich fixe alles automatisch und fuehre danach einen Re-Audit durch
+Overall risk: {Critical / High / Medium / Low}
 
-B) Nur P1 fixen, P2/P3 ins Backlog
-   -> Critical/High werden sofort gefixt, Rest wird dokumentiert
+P1 -- Must Fix (Critical + High): {N} findings
+- {H-1}: {title} -- {file:line} -- effort: {S/M/L}
+- {H-2}: {title} -- {file:line} -- effort: {S/M/L}
 
-C) Fixes einzeln freigeben
-   -> Ich zeige dir jeden Fix vor der Implementierung
+P2 -- Should Fix (Medium): {N} findings
+- {M-1}: {title} -- {file:line} -- effort: {S/M/L}
 
-D) Nichts fixen -- nur Report erstellen
-   -> Alle Findings werden ins Backlog eingetragen
+P3 -- Consider (Low + Info): {N} findings
+- {L-1}: {title} -- effort: {S/M/L}
+
+Positive findings: {what is already well implemented}
 ```
 
-### Schritt 3: Fix-Implementierung
-
-Fuer jedes Finding das gefixt werden soll:
-
-1. Konkreten Fix implementieren (Code-Diff aus dem Remediation-Plan)
-2. Betroffene Tests ausfuehren (keine Regressions)
-3. Finding-Status im Audit-Report aktualisieren: `Confirmed` -> `Resolved`
-4. Bei Option C: Fix dem User zeigen bevor weiter
-
-### Schritt 4: Re-Audit (automatisch)
-
-Nach allen Fixes: Die betroffenen Audit-Phasen erneut ausfuehren.
+### Step 2: Ask user how to proceed
 
 ```
-=== Re-Audit Ergebnis ===
+How should I handle the findings?
 
-Vorher: {N} P1, {N} P2, {N} P3
-Nachher: {N} P1, {N} P2, {N} P3
+A) Fix all findings (P1 + P2 + P3)
+   -> I fix everything and run a re-audit
 
-Resolved: {Liste der behobenen Findings}
-New: {Falls der Fix neue Findings erzeugt hat}
+B) Fix only P1, defer P2/P3 to backlog
+   -> Critical/High fixed immediately, rest documented
 
-{Wenn noch P1 offen: zurueck zu Schritt 2}
-{Wenn P1 alle resolved:}
+C) Approve fixes one by one
+   -> I show each fix before implementation
 
-Alle Critical/High Findings behoben!
+D) Nothing to fix -- report only
+   -> All findings go to the backlog
 ```
 
-Der Loop wiederholt sich bis alle Findings im gewaehlten Scope
-resolved sind oder der User abbricht.
+### Step 3: Fix implementation
 
-### Schritt 5: Nicht-gefixte Findings ins Backlog
+For each finding to be fixed:
 
-Findings die nicht sofort gefixt werden (z.B. P2/P3 bei Option B):
+1. Implement the concrete fix (code diff from remediation plan)
+2. Run affected tests (no regressions)
+3. Update finding status in the audit report: `Confirmed` -> `Resolved`
+4. On Option C: show the fix to the user before continuing
 
-1. **Feature-Backlog**: Jedes offene Finding als Eintrag in
-   `_devprocess/context/10_backlog.md` mit:
-   - Finding-ID und Severity
-   - Betroffene Datei und Zeile
-   - Kurzbeschreibung des Risikos
-   - Geschaetzter Fix-Aufwand
+### Step 4: Re-audit (automatic)
 
-2. **Audit-Report**: Status bleibt `Confirmed` mit Vermerk
-   "Deferred to backlog"
-
-### Schritt 6: Artefakte aktualisieren
-
-- Audit-Report: Finale Version mit allen Status-Updates speichern
-- Feature-Specs: Security-relevante Aenderungen zurueckschreiben
-- ADRs: Wenn Security-Fixes Architektur-Entscheidungen betreffen
-- Backlog: Offene Findings dokumentiert
-
-### Abschluss
+After all fixes: re-run the affected audit phases.
 
 ```
-Security Audit abgeschlossen!
+=== Re-Audit Result ===
 
-Resolved: {N} Findings gefixt
-Deferred: {N} Findings im Backlog
+Before: {N} P1, {N} P2, {N} P3
+After:  {N} P1, {N} P2, {N} P3
+
+Resolved: {list of fixed findings}
+New: {if a fix introduced new findings}
+
+{If P1 still open: back to step 2}
+{If P1 all resolved:}
+
+All Critical/High findings resolved!
+```
+
+The loop repeats until all in-scope findings are resolved or the user aborts.
+
+### Step 5: Deferred findings -> Backlog
+
+Findings not fixed immediately (e.g. P2/P3 on Option B):
+
+1. **Feature backlog**: each open finding gets an entry in
+   `_devprocess/context/10_backlog.md` with:
+   - Finding ID and severity
+   - Affected file and line
+   - Short risk description
+   - Estimated fix effort
+
+2. **Audit report**: status stays `Confirmed` with note "Deferred to backlog"
+
+### Step 6: Update artifacts
+
+- Audit report: save final version with all status updates
+- Feature specs: write back security-relevant changes
+- ADRs: when security fixes affect architecture decisions
+- Backlog: open findings documented
+
+### Closing
+
+```
+Security Audit complete!
+
+Resolved: {N} findings fixed
+Deferred: {N} findings in backlog
 Report: _devprocess/analysis/security/AUDIT-{PROJECT}-{DATE}.md
 ```
 
+---
+
+## Handoff Ritual (mandatory at end of phase)
+
+After the fix-loop is closed, this skill always runs the handoff ritual,
+regardless of how it was started (directly or via `/v-model-workflow`).
+
+### Part 1: Artifact report
+
+```
+Produced / updated:
+- _devprocess/analysis/security/AUDIT-{PROJECT}-{DATE}.md: full report
+- Findings resolved: {N} (P1: {N}, P2: {N}, P3: {N})
+- Findings deferred: {N} (in backlog)
+- _devprocess/context/10_backlog.md: deferred findings added
+```
+
+### Part 2: Handoff context
+
+Append a new entry to `_devprocess/context/30_handoffs.md` with:
+
+- **Overall risk verdict**: Critical / High / Medium / Low
+- **Unresolved P0/P1**: any high-severity findings still open and why
+- **Deferred items**: what went to backlog with reasons
+- **Architectural security concerns**: patterns that should be revisited
+  in a future `/architecture` cycle (e.g. trust-boundary issues that
+  require redesign, not patching)
+- **Release recommendation**: green / yellow / red for moving to Phase 7
+
+### Part 3: Transition question
+
+Ask the user:
+
+> "Security audit complete. Report saved to:
+> - `_devprocess/analysis/security/AUDIT-{PROJECT}-{DATE}.md`
+>
+> Release readiness: {green/yellow/red}
+>
+> The next step in the V-Model workflow is **Phase 7: Release Closure**
+> (via `/v-model-workflow`), which will:
+> 1. Finalize all artifacts (BA, Features, ADRs, arc42)
+> 2. Generate release notes
+> 3. Update CHANGELOG
+> 4. Clean up the backlog
+> 5. Produce a closing report
+>
+> Shall I invoke `/v-model-workflow` to run the Release Closure now, or
+> would you like to review the audit first?"
+
+**On agreement** ("yes" / "go" / "next") or when running inside
+`/v-model-workflow`:
+-> Hand control back to `/v-model-workflow` for Phase 7
+
+**On rejection** ("no" / "stop" / "I want to check first"):
+-> Pause and wait for user instruction
+
 ## Keywords
-Security Audit, Security Review, Sicherheitsanalyse, OWASP, SAST, SCA,
-Vulnerability, CVE, Threat Model, Dependency Audit, Code Review Security
+Security Audit, Security Review, OWASP, SAST, SCA, Vulnerability, CVE,
+Threat Model, Dependency Audit, Code Review Security, Fix-Loop, Handoff
