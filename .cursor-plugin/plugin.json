@@ -1,0 +1,20 @@
+{
+  "name": "digital-innovation-agents",
+  "displayName": "Digital Innovation Agents",
+  "description": "V-Model workflow for AI-augmented innovation and development",
+  "version": "1.0.0",
+  "author": {
+    "name": "Sebastian Hanke"
+  },
+  "homepage": "https://github.com/pssah4/digital-innovation-agents",
+  "repository": "https://github.com/pssah4/digital-innovation-agents",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "v-model",
+    "business-analysis",
+    "innovation"
+  ],
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks-cursor.json"
+}

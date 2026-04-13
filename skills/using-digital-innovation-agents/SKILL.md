@@ -1,0 +1,110 @@
+---
+name: using-digital-innovation-agents
+description: Introduces the V-Model skill set and entry points. Advisory, not enforcing - user can always opt out.
+---
+
+# Using Digital Innovation Agents
+
+You have access to a structured V-Model workflow for AI-augmented innovation
+and development. These skills guide projects from initial business concept
+through requirements engineering, architecture design, implementation,
+testing, and security audit.
+
+## Entry points
+
+- `/v-model-workflow` -- Guided cycle through all phases (recommended for
+  new projects or when unsure where to start)
+- `/business-analyse` -- Problem exploration, ideation, validation
+- `/requirements-engineering` -- Epics, features, tech-agnostic success criteria
+- `/architecture` -- ADRs (MADR), arc42, plan-context.md
+- `/coding` -- Context handoff + critical review + implementation
+- `/testing` -- Unit and integration tests with fix-loop
+- `/security-audit` -- OWASP, SAST, SCA, Zero Trust
+- `/project-conventions` -- Project structure and naming standards
+
+## Artifact locations
+
+All project artifacts live under `_devprocess/`:
+
+- `_devprocess/analysis/BA-*.md`, `EXPLORE-*.md`
+- `_devprocess/requirements/epics/EPIC-*.md`, `features/FEATURE-*.md`
+- `_devprocess/requirements/handoff/architect-handoff.md`, `plan-context.md`
+- `_devprocess/architecture/ADR-*.md`, `arc42.md`
+- `_devprocess/context/10_backlog.md`
+- `_devprocess/analysis/security/AUDIT-*.md`
+
+## When to invoke which skill
+
+- If the user is starting something new and the problem space is unclear
+  -> suggest `/v-model-workflow` to orchestrate the full cycle
+- If the user has a clear problem but no solution yet -> `/business-analyse`
+- If the user has features defined but no architecture -> `/architecture`
+- If the user is ready to implement -> `/coding`
+
+These are **suggestions**, not rules. The user is in charge.
+
+## Opting out of the workflow
+
+The Digital Innovation Agents skill set is **advisory**. The user can leave
+the workflow at any time, and you should respect that immediately.
+
+### Leaving the `/v-model-workflow` loop
+
+If the user is mid-workflow (for example, between phases) and says something
+like "stop", "exit", "I want to do something else", "let's pause this",
+or simply asks an unrelated question:
+
+- **Exit the workflow immediately.** Do not ask "are you sure" or push back.
+- Answer whatever the user is asking next directly, without invoking any
+  V-Model skill.
+- The workflow state is preserved in `_devprocess/` -- the user can resume
+  later by re-invoking `/v-model-workflow`.
+
+### Temporarily disabling the skills
+
+If the user explicitly says "ignore V-Model today", "I just want a quick fix",
+"no skills needed for this", "just help me with X without the workflow",
+or uses similar opt-out language:
+
+- **Do not invoke any of the skills listed above**, even if the task seems
+  like it would match (e.g. "fix this bug" would normally match /coding).
+- Work in plain mode, like any normal Claude Code session without this plugin.
+- Do not remind the user that the skills exist. Do not suggest re-enabling.
+- The opt-out stays in effect until the user explicitly ends it or starts a
+  new session.
+
+### Permanently disabling
+
+For longer-term disable, the user can run `/plugin disable digital-innovation-agents`
+in Claude Code (standard plugin management). This removes the SessionStart
+hook entirely. Mention this only if the user asks how to disable permanently.
+
+## Principles
+
+- **Living documents**: every phase writes back into its source artifacts
+  so documentation always reflects the current state
+- **Tech-agnostic success criteria**: no OAuth, REST, PostgreSQL in Success
+  Criteria -- technology details belong in Technical NFRs
+- **Quality gates**: each skill verifies its own output before handoff
+- **User in control**: no autonomous generation, always propose and confirm
+- **Advisory, not enforcing**: if the user doesn't want the workflow, don't
+  force it -- they know their task better than we do
+
+## Scope adaptation
+
+The V-Model workflow adapts to project scope:
+
+- **Simple Test / Feature** (hours to 1-2 days): Minimal exploration,
+  skip validation, focus on definition of done
+- **Proof of Concept** (1-4 weeks): Shortened exploration, full ideation,
+  hypothesis-driven validation
+- **Minimum Viable Product** (2-6 months): Full exploration, full ideation,
+  complete market assessment
+
+The `business-analyse` skill asks the user which scope applies and
+calibrates depth accordingly.
+
+## Getting help
+
+- Repository: https://github.com/pssah4/digital-innovation-agents
+- Issues: https://github.com/pssah4/digital-innovation-agents/issues

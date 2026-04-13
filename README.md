@@ -2,7 +2,7 @@
 
 > **AI-augmented Innovation & Development Workflow.** From raw idea to production-ready code through structured, quality-gated phases.
 
-A system of specialized AI agents that guide digital innovation from initial business concept through requirements engineering, architecture design, implementation, testing, and security audit. Integrates proven innovation methods (Exploration, Ideation, Validation) with structured software engineering. Available for **Claude Code** and **GitHub Copilot**.
+A system of specialized AI agents that guide digital innovation from initial business concept through requirements engineering, architecture design, implementation, testing, and security audit. Integrates proven innovation methods (Exploration, Ideation, Validation) with structured software engineering. Works across **Claude Code**, **Cursor**, **Codex**, **OpenCode**, **Gemini CLI**, and **GitHub Copilot**.
 
 ---
 
@@ -10,13 +10,11 @@ A system of specialized AI agents that guide digital innovation from initial bus
 
 | Version | Status | Install |
 |---------|--------|---------|
-| **v1.0.0** | Stable, frozen (no updates) | `./install-skills.sh --version v1.0.0` |
-| **main** | Active development toward v2 | `./install-skills.sh` |
+| **v2** (main) | Active, recommended | See Installation below |
+| **v1.0.0** | Stable, frozen (legacy) | `./scripts/install-skills.sh --version v1.0.0` |
 
-v1.0.0 is the Classic V-Model workflow. v2 will add runtime discipline
-(TDD, systematic debugging, verification gates, handoff rituals), a Claude Code
-plugin marketplace, a reverse-engineering skill, and a VitePress
-documentation site. See [CHANGELOG.md](CHANGELOG.md) for details.
+See [CHANGELOG.md](CHANGELOG.md) for details. v1 is installable as a legacy
+snapshot for historical reference but is not actively maintained.
 
 ---
 
@@ -36,78 +34,78 @@ The Business Analysis agent uses structured innovation methods to deeply underst
 - **Ideation phase**: Jobs to be Done, idea potential assessment (value, transferability, feasibility), critical hypotheses, the "Wow" feature, and value proposition synthesis
 - **Validation phase**: Value proposition scoring, 6-axis assessment radar, pricing analysis, channel strategy, unfair advantage, revenue streams, and business viability testing
 
-All methods include concrete guidance on how to conduct them and what to do when you get stuck. See [innovation-methods.md](claude-code-skills/business-analyse/references/innovation-methods.md).
+All methods include concrete guidance on how to conduct them and what to do when you get stuck. See [innovation-methods.md](skills/business-analyse/references/innovation-methods.md).
 
 <img width="800" height="513" alt="image" src="https://github.com/user-attachments/assets/43ed2ff6-e59e-497f-9f89-cd79267cdd18" />
 
 ---
 
-## Quick start
+## Installation
 
-### Option A: Claude Code (recommended)
+Digital Innovation Agents works on multiple AI coding platforms. Install
+via the plugin mechanism of your choice:
 
-Works in **Claude Code CLI**, **VS Code**, and **JetBrains**.
-
-**Step 1: Download the repository**
-
-If you have Git installed:
-```bash
-git clone https://github.com/pssah4/digital-innovation-agents.git
-```
-
-Or download as ZIP from GitHub: Click the green **"Code"** button, then **"Download ZIP"**, and unzip the folder.
-
-**Step 2: Run the installer**
-
-Open a terminal, navigate to the downloaded folder, and run:
+### Claude Code (recommended)
 
 ```bash
-cd digital-innovation-agents/claude-code-skills
-chmod +x install-skills.sh
-./install-skills.sh
+/plugin marketplace add pssah4/digital-innovation-agents
+/plugin install digital-innovation-agents@pssah4-skills
 ```
 
-This copies all skills to `~/.claude/skills/` where Claude Code picks them up automatically.
+Start a new session and type `/` -- the V-Model skills appear in autocomplete. The `using-digital-innovation-agents` skill is loaded automatically at session start as a brief orientation.
 
-**Step 3: Verify**
+### Cursor
 
-Open Claude Code (terminal, VS Code, or JetBrains) and type `/`. Your skills should appear in the autocomplete dropdown. If they don't appear in VS Code or JetBrains, close and reopen the Claude Code panel.
-
-**Step 4: Start using**
+In Cursor Agent chat:
 
 ```
-/business-analyse          Start a structured business analysis
-/v-model-workflow          Full guided cycle from idea to security audit
+/add-plugin digital-innovation-agents
 ```
 
-### Option B: Claude Desktop app
+Or search for "digital-innovation-agents" in the Cursor plugin marketplace.
 
-**Step 1: Download the repository** (same as above)
+### GitHub Copilot CLI
 
-**Step 2: Add skills via the UI**
+```bash
+copilot plugin marketplace add pssah4/digital-innovation-agents
+copilot plugin install digital-innovation-agents@pssah4-skills
+```
 
-1. Open the Claude Desktop App
-2. Go to **Customize** (bottom-left gear icon) -> **Skills**
-3. Click the **"+"** button
-4. Upload each skill folder from `claude-code-skills/` (one at a time)
+### Codex
 
-Alternatively, copy the skill folders manually to `~/.claude/skills/`. The desktop app reads from the same location.
+Tell Codex:
 
-### Option C: Use without installing
+```
+Fetch and follow instructions from https://raw.githubusercontent.com/pssah4/digital-innovation-agents/main/.codex/INSTALL.md
+```
 
-You can use the templates and methods without installing skills. Simply:
+Detailed docs: [.codex/INSTALL.md](.codex/INSTALL.md)
 
-1. Open any Claude conversation
-2. Copy the content of [BA-TEMPLATE.md](claude-code-skills/business-analyse/templates/BA-TEMPLATE.md) or [EXPLORATION-BOARD.md](claude-code-skills/business-analyse/templates/EXPLORATION-BOARD.md) into your message
-3. Ask Claude to help you fill it out based on your project
+### OpenCode
 
-The [innovation-methods.md](claude-code-skills/business-analyse/references/innovation-methods.md) reference works as a standalone guide in any conversation.
+Tell OpenCode:
 
-### Option D: GitHub Copilot agents
+```
+Fetch and follow instructions from https://raw.githubusercontent.com/pssah4/digital-innovation-agents/main/.opencode/INSTALL.md
+```
 
-**Step 1:** Copy the `.github/` directory to your project root. Agents are automatically detected by Copilot.
+Detailed docs: [.opencode/INSTALL.md](.opencode/INSTALL.md)
 
-**Step 2:** Use agents in Copilot Chat:
+### Gemini CLI
+
+```bash
+gemini extensions install https://github.com/pssah4/digital-innovation-agents
+```
+
+To update:
+
+```bash
+gemini extensions update digital-innovation-agents
+```
+
+### GitHub Copilot Chat (VS Code)
+
+Copy the `.github/` directory to your project root. Agents are automatically detected by Copilot. Use them in Copilot Chat:
 
 ```
 @business-analyst I want to build a tool that helps teams run better retrospectives
@@ -118,6 +116,42 @@ The [innovation-methods.md](claude-code-skills/business-analyse/references/innov
 ```
 
 The Copilot agents have the same Exploration/Ideation/Validation innovation workflow, the same templates, and the same quality gates as the Claude Code skills.
+
+### Legacy: Shell Script Install
+
+For users without plugin marketplace support or with special setup needs:
+
+```bash
+git clone https://github.com/pssah4/digital-innovation-agents.git
+cd digital-innovation-agents
+./scripts/install-skills.sh
+```
+
+Install a specific version (e.g. v1.0.0 frozen snapshot):
+
+```bash
+./scripts/install-skills.sh --version v1.0.0
+```
+
+---
+
+## Verify Installation
+
+Start a new session in your chosen platform and try one of these:
+
+```
+/v-model-workflow          Full guided cycle from idea to security audit
+/business-analyse          Start a structured business analysis
+```
+
+Or ask a natural-language question like "help me analyze this business problem". The agent should invoke the relevant skill.
+
+If a skill does not appear:
+
+- **Claude Code / Cursor:** Restart the session; the SessionStart hook loads the skill overview automatically
+- **Codex:** Verify the symlink with `ls -la ~/.agents/skills/digital-innovation-agents`
+- **OpenCode:** Check logs with `opencode run --print-logs "hello" 2>&1 | grep -i digital-innovation`
+- **Gemini CLI:** Run `gemini extensions list`
 
 ---
 
@@ -230,52 +264,75 @@ The BA agent adapts its depth to your project scope:
 ```
 digital-innovation-agents/
 ├── README.md
+├── CHANGELOG.md
+├── CLAUDE.md                                    # Repo-level agent instructions
+├── AGENTS.md -> CLAUDE.md                       # Codex convention (symlink)
 ├── LICENSE
 ├── .gitignore
 │
-├── claude-code-skills/                         # Claude Code Skills
-│   ├── install-skills.sh                       # Installer script
+├── .claude-plugin/                              # Claude Code plugin
+│   ├── plugin.json                              # Plugin manifest
+│   └── marketplace.json                         # Marketplace manifest (pssah4-skills)
+│
+├── .cursor-plugin/plugin.json                   # Cursor plugin manifest
+├── .codex/INSTALL.md                            # Codex installation guide
+├── .opencode/                                   # OpenCode plugin
+│   ├── INSTALL.md
+│   └── plugins/digital-innovation-agents.js    # JS plugin (adapted from superpowers)
+├── gemini-extension.json                        # Gemini CLI extension manifest
+├── GEMINI.md                                    # Gemini CLI context file
+│
+├── hooks/                                       # SessionStart hooks
+│   ├── hooks.json                               # Claude Code hook config
+│   ├── hooks-cursor.json                        # Cursor hook config
+│   ├── session-start                            # Shared bootstrap script
+│   └── run-hook.cmd                             # Windows polyglot wrapper
+│
+├── skills/                                      # V-Model skills (loaded by all platforms)
 │   │
-│   ├── project-conventions/                    # Directory structure & naming
+│   ├── using-digital-innovation-agents/         # Bootstrap orientation (loaded by hook)
+│   │   └── SKILL.md
+│   │
+│   ├── project-conventions/                     # Directory structure & naming
 │   │   ├── SKILL.md
 │   │   └── references/
 │   │       ├── codebase-awareness.md
 │   │       ├── directory-structure.md
 │   │       └── naming-conventions.md
 │   │
-│   ├── business-analyse/                       # Exploration/Ideation/Validation cycle
+│   ├── business-analyse/                        # Exploration/Ideation/Validation cycle
 │   │   ├── SKILL.md
 │   │   ├── templates/
-│   │   │   ├── BA-TEMPLATE.md                  # Full BA document (12 sections)
-│   │   │   └── EXPLORATION-BOARD.md                # Exploration phase board (10 sections)
+│   │   │   ├── BA-TEMPLATE.md                   # Full BA document (12 sections)
+│   │   │   └── EXPLORATION-BOARD.md             # Exploration phase board (10 sections)
 │   │   └── references/
-│   │       └── innovation-methods.md           # 20+ methods with probing techniques
+│   │       └── innovation-methods.md            # 20+ methods with probing techniques
 │   │
-│   ├── requirements-engineering/               # Epics, features, success criteria
+│   ├── requirements-engineering/                # Epics, features, success criteria
 │   │   ├── SKILL.md
 │   │   ├── templates/
-│   │   │   ├── EPIC-TEMPLATE.md                # With HMW and hypothesis tracking
-│   │   │   └── FEATURE-TEMPLATE.md             # With jobs-to-be-done and validation
+│   │   │   ├── EPIC-TEMPLATE.md                 # With HMW and hypothesis tracking
+│   │   │   └── FEATURE-TEMPLATE.md              # With jobs-to-be-done and validation
 │   │   └── references/
-│   │       └── tech-agnostic-rules.md          # Forbidden terms + transformation guide
+│   │       └── tech-agnostic-rules.md           # Forbidden terms + transformation guide
 │   │
-│   ├── architecture/                           # ADRs, arc42, plan-context.md
+│   ├── architecture/                            # ADRs, arc42, plan-context.md
 │   │   ├── SKILL.md
 │   │   └── templates/
 │   │       ├── ADR-TEMPLATE.md
 │   │       ├── arc42-TEMPLATE.md
 │   │       └── plan-context-TEMPLATE.md
 │   │
-│   ├── coding/                                 # Context handoff & artifact writeback
+│   ├── coding/                                  # Context handoff & artifact writeback
 │   │   └── SKILL.md
 │   │
-│   ├── testing/                                # Unit & integration tests
+│   ├── testing/                                 # Unit & integration tests
 │   │   ├── SKILL.md
 │   │   └── references/
 │   │       ├── test-checklist.md
 │   │       └── test-anti-patterns.md
 │   │
-│   ├── security-audit/                         # OWASP, SAST, SCA
+│   ├── security-audit/                          # OWASP, SAST, SCA
 │   │   ├── SKILL.md
 │   │   ├── templates/
 │   │   │   └── AUDIT-TEMPLATE.md
@@ -284,10 +341,13 @@ digital-innovation-agents/
 │   │       ├── owasp-checklist.md
 │   │       └── owasp-llm-checklist.md
 │   │
-│   └── v-model-workflow/                       # Orchestrator
+│   └── v-model-workflow/                        # Orchestrator
 │       └── SKILL.md
 │
-└── .github/                                    # GitHub Copilot Agents
+├── scripts/
+│   └── install-skills.sh                        # Legacy shell installer (fallback)
+│
+└── .github/                                     # GitHub Copilot Chat agents
     ├── copilot-instructions.md                 # Global instructions (auto-loaded)
     ├── agents/
     │   ├── business-analyst.agent.md           # Exploration/Ideation/Validation cycle
@@ -316,14 +376,17 @@ digital-innovation-agents/
 
 ## Where it works
 
-| Environment | Skills Support | How to Install |
-|-------------|---------------|----------------|
-| **Claude Code CLI** | Full | Run `install-skills.sh` |
-| **VS Code** (Claude Code extension) | Full | Same (inherits from `~/.claude/skills/`) |
-| **JetBrains** (Claude Code plugin) | Full | Same (inherits from `~/.claude/skills/`) |
+| Environment | Skills Support | Primary Install |
+|-------------|---------------|------------------|
+| **Claude Code** (CLI, VS Code, JetBrains) | Full | `/plugin install digital-innovation-agents@pssah4-skills` |
+| **Cursor** | Full | `/add-plugin digital-innovation-agents` |
+| **GitHub Copilot CLI** | Full | `copilot plugin install digital-innovation-agents@pssah4-skills` |
+| **Codex** | Full | Clone + symlink (see `.codex/INSTALL.md`) |
+| **OpenCode** | Full | `opencode.json` plugin entry (see `.opencode/INSTALL.md`) |
+| **Gemini CLI** | Full | `gemini extensions install https://github.com/pssah4/digital-innovation-agents` |
+| **GitHub Copilot Chat** (VS Code) | Full (agents) | Copy `.github/` to your project |
 | **Claude Desktop App** | Supported | Upload via Customize > Skills > "+" |
-| **Any Claude conversation** | Manual | Copy templates into your message |
-| **GitHub Copilot** | Full (agents) | Copy `.github/` to your project |
+| **Any platform, no install** | Manual | Copy templates into your message |
 
 ---
 
@@ -338,20 +401,6 @@ These agents reflect a specific workflow. You will want to adjust:
 - **Scope levels**: Adjust Simple Test / PoC / MVP complexity settings
 - **Innovation methods**: Add or remove methods in `innovation-methods.md`
 - **Language**: Skills are in English; your `CLAUDE.md` controls conversation language
-
----
-
-## Migration notes: Copilot to Claude Code
-
-| Copilot Concept | Claude Code Equivalent |
-|----------------|----------------------|
-| `.github/agents/*.agent.md` | `~/.claude/skills/*/SKILL.md` |
-| `.github/instructions/*.instructions.md` | Integrated as Quality Gates in SKILL.md |
-| `.github/templates/*.md` | `~/.claude/skills/*/templates/*.md` |
-| `@agent-name` | `/skill-name` or natural language |
-| `tools:` in frontmatter | Not needed (Claude Code has own tool system) |
-| `model:` in frontmatter | Not needed (always current model) |
-| `applyTo:` file patterns | Skill description for auto-invocation |
 
 ---
 

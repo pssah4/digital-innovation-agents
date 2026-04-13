@@ -9,6 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Work toward v2.0.0. See branch `main`.
 
+### Added
+
+- Claude Code plugin manifest (`.claude-plugin/plugin.json`)
+- Claude Code plugin marketplace (`.claude-plugin/marketplace.json`) as `pssah4-skills`
+- Cursor plugin manifest (`.cursor-plugin/plugin.json`)
+- Codex install instructions (`.codex/INSTALL.md`, symlink-based)
+- OpenCode plugin (`.opencode/plugins/digital-innovation-agents.js` + `INSTALL.md`)
+- Gemini CLI extension (`gemini-extension.json` + `GEMINI.md`)
+- SessionStart hook for Claude Code, Cursor, Copilot CLI (`hooks/hooks.json`,
+  `hooks/hooks-cursor.json`, `hooks/session-start`, `hooks/run-hook.cmd`)
+- Bootstrap skill `using-digital-innovation-agents` with advisory entry-points
+  overview and explicit opt-out instructions (leave workflow, temporarily
+  disable, permanently disable via `/plugin disable`)
+- `CLAUDE.md` at repo root + `AGENTS.md` symlink (Codex convention)
+- README with installation sections for Claude Code, Cursor, GitHub Copilot
+  CLI, Codex, OpenCode, Gemini CLI, and GitHub Copilot Chat
+- Auto-detect in `install-skills.sh` for v1 (`claude-code-skills/`) and v2
+  (`skills/`) directory layout
+
+### Changed
+
+- Skills directory renamed from `claude-code-skills/` to `skills/` (Claude
+  Code plugin convention). v1.0.0 tag remains unchanged with the old layout.
+- `install-skills.sh` moved from `claude-code-skills/` to `scripts/`
+- README installation section rewritten to cover all 7 supported platforms
+- README file structure diagram updated to reflect v2 layout
+- Removed obsolete "Migration notes: Copilot to Claude Code" section
+  (both platforms are now supported in parallel)
+
+### Note
+
+v1.0.0 remains installable via `./scripts/install-skills.sh --version v1.0.0`
+as a legacy snapshot. It is not available through the plugin marketplace.
+
 ## [1.0.0] - 2026-04-13
 
 ### Stabilization Release
