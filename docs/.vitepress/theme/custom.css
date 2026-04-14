@@ -137,9 +137,21 @@
   }
 }
 
-/* Reduce whitespace below the hero so the tiles come in quickly */
+/* Soft radial glow behind the hero, echoing the headline gradient:
+   pink near the top, fading through purple to indigo on the sides. */
 .VPHero {
   padding-bottom: 12px;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(190, 24, 93, 0.18), transparent 70%),
+    radial-gradient(ellipse 60% 45% at 15% 20%, rgba(126, 34, 206, 0.10), transparent 65%),
+    radial-gradient(ellipse 60% 45% at 85% 20%, rgba(67, 56, 202, 0.10), transparent 65%);
+}
+
+.dark .VPHero {
+  background:
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(244, 114, 182, 0.14), transparent 70%),
+    radial-gradient(ellipse 60% 45% at 15% 20%, rgba(192, 132, 252, 0.08), transparent 65%),
+    radial-gradient(ellipse 60% 45% at 85% 20%, rgba(129, 140, 248, 0.08), transparent 65%);
 }
 
 /* ========== Landing page below the hero ========== */
