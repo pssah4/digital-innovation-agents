@@ -20,6 +20,12 @@ const guidesSidebar = [
     ],
   },
   {
+    text: 'Brownfield entry',
+    items: [
+      { text: 'Reverse Engineering', link: '/guides/reverse-engineering' },
+    ],
+  },
+  {
     text: 'Design phases (left side of V)',
     items: [
       { text: 'Business Analysis', link: '/guides/business-analyse' },
@@ -66,6 +72,12 @@ const conceptsSidebar = [
     items: [
       { text: 'The V-Model', link: '/concepts/v-model' },
       { text: 'Living Documents', link: '/concepts/living-documents' },
+    ],
+  },
+  {
+    text: 'Methodological heritage',
+    items: [
+      { text: 'Digital Innovation Playbook', link: '/concepts/digital-innovation-playbook' },
     ],
   },
   {
