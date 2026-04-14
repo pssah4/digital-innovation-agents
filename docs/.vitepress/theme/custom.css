@@ -63,3 +63,57 @@
   margin: 2rem auto;
   text-align: center;
 }
+
+/* ========== Landing page ========== */
+
+/* Badge row under hero */
+.landing-badges {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 0.5rem auto 2rem;
+  max-width: 1100px;
+  padding: 0 24px;
+}
+
+.landing-badges span {
+  padding: 6px 14px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  color: var(--vp-c-text-2);
+  background: var(--vp-c-bg-soft);
+}
+
+/* Diagram: break out of the narrow home content column so the SVG is wide */
+.landing-diagram {
+  max-width: 1200px;
+  margin: 2rem auto 3rem;
+  padding: 0 24px;
+}
+
+.landing-diagram img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Short footer CTA below diagram */
+.landing-footer-cta {
+  max-width: 720px;
+  margin: 2rem auto 4rem;
+  padding: 0 24px;
+  text-align: center;
+  color: var(--vp-c-text-2);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.landing-footer-cta p {
+  margin: 0.5rem 0;
+}
+
+.landing-footer-cta a {
+  font-weight: 500;
+}
