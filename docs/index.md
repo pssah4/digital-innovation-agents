@@ -4,9 +4,8 @@ title: Digital Innovation Agents
 titleTemplate: V-Model workflow for AI coding assistants
 
 hero:
-  name: Digital Innovation Agents
-  text: Decide what to build before writing how.
-  tagline: A V-Model workflow that walks your AI coding assistant through Business Analysis, Requirements, Architecture, Coding, Testing, and Security Audit, with quality-gated handoffs between every phase. Brownfield or greenfield.
+  text: The bottleneck isn't code anymore.
+  tagline: AI coding assistants ship code at speed. What most projects still lack is a backlog of real solutions to real user problems. This is where a battle-tested innovation methodology meets a state-of-the-art V-Model coding workflow.
   actions:
     - theme: brand
       text: Get Started
@@ -14,10 +13,20 @@ hero:
     - theme: alt
       text: Full V-Model walkthrough
       link: /digital-innovation-agents/tutorials/full-v-model-run
-    - theme: alt
-      text: GitHub
-      link: https://github.com/pssah4/digital-innovation-agents
 ---
+
+<div class="landing-features">
+  <a class="tile" href="/digital-innovation-agents/tutorials/first-business-analysis">
+    <h3>Starting from a raw idea?</h3>
+    <p>Walk the AI through structured discovery: personas, Jobs to be Done, How-Might-We questions. Twenty proven innovation methods before a single line of code.</p>
+    <span class="arrow">Run your first Business Analysis →</span>
+  </a>
+  <a class="tile" href="/digital-innovation-agents/guides/reverse-engineering">
+    <h3>Starting with an existing project?</h3>
+    <p>Walk the V backwards. Reverse-engineer ADRs, an arc42 snapshot, a FEATURE inventory, and an evidence-based BA draft from your code. Every claim sourced, nothing invented.</p>
+    <span class="arrow">Run Reverse Engineering →</span>
+  </a>
+</div>
 
 <div class="landing-diagram">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 460" role="img" aria-labelledby="vm-title vm-desc" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif" preserveAspectRatio="xMidYMid meet">
@@ -153,17 +162,4 @@ hero:
     <text x="497" y="425" text-anchor="middle" font-size="14" font-style="italic" font-weight="500" fill="#6b7280">Living documents writeback</text>
   </a>
 </svg>
-</div>
-
-<div class="landing-features">
-  <a class="tile" href="/digital-innovation-agents/tutorials/first-business-analysis">
-    <h3>Starting from a raw idea?</h3>
-    <p>Walk the AI through structured discovery: personas, Jobs to be Done, How-Might-We questions. Twenty proven innovation methods before a single line of code.</p>
-    <span class="arrow">Run your first Business Analysis →</span>
-  </a>
-  <a class="tile" href="/digital-innovation-agents/guides/reverse-engineering">
-    <h3>Starting with an existing project?</h3>
-    <p>Walk the V backwards. Reverse-engineer ADRs, an arc42 snapshot, a FEATURE inventory, and an evidence-based BA draft from your code. Every claim sourced, nothing invented.</p>
-    <span class="arrow">Run Reverse Engineering →</span>
-  </a>
 </div>

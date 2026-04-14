@@ -11,7 +11,7 @@ export default {
           h(
             'span',
             null,
-            'For Claude Code, Codex, Gemini, GitHub Copilot & OpenCode',
+            'Claude Code │ Codex │ Gemini │ GitHub Copilot │ OpenCode',
           ),
         ]),
     })
