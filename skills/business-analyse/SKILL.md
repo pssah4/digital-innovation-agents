@@ -9,7 +9,7 @@ description: >
   "As-Is Analysis", "Gap Analysis", "User Personas", "Define Scope",
   "Analyze Project", "Explore", "How might we", "Value Proposition",
   "Idea Potential", "Innovation", or similar. Also when the user wants to start
-  a new project and does not yet have a clear requirement -- this skill helps
+  a new project and does not yet have a clear requirement. This skill helps
   understand the problem before discussing solutions.
 disable-model-invocation: false
 ---
@@ -20,7 +20,19 @@ You conduct a structured interview with the user to understand the business
 problem and stakeholder needs. Your output is a complete Business Analysis
 document as the foundation for the Requirements Engineer.
 
-**Reference:** Read `references/innovation-methods.md` for all method details and probing techniques.
+**Method catalog:** Read `references/innovation-methods.md` for the full trigger-to-method lookup and the probing techniques. Every method in that catalog links to a user-facing card in the VitePress docs under `docs/reference/methods-{discovery|ideation|validation}.md`. When you propose a method to the user, always include the doc link so they can read the practical details.
+
+## Core principle: propose methods when input has gaps
+
+You do not grind through question lists. When the user's answers go generic, when a section has no evidence, or when you catch yourself guessing on the user's behalf, stop the interview and propose the matching method from `references/innovation-methods.md`.
+
+Dialogue template for method proposal:
+
+> "To answer that properly, we need [evidence from real users / input from an expert / a quick prototype]. The method that fits here is **{METHOD}**. {one or two sentences about what it produces}. Team and time: {X}. Full card: {doc link}. Shall I help you prepare {concrete next step}?"
+
+After the user agrees, prepare the concrete artifact they need (interview guideline, observation plan, question list, test grid), tell them what to bring back, and pause the interview. Resume when they return with findings.
+
+**The user always runs the method.** You prepare it, you synthesise the result, but you never run interviews, observations, or tests yourself. Field work is human work.
 
 ## What You Create
 
@@ -171,50 +183,58 @@ C) Minimum Viable Product (MVP)
    -> Functional product, 2-6 months
 ```
 
-### Phase 2: EXPLORE -- Understand Problem and User Space
+### Phase 2: EXPLORE. Understand Problem and User Space
 
 > Goal: Understand BEFORE we solve. Users, needs, context, market.
 > Template: `templates/EXPLORATION-BOARD.md`
 
-**Simple Test (A):** 3-5 questions
+**Simple Test (A):** 3 to 5 questions
 - Who is the user? What is the problem? How do they solve it today?
 
-**PoC (B):** 8-12 questions
-- Users & Personas, Needs (functional + emotional), Touchpoints
-- Trends/technologies that are relevant
-- Conclusion: Formulate how-might-we question
+**PoC (B):** 8 to 12 questions
+- Users and Personas, Needs (functional + emotional), Touchpoints
+- Relevant trends and technologies
+- Closing: formulate the How-Might-We question
 
-**MVP (C):** 15-20 questions -- fill complete Exploration Board
-- Research Mind Map: Structure the question
-- Stakeholder Map: Who is affected and involved?
-- User Personas: Propose at least 2 personas, confirm with user before proceeding
-- Needs: Functional, emotional, social (cite which persona/statement each need comes from)
-- Insights: Contextual, functional, emotional, social, analogies (always cite source)
-- Trends & Technology, Competitors & Partners (ask if user has data first)
-- Facts & Figures, Potential Fields
+**MVP (C):** 15 to 20 questions, filling the complete Exploration Board
+- Research Mind Map: structure the question
+- Stakeholder Map: who is affected and involved
+- User Personas: propose at least 2 personas, confirm with the user before proceeding
+- Needs: functional, emotional, social (cite which persona or statement each need comes from)
+- Insights: contextual, functional, emotional, social, analogies (always cite source)
+- Trends and Technology, Competitors and Partners (ask if the user has data first)
+- Facts and Figures, Potential Fields
 - Touchpoints and User Journey
-- Conclusion: How-might-we question as synthesis
+- Closing: How-Might-We question as synthesis
 
-**Method hints during the interview:**
+**Method triggers during the interview.** When the user's answers go thin, switch from asking questions to proposing methods. The trigger catalog is in `references/innovation-methods.md`. Common triggers and the matching methods:
 
-When the interview partner does not give sufficient answers, use the
-probing techniques from `references/innovation-methods.md`:
+- User cannot describe the user concretely: propose **Explorative interviews** (short wide scan) or **Qualitative interview** (one deep conversation).
+- User group feels too uniform and interviews produce generic answers: propose **Extreme users**.
+- User describes an ideal workflow that contradicts reality: propose **Fly on the wall** observation.
+- User has never personally experienced the problem: propose **Self-test (immersion)**.
+- Multiple stakeholders with political friction: propose **Stakeholder map**.
+- Interview data piles up without patterns: propose **Persona synthesis cluster** followed by **Persona**.
+- Problem is too broad to interview anyone about: propose **Research mind map**.
+- User cannot name competitors: propose **Market and trend analysis**.
+- Experience spans multiple touchpoints: propose **User journey**.
+- B2B project where the buyer is not the end user: propose **Value proposition chain**.
+- Private behaviour, self-censored in live interviews: propose **Cultural probes**.
 
-- **5-Why:** "Why is that a problem?" -> ask five times
-- **Concretization:** "Can you give a concrete example?"
-- **Future Projection:** "Imagine the problem was solved -- what would be different?"
-- **Perspective Shift:** "What would your customer/boss say about this?"
-- **Emotional Level:** "How does it feel when that happens?"
-- **Analogy Trigger:** "Do you know something similar from a different domain?"
+When proposing a method, always link to the doc card (`docs/reference/methods-discovery.md#{anchor}`) and help the user prepare the artifact (interview guideline, observation plan, stakeholder map template, etc.) before they go into the field.
 
-Also recommend ethnographic methods when appropriate:
-- **Fly on the Wall:** "It might help to observe the user at work"
-- **Self-Immersion:** "Have you ever walked through the process yourself?"
-- **Extreme Users:** "Who uses this particularly intensely or not at all?"
+**Probing techniques when you need to push the user's own answers.** These work when you are still in the interview and just need to unstick a thin answer without jumping to a full field method:
+
+- **5-Why.** "Why is that a problem?" Ask until something surprising appears.
+- **Concretisation.** "Can you give a concrete example?" "When did this last happen?"
+- **Future projection.** "Imagine the problem was solved. What would be different?"
+- **Perspective shift.** "What would your customer or your boss say about this?"
+- **Emotional level.** "How does it feel when that happens?"
+- **Analogy trigger.** "Do you know something similar from a different domain?"
 
 For PoC/MVP: Create the Exploration Board as a separate document.
 
-### Phase 3: IDEATION -- Design and Assess the Solution
+### Phase 3: IDEATION. Design and Assess the Solution
 
 > Goal: From the HMW question to a concrete solution idea with assessment.
 
@@ -239,22 +259,28 @@ For PoC/MVP: Create the Exploration Board as a separate document.
 - **Critical Hypotheses:** What must be validated?
 - **Value Proposition** formulated as synthesis
 
-**Method recommendations:**
-- **Jobs to be Done (C7):** "What job does the user hire your product to do?"
-- **Kill your Company (C9):** "How would a startup attack you?"
-- **Evaluation Matrix (C10):** Compare and prioritize ideas
+**Method triggers for Ideation.** When a gap appears, propose the matching method from `references/innovation-methods.md` and link to the doc card under `docs/reference/methods-ideation.md`:
 
-### Phase 4: EVALUATE -- Market Assessment (PoC/MVP only)
+- Solution space is empty after HMW: propose **Brainstorming** or, for introverted teams, **Brainwriting**.
+- Seed idea is promising but too thin to prototype: propose **Idea tower**.
+- Team keeps repeating the same variants: propose **Inspiration cards**.
+- User cannot explain why users would switch: propose **Jobs to be done**.
+- Team is too close to the product to see weaknesses: propose **Kill your company**.
+- Too many ideas on the wall and no shortlist: propose **Idea clustering and selection**.
+- Genuine technical contradiction (strong and light, fast and safe): propose **TRIZ**.
+- Complex problem and one-hour workshops produce shallow ideas: propose **Collective notebook**.
+
+### Phase 4: EVALUATE. Market Assessment (PoC/MVP only)
 
 > Goal: How viable is the solution? Test business viability.
 
-**PoC (B):** 5-8 questions -- focus on hypotheses and feasibility
+**PoC (B):** 5 to 8 questions, focused on hypotheses and feasibility
 - Prioritize critical hypotheses
 - Define test methods
 - Set success criteria
 - Expert validation (technical, domain)
 
-**MVP (C):** 10-15 questions -- full market assessment
+**MVP (C):** 10 to 15 questions, full market assessment
 - **Value Proposition Score** (4 scales 0-10):
   - "How strong is the interest in the value proposition?" (Activate users)
   - "How does the user rate our solution vs. alternatives?" (Preference)
@@ -285,14 +311,14 @@ integrates IDEATION and EVALUATE results.
 
 Before handoff to the Requirements Engineer, these criteria must be met:
 
-### Simple Test -- at least 3/4
+### Simple Test (at least 3 of 4)
 
 1. Problem clearly described?
 2. User identified?
 3. Functionality defined?
 4. Definition of Done present?
 
-### PoC -- at least 6/8
+### PoC (at least 6 of 8)
 
 1. How-might-we question formulated?
 2. Hypothesis clearly stated?
@@ -303,7 +329,7 @@ Before handoff to the Requirements Engineer, these criteria must be met:
 7. Critical hypotheses documented?
 8. Acceptable shortcuts documented?
 
-### MVP -- at least 10/13
+### MVP (at least 10 of 13)
 
 1. Exploration Board complete (User, Needs, Insights, HMW)?
 2. Business context complete (As-Is, To-Be, Gap)?

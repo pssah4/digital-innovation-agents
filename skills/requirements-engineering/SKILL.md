@@ -26,6 +26,22 @@ business analyses into structured, measurable requirements.
 
 Templates are in `templates/` in this skill directory.
 
+**Method catalog:** The BA skill ships a method catalog at `skills/business-analyse/references/innovation-methods.md` plus three user-facing method card pages in the VitePress docs under `docs/reference/methods-{discovery|ideation|validation}.md`. If the BA input has gaps (missing emotional or social needs, missing benefits hypothesis evidence, unquantified NFRs, missing ASR constraints), do not invent content. Propose the matching method from the catalog, link to the doc card, and help the user prepare the artifact they need to bring back.
+
+Common RE triggers and matching methods:
+
+- Feature lacks emotional or social user stories: propose **Jobs to be done** (`docs/reference/methods-ideation.md#jobs-to-be-done`).
+- Feature has no Benefits Hypothesis traceable to an insight: propose **User motivation analysis** or a targeted **Qualitative interview** (`docs/reference/methods-discovery.md#qualitative-interview`).
+- Success criterion cannot be made measurable: propose **Test grid** or **Value proposition quantification** (`docs/reference/methods-validation.md#value-proposition-quantification`).
+- NFR is qualitative ("fast", "secure") and needs a number: propose **Expert conversations** with engineering or ops (`docs/reference/methods-discovery.md#expert-conversations`).
+- ASR is suspected but unverified: propose **Expert review** (`docs/reference/methods-validation.md#expert-review`).
+- Epic is drafted but the current alternative is unclear: propose **User journey** focused on the "before" phase (`docs/reference/methods-discovery.md#user-journey`).
+- Critical Hypothesis from BA has no test plan: propose the matching **Wireframes**, **Wizard of Oz**, or **Appearance prototype** card.
+
+Dialogue template:
+
+> "The feature is missing [gap]. The fastest way to close it is **{METHOD}**. {one or two sentences about what it produces}. Full card: {doc link}. Shall I help you prepare {concrete next step}?"
+
 ## What You Do NOT Create
 
 - Issues/Tasks (done by Claude Code in Plan Mode)
@@ -38,19 +54,19 @@ Your focus: **WHAT & WHY**, not HOW.
 
 ### With BA Input (preferred)
 
-Read `_devprocess/analysis/BA-*.md` and -- if available --
+Read `_devprocess/analysis/BA-*.md` and, if available,
 `_devprocess/analysis/EXPLORE-*.md` (Exploration Board). Confirm:
 
 ```
 Recognized information:
 - Scope: [Simple Test / PoC / MVP]
 - Main goal: [from Executive Summary]
-- How-might-we: [from Section 1.2 -- bridge EXPLORATION->IDEATION]
+- How-might-we: [from Section 1.2, bridge EXPLORATION to IDEATION]
 - Value Proposition: [from Section 1.3]
 - Users/Personas: [from Section 4]
-- Needs: [from Section 4.2 -- functional/emotional/social]
-- Jobs to be done: [from Section 5.4 -- functional/emotional/social]
-- Idea Potential: [from Section 7.1 -- Value/Transferability/Feasibility]
+- Needs: [from Section 4.2, functional/emotional/social]
+- Jobs to be done: [from Section 5.4, functional/emotional/social]
+- Idea Potential: [from Section 7.1, Value/Transferability/Feasibility]
 - Critical Hypotheses: [from Section 7.3]
 - Key Features: [from Section 10.3]
 
@@ -97,8 +113,8 @@ Technical details go into **Technical NFRs** -> `architect-handoff.md` -> Archit
 ### 2. Epic Creation (20min, for PoC/MVP)
 - Read `templates/EPIC-TEMPLATE.md`
 - **HMW -> Hypothesis:** Transform the HMW question from the BA into the
-  Epic Hypothesis Statement. The HMW names user, need, and obstacle --
-  from these derive FOR/WHO/IS THE/A/THAT.
+  Epic Hypothesis Statement. The HMW names user, need, and obstacle,
+  from which you derive FOR/WHO/IS THE/A/THAT.
 - **Idea Potential -> Prioritization:** The 3 axes (Value, Transferability,
   Feasibility) from the BA flow into feature prioritization.
 - **Critical Hypotheses -> Leading Indicators:** The critical hypotheses from
@@ -140,8 +156,8 @@ Each feature MUST have:
 1. Feature Description (1-2 paragraphs)
 2. Benefits Hypothesis (complete)
 3. User Stories (at least 1-3)
-4. Success Criteria -- tech-free, measurable, user-outcome focused
-5. Technical NFRs -- Performance, Security, Scalability, Availability (with numbers)
+4. Success Criteria (tech-free, measurable, user-outcome focused)
+5. Technical NFRs with numbers (Performance, Security, Scalability, Availability)
 6. ASRs identified (Critical/Moderate)
 7. Definition of Done (complete)
 

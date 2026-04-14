@@ -1,353 +1,294 @@
-# Innovation Methods Reference
+# Innovation Methods Catalog
 
-> Purpose: Methodological guidance for the BA skill across the EXPLORATION, IDEATION,
-> and EVALUATE phases of innovation development.
+Purpose. This is a trigger-to-method lookup for the BA and RE skills. When a gap appears in the user's input (missing persona, missing need, missing evidence, missing constraint), the agent stops asking questions and proposes the matching method from this catalog. Each entry links to the full method card in the VitePress docs under `docs/reference/methods-*.md`, which is where the user will read the practical details.
 
----
+The actual work (interviews, observations, tests, shadowing) always stays with the user. The agent's job is to pick the right method, explain it in one paragraph, and help the user prepare the artifact they need.
 
-## Process Overview
+## How to propose a method in the dialog
 
-```
-CONTEXT -> EXPLORATION -> HMW Handoff -> IDEATION -> Prototype Handoff -> EVALUATE -> Investment Decision
-```
+When a gap appears, do not keep asking the same question in different words. Switch to a method proposal.
 
-Between phases, steering workshops control progress:
-- **Decision Recommender**: Uses research data to recommend direction
-- **Template Check**: Focuses methods, selects the best ideas
-- **Evaluator**: Validates concepts against market requirements
+Dialogue template:
 
----
+> "To answer that properly, we need [evidence from real users / input from experts / a quick prototype]. The method that fits here is **{METHOD}**. {one or two sentences about what it produces}. Team and time: {X}. Full card: {doc link}. Shall I help you prepare {concrete next step, e.g. an interview guideline, a question list, a test grid}?"
 
-## EXPLORE Methods
+After the user agrees, help them prepare the artifact (interview questions, observation plan, prototype brief, test grid), tell them what to bring back, and pause the interview. Resume when they return with findings.
 
-Two groups: **Synthesis methods** (organize and interpret data) and
-**Ethnographic methods** (collect qualitative data). Both go hand in hand.
+## Discovery methods (understand users and the problem space)
 
-### Ethnographic Methods (Data Collection)
+Full cards: `docs/reference/methods-discovery.md`
 
-#### E1: Qualitative Interview
+### Qualitative interview
 
-**Purpose:** Gain true-to-life insights about users and their way of life.
+**Trigger:** The user cannot describe the user concretely. Their own answers to "why is that a problem" feel like guesses.
+**Nutshell:** An open, narrative-driven conversation with one user. Two people per session (moderator + note-taker), 60 to 90 minutes, open questions only, transcribe verbatim, extract four or five raw observations within 30 minutes of finishing.
+**Doc link:** `methods-discovery#qualitative-interview`
 
-**When to use:** Always. Foundation of any user research.
+### Explorative interviews
 
-**How to conduct:**
-- Ask open questions (not yes/no)
-- Invite narratives: "Tell me about a typical day..."
-- Demand specifics: "Can you give me a concrete example?"
-- Ask about emotions: "How does that feel?"
-- Don't judge, don't interrupt
+**Trigger:** The problem space is fuzzy. Several user groups might be affected but cannot be ranked. The user wants to verify the problem exists at all before investing in deep research.
+**Nutshell:** 7 to 10 short conversations, 20 to 30 minutes each, across users with no prior relationship. Cluster the surprises after the batch to decide where to go deep.
+**Doc link:** `methods-discovery#explorative-interviews`
 
-**When the interview partner has no answer:**
-- "Imagine the problem was solved tomorrow -- what would be different?"
-- "How do you solve this today? What workarounds do you use?"
-- "When did this last happen to you? What exactly happened?"
-- "If you had a magic wand, what would you change?"
+### Extreme users
 
-#### E3: Extreme Users
+**Trigger:** Average-user interviews produce generic answers. The user group feels too uniform. No emotional driver has surfaced.
+**Nutshell:** Interview two to four power users (who do the thing 10x more than average) and two to four non-users (who tried it and quit). Their combined motivations and objections bracket the real design space.
+**Doc link:** `methods-discovery#extreme-users`
 
-**Purpose:** Explore boundary conditions of the user group. Extreme users do
-something particularly often, intensely, or never at all.
+### Expert conversations
 
-**When to use:** When the user group appears too homogeneous or real pain points
-are not surfacing.
+**Trigger:** The problem has regulatory, technical, or safety implications the user cannot evaluate alone. Stakeholders disagree on what is possible.
+**Nutshell:** Specific-question interview with a domain expert. 30 to 45 minutes. Pick the expert for one question, not a general brain pick.
+**Doc link:** `methods-discovery#expert-conversations`
 
-**How to conduct:**
-- Identify power users (uses the product 10x more frequently than average)
-- Identify non-users (stopped using or never started)
-- Interview both: What drives them / what holds them back?
+### Fly on the wall
 
-**When the interview partner has no answer:**
-- "Do you know anyone who uses this particularly often or not at all?"
-- "What would someone do who was obsessed with this?"
-- "Why might someone deliberately decide against it?"
+**Trigger:** Users describe an ideal workflow that contradicts reality. They cannot describe a routine they consider too obvious to mention.
+**Nutshell:** Silent, non-intrusive observation of real behaviour in a real context. At least 60 minutes. Three columns of notes: what they do, what they work around, where they hesitate.
+**Doc link:** `methods-discovery#fly-on-the-wall`
 
-#### E11: Fly on the Wall
+### Self-test (immersion)
 
-**Purpose:** Silent observation of user behavior in their natural context.
+**Trigger:** The user has never personally experienced the problem. Interview questions sound generic. Assumptions about "how easy" or "how hard" need testing.
+**Nutshell:** Walk the user's process first-hand. One hour to several days. Log friction points as they happen, debrief within 24 hours, then verify conclusions with real users.
+**Doc link:** `methods-discovery#self-test`
 
-**When to use:** When users cannot describe their own behavior well
-(saying vs. doing).
+### Cultural probes
 
-**How to conduct:**
-- Don't intervene, don't ask -- just observe
-- Note behavior, workarounds, errors, emotions
-- Focus: What does the user ACTUALLY do (not what they say)
+**Trigger:** The behaviour of interest happens in private or is spread over days or weeks. Users self-censor the relevant moments in live interviews.
+**Nutshell:** A light kit (diary, photo prompts, a few tasks) sent home with four to six users for one or two weeks. A 45-minute debrief per participant about their own artifacts.
+**Doc link:** `methods-discovery#cultural-probes`
 
-#### E12: Self-Immersion
+### User motivation analysis
 
-**Purpose:** Immerse yourself in the topic, gather first-hand experiences.
+**Trigger:** Interview notes exist but the user cannot name what the user actually wants. Needs sound the same. No ranking of intensity.
+**Nutshell:** Cluster raw insights, split each cluster into functional needs, emotional needs, and obstacles, then rank by frequency times intensity. Two to four people, two or three hours.
+**Doc link:** `methods-discovery#user-motivation-analysis`
 
-**When to use:** When you cannot relate to the problem because you have
-never experienced it yourself.
+### Persona synthesis cluster
 
-**How to conduct:**
-- Walk through the user's process yourself
-- Document frustrations, surprises, insights
-- Result: Empathy and better interview questions
+**Trigger:** Too much interview data to fold into a single persona. Users clearly fall into several groups. Not ready for final personas yet.
+**Nutshell:** Affinity-cluster every insight by behaviour (not demographic), name each cluster in one short phrase, draft a persona seed per cluster.
+**Doc link:** `methods-discovery#persona-synthesis-cluster`
 
-### Synthesis Methods (Organize Data)
+### Persona
 
-#### E4: User Motivation Analysis
+**Trigger:** A persona seed exists. Design decisions drift because the user is too abstract. Team members hold different mental models of the same user.
+**Nutshell:** One named, vivid persona backed by interview evidence. Goals, motivations, frustrations, typical day, one direct quote. One page maximum.
+**Doc link:** `methods-discovery#persona`
 
-**Purpose:** Extract needs and obstacles from the wealth of collected data.
+### Value proposition chain
 
-**When to use:** After interviews, to identify patterns.
+**Trigger:** The project is B2B and the buyer is not the end user. Value passes through several hands. You suspect the wrong actor is getting paid.
+**Nutshell:** Map every actor in a line, label the value and friction at each hand-off, mark where value leaks, pick the most underserved actor as the primary persona.
+**Doc link:** `methods-discovery#value-proposition-chain`
 
-**How to conduct:**
-- Cluster all interview results
-- Separate functional needs from emotional needs
-- Identify obstacles (what stands in the way of fulfillment?)
-- Prioritize: Which need is most pressing?
+### Research mind map
 
-**When data is thin:**
-- Go back to E1 (interview again, different questions)
-- Use E3 (interview extreme users)
-- "What is the one moment when you are most frustrated?"
+**Trigger:** The problem is too broad to interview anyone about. Several researchers are splitting work and need alignment on scope.
+**Nutshell:** Radial decomposition of a central question into four to six research fields and their sub-questions. Prioritise fields, assign owners.
+**Doc link:** `methods-discovery#research-mind-map`
 
-#### E5.1: Persona Synthesis Cluster
+### Stakeholder map
 
-**Purpose:** Deliver early results even when research is escalating.
+**Trigger:** The project touches several departments or external parties. Interviews are about to start but it is unclear who to talk to. Political friction suspected.
+**Nutshell:** Every actor on a sticky. Place on an influence-by-interest matrix. Draw labelled relationships. High-influence + low-interest is the most dangerous cell.
+**Doc link:** `methods-discovery#stakeholder-map`
 
-**When to use:** When lots of interview data exists and persona creation
-becomes complex.
+### Market and trend analysis
 
-**How to conduct:**
-- Group similar user profiles
-- Identify differences within clusters
-- Derive a preliminary persona per cluster
+**Trigger:** Competitors cannot be named. The project risks obsolescence from an underlying trend. The user wants to find adjacent opportunities.
+**Nutshell:** Desk research, cluster into four to six themes, place competitors inside, write a one-sentence potential field per cluster.
+**Doc link:** `methods-discovery#market-and-trend-analysis`
 
-#### E5.2: Persona
+### User journey
 
-**Purpose:** Synthesized knowledge about the user group as a tangible person.
+**Trigger:** The user's experience spans several touchpoints. The pain lives in one phase of usage rather than the product itself.
+**Nutshell:** Stage-by-stage map with four lanes (actions, thoughts, emotions, touchpoints). Draw an emotion line. Dips show where to intervene.
+**Doc link:** `methods-discovery#user-journey`
 
-**When to use:** Always -- mandatory output of the Explore phase.
+## Ideation methods (generate and sharpen ideas)
 
-**How to conduct:**
-- Name, photo (or description), demographic data
-- Goals, motivations, frustrations
-- Typical daily routine in the context of the problem
-- Quote that characterizes the persona
+Full cards: `docs/reference/methods-ideation.md`
 
-#### E6: Value Proposition Chain
+### Brainstorming
 
-**Purpose:** Enable user-centered innovation in the B2B sector.
+**Trigger:** A sharp HMW exists and the solution space is empty. The team has not yet tried to solve the problem together.
+**Nutshell:** Group ideation session, 15 to 20 minutes, one HMW, one post-it per idea, the eleven Design Thinking rules enforced. Cluster without evaluation at the end.
+**Doc link:** `methods-ideation#brainstorming`
 
-**When to use:** For B2B projects where the end user is not the buyer.
+### Brainwriting
 
-**How to conduct:**
-- Map the value chain (who delivers what to whom)
-- For each stage: What value is created, what is passed on?
-- Identify where value is lost or can be created
+**Trigger:** Previous brainstorms were dominated by one or two voices. The team is introverted. Seed ideas exist and need to travel through several hands.
+**Nutshell:** Silent ideation. Six people, a 3x6 grid per person, three minutes per row, pass the sheet, build on what the previous person wrote. 30 minutes total.
+**Doc link:** `methods-ideation#brainwriting`
 
-#### E7: Research Mind Map
+### Idea tower
 
-**Purpose:** Divide the initial question into manageable research fields.
+**Trigger:** A seed idea is promising but too thin to prototype. The team keeps saying "yes and we would need X" without closing the loop.
+**Nutshell:** Additive-only enrichment of a single idea. Each person adds one element per round. Only adds, no removals. 20 to 30 minutes.
+**Doc link:** `methods-ideation#idea-tower`
 
-**When to use:** At the beginning of the Explore phase to structure research.
+### Collective notebook
 
-**How to conduct:**
-- Central question in the middle
-- Branches = research fields (e.g., User, Market, Technology, Regulation)
-- Sub-branches = specific questions per field
-- Prioritize: Which field first?
+**Trigger:** The problem is complex and one-hour workshops produce shallow ideas. The team needs time to let the problem sit.
+**Nutshell:** One notebook per person, one or two weeks, log any idea when it surfaces. Mid-period share keeps people engaged. Single synthesis session at the end.
+**Doc link:** `methods-ideation#collective-notebook`
 
-#### E8: Stakeholder Map
+### Inspiration cards
 
-**Purpose:** Visualize all people involved in or affected by the problem.
+**Trigger:** The team is repeating variations of the same three or four ideas. Forced unfamiliar associations are needed.
+**Nutshell:** A random deck of 20 to 40 cards (words, images, products from unrelated domains). Draw three or four, generate ideas that connect each card to the HMW.
+**Doc link:** `methods-ideation#inspiration-cards`
 
-**When to use:** Early in the Explore phase to identify interview partners.
+### Idea clustering and selection
 
-**How to conduct:**
-- Who is affected by the problem?
-- Who has influence on the solution?
-- Who can answer questions?
-- Matrix: Interest x Influence
+**Trigger:** 30 to 50 ideas on the wall and no obvious shortlist. Team members advocate different candidates by preference.
+**Nutshell:** Cluster by theme, pick at most four criteria (User Value, Feasibility, Transferability, Risk), score on 0-5, pick the top three. Use the scores as an aid, not a verdict.
+**Doc link:** `methods-ideation#idea-clustering-and-selection`
 
-#### E9: Market Trend Analysis
+### Jobs to be done
 
-**Purpose:** Cluster desk research and define potential fields.
+**Trigger:** An idea exists but the user cannot explain why users would switch. User stories cover only the functional layer.
+**Nutshell:** For the target user, answer the functional, emotional, and social job. Name hiring criteria (reasons to switch) and firing criteria (reasons to abandon).
+**Doc link:** `methods-ideation#jobs-to-be-done`
 
-**When to use:** In parallel with user research to understand market context.
+### TRIZ
 
-**How to conduct:**
-- Collect megatrends, technology trends, consumer trends
-- Organize into clusters (thematic)
-- Identify potential fields (where trends meet user needs)
-- Place competitors and partners in context
+**Trigger:** A genuine technical contradiction ("strong and light", "fast and safe"). Conventional brainstorming only produces incremental variants.
+**Nutshell:** State the contradiction precisely, look up the matching inventive principles in the TRIZ contradiction matrix, generate one idea per principle.
+**Doc link:** `methods-ideation#triz`
 
-#### E10: User Journey
+### Kill your company
 
-**Purpose:** Map the process the user experiences with a product or service.
+**Trigger:** Team is too close to the current product to see its weaknesses. Competitive threats are vague.
+**Nutshell:** Flip the frame. The team pretends to be a startup attacking the company. Brainstorm attacks, rank by plausibility, write the defence, identify the missing defences.
+**Doc link:** `methods-ideation#kill-your-company`
 
-**When to use:** When the usage context needs to be understood.
+## Validation methods (test ideas and the business)
 
-**How to conduct:**
-- Identify phases of usage (Before / During / After)
-- Per phase: Actions, thoughts, emotions, touchpoints
-- Mark pain points (where things break)
-- Mark opportunities (where improvement is possible)
+Full cards: `docs/reference/methods-validation.md`
 
----
+### Wireframes, storyboards, and paper prototypes
 
-## IDEATION Methods
+**Trigger:** An idea needs early user feedback before any code is written. The team debates the concept and a picture would end the debate faster than another meeting.
+**Nutshell:** Low-fidelity sketches of the risky part only. Put in front of a user, watch where they hesitate, iterate.
+**Doc link:** `methods-validation#wireframes-storyboards-and-paper-prototypes`
 
-Two types: **Intuitive** (open, exploratory) and **Discursive** (structured, category-based).
-Recommendation: Always use a mix of both.
+### Appearance prototype
 
-#### C3: Idea Tower
+**Trigger:** Functional design is clear, visual direction is not. Brand, aesthetics, and trust need testing before flow is finalised.
+**Nutshell:** One to three polished visual variants, no functionality. Show each for 10 seconds cold. Capture first-impression words verbatim, then interview.
+**Doc link:** `methods-validation#appearance-prototype`
 
-**Purpose:** Iteratively develop and enrich initial ideas.
+### Context and system prototypes
 
-**When to use:** When initial idea approaches exist but are not yet concrete enough.
+**Trigger:** Success depends on the environment (noisy shop floor, one-handed kitchen, shared family device, integration with other tools). Real friction lives in the hand-offs.
+**Nutshell:** Smallest version that survives the real context. Deploy for days or weeks. Observe or log from inside the context, not afterwards.
+**Doc link:** `methods-validation#context-and-system-prototypes`
 
-**How to conduct:**
-- Write down the idea as a base
-- Take turns adding new elements and aspects
-- Additive, not evaluative -- every addition is allowed
+### Wizard of Oz
 
-#### C4: Collective Notebook
+**Trigger:** The feature is expensive to build (AI, automation, backend-heavy) and you want to see if users would even use it. You want to test the interaction pattern, not the technology.
+**Nutshell:** Build the visible surface, put a human behind it to generate responses in real time. 30 to 45 minutes per user, six to eight users. Debrief for expectations.
+**Doc link:** `methods-validation#wizard-of-oz`
 
-**Purpose:** Personal creative idea store for the team.
+### Card sorting
 
-**When to use:** Over longer ideation phases when ideas need to mature.
+**Trigger:** Menu, taxonomy, or content hierarchy confuses users. About to commit to a new navigation structure.
+**Nutshell:** 30 to 60 cards, users group them into clusters (open or closed sort), user-generated cluster names become navigation labels. Five to eight users.
+**Doc link:** `methods-validation#card-sorting`
 
-#### C7: Jobs to be Done
+### Test grid
 
-**Purpose:** Understand WHY users choose a specific product.
+**Trigger:** Multiple prototype sessions and findings pile up in different formats. Patterns need to appear across sessions.
+**Nutshell:** Grid with criteria as rows, one column per user session. Fill cells with direct observations, scan rows horizontally for patterns.
+**Doc link:** `methods-validation#test-grid`
 
-**When to use:** To sharpen the value proposition and improve user stories.
+### Expert review
 
-**How to conduct:**
-- Question: "What job does the user hire our product to do?"
-- Three levels:
-  1. **Functional Job**: What does the user want to accomplish concretely?
-  2. **Emotional Job**: How does the user want to feel doing it?
-  3. **Social Job**: How does the user want to be perceived?
-- Per job: What are the hiring/firing criteria?
+**Trigger:** Feasibility question is "can this even exist" rather than "do users want this". Regulatory or technical sanity check before a deeper test.
+**Nutshell:** 30 to 45 minutes with a specific expert, a one-page summary and three focused questions. Capture vocabulary verbatim for the later ADR.
+**Doc link:** `methods-validation#expert-review`
 
-**When the interview partner has no answer:**
-- "What made you start looking for a solution?"
-- "What bothered you about the last solution?"
-- "Next time you face this problem -- what's the first thing you do?"
+### Business plan
 
-#### C8: TRIZ
+**Trigger:** Idea passed user testing. Revenue, cost, and business-model assumptions need surfacing.
+**Nutshell:** Business Model Canvas fields filled with one sentence each. Every revenue and cost cell gets a number, however rough. Mark unsupported assumptions as next hypotheses.
+**Doc link:** `methods-validation#business-plan`
 
-**Purpose:** Systematic innovation method from engineering.
+### Value proposition quantification
 
-**When to use:** For technical innovation projects where known contradictions
-need to be resolved.
+**Trigger:** Two or three value propositions compete and the team debates which to commit to. Baseline needed before user tests.
+**Nutshell:** Break the VP into four to six dimensions (activation, preference, willingness to pay, willingness to recommend), score each 0 to 10 against existing evidence, pick the weakest dimension as the next test target.
+**Doc link:** `methods-validation#value-proposition-quantification`
 
-#### C9: Kill your Company
+### Pre-mortem
 
-**Purpose:** "If we were a startup -- how would we attack our own company?"
+**Trigger:** Team is too optimistic. Stakeholders about to commit resources. Planning conversation is not surfacing risks.
+**Nutshell:** "It is six months from now and this project has failed. Write down why." Five minutes silent writing per person. Cluster reasons, write preventive actions, assign owners to the top three or four.
+**Doc link:** `methods-validation#pre-mortem`
 
-**When to use:** For competitive analysis and uncovering weaknesses.
+## Probing techniques (inside interviews)
 
-**How to conduct:**
-- Perspective shift: We are now an attacker
-- Identify weaknesses of our own company
-- Develop strategies that would harm us
-- Reverse: How do we protect ourselves?
+These work in both directions. The user uses them on field interview partners. The agent uses them on the user when answers go thin.
 
-#### C10: Evaluation Matrix
+### 5-Why
 
-**Purpose:** Initial assessment and comparison of ideas.
+Ask "why is that a problem?" up to five times. You do not always get to five. You almost always get past the first surface answer.
 
-**When to use:** At the end of the Create phase to select the best ideas.
+### Concretisation
 
-**How to conduct:**
-- Define evaluation criteria (e.g., feasibility, impact, innovation level)
-- Rate each idea against all criteria
-- Create ranking
-- Develop top ideas further
+"Can you give me a concrete example?"
+"When was the last time this happened?"
+"Show me how you did that."
 
----
+### Future projection
 
-## EVALUATE Methods
+"Imagine the problem was solved tomorrow. What changes?"
+"What would your ideal day look like in two years?"
+"What would need to happen for you to say: yes, this is exactly what I need?"
 
-In the Evaluate module we systematically test solution hypotheses. We are not
-scientists but entrepreneurs -- the relevant criterion is market success.
+### Perspective shift
 
-#### Hypothesis Generating
+"What would your customer say about this?"
+"What would your boss say?"
+"How does a completely different industry solve this?"
 
-**Purpose:** Prerequisite for any testing. Derive hypotheses from the solution idea.
+### Emotional level
 
-**When to use:** Always before testing -- mandatory.
+"How did that feel?"
+"What frustrated you most?"
+"What would delight you about the alternative?"
 
-**How to conduct:**
-- Break the big solution hypothesis into smaller, testable units
-- Per hypothesis define:
-  - **What are we testing?** (Assumption)
-  - **How do we test?** (Method)
-  - **What is the success criterion?** (Measurable)
-  - **What do we do if the hypothesis is disproven?** (Pivot/Persevere)
+### Analogy trigger
 
-**When the interview partner cannot formulate hypotheses:**
-- "What would need to be true for your solution to work?"
-- "What is the riskiest assumption?"
-- "What could go wrong?"
-- "What does success depend on the most?"
-
-#### Business Model Canvas (Strategyzer)
-
-**Purpose:** Develop initial business models for concepts and ideas.
-
-**When to use:** When the solution is tangible enough to think about monetization
-and go-to-market.
-
-**9 Fields:** Value Proposition, Customer Segments, Channels, Customer Relationships,
-Revenue Streams, Key Resources, Key Activities, Key Partners, Cost Structure
-
-#### Test Grids
-
-**Purpose:** Simple evaluation sheets for prototype tests with users.
-
-**When to use:** When testing prototypes.
-
-#### Talking to the Experts
-
-**Purpose:** Test feasibility and viability of the solution idea.
-
-**When to use:** When technical or domain feasibility questions are open.
-
-**How to conduct:**
-- Identify internal experts (Engineering, Legal, Finance, Operations)
-- Prepare specific questions (not open "What do you think?")
-- Feasibility score: Technical / Organizational / Financial
-- Result: Validated or disproven hypotheses
-
----
-
-## Probing Techniques (Cross-Phase)
-
-These techniques help when interview partners give thin answers:
-
-### 5-Why Method
-Ask "Why?" five times to move from symptoms to root cause.
-- "Why is that a problem?" -> "Why does that happen?" -> ...
+"Do you know something similar from another domain?"
+"Where have you seen this pattern before?"
+"If this was a physical product, what would it look like?"
 
 ### Contrast
-- "What if it were the exact opposite?"
-- "What would be the worst case?"
-- "Imagine budget is not a constraint -- what then?"
 
-### Concretization
-- "Can you give me a concrete example?"
-- "When did this last happen?"
-- "Show me how you do this today"
+"What if it were exactly the opposite?"
+"What would the worst case look like?"
+"If budget were not a constraint, what then?"
 
-### Perspective Shift
-- "What would your customer/boss/colleague say about this?"
-- "Do you know something similar from a different domain?" (Analogy trigger)
-- "How does industry X solve this problem?"
+## Anti-patterns
 
-### Emotional Level
-- "How does it feel when that happens?"
-- "What frustrates you the most?"
-- "What would delight you?"
+- Proposing a method without a trigger. If the user's input is sufficient, keep going. Do not pad the session.
+- Proposing a heavy method when a lighter one would work. Explorative interviews before qualitative interviews. Self-test before cultural probes.
+- Skipping the preparation step. After proposing a method, help the user prepare the artifact (interview questions, observation plan, test grid). Do not dump the name and disappear.
+- Running the method yourself. The agent never runs interviews, observations, or tests. It prepares and it synthesises. The user runs the method.
 
-### Future Projection
-- "Imagine the problem was solved tomorrow -- what is different?"
-- "What does your ideal workday look like in 2 years?"
-- "What would need to happen for you to say: This is exactly what I need?"
+## Relationship between catalog and doc cards
+
+The catalog on this page is the trigger logic the agent loads at runtime. The doc method cards are the user-facing version with step-by-step guidance, timings, tips, and the "what to bring back" checklist. When the agent proposes a method, it always links to the matching doc card so the user can open the practical detail.
+
+Mapping:
+
+- Discovery catalog entries link to `docs/reference/methods-discovery.md#{anchor}`
+- Ideation catalog entries link to `docs/reference/methods-ideation.md#{anchor}`
+- Validation catalog entries link to `docs/reference/methods-validation.md#{anchor}`
+
+Anchors use VitePress slug rules. Lowercase, spaces to hyphens, parentheses dropped.
