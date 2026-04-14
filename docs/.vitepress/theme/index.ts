@@ -11,7 +11,7 @@ export default {
           h(
             'span',
             null,
-            'Works with Claude Code · Cursor · Codex · OpenCode · Copilot · Gemini',
+            'For Claude Code, Codex, Gemini, GitHub Copilot & OpenCode',
           ),
         ]),
     })
