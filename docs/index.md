@@ -17,14 +17,6 @@ hero:
     - theme: alt
       text: GitHub
       link: https://github.com/pssah4/digital-innovation-agents
-
-features:
-  - title: Methodology-driven discovery
-    details: Personas, Jobs to be Done, How-Might-We questions, idea-potential scoring. Twenty proven innovation methods run the first three phases, not a chat wrapper.
-  - title: State-of-the-art coding loop
-    details: Critical review against your real codebase, optional TDD, four-phase debugging protocol, and a verification gate that blocks "looks done" completions.
-  - title: Living documents, real handoffs
-    details: ADRs, Features, and plan-context update themselves during implementation. Every phase transition runs a three-part handoff ritual.
 ---
 
 <div class="landing-badges">
@@ -37,6 +29,21 @@ features:
 
 ![V-Model workflow for AI coding assistants](/v-model-overview.svg)
 
+</div>
+
+<div class="landing-features">
+  <div class="tile">
+    <h3>Methodology-driven discovery</h3>
+    <p>Personas, Jobs to be Done, How-Might-We questions, idea-potential scoring. Twenty proven innovation methods run the first three phases, not a chat wrapper.</p>
+  </div>
+  <div class="tile">
+    <h3>State-of-the-art coding loop</h3>
+    <p>Critical review against your real codebase, optional TDD, four-phase debugging protocol, and a verification gate that blocks "looks done" completions.</p>
+  </div>
+  <div class="tile">
+    <h3>Living documents, real handoffs</h3>
+    <p>ADRs, Features, and plan-context update themselves during implementation. Every phase transition runs a three-part handoff ritual.</p>
+  </div>
 </div>
 
 <div class="landing-footer-cta">

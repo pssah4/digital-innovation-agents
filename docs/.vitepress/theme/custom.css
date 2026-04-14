@@ -1,8 +1,8 @@
 /**
  * Digital Innovation Agents theme
  *
- * Vibrant orange as brand color (clearly distinct from VitePress default
- * indigo/purple and from the Obsilo palette). Teal as accent.
+ * Vibrant orange brand with a rainbow hero gradient (Apple/Microsoft
+ * inspired) to stand out from the VitePress default and from Obsilo.
  */
 
 :root {
@@ -32,15 +32,30 @@
   /* Links + active states */
   --vp-c-text-accent: #f97316;
 
-  /* Home hero gradient (optional, subtle) */
+  /* Hero name gets a vivid rainbow gradient (Apple/Microsoft vibe) */
   --vp-home-hero-name-color: transparent;
-  --vp-home-hero-name-background: -webkit-linear-gradient(120deg, #f97316 30%, #0d9488);
-  --vp-home-hero-image-background-image: linear-gradient(-45deg, #f97316 50%, #0d9488 50%);
-  --vp-home-hero-image-filter: blur(44px);
+  --vp-home-hero-name-background: linear-gradient(
+    120deg,
+    #3b82f6 0%,
+    #06b6d4 18%,
+    #10b981 36%,
+    #eab308 54%,
+    #f97316 74%,
+    #ef4444 100%
+  );
+  --vp-home-hero-image-background-image: linear-gradient(
+    135deg,
+    #3b82f6 0%,
+    #06b6d4 20%,
+    #10b981 40%,
+    #eab308 60%,
+    #f97316 80%,
+    #ef4444 100%
+  );
+  --vp-home-hero-image-filter: blur(56px);
 }
 
 .dark {
-  /* Dark mode: softer orange to avoid glare on dark background */
   --vp-c-brand-1: #fb923c;
   --vp-c-brand-2: #f97316;
   --vp-c-brand-3: #ea580c;
@@ -66,43 +81,91 @@
 
 /* ========== Landing page ========== */
 
-/* Badge row under hero */
 .landing-badges {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
   flex-wrap: wrap;
-  margin: 0.5rem auto 2rem;
-  max-width: 1100px;
+  margin: 0.5rem auto 1.5rem;
+  max-width: 1000px;
   padding: 0 24px;
+  text-align: center;
 }
 
 .landing-badges span {
-  padding: 6px 14px;
+  padding: 5px 14px;
   border: 1px solid var(--vp-c-divider);
   border-radius: 999px;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--vp-c-text-2);
   background: var(--vp-c-bg-soft);
 }
 
-/* Diagram: break out of the narrow home content column so the SVG is wide */
+/* Diagram: centered and sized down from the previous wide version */
 .landing-diagram {
-  max-width: 1200px;
-  margin: 2rem auto 3rem;
+  max-width: 960px;
+  margin: 2rem auto 2.5rem;
   padding: 0 24px;
+  text-align: center;
 }
 
 .landing-diagram img {
   width: 100%;
   height: auto;
   display: block;
+  margin: 0 auto;
 }
 
-/* Short footer CTA below diagram */
+/* Feature tiles below the diagram */
+.landing-features {
+  max-width: 1000px;
+  margin: 1rem auto 3rem;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .landing-features {
+    grid-template-columns: 1fr;
+  }
+}
+
+.landing-features .tile {
+  padding: 1.5rem 1.25rem;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 14px;
+  background: var(--vp-c-bg-soft);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.landing-features .tile:hover {
+  border-color: var(--vp-c-brand-1);
+  transform: translateY(-2px);
+}
+
+.landing-features .tile h3 {
+  margin: 0 0 0.6rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--vp-c-text-1);
+  border: none;
+  padding: 0;
+}
+
+.landing-features .tile p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--vp-c-text-2);
+}
+
+/* Short footer CTA below the features */
 .landing-footer-cta {
   max-width: 720px;
-  margin: 2rem auto 4rem;
+  margin: 1rem auto 4rem;
   padding: 0 24px;
   text-align: center;
   color: var(--vp-c-text-2);

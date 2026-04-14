@@ -1,142 +1,191 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" role="img" aria-labelledby="vm-title vm-desc" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif" preserveAspectRatio="xMidYMid meet">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 520" role="img" aria-labelledby="vm-title vm-desc" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif" preserveAspectRatio="xMidYMid meet">
   <title id="vm-title">V-Model workflow for AI coding assistants</title>
-  <desc id="vm-desc">Horizontal flow through Business Analysis, Requirements Engineering, Architecture, Coding, Testing, and Security Audit. Methods above each phase, artifacts below. Orange handoff arrows sit between every phase. Gray dashed fix loops connect Testing and Security Audit back to Coding. A teal dashed writeback loop shows living-documents updates from Coding back to earlier phases.</desc>
+  <desc id="vm-desc">Horizontal flow through Business Analysis, Requirements Engineering, Architecture, Coding, Testing, and Security Audit. Each phase has three colored method pills on top and an artifact card below. Orange handoff arrows sit between every phase. Three dashed loops connect Testing, Security Audit, and the living-documents writeback back to Coding and the earlier phases.</desc>
 
   <defs>
-    <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+    <marker id="arrow-handoff" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0 L10 5 L0 10 Z" fill="#f97316"/>
     </marker>
-    <marker id="arrow-fix" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#94a3b8"/>
+    <marker id="arrow-test" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#3b82f6"/>
     </marker>
-    <marker id="arrow-writeback" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#0d9488"/>
+    <marker id="arrow-security" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#ef4444"/>
+    </marker>
+    <marker id="arrow-writeback" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#10b981"/>
     </marker>
   </defs>
 
-  <!-- ==================== Methods row (3 lines per phase) ==================== -->
-  <g font-size="16" fill="#6b7280" text-anchor="middle">
-    <!-- BA -->
-    <text x="110" y="22">Users · needs · market</text>
-    <text x="110" y="42">JTBD · Hypotheses</text>
-    <text x="110" y="62">Pricing · Viability</text>
+  <!-- ============================================================
+       Method pills (3 per phase, colored by phase)
+       Columns: BA 30, RE 234, Arch 438, Coding 642, Testing 846, Security 1050
+       Pill w=160, h=24, spacing 6 (y 15, 45, 75)
+       ============================================================ -->
 
-    <!-- RE -->
-    <text x="306" y="22">Epic hypothesis (from HMW)</text>
-    <text x="306" y="42">User stories · Func/Emot/Social</text>
-    <text x="306" y="62">Validation criteria</text>
-
-    <!-- Arch -->
-    <text x="502" y="22">ADR (MADR)</text>
-    <text x="502" y="42">arc42</text>
-    <text x="502" y="62">plan-context</text>
-
-    <!-- Coding -->
-    <text x="698" y="22">Codebase review</text>
-    <text x="698" y="42">TDD · Debugging</text>
-    <text x="698" y="62">Verification gate</text>
-
-    <!-- Testing -->
-    <text x="894" y="22">AAA · FIRST</text>
-    <text x="894" y="42">Fix-loop</text>
-    <text x="894" y="62">Coverage targets</text>
-
-    <!-- Security -->
-    <text x="1090" y="22">OWASP Top 10</text>
-    <text x="1090" y="42">LLM · SAST · SCA</text>
-    <text x="1090" y="62">Zero Trust</text>
+  <!-- BA pills (blue) -->
+  <g>
+    <rect x="30" y="15" width="160" height="24" rx="12" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.2"/>
+    <text x="110" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#1e3a8a">Users · Needs · Market</text>
+    <rect x="30" y="45" width="160" height="24" rx="12" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.2"/>
+    <text x="110" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#1e3a8a">JTBD · Hypotheses</text>
+    <rect x="30" y="75" width="160" height="24" rx="12" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.2"/>
+    <text x="110" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#1e3a8a">Pricing · Viability</text>
   </g>
 
-  <!-- ==================== Phase row (6 uniform boxes, h=120, y=80-200) ==================== -->
+  <!-- RE pills (cyan) -->
+  <g>
+    <rect x="234" y="15" width="160" height="24" rx="12" fill="#cffafe" stroke="#06b6d4" stroke-width="1.2"/>
+    <text x="314" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#155e75">Epic from HMW</text>
+    <rect x="234" y="45" width="160" height="24" rx="12" fill="#cffafe" stroke="#06b6d4" stroke-width="1.2"/>
+    <text x="314" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#155e75">User stories (F/E/S)</text>
+    <rect x="234" y="75" width="160" height="24" rx="12" fill="#cffafe" stroke="#06b6d4" stroke-width="1.2"/>
+    <text x="314" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#155e75">Validation criteria</text>
+  </g>
 
-  <!-- Phase 1: Business Analysis (2-line label) -->
-  <rect x="20" y="80" width="180" height="120" rx="14" fill="#d1f4e8" stroke="#0d9488" stroke-width="2"/>
-  <text x="110" y="120" text-anchor="middle" font-size="26" font-weight="700" fill="#065f46">Business</text>
-  <text x="110" y="152" text-anchor="middle" font-size="26" font-weight="700" fill="#065f46">Analysis</text>
-  <text x="110" y="182" text-anchor="middle" font-size="15" fill="#047857">Why</text>
+  <!-- Arch pills (green) -->
+  <g>
+    <rect x="438" y="15" width="160" height="24" rx="12" fill="#d1fae5" stroke="#10b981" stroke-width="1.2"/>
+    <text x="518" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#065f46">ADR (MADR)</text>
+    <rect x="438" y="45" width="160" height="24" rx="12" fill="#d1fae5" stroke="#10b981" stroke-width="1.2"/>
+    <text x="518" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#065f46">arc42</text>
+    <rect x="438" y="75" width="160" height="24" rx="12" fill="#d1fae5" stroke="#10b981" stroke-width="1.2"/>
+    <text x="518" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#065f46">plan-context</text>
+  </g>
 
-  <!-- Phase 2: Requirements Engineering (2-line label) -->
-  <rect x="216" y="80" width="180" height="120" rx="14" fill="#d1f4e8" stroke="#0d9488" stroke-width="2"/>
-  <text x="306" y="120" text-anchor="middle" font-size="26" font-weight="700" fill="#065f46">Requirements</text>
-  <text x="306" y="152" text-anchor="middle" font-size="26" font-weight="700" fill="#065f46">Engineering</text>
-  <text x="306" y="182" text-anchor="middle" font-size="15" fill="#047857">What</text>
+  <!-- Coding pills (yellow/gold) -->
+  <g>
+    <rect x="642" y="15" width="160" height="24" rx="12" fill="#fef9c3" stroke="#eab308" stroke-width="1.2"/>
+    <text x="722" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#713f12">Codebase review</text>
+    <rect x="642" y="45" width="160" height="24" rx="12" fill="#fef9c3" stroke="#eab308" stroke-width="1.2"/>
+    <text x="722" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#713f12">TDD · Debugging</text>
+    <rect x="642" y="75" width="160" height="24" rx="12" fill="#fef9c3" stroke="#eab308" stroke-width="1.2"/>
+    <text x="722" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#713f12">Verification gate</text>
+  </g>
 
-  <!-- Phase 3: Architecture (single line) -->
-  <rect x="412" y="80" width="180" height="120" rx="14" fill="#d1f4e8" stroke="#0d9488" stroke-width="2"/>
-  <text x="502" y="140" text-anchor="middle" font-size="26" font-weight="700" fill="#065f46">Architecture</text>
-  <text x="502" y="172" text-anchor="middle" font-size="15" fill="#047857">How</text>
+  <!-- Testing pills (orange) -->
+  <g>
+    <rect x="846" y="15" width="160" height="24" rx="12" fill="#ffedd5" stroke="#f97316" stroke-width="1.2"/>
+    <text x="926" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#7c2d12">AAA · FIRST</text>
+    <rect x="846" y="45" width="160" height="24" rx="12" fill="#ffedd5" stroke="#f97316" stroke-width="1.2"/>
+    <text x="926" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#7c2d12">Unit + integration</text>
+    <rect x="846" y="75" width="160" height="24" rx="12" fill="#ffedd5" stroke="#f97316" stroke-width="1.2"/>
+    <text x="926" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#7c2d12">Coverage targets</text>
+  </g>
 
-  <!-- Phase 4: Coding (single line, default-agent slot) -->
-  <rect x="608" y="80" width="180" height="120" rx="14" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
-  <text x="698" y="140" text-anchor="middle" font-size="26" font-weight="700" fill="#374151">Coding</text>
-  <text x="698" y="172" text-anchor="middle" font-size="15" fill="#6b7280">Enhanced default agent</text>
+  <!-- Security pills (red) -->
+  <g>
+    <rect x="1050" y="15" width="160" height="24" rx="12" fill="#fee2e2" stroke="#ef4444" stroke-width="1.2"/>
+    <text x="1130" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#7f1d1d">OWASP Top 10</text>
+    <rect x="1050" y="45" width="160" height="24" rx="12" fill="#fee2e2" stroke="#ef4444" stroke-width="1.2"/>
+    <text x="1130" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#7f1d1d">LLM · SAST · SCA</text>
+    <rect x="1050" y="75" width="160" height="24" rx="12" fill="#fee2e2" stroke="#ef4444" stroke-width="1.2"/>
+    <text x="1130" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#7f1d1d">Zero Trust</text>
+  </g>
 
-  <!-- Phase 5: Testing (single line) -->
-  <rect x="804" y="80" width="180" height="120" rx="14" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2"/>
-  <text x="894" y="140" text-anchor="middle" font-size="26" font-weight="700" fill="#5b21b6">Testing</text>
-  <text x="894" y="172" text-anchor="middle" font-size="15" fill="#6d28d9">UT + IT</text>
+  <!-- ============================================================
+       Phase boxes (uniform w=180, h=120, y 115-235)
+       Gap 24 between columns, margin 20
+       ============================================================ -->
 
-  <!-- Phase 6: Security Audit (2-line label) -->
-  <rect x="1000" y="80" width="180" height="120" rx="14" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
-  <text x="1090" y="120" text-anchor="middle" font-size="26" font-weight="700" fill="#991b1b">Security</text>
-  <text x="1090" y="152" text-anchor="middle" font-size="26" font-weight="700" fill="#991b1b">Audit</text>
-  <text x="1090" y="182" text-anchor="middle" font-size="15" fill="#b91c1c">OWASP · LLM · SCA</text>
+  <!-- BA (blue) -->
+  <rect x="20" y="115" width="180" height="120" rx="16" fill="#dbeafe" stroke="#3b82f6" stroke-width="2.5"/>
+  <text x="110" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#1e3a8a">Business</text>
+  <text x="110" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#1e3a8a">Analysis</text>
+  <text x="110" y="215" text-anchor="middle" font-size="14" fill="#2563eb">Why</text>
 
-  <!-- ==================== Main flow arrows (orange handoff at every transition) ==================== -->
-  <line x1="202" y1="140" x2="214" y2="140" stroke="#f97316" stroke-width="3" marker-end="url(#arrow-orange)"/>
-  <line x1="398" y1="140" x2="410" y2="140" stroke="#f97316" stroke-width="3" marker-end="url(#arrow-orange)"/>
-  <line x1="594" y1="140" x2="606" y2="140" stroke="#f97316" stroke-width="3" marker-end="url(#arrow-orange)"/>
-  <line x1="790" y1="140" x2="802" y2="140" stroke="#f97316" stroke-width="3" marker-end="url(#arrow-orange)"/>
-  <line x1="986" y1="140" x2="998" y2="140" stroke="#f97316" stroke-width="3" marker-end="url(#arrow-orange)"/>
+  <!-- RE (cyan) -->
+  <rect x="224" y="115" width="180" height="120" rx="16" fill="#cffafe" stroke="#06b6d4" stroke-width="2.5"/>
+  <text x="314" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#155e75">Requirements</text>
+  <text x="314" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#155e75">Engineering</text>
+  <text x="314" y="215" text-anchor="middle" font-size="14" fill="#0891b2">What</text>
 
-  <!-- ==================== Phase-to-artifact connectors ==================== -->
-  <line x1="110" y1="200" x2="110" y2="215" stroke="#d1d5db" stroke-width="1.5"/>
-  <line x1="306" y1="200" x2="306" y2="215" stroke="#d1d5db" stroke-width="1.5"/>
-  <line x1="502" y1="200" x2="502" y2="215" stroke="#d1d5db" stroke-width="1.5"/>
-  <line x1="698" y1="200" x2="698" y2="215" stroke="#d1d5db" stroke-width="1.5"/>
-  <line x1="894" y1="200" x2="894" y2="215" stroke="#d1d5db" stroke-width="1.5"/>
-  <line x1="1090" y1="200" x2="1090" y2="215" stroke="#d1d5db" stroke-width="1.5"/>
+  <!-- Arch (green) -->
+  <rect x="428" y="115" width="180" height="120" rx="16" fill="#d1fae5" stroke="#10b981" stroke-width="2.5"/>
+  <text x="518" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#065f46">Architecture</text>
+  <text x="518" y="205" text-anchor="middle" font-size="14" fill="#059669">How</text>
 
-  <!-- ==================== Artifact boxes (all 6 phases, 2 lines each) ==================== -->
-  <rect x="30" y="215" width="160" height="65" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
-  <text x="110" y="241" text-anchor="middle" font-size="17" fill="#4b5563">BA doc</text>
-  <text x="110" y="266" text-anchor="middle" font-size="17" fill="#4b5563">Exploration board</text>
+  <!-- Coding (yellow/gold) -->
+  <rect x="632" y="115" width="180" height="120" rx="16" fill="#fef9c3" stroke="#eab308" stroke-width="2.5"/>
+  <text x="722" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#713f12">Coding</text>
+  <text x="722" y="205" text-anchor="middle" font-size="14" fill="#b45309">Enhanced default agent</text>
 
-  <rect x="226" y="215" width="160" height="65" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
-  <text x="306" y="241" text-anchor="middle" font-size="17" fill="#4b5563">Epics · Features</text>
-  <text x="306" y="266" text-anchor="middle" font-size="17" fill="#4b5563">Backlog · Handoff</text>
+  <!-- Testing (orange) -->
+  <rect x="836" y="115" width="180" height="120" rx="16" fill="#ffedd5" stroke="#f97316" stroke-width="2.5"/>
+  <text x="926" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#7c2d12">Testing</text>
+  <text x="926" y="205" text-anchor="middle" font-size="14" fill="#c2410c">UT + IT</text>
 
-  <rect x="422" y="215" width="160" height="65" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
-  <text x="502" y="241" text-anchor="middle" font-size="17" fill="#4b5563">ADRs · arc42</text>
-  <text x="502" y="266" text-anchor="middle" font-size="17" fill="#4b5563">plan-context</text>
+  <!-- Security (red) -->
+  <rect x="1040" y="115" width="180" height="120" rx="16" fill="#fee2e2" stroke="#ef4444" stroke-width="2.5"/>
+  <text x="1130" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#7f1d1d">Security</text>
+  <text x="1130" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#7f1d1d">Audit</text>
+  <text x="1130" y="215" text-anchor="middle" font-size="14" fill="#b91c1c">OWASP · LLM · SCA</text>
 
-  <rect x="618" y="215" width="160" height="65" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
-  <text x="698" y="241" text-anchor="middle" font-size="17" fill="#4b5563">Source code</text>
-  <text x="698" y="266" text-anchor="middle" font-size="17" fill="#4b5563">Bug log</text>
+  <!-- ============================================================
+       Handoff arrows (orange, inset 6px from box edges)
+       Phase box tops at 115, bottoms at 235. Mid y = 175.
+       ============================================================ -->
+  <line x1="206" y1="175" x2="218" y2="175" stroke="#f97316" stroke-width="3.5" marker-end="url(#arrow-handoff)"/>
+  <line x1="410" y1="175" x2="422" y2="175" stroke="#f97316" stroke-width="3.5" marker-end="url(#arrow-handoff)"/>
+  <line x1="614" y1="175" x2="626" y2="175" stroke="#f97316" stroke-width="3.5" marker-end="url(#arrow-handoff)"/>
+  <line x1="818" y1="175" x2="830" y2="175" stroke="#f97316" stroke-width="3.5" marker-end="url(#arrow-handoff)"/>
+  <line x1="1022" y1="175" x2="1034" y2="175" stroke="#f97316" stroke-width="3.5" marker-end="url(#arrow-handoff)"/>
 
-  <rect x="814" y="215" width="160" height="65" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
-  <text x="894" y="241" text-anchor="middle" font-size="17" fill="#4b5563">Test suites</text>
-  <text x="894" y="266" text-anchor="middle" font-size="17" fill="#4b5563">Coverage</text>
+  <!-- ============================================================
+       Phase-to-artifact connectors
+       ============================================================ -->
+  <line x1="110" y1="235" x2="110" y2="250" stroke="#cbd5e1" stroke-width="1.5"/>
+  <line x1="314" y1="235" x2="314" y2="250" stroke="#cbd5e1" stroke-width="1.5"/>
+  <line x1="518" y1="235" x2="518" y2="250" stroke="#cbd5e1" stroke-width="1.5"/>
+  <line x1="722" y1="235" x2="722" y2="250" stroke="#cbd5e1" stroke-width="1.5"/>
+  <line x1="926" y1="235" x2="926" y2="250" stroke="#cbd5e1" stroke-width="1.5"/>
+  <line x1="1130" y1="235" x2="1130" y2="250" stroke="#cbd5e1" stroke-width="1.5"/>
 
-  <rect x="1010" y="215" width="160" height="65" rx="10" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
-  <text x="1090" y="241" text-anchor="middle" font-size="17" fill="#4b5563">Audit report</text>
-  <text x="1090" y="266" text-anchor="middle" font-size="17" fill="#4b5563">Backlog updates</text>
+  <!-- ============================================================
+       Artifact cards (y 250-315, h=65)
+       ============================================================ -->
+  <rect x="30" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+  <text x="110" y="276" text-anchor="middle" font-size="15" fill="#475569">BA doc</text>
+  <text x="110" y="300" text-anchor="middle" font-size="15" fill="#475569">Exploration board</text>
 
-  <!-- ==================== Fix and writeback loops (orthogonal, dashed) ==================== -->
+  <rect x="234" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+  <text x="314" y="276" text-anchor="middle" font-size="15" fill="#475569">Epics · Features</text>
+  <text x="314" y="300" text-anchor="middle" font-size="15" fill="#475569">Backlog · Handoff</text>
 
-  <!-- Test fix loop: Testing -> Coding (short U above the other loops) -->
-  <path d="M 814 280 L 814 315 L 778 315 L 778 285" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arrow-fix)"/>
-  <text x="796" y="332" text-anchor="middle" font-size="15" font-style="italic" fill="#6b7280">Test fix loop</text>
+  <rect x="438" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+  <text x="518" y="276" text-anchor="middle" font-size="15" fill="#475569">ADRs · arc42</text>
+  <text x="518" y="300" text-anchor="middle" font-size="15" fill="#475569">plan-context</text>
 
-  <!-- Security fix loop: Security Audit -> Coding (wider U below test loop) -->
-  <path d="M 1010 280 L 1010 365 L 760 365 L 760 285" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arrow-fix)"/>
-  <text x="885" y="385" text-anchor="middle" font-size="15" font-style="italic" fill="#6b7280">Security fix loop</text>
+  <rect x="642" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+  <text x="722" y="276" text-anchor="middle" font-size="15" fill="#475569">Source code</text>
+  <text x="722" y="300" text-anchor="middle" font-size="15" fill="#475569">Bug log</text>
 
-  <!-- Living documents writeback: Coding -> Requirements / Architecture (teal U going left) -->
-  <path d="M 618 280 L 618 420 L 386 420 L 386 285" stroke="#0d9488" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arrow-writeback)"/>
-  <text x="502" y="440" text-anchor="middle" font-size="15" font-style="italic" fill="#0d9488">Living documents writeback</text>
+  <rect x="846" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+  <text x="926" y="276" text-anchor="middle" font-size="15" fill="#475569">Test suites</text>
+  <text x="926" y="300" text-anchor="middle" font-size="15" fill="#475569">Coverage</text>
 
-  <!-- ==================== Title + subtitle ==================== -->
-  <text x="600" y="500" text-anchor="middle" font-size="26" font-weight="700" fill="#111827">V-Model workflow for AI coding assistants</text>
-  <text x="600" y="528" text-anchor="middle" font-size="15" fill="#6b7280">Methodology-driven discovery, enhanced coding loop, handoffs at every transition</text>
+  <rect x="1050" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+  <text x="1130" y="276" text-anchor="middle" font-size="15" fill="#475569">Audit report</text>
+  <text x="1130" y="300" text-anchor="middle" font-size="15" fill="#475569">Backlog updates</text>
+
+  <!-- ============================================================
+       Loop arrows (orthogonal, dashed, offsets to avoid corners)
+       Source/target x offset inside artifact box, y offset 4px below
+       Three rows of horizontals at y 360, 405, 455
+       Labels placed in clear gaps: y 380, 425, 475
+       ============================================================ -->
+
+  <!-- Test fix loop: Testing artifact -> Coding artifact -->
+  <path d="M 885 319 L 885 360 L 772 360 L 772 319" stroke="#3b82f6" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arrow-test)"/>
+
+  <!-- Security fix loop: Security artifact -> Coding artifact -->
+  <path d="M 1085 319 L 1085 405 L 730 405 L 730 319" stroke="#ef4444" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arrow-security)"/>
+
+  <!-- Living documents writeback: Coding artifact -> RE artifact -->
+  <path d="M 680 319 L 680 455 L 314 455 L 314 319" stroke="#10b981" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arrow-writeback)"/>
+
+  <!-- Loop labels (placed in clear bands between horizontals and below last horizontal) -->
+  <text x="828" y="380" text-anchor="middle" font-size="14" font-style="italic" font-weight="500" fill="#3b82f6">Test fix loop</text>
+  <text x="908" y="425" text-anchor="middle" font-size="14" font-style="italic" font-weight="500" fill="#ef4444">Security fix loop</text>
+  <text x="497" y="475" text-anchor="middle" font-size="14" font-style="italic" font-weight="500" fill="#10b981">Living documents writeback</text>
 </svg>
