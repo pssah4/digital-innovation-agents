@@ -6,13 +6,13 @@
  */
 
 :root {
-  /* Lead colour matches the petrol fill of the BA/RE/Architecture boxes
-     in the landing SVG. Identical tone in light and dark mode so the
-     buttons, links, and boxes all share the same family. */
-  --vp-c-brand-1: #164e63;
-  --vp-c-brand-2: #0e7490;
-  --vp-c-brand-3: #0891b2;
-  --vp-c-brand-soft: rgba(22, 78, 99, 0.14);
+  /* Lead colour matches the pink-700 fill of the BA/RE/Architecture
+     boxes in the landing SVG. Buttons and body-text links sit at
+     pink-700, hover and active darken to pink-800 and pink-900. */
+  --vp-c-brand-1: #be185d;
+  --vp-c-brand-2: #9d174d;
+  --vp-c-brand-3: #831843;
+  --vp-c-brand-soft: rgba(190, 24, 93, 0.14);
 
   --vp-c-tip-1: #0d9488;
   --vp-c-tip-2: #0f766e;
@@ -21,37 +21,48 @@
 
   --vp-button-brand-border: transparent;
   --vp-button-brand-text: #ffffff;
-  --vp-button-brand-bg: #164e63;
+  --vp-button-brand-bg: #be185d;
   --vp-button-brand-hover-border: transparent;
   --vp-button-brand-hover-text: #ffffff;
-  --vp-button-brand-hover-bg: #0e7490;
+  --vp-button-brand-hover-bg: #9d174d;
   --vp-button-brand-active-border: transparent;
   --vp-button-brand-active-text: #ffffff;
-  --vp-button-brand-active-bg: #0891b2;
+  --vp-button-brand-active-bg: #831843;
 
-  --vp-c-text-accent: #164e63;
+  --vp-c-text-accent: #be185d;
+
+  /* Headline gradient. Pink-700 to purple-700 to indigo-700, matching
+     the Design, Coding, and Testing boxes in that order. Security
+     Audit (cyan-900) is deliberately excluded so the gradient only
+     carries the three warm phases. */
+  --dia-headline-gradient: linear-gradient(
+    115deg,
+    #be185d 0%,
+    #7e22ce 55%,
+    #4338ca 100%
+  );
 }
 
 .dark {
-  /* Buttons keep the solid petrol background so they match the design
-     boxes in the SVG. Body-text links, tile hover border, and tile
-     arrows use the petrol box *stroke* colour (sky-400) so inline
+  /* Buttons keep the solid pink-700 background so they match the
+     Design boxes in the SVG. Body-text links, tile hover border, and
+     tile arrows use the pink box *stroke* colour (pink-300) so inline
      accents stay legible on the dark page background. */
-  --vp-c-brand-1: #38bdf8;
-  --vp-c-brand-2: #7dd3fc;
-  --vp-c-brand-3: #bae6fd;
-  --vp-c-brand-soft: rgba(56, 189, 248, 0.16);
+  --vp-c-brand-1: #f472b6;
+  --vp-c-brand-2: #f9a8d4;
+  --vp-c-brand-3: #fbcfe8;
+  --vp-c-brand-soft: rgba(244, 114, 182, 0.16);
 
   --vp-c-tip-1: #14b8a6;
   --vp-c-tip-2: #0d9488;
   --vp-c-tip-3: #0f766e;
   --vp-c-tip-soft: rgba(20, 184, 166, 0.16);
 
-  --vp-button-brand-bg: #164e63;
-  --vp-button-brand-hover-bg: #0e7490;
-  --vp-button-brand-active-bg: #0891b2;
+  --vp-button-brand-bg: #be185d;
+  --vp-button-brand-hover-bg: #9d174d;
+  --vp-button-brand-active-bg: #831843;
 
-  --vp-c-text-accent: #38bdf8;
+  --vp-c-text-accent: #f472b6;
 }
 
 .vp-doc .mermaid {
@@ -91,15 +102,20 @@
   justify-content: center;
 }
 
-/* Headline: solid color, no gradient, matches tile-row width.
-   white-space: pre-line respects hard line breaks from the YAML
-   block scalar in hero.text so the comma sits at the end of line 1. */
+/* Headline: gradient fill matching the three warm phase boxes (pink,
+   purple, indigo). white-space: pre-line respects hard line breaks
+   from the YAML block scalar in hero.text so the comma sits at the
+   end of line 1. */
 .VPHero .text {
   max-width: 960px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--vp-c-text-1);
   white-space: pre-line;
+  background: var(--dia-headline-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 @media (min-width: 960px) {

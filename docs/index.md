@@ -50,10 +50,10 @@ hero:
     <text x="110" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">JTBD · Hypotheses</text>
     <rect x="30" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="110" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Pricing · Viability</text>
-    <rect x="20" y="115" width="180" height="120" rx="16" fill="#164e63" stroke="#38bdf8" stroke-width="2.5"/>
-    <text x="110" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#e0f2fe">Business</text>
-    <text x="110" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#e0f2fe">Analysis</text>
-    <text x="110" y="215" text-anchor="middle" font-size="14" fill="#7dd3fc">Why</text>
+    <rect x="20" y="115" width="180" height="120" rx="16" fill="#be185d" stroke="#f9a8d4" stroke-width="2.5"/>
+    <text x="110" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#fdf2f8">Business</text>
+    <text x="110" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#fdf2f8">Analysis</text>
+    <text x="110" y="215" text-anchor="middle" font-size="14" fill="#fbcfe8">Why</text>
     <rect x="30" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="110" y="276" text-anchor="middle" font-size="15" fill="#475569">BA doc</text>
     <text x="110" y="300" text-anchor="middle" font-size="15" fill="#475569">Exploration board</text>
@@ -66,10 +66,10 @@ hero:
     <text x="314" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">User stories (F/E/S)</text>
     <rect x="234" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="314" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Validation criteria</text>
-    <rect x="224" y="115" width="180" height="120" rx="16" fill="#164e63" stroke="#38bdf8" stroke-width="2.5"/>
-    <text x="314" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#e0f2fe">Requirements</text>
-    <text x="314" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#e0f2fe">Engineering</text>
-    <text x="314" y="215" text-anchor="middle" font-size="14" fill="#7dd3fc">What</text>
+    <rect x="224" y="115" width="180" height="120" rx="16" fill="#be185d" stroke="#f9a8d4" stroke-width="2.5"/>
+    <text x="314" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#fdf2f8">Requirements</text>
+    <text x="314" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#fdf2f8">Engineering</text>
+    <text x="314" y="215" text-anchor="middle" font-size="14" fill="#fbcfe8">What</text>
     <rect x="234" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="314" y="276" text-anchor="middle" font-size="15" fill="#475569">Epics · Features</text>
     <text x="314" y="300" text-anchor="middle" font-size="15" fill="#475569">Backlog · Handoff</text>
@@ -82,9 +82,9 @@ hero:
     <text x="518" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">arc42</text>
     <rect x="438" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="518" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">plan-context</text>
-    <rect x="428" y="115" width="180" height="120" rx="16" fill="#164e63" stroke="#38bdf8" stroke-width="2.5"/>
-    <text x="518" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#e0f2fe">Architecture</text>
-    <text x="518" y="205" text-anchor="middle" font-size="14" fill="#7dd3fc">How</text>
+    <rect x="428" y="115" width="180" height="120" rx="16" fill="#be185d" stroke="#f9a8d4" stroke-width="2.5"/>
+    <text x="518" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#fdf2f8">Architecture</text>
+    <text x="518" y="205" text-anchor="middle" font-size="14" fill="#fbcfe8">How</text>
     <rect x="438" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="518" y="276" text-anchor="middle" font-size="15" fill="#475569">ADRs · arc42</text>
     <text x="518" y="300" text-anchor="middle" font-size="15" fill="#475569">plan-context</text>
@@ -97,9 +97,9 @@ hero:
     <text x="722" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">TDD · Debugging</text>
     <rect x="642" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="722" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Verification gate</text>
-    <rect x="632" y="115" width="180" height="120" rx="16" fill="#4338ca" stroke="#a5b4fc" stroke-width="2.5"/>
-    <text x="722" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#eef2ff">Coding</text>
-    <text x="722" y="205" text-anchor="middle" font-size="14" fill="#c7d2fe">Enhanced default agent</text>
+    <rect x="632" y="115" width="180" height="120" rx="16" fill="#7e22ce" stroke="#d8b4fe" stroke-width="2.5"/>
+    <text x="722" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#faf5ff">Coding</text>
+    <text x="722" y="205" text-anchor="middle" font-size="14" fill="#e9d5ff">Enhanced default agent</text>
     <rect x="642" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="722" y="276" text-anchor="middle" font-size="15" fill="#475569">Source code</text>
     <text x="722" y="300" text-anchor="middle" font-size="15" fill="#475569">Bug log</text>
@@ -112,9 +112,9 @@ hero:
     <text x="926" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Unit + integration</text>
     <rect x="846" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="926" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Coverage targets</text>
-    <rect x="836" y="115" width="180" height="120" rx="16" fill="#7e22ce" stroke="#d8b4fe" stroke-width="2.5"/>
-    <text x="926" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#faf5ff">Testing</text>
-    <text x="926" y="205" text-anchor="middle" font-size="14" fill="#e9d5ff">UT + IT</text>
+    <rect x="836" y="115" width="180" height="120" rx="16" fill="#4338ca" stroke="#a5b4fc" stroke-width="2.5"/>
+    <text x="926" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#eef2ff">Testing</text>
+    <text x="926" y="205" text-anchor="middle" font-size="14" fill="#c7d2fe">UT + IT</text>
     <rect x="846" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="926" y="276" text-anchor="middle" font-size="15" fill="#475569">Test suites</text>
     <text x="926" y="300" text-anchor="middle" font-size="15" fill="#475569">Coverage</text>
@@ -127,10 +127,10 @@ hero:
     <text x="1130" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">LLM · SAST · SCA</text>
     <rect x="1050" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="1130" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Zero Trust</text>
-    <rect x="1040" y="115" width="180" height="120" rx="16" fill="#be185d" stroke="#f9a8d4" stroke-width="2.5"/>
-    <text x="1130" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#fdf2f8">Security</text>
-    <text x="1130" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#fdf2f8">Audit</text>
-    <text x="1130" y="215" text-anchor="middle" font-size="14" fill="#fbcfe8">OWASP · LLM · SCA</text>
+    <rect x="1040" y="115" width="180" height="120" rx="16" fill="#164e63" stroke="#38bdf8" stroke-width="2.5"/>
+    <text x="1130" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#e0f2fe">Security</text>
+    <text x="1130" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#e0f2fe">Audit</text>
+    <text x="1130" y="215" text-anchor="middle" font-size="14" fill="#7dd3fc">OWASP · LLM · SCA</text>
     <rect x="1050" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="1130" y="276" text-anchor="middle" font-size="15" fill="#475569">Audit report</text>
     <text x="1130" y="300" text-anchor="middle" font-size="15" fill="#475569">Backlog updates</text>
