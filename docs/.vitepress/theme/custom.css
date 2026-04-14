@@ -6,10 +6,12 @@
  */
 
 :root {
-  --vp-c-brand-1: #f97316;
-  --vp-c-brand-2: #ea580c;
-  --vp-c-brand-3: #c2410c;
-  --vp-c-brand-soft: rgba(249, 115, 22, 0.14);
+  /* Lead colour matches the BA/RE/Architecture boxes in the landing SVG.
+     Sky-600 as the primary, sky-700 and sky-800 as darker states. */
+  --vp-c-brand-1: #0284c7;
+  --vp-c-brand-2: #0369a1;
+  --vp-c-brand-3: #075985;
+  --vp-c-brand-soft: rgba(2, 132, 199, 0.14);
 
   --vp-c-tip-1: #0d9488;
   --vp-c-tip-2: #0f766e;
@@ -18,33 +20,34 @@
 
   --vp-button-brand-border: transparent;
   --vp-button-brand-text: #ffffff;
-  --vp-button-brand-bg: #f97316;
+  --vp-button-brand-bg: #0284c7;
   --vp-button-brand-hover-border: transparent;
   --vp-button-brand-hover-text: #ffffff;
-  --vp-button-brand-hover-bg: #ea580c;
+  --vp-button-brand-hover-bg: #0369a1;
   --vp-button-brand-active-border: transparent;
   --vp-button-brand-active-text: #ffffff;
-  --vp-button-brand-active-bg: #c2410c;
+  --vp-button-brand-active-bg: #075985;
 
-  --vp-c-text-accent: #f97316;
+  --vp-c-text-accent: #0284c7;
 }
 
 .dark {
-  --vp-c-brand-1: #fb923c;
-  --vp-c-brand-2: #f97316;
-  --vp-c-brand-3: #ea580c;
-  --vp-c-brand-soft: rgba(251, 146, 60, 0.16);
+  /* Lift the lead colour a couple of steps for contrast on dark backgrounds */
+  --vp-c-brand-1: #38bdf8;
+  --vp-c-brand-2: #0ea5e9;
+  --vp-c-brand-3: #0284c7;
+  --vp-c-brand-soft: rgba(56, 189, 248, 0.16);
 
   --vp-c-tip-1: #14b8a6;
   --vp-c-tip-2: #0d9488;
   --vp-c-tip-3: #0f766e;
   --vp-c-tip-soft: rgba(20, 184, 166, 0.16);
 
-  --vp-button-brand-bg: #fb923c;
-  --vp-button-brand-hover-bg: #f97316;
-  --vp-button-brand-active-bg: #ea580c;
+  --vp-button-brand-bg: #38bdf8;
+  --vp-button-brand-hover-bg: #0ea5e9;
+  --vp-button-brand-active-bg: #0284c7;
 
-  --vp-c-text-accent: #fb923c;
+  --vp-c-text-accent: #38bdf8;
 }
 
 .vp-doc .mermaid {
@@ -99,17 +102,20 @@
   justify-content: center;
 }
 
-/* Headline: strong solid color, no gradient, generous width */
+/* Headline: strong solid color, no gradient, generous width.
+   white-space: pre-line respects hard line breaks from the YAML
+   block scalar in hero.text so the comma sits at the end of line 1. */
 .VPHero .text {
-  max-width: 820px;
+  max-width: 860px;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--vp-c-text-1);
+  white-space: pre-line;
 }
 
 @media (min-width: 960px) {
   .VPHero .text {
-    max-width: 820px;
+    max-width: 860px;
     font-size: 56px;
     line-height: 64px;
   }

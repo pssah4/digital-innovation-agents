@@ -4,15 +4,17 @@ title: Digital Innovation Agents
 titleTemplate: V-Model workflow for AI coding assistants
 
 hero:
-  text: The bottleneck isn't code anymore.
-  tagline: AI coding assistants ship code at speed. What most projects still lack is a backlog of real solutions to real user problems. This is where a battle-tested innovation methodology meets a state-of-the-art V-Model coding workflow.
+  text: |
+    When code costs almost nothing,
+    the plan becomes the product.
+  tagline: Shipping code is a solved problem. What most teams still lack is evidence that the features they ship matter to a real user. This workflow unites structured user discovery, tech-agnostic requirements, architecture decisions, a quality-gated coding loop, testing, and a security audit in one workflow, so your AI never builds the wrong thing at speed.
   actions:
     - theme: brand
       text: Get Started
-      link: /digital-innovation-agents/tutorials/installation
+      link: /tutorials/installation
     - theme: alt
       text: Full V-Model walkthrough
-      link: /digital-innovation-agents/tutorials/full-v-model-run
+      link: /tutorials/full-v-model-run
 ---
 
 <div class="landing-features">
