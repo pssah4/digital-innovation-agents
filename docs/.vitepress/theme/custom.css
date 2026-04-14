@@ -58,43 +58,8 @@
   --vp-c-text-accent: #fb923c;
 }
 
-/* Dialog mock styling for the landing page */
-.dialog-turn {
-  border-left: 3px solid var(--vp-c-brand-1);
-  padding: 0.75rem 1rem;
-  margin: 1rem 0;
-  background: var(--vp-c-bg-soft);
-  border-radius: 0 6px 6px 0;
-}
-
-.dialog-turn.user {
-  border-left-color: var(--vp-c-tip-1);
-}
-
-.dialog-turn .speaker {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--vp-c-text-2);
-  margin-bottom: 0.25rem;
-  font-weight: 600;
-}
-
-.dialog-turn.agent .speaker {
-  color: var(--vp-c-brand-1);
-}
-
-.dialog-turn.user .speaker {
-  color: var(--vp-c-tip-1);
-}
-
-.dialog-step {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--vp-c-text-3);
-  margin: 1.5rem 0 0.5rem;
-  font-weight: 600;
-  padding-bottom: 0.25rem;
-  border-bottom: 1px dashed var(--vp-c-divider);
+/* Mermaid diagrams: center them and give them breathing room */
+.vp-doc .mermaid {
+  margin: 2rem auto;
+  text-align: center;
 }
