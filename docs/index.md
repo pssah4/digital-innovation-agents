@@ -127,10 +127,10 @@ hero:
     <text x="1130" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">LLM · SAST · SCA</text>
     <rect x="1050" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="1130" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Zero Trust</text>
-    <rect x="1040" y="115" width="180" height="120" rx="16" fill="#164e63" stroke="#38bdf8" stroke-width="2.5"/>
-    <text x="1130" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#e0f2fe">Security</text>
-    <text x="1130" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#e0f2fe">Audit</text>
-    <text x="1130" y="215" text-anchor="middle" font-size="14" fill="#7dd3fc">OWASP · LLM · SCA</text>
+    <rect x="1040" y="115" width="180" height="120" rx="16" fill="#1e40af" stroke="#93c5fd" stroke-width="2.5"/>
+    <text x="1130" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#dbeafe">Security</text>
+    <text x="1130" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#dbeafe">Audit</text>
+    <text x="1130" y="215" text-anchor="middle" font-size="14" fill="#bfdbfe">OWASP · LLM · SCA</text>
     <rect x="1050" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="1130" y="276" text-anchor="middle" font-size="15" fill="#475569">Audit report</text>
     <text x="1130" y="300" text-anchor="middle" font-size="15" fill="#475569">Backlog updates</text>
