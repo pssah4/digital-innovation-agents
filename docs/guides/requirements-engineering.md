@@ -1,128 +1,74 @@
 ---
 title: Requirements Engineering
-description: Turn a validated Business Analysis into Epics, Features, and tech-agnostic Success Criteria. The bridge between WHY and HOW.
+description: Turn a validated Business Analysis into Epics, Features, and tech-agnostic Success Criteria. The bridge between the Why and the How.
 ---
 
 # Requirements Engineering
 
-`/requirements-engineering` is the bridge between
-[Business Analysis](./business-analyse) (the WHY) and
-[Architecture](./architecture) (the HOW). It transforms the validated
-business analysis into structured, measurable, tech-agnostic
-requirements that an architect — human or AI — can actually design
-against.
+`/requirements-engineering` is the bridge between [Business Analysis](./business-analyse) (the Why) and [Architecture](./architecture) (the How). It transforms the validated business analysis into structured, measurable, tech-agnostic requirements that a human or AI architect can actually design against.
 
 **Input:** `_devprocess/analysis/BA-{PROJECT}.md` (validated BA)
 **Output:** Epics, Features, `architect-handoff.md`
 
-## Why this phase exists at all
+## Why this phase exists
 
-Most teams skip Requirements Engineering. The BA produces "what we
-want to build", someone writes a Notion page, and the next day
-engineers are picking a framework. This produces two recurring
-failure modes:
+Most teams skip Requirements Engineering. The BA produces "what we want to build," someone writes a Notion page, and the next day engineers are picking a framework. Two failure modes follow from that shortcut.
 
-- **Tech bleed** — non-functional requirements leak into the problem
-  statement ("we need OAuth" instead of "users must prove identity")
-- **Unmeasurable success** — features ship with DoDs like "users
-  love it" that no test or gate can ever verify
+Tech bleeds into the problem statement. "We need OAuth" gets written instead of "users must prove identity." Now the requirement is coupled to a technology before anyone has decided whether that technology fits.
 
-Requirements Engineering exists to catch both, systematically, before
-they contaminate the architecture. It is the *discipline layer*
-between wanting something and designing it.
+Success becomes unmeasurable. Features ship with Definition-of-Done lines like "users love it" that no test, gate, or agent can ever verify. The result is a backlog full of items nobody can say are finished.
 
-::: info The three languages of the V
-Each phase of the V-Model speaks a different language:
-
-- **BA** speaks user language: *users, needs, pains, insights*
-- **RE** speaks capability language: *the system shall let a user
-  do X, measurably, without coupling to any specific technology*
-- **Architecture** speaks structural language: *ADRs, modules,
-  interfaces, constraints*
-
-The job of this phase is to translate cleanly from one to the next
-without leaking vocabulary in either direction. No user stories in
-the ADRs. No ORMs in the Success Criteria.
-:::
+Requirements Engineering exists to catch both, systematically, before they contaminate the architecture.
 
 ## The translation chain
 
-Every output of Requirements Engineering descends from something in
-the BA. The skill enforces **traceability** — every requirement has
-a source you can point to.
+Every output of RE descends from something in the BA. The skill enforces traceability. If a user story has no BA source, the skill flags it and sends you back to `/business-analyse` rather than inventing new requirements on the fly.
 
 ```
 BA element                    →  RE element
 ──────────────────────────────────────────────────────
 HMW question                  →  Epic Hypothesis Statement
-Insights                      →  Benefits Hypothesis (per Feature)
+Insights                      →  Benefits Hypothesis per feature
 Functional needs              →  User Stories (functional)
 Emotional needs               →  User Stories (emotional)
 Social needs                  →  User Stories (social)
-Jobs to be Done (each level)  →  User Story motivation
-Critical Hypotheses (BA)      →  Feature Validation section
-Idea Potential axes           →  Priority label (P0/P1/P2)
+Jobs to be Done per level     →  User Story motivation
+Critical Hypotheses           →  Feature Validation section
+Idea Potential axes           →  Priority label P0 / P1 / P2
 Value Proposition             →  Definition of Done context
 ```
 
-If a user story has no BA source, the skill flags it. RE does not
-create *new* requirements out of thin air — it structures what the
-BA already surfaced. New requirements go back to `/business-analyse`.
+RE does not create new requirements out of thin air. It structures what the BA already surfaced.
 
-## Epic — the strategic container
+## Epic Hypothesis Statement
 
-An Epic is the largest unit of work in Requirements Engineering. It
-is **not** "a big feature". It is a **hypothesis about value**, in
-the Scaled Agile / SAFe sense.
-
-### The Epic Hypothesis Statement
-
-The skill writes Epics in this canonical format:
+The Epic is the strategic container. It is not a "big feature." It is a hypothesis about value, and the skill writes Epics in a canonical format:
 
 ```markdown
 ## Epic: {short name}
 
 ### Hypothesis
 For {target user}
-who {problem / need from the BA}
+who {problem or need from the BA}
 the {solution concept}
-is a {category / product type}
+is a {category or product type}
 that {key value}.
 Unlike {current alternative}
 our solution {unfair advantage}.
 ```
 
-This format is direct from the Playbook's Explore → Create bridge.
-It forces six things into the same sentence:
+The format forces six things into one sentence:
 
-- The user (not "everyone")
-- The problem (not "an opportunity")
-- The solution category (so the team knows what kind of thing they
-  are building)
-- The primary value (one sentence)
-- The current alternative (even if it is "manual spreadsheet work")
-- The unfair advantage (the Wow from the BA)
+- The user, not "everyone."
+- The problem, not "an opportunity."
+- The solution category, so the team knows what kind of thing they are building.
+- The primary value, in one sentence.
+- The current alternative the user has today, even if that is "a messy spreadsheet."
+- The unfair advantage, the thing that makes this hard to copy.
 
-### The BA → Epic walkthrough
+## Feature structure
 
-Concretely, the skill transforms the BA as follows:
-
-1. **HMW → solution concept.** The How Might We question becomes the
-   seed of the "the *solution* is a *category*" clause.
-2. **Primary persona → target user.** Copied verbatim, with the key
-   descriptor from the BA persona section.
-3. **Top-ranked insight → problem clause.** The insight that was
-   most consequential during Exploration.
-4. **Value proposition → value clause.**
-5. **Current alternative** comes from the BA's Competitors section.
-6. **Unfair advantage** comes from the Evaluate Assessment Radar
-   and the Wow.
-
-## Feature — the unit of work
-
-Under each Epic, Features are the units that get implemented. A
-Feature is what a team can ship in one coherent increment. Each
-Feature has a fixed structure:
+Under each Epic, Features are the units that get implemented. A Feature is what a team can ship in one coherent increment. Every Feature uses the same structure:
 
 ```markdown
 ## FEATURE-XXX: {short name}
@@ -131,11 +77,11 @@ Feature has a fixed structure:
 {2-3 sentences: what the system will let a user do}
 
 ### Benefits Hypothesis
-{We believe this feature creates value because <insight from BA>.
- We will know we were right if <measurable signal>.}
+We believe this feature creates value because {insight from BA}.
+We will know we were right if {measurable signal}.
 
 ### User Stories
-- **As a** {persona} **I want to** {action} **so that** {outcome}
+- As a {persona} I want to {action} so that {outcome}
 - ...
 
 ### Success Criteria (tech-agnostic)
@@ -143,88 +89,56 @@ Feature has a fixed structure:
 - ...
 
 ### Technical NFRs
-- Concrete numbers (latency, throughput, data retention, ...)
+- Concrete numbers (latency, throughput, retention, uptime)
 - ...
 
 ### ASRs (Architecturally Significant Requirements)
 - Critical / Moderate / Low
-- Each one becomes (or constrains) an ADR in /architecture
+- Each Critical ASR becomes an ADR in /architecture
 
 ### Definition of Done
-- What must be true for this feature to ship
+- What must be true for the feature to ship
 ```
 
-### Excursion — User Stories with three levels of need
+### User stories across three levels of need
 
-::: details Method: User Stories layered on Jobs to be Done
-The Playbook draws a sharp distinction between three levels of user
-need, which maps cleanly onto three complementary user stories for
-the same capability:
+Human needs stack in three layers. The skill writes user stories on all three layers where the need exists, because a feature that serves only the functional layer is dramatically less sticky than one that serves the emotional and social layers too.
 
-- **Functional need** — what the user is trying to *do*
-- **Emotional need** — how they want to *feel* while doing it
-- **Social need** — how they want to be *seen* while doing it
+Functional is what the user is trying to do. Emotional is how they want to feel while doing it. Social is how they want to be seen while doing it.
 
-**Example — a shared expense splitter for roommates:**
+For a shared-expense app inside a roommate household:
 
-- *Functional:* "As a roommate I want to record a shared purchase
-  so that the split math is automatic."
-- *Emotional:* "As a roommate I want the split to feel fair without
-  awkward conversations so that the shared flat stays calm."
-- *Social:* "As a roommate I want other flatmates to see I always
-  pay my share so that my reputation stays intact."
+- Functional. "As a roommate I want to record a shared purchase so that the split math is automatic."
+- Emotional. "As a roommate I want the split to feel fair without awkward conversations so that the shared flat stays calm."
+- Social. "As a roommate I want other flatmates to see I always pay my share so that my reputation stays intact."
 
-A feature that serves *all three* levels is dramatically more
-valuable than a feature that only serves the functional one — and
-far stickier in the market. The skill probes explicitly for all
-three levels when it drafts user stories from BA needs.
+The third line is where retention comes from. The agent probes explicitly for the emotional and social layer when it drafts user stories from BA needs. If the BA did not capture those layers, the agent sends you back to the [Jobs to be Done](../reference/methods-ideation#jobs-to-be-done) method card to fill them.
 
-*Method origin: Jobs-to-be-Done theory (Christensen, Ulwick) as
-applied in the Digital Innovation Playbook's Needs pyramid.*
-:::
+### Tech-agnostic Success Criteria
 
-### Excursion — Tech-agnostic Success Criteria
+This is the rule the skill is most aggressive about. Success Criteria must be free of technology vocabulary.
 
-This is the single most-violated rule in industry requirements
-documents, and it is the one the skill is most aggressive about
-enforcing.
+Bad:
 
-::: details Rule: Success Criteria must be free of technology terms
-**Bad:**
-- "User authenticates via OAuth 2.0"
-- "Data is stored in PostgreSQL with a 24h retention"
-- "REST endpoint returns 200 OK within 300ms"
-- "React component loads in under 2s"
+- "User authenticates via OAuth 2.0."
+- "Data is stored in PostgreSQL with 24h retention."
+- "REST endpoint returns 200 OK within 300ms."
+- "React component loads in under 2s."
 
-**Good:**
-- "A user can prove identity without entering a password more than
-  once per week on the same device"
-- "Data a user deletes becomes irrecoverable within 24 hours of
-  deletion"
-- "A user receives a visible response within 300ms of interacting
-  with any list screen"
-- "The first list view becomes interactive within 2s on a
-  mid-range phone on 3G"
+Good:
 
-**Why it matters:** Success Criteria are the contract between the
-user and the team. If the contract references OAuth, you cannot
-later swap it for a magic-link flow without renegotiating. If the
-contract references React, you have prematurely locked the stack
-in the wrong document.
+- "A user can prove identity without entering a password more than once a week on the same device."
+- "Data a user deletes becomes irrecoverable within 24 hours."
+- "A user receives a visible response within 300ms of any list interaction."
+- "The first list view becomes interactive within 2s on a mid-range phone on 3G."
 
-Technical details live in the **Technical NFRs** section of the same
-Feature, clearly separated, and in the ADRs that follow in
-`/architecture`. See
-[Tech-agnostic Requirements](../concepts/tech-agnostic-requirements)
-for the full ruleset.
-:::
+Why the rule matters: Success Criteria are the contract between the user and the team. If the contract references OAuth, you cannot swap it for a magic-link flow without renegotiating. If the contract references React, you have locked the stack before the architect has seen the problem.
 
-### Excursion — ASRs: Architecturally Significant Requirements
+Technical details live in the Technical NFRs section of the same Feature, clearly separated, and in the ADRs that follow in `/architecture`. See [Tech-agnostic Requirements](../concepts/tech-agnostic-requirements) for the full ruleset.
 
-::: details Concept: ASRs (Architecturally Significant Requirements)
-An **ASR** is a requirement whose realisation shapes the architecture
-— that is, a requirement you cannot satisfy by editing one module in
-isolation. Typical ASRs:
+### ASRs: Architecturally Significant Requirements
+
+An ASR is a requirement whose realisation shapes the architecture. You cannot satisfy it by editing one module in isolation. Common examples:
 
 - Performance targets (latency, throughput, percentile budgets)
 - Security constraints (data classification, auth model)
@@ -233,108 +147,62 @@ isolation. Typical ASRs:
 - Scale targets (concurrent users, data volume)
 - Integration constraints (must talk to system X, must not talk to Y)
 
-**Classification:**
+The skill labels every ASR as Critical, Moderate, or Low. A Critical ASR maps one-to-one to an ADR in `/architecture`, and the architecture quality gate will refuse to hand off if any Critical ASR has no matching ADR. This is the single most important traceability link in the whole V-Model.
 
-- **Critical ASR** — one-for-one maps to an ADR in `/architecture`.
-  The architect cannot decide the component structure without knowing
-  this requirement.
-- **Moderate ASR** — influences an ADR but does not force one.
-- **Low ASR** — captured for completeness, no ADR required.
+### Benefits Hypothesis, not "description"
 
-The skill labels every ASR with this classification, and the
-`/architecture` quality gate later checks that every Critical ASR
-has a matching ADR. This is the single most important traceability
-link in the entire V-Model.
-:::
+Teams love to write feature descriptions. The skill forces a stricter form: a Benefits Hypothesis, shaped like the test cards from validation.
 
-### Excursion — Benefits Hypothesis (not "description")
+> We believe this feature creates value because {insight from BA}.
+> We will know we were right if {measurable signal}.
 
-::: details Rule: Every Feature has a Benefits Hypothesis, not a justification
-Teams love to write feature descriptions. The skill forces a stricter
-form: a **Benefits Hypothesis**, structured like a Learning Card from
-the Evaluate phase of the BA.
+The form does three things. It forces the feature to trace back to an Exploration insight. It forces a success signal that is testable. It makes it obvious which features are based on evidence and which are still unvalidated bets. The second category is not forbidden, but the distinction has to be explicit on the feature card.
 
-> **We believe** this feature creates value
-> **because** {insight from BA}.
-> **We will know we were right if** {measurable signal}.
+## How the agent proposes methods in the dialog
 
-This form matters because it:
+Like the BA, this skill spots gaps in your input and suggests the method that will close them. If the BA did not capture emotional needs, the agent points you at the [Jobs to be Done](../reference/methods-ideation#jobs-to-be-done) card. If you cannot articulate the current alternative for the Epic Hypothesis, it suggests [User journey](../reference/methods-discovery#user-journey) work focused on the "before" phase. If a Critical ASR has no number attached, it sends you to [Expert conversations](../reference/methods-discovery#expert-conversations) with the engineering or operations team.
 
-- Forces the feature to trace back to an Exploration insight
-- Forces a success signal that is testable, not aspirational
-- Makes it obvious which features are *based on evidence* and which
-  are still unvalidated bets
+You run the method, you come back with data, the skill continues.
 
-The second category is not forbidden — in fact, validated features
-are rare early in a product's life — but the distinction is
-explicit on every feature card.
+## Priority: from Idea Potential to P0 / P1 / P2
 
-*Source: Strategyzer Learning Card structure, as used in the
-Digital Innovation Playbook's Evaluate module.*
-:::
-
-## Priority: mapping BA Idea Potential to P0/P1/P2
-
-The BA scores Idea Potential on three axes: **User Value**,
-**Transferability (Scalability)**, and **Feasibility**. Requirements
-Engineering collapses those three scores into a single priority
-label per feature:
+The BA scored Idea Potential on three axes: User Value, Transferability (Scalability), and Feasibility. Requirements Engineering collapses those three scores into a single priority label per feature.
 
 | Priority | Criteria | Meaning |
 |---|---|---|
-| **P0** | High User Value + High Feasibility | Must ship in v1 |
-| **P1** | Moderate across axes, or high value with risk | Should ship in v1 if time allows |
-| **P2** | Low value or blocked feasibility | Backlog / follow-up |
+| P0 | High User Value and High Feasibility | Must ship in v1 |
+| P1 | Moderate across axes, or high value with risk | Should ship in v1 if time allows |
+| P2 | Low value or blocked feasibility | Backlog or follow-up |
 
-The scoring is explicit and visible on every Feature card so the
-architect knows immediately which Features are load-bearing for the
-MVP and which are stretch goals.
+The label is visible on every Feature card so the architect knows immediately which features are load-bearing for the MVP.
 
 ## Quality gates
 
-Each Feature must pass **all** of these before the skill lets the
-Epic hand off:
+Each Feature has to pass all of these before the Epic hands off:
 
-- ✅ Feature Description present (not a placeholder)
-- ✅ Benefits Hypothesis with an Exploration insight source
-- ✅ At least one User Story per level where the need exists
-  (functional minimum, emotional and social where relevant)
-- ✅ Tech-free, measurable Success Criteria (the skill greps each
-  criterion against a technology blocklist)
-- ✅ Technical NFRs with concrete numbers (not "fast" — `< 300ms p95`)
-- ✅ ASRs identified and classified (Critical / Moderate / Low)
-- ✅ Definition of Done
-- ✅ Priority label traced to BA Idea Potential
+- Feature Description present and specific
+- Benefits Hypothesis traced to an Exploration insight
+- At least one User Story per level where the need exists
+- Success Criteria are tech-free and measurable (the skill greps each criterion against a technology blocklist)
+- Technical NFRs have concrete numbers, not adjectives
+- ASRs identified and classified
+- Definition of Done present
+- Priority label traced to BA Idea Potential
 
-See [Verification Gates](../concepts/verification-gates) for the
-full gate mechanic and how failures are handled.
+See [Verification Gates](../concepts/verification-gates) for the full gate mechanic.
 
-## The architect handoff document
+## The architect handoff
 
-The final artifact is `architect-handoff.md`, a single document that
-`/architecture` will consume. It contains:
+The final artifact is `architect-handoff.md`, a single document that `/architecture` will consume. It contains the Epic Hypothesis, the Feature summary table with priorities, the full list of Critical ASRs, the Technical NFRs with numbers, the open questions for the architect, and the Critical Hypotheses from the BA that are still unvalidated.
 
-1. The Epic Hypothesis Statement
-2. Feature summary table with priorities
-3. The **full list of Critical ASRs** — the architect's contract
-4. The **full list of Technical NFRs** with numbers
-5. Open questions for the architect (decisions RE cannot make)
-6. Critical Hypotheses from the BA that are still unvalidated
-
-The skill ends with the standard 3-part
-[Handoff Ritual](../concepts/handoff-rituals) and proposes
-`/architecture` as the next phase.
+The skill ends with the standard three-part [Handoff Ritual](../concepts/handoff-rituals) and proposes `/architecture` as the next phase.
 
 ## Read the skill file
 
-[`skills/requirements-engineering/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/requirements-engineering/SKILL.md)
-on GitHub.
+[`skills/requirements-engineering/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/requirements-engineering/SKILL.md) on GitHub.
 
 ## Further reading
 
-- [Tech-agnostic Requirements](../concepts/tech-agnostic-requirements)
-  — the full ruleset for keeping technology out of requirements
-- [Architecture guide](./architecture) — the next phase, where ASRs
-  become ADRs
-- [Digital Innovation Playbook lineage](../concepts/digital-innovation-playbook)
-  — the methodological heritage
+- [Tech-agnostic Requirements](../concepts/tech-agnostic-requirements). Full ruleset for keeping technology out of requirements.
+- [Architecture](./architecture). The next phase, where ASRs become ADRs.
+- [Discovery methods](../reference/methods-discovery), [Ideation methods](../reference/methods-ideation), [Validation methods](../reference/methods-validation). Method cards the agent references when you have gaps in the BA.

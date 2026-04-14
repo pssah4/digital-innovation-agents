@@ -6,7 +6,7 @@ titleTemplate: V-Model workflow for AI coding assistants
 hero:
   name: Digital Innovation Agents
   text: Decide what to build before writing how.
-  tagline: A V-Model workflow that walks your AI coding assistant through Business Analysis, Requirements, Architecture, Coding, Testing, and Security Audit — with quality-gated handoffs between every phase. Brownfield or greenfield.
+  tagline: A V-Model workflow that walks your AI coding assistant through Business Analysis, Requirements, Architecture, Coding, Testing, and Security Audit, with quality-gated handoffs between every phase. Brownfield or greenfield.
   actions:
     - theme: brand
       text: Get Started
@@ -163,7 +163,7 @@ hero:
   </a>
   <a class="tile" href="/digital-innovation-agents/guides/reverse-engineering">
     <h3>Starting with an existing project?</h3>
-    <p>Walk the V backwards. Reverse-engineer ADRs, an arc42 snapshot, a FEATURE inventory, and an evidence-based BA draft from your code — every claim sourced, nothing invented.</p>
+    <p>Walk the V backwards. Reverse-engineer ADRs, an arc42 snapshot, a FEATURE inventory, and an evidence-based BA draft from your code. Every claim sourced, nothing invented.</p>
     <span class="arrow">Run Reverse Engineering →</span>
   </a>
 </div>

@@ -64,6 +64,14 @@ const referenceSidebar = [
       { text: 'Troubleshooting', link: '/reference/troubleshooting' },
     ],
   },
+  {
+    text: 'Methods (BA and RE toolkit)',
+    items: [
+      { text: 'Discovery methods', link: '/reference/methods-discovery' },
+      { text: 'Ideation methods', link: '/reference/methods-ideation' },
+      { text: 'Validation methods', link: '/reference/methods-validation' },
+    ],
+  },
 ]
 
 const conceptsSidebar = [
@@ -72,12 +80,6 @@ const conceptsSidebar = [
     items: [
       { text: 'The V-Model', link: '/concepts/v-model' },
       { text: 'Living Documents', link: '/concepts/living-documents' },
-    ],
-  },
-  {
-    text: 'Methodological heritage',
-    items: [
-      { text: 'Digital Innovation Playbook', link: '/concepts/digital-innovation-playbook' },
     ],
   },
   {
