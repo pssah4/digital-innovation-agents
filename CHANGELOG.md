@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Work toward v2.0.0. See branch `main`.
+## [2.0.0] - 2026-04-14
 
-### Added (Phase 1 -- VitePress Docs Site)
+Major release: multi-platform plugin distribution, v2 skill content,
+mandatory Handoff Rituals, Phase 7 Release Closure, VitePress docs
+site, full English translation.
+
+### Added (Phase 1, VitePress Docs Site)
 
 - VitePress-based documentation site under `docs/`, built with
   `vitepress-plugin-mermaid` for V-Model and traceability diagrams
@@ -32,7 +36,7 @@ Work toward v2.0.0. See branch `main`.
 - `.gitignore` updated for `node_modules/`, `docs/.vitepress/cache/`,
   `docs/.vitepress/dist/`
 
-### Added (Phase 3 -- v2 Content)
+### Added (Phase 3, v2 Content)
 
 - **`/coding` skill**: five new sub-phases that brief the Default Claude
   Code agent with precise guidelines -- 3a Task-breakdown guidelines,
@@ -66,14 +70,14 @@ Work toward v2.0.0. See branch `main`.
 - All 6 German skill files translated to English for portability and
   consistency with `plugin.json`, README, CHANGELOG: `coding`, `testing`,
   `architecture`, `security-audit`, `v-model-workflow`, `project-conventions`.
-- `project-conventions/SKILL.md`: dateinamen table extended with
+- `project-conventions/SKILL.md`: filename table extended with
   `20_bugs.md` and `30_handoffs.md` entries; new "The `_devprocess/context/`
   files" section explains the three living logs.
 - `business-analyse/SKILL.md` and `requirements-engineering/SKILL.md`
   (already English): existing "Handoff" section replaced by the new
   3-part Handoff Ritual.
 
-### Added (Phase 2 -- Multi-Platform Plugin Infrastructure)
+### Added (Phase 2, Multi-Platform Plugin Infrastructure)
 
 - Claude Code plugin manifest (`.claude-plugin/plugin.json`)
 - Claude Code plugin marketplace (`.claude-plugin/marketplace.json`) as `pssah4-skills`
@@ -138,5 +142,6 @@ available as an unmaintained stable snapshot, installable via:
 
     ./install-skills.sh --version v1.0.0
 
-[unreleased]: https://github.com/pssah4/digital-innovation-agents/compare/v1.0.0...HEAD
+[unreleased]: https://github.com/pssah4/digital-innovation-agents/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/pssah4/digital-innovation-agents/releases/tag/v2.0.0
 [1.0.0]: https://github.com/pssah4/digital-innovation-agents/releases/tag/v1.0.0
