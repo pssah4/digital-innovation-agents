@@ -3,18 +3,17 @@ title: About
 description: Sebastian Hanke, creator of Digital Innovation Agents, an AI-augmented V-Model workflow for building digital products.
 ---
 
-# About
-
-<div style="margin-bottom: 2rem;">
-  <h2 style="margin: 0 0 0.25rem;">Sebastian Hanke</h2>
-  <p style="margin: 0; color: var(--vp-c-text-2);">Builder | Product thinker | AI toolmaker</p>
-  <p style="margin: 0.75rem 0 0;">
-    <a href="https://www.linkedin.com/in/sebastianhanke/" target="_blank" rel="noopener noreferrer">LinkedIn</a> |
-    <a href="https://github.com/pssah4" target="_blank" rel="noopener noreferrer">GitHub</a>
-  </p>
+<div style="display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap; margin-bottom: 2rem;">
+  <img src="/assets/AD7E0394-7084-4038-99B8-90C331AEF7BF_1_105_c.jpeg" alt="Sebastian Hanke" style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+  <div>
+    <h1 style="margin: 0 0 0.25rem;">Sebastian Hanke</h1>
+    <p style="margin: 0; color: var(--vp-c-text-2);">Builder | Product thinker | AI toolmaker</p>
+    <p style="margin: 0.75rem 0 0;">
+      <a href="https://www.linkedin.com/in/sebastianhanke/" target="_blank" rel="noopener noreferrer">LinkedIn</a> |
+      <a href="https://github.com/pssah4" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </p>
+  </div>
 </div>
-
----
 
 ## About me
 
