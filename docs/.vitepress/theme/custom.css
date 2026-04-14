@@ -2,23 +2,20 @@
  * Digital Innovation Agents theme
  *
  * Vibrant orange brand with a rainbow hero gradient (Apple/Microsoft
- * inspired) to stand out from the VitePress default and from Obsilo.
+ * inspired) mirrored from the V-Model diagram's phase colors.
  */
 
 :root {
-  /* Brand colors: vibrant orange */
   --vp-c-brand-1: #f97316;
   --vp-c-brand-2: #ea580c;
   --vp-c-brand-3: #c2410c;
   --vp-c-brand-soft: rgba(249, 115, 22, 0.14);
 
-  /* Accent colors: bright teal */
   --vp-c-tip-1: #0d9488;
   --vp-c-tip-2: #0f766e;
   --vp-c-tip-3: #115e59;
   --vp-c-tip-soft: rgba(13, 148, 136, 0.14);
 
-  /* Buttons */
   --vp-button-brand-border: transparent;
   --vp-button-brand-text: #ffffff;
   --vp-button-brand-bg: #f97316;
@@ -29,12 +26,10 @@
   --vp-button-brand-active-text: #ffffff;
   --vp-button-brand-active-bg: #c2410c;
 
-  /* Links + active states */
   --vp-c-text-accent: #f97316;
 
-  /* Hero name gets a vivid rainbow gradient (Apple/Microsoft vibe) */
-  --vp-home-hero-name-color: transparent;
-  --vp-home-hero-name-background: linear-gradient(
+  /* Six-color rainbow gradient, matches the V-Model diagram phases */
+  --dia-rainbow: linear-gradient(
     120deg,
     #3b82f6 0%,
     #06b6d4 18%,
@@ -43,15 +38,10 @@
     #f97316 74%,
     #ef4444 100%
   );
-  --vp-home-hero-image-background-image: linear-gradient(
-    135deg,
-    #3b82f6 0%,
-    #06b6d4 20%,
-    #10b981 40%,
-    #eab308 60%,
-    #f97316 80%,
-    #ef4444 100%
-  );
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: var(--dia-rainbow);
+  --vp-home-hero-image-background-image: var(--dia-rainbow);
   --vp-home-hero-image-filter: blur(56px);
 }
 
@@ -73,35 +63,58 @@
   --vp-c-text-accent: #fb923c;
 }
 
-/* Mermaid diagrams: center them and give them breathing room */
 .vp-doc .mermaid {
   margin: 2rem auto;
   text-align: center;
 }
 
-/* ========== Landing page ========== */
+/* ========== Hero ========== */
 
-.landing-badges {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin: 0.5rem auto 1.5rem;
-  max-width: 1000px;
-  padding: 0 24px;
+/* "Works with ..." badge injected via home-hero-before slot */
+.hero-works-badge {
   text-align: center;
+  margin: 1.5rem auto -0.5rem;
+  padding: 0 24px;
 }
 
-.landing-badges span {
-  padding: 5px 14px;
+.hero-works-badge span {
+  display: inline-block;
+  padding: 6px 18px;
   border: 1px solid var(--vp-c-divider);
   border-radius: 999px;
-  font-size: 0.8rem;
-  color: var(--vp-c-text-2);
   background: var(--vp-c-bg-soft);
+  font-size: 0.82rem;
+  color: var(--vp-c-text-2);
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
-/* Diagram: centered and sized down from the previous wide version */
+/* Center the whole hero block (name, text, tagline, actions) */
+.VPHero.VPHomeHero .container {
+  justify-content: center;
+}
+
+.VPHero.VPHomeHero .main {
+  text-align: center;
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.VPHero.VPHomeHero .main .actions {
+  justify-content: center;
+}
+
+/* Mirror the diagram rainbow on the hero secondary heading (hero.text) */
+.VPHero .text {
+  background: var(--dia-rainbow);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ========== Landing page below the hero ========== */
+
 .landing-diagram {
   max-width: 960px;
   margin: 2rem auto 2.5rem;
@@ -109,17 +122,31 @@
   text-align: center;
 }
 
-.landing-diagram img {
+.landing-diagram svg {
   width: 100%;
   height: auto;
   display: block;
   margin: 0 auto;
 }
 
+/* Clickable SVG elements: show pointer + subtle lift on hover */
+.landing-diagram svg a {
+  cursor: pointer;
+}
+
+.landing-diagram svg a rect {
+  transition: filter 0.18s ease, stroke-width 0.18s ease;
+}
+
+.landing-diagram svg a:hover rect {
+  filter: brightness(0.96);
+  stroke-width: 3;
+}
+
 /* Feature tiles below the diagram */
 .landing-features {
   max-width: 1000px;
-  margin: 1rem auto 3rem;
+  margin: 1rem auto 4rem;
   padding: 0 24px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -134,10 +161,13 @@
 }
 
 .landing-features .tile {
+  display: block;
   padding: 1.5rem 1.25rem;
   border: 1px solid var(--vp-c-divider);
   border-radius: 14px;
   background: var(--vp-c-bg-soft);
+  color: inherit;
+  text-decoration: none;
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
@@ -148,7 +178,7 @@
 
 .landing-features .tile h3 {
   margin: 0 0 0.6rem;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--vp-c-text-1);
   border: none;
@@ -156,27 +186,15 @@
 }
 
 .landing-features .tile p {
-  margin: 0;
+  margin: 0 0 0.75rem;
   font-size: 0.92rem;
   line-height: 1.55;
   color: var(--vp-c-text-2);
 }
 
-/* Short footer CTA below the features */
-.landing-footer-cta {
-  max-width: 720px;
-  margin: 1rem auto 4rem;
-  padding: 0 24px;
-  text-align: center;
-  color: var(--vp-c-text-2);
-  font-size: 0.95rem;
-  line-height: 1.7;
-}
-
-.landing-footer-cta p {
-  margin: 0.5rem 0;
-}
-
-.landing-footer-cta a {
-  font-weight: 500;
+.landing-features .tile .arrow {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--vp-c-brand-1);
 }
