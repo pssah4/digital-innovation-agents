@@ -25,7 +25,7 @@
 ### 1.4 High-Level Concept
 > A catchy analogy to describe our solution idea.
 
-"{Analogy -- e.g. 'Uber for craftsmen' or 'Spotify for professional development'}"
+"{Analogy, e.g. 'Uber for craftsmen' or 'Spotify for professional development'}"
 
 ### 1.5 Expected Outcomes
 - {Expected outcome 1}
@@ -227,7 +227,7 @@
 
 ---
 
-## 11. Evaluate -- Market Assessment & Business Viability
+## 11. Evaluate: Market Assessment and Business Viability
 
 > EVALUATE phase: Systematic assessment of the solution idea.
 > Only relevant for PoC/MVP scope. Skip for Simple Test.
@@ -259,7 +259,7 @@
 - **Price Range:** {From ... to ... EUR}
 - **Pricing Model:** {One-time / Subscription / Freemium / Pay-per-Use}
 - **Market Reference Prices:** {What do comparable solutions cost?}
-- **Willingness to Pay Validated?** {Yes/No -- how tested?}
+- **Willingness to Pay Validated?** {Yes/No, how tested?}
 
 ### 11.4 Channels
 

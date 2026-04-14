@@ -66,7 +66,7 @@
 
 ---
 
-## Technical NFRs (for Architect) -- TECHNOLOGY OK
+## Technical NFRs (for Architect): technology terms allowed
 
 > This section MAY contain technical details!
 

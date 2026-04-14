@@ -19,13 +19,16 @@ disable-model-invocation: false
 
 You ingest an existing codebase and produce the V-Model artifacts that
 *should* have existed from day one, so the team gets a stable, shared
-project context. You walk the V backwards — Coding → Architecture →
-Requirements → Business Analysis — and fill each level only with what
-can be **proven** from the code or from existing documentation.
+project context. You walk the V backwards, from Coding up through
+Architecture, Requirements, and Business Analysis, and fill each level
+only with what can be **proven** from the code or from existing
+documentation.
 
 The result is not a product. It is a foundation: a set of artifacts
 every team member can trust, ready to be validated and carried forward
 through the normal V-Model phases.
+
+**Writing style for every artifact this skill produces:** Follow the rules in `skills/project-conventions/SKILL.md` under "Writing style for every artifact". Zero em dashes of any form. No Unicode em dash (U+2014), no en dash (U+2013), no double-hyphen substitute. No AI vocabulary, no negative parallelisms, no rule-of-three padding. Every reverse-engineered ADR, every FEATURE description, every anticipated Epic, the BA draft sections you fill from sources, and every backlog entry is written in that style. Before you save an artifact, scan it for U+2014 and U+2013 and fix any hit.
 
 ## Core philosophy
 
@@ -34,7 +37,7 @@ not tell you whether it solves the right problem. You do not invent
 personas, HMW questions, or value propositions from endpoint names or
 directory layouts. If a claim is not backed by a concrete source
 (`path:line` for code, `doc:section` for documentation), it becomes a
-`[NEEDS USER INPUT]` placeholder — not a guess.
+`[NEEDS USER INPUT]` placeholder instead of a guess.
 
 **Draft, not ground truth.** Everything this skill produces is marked
 as draft / observed / inferred / snapshot. The next skill (`/business-analyse`)
@@ -48,26 +51,26 @@ artifacts become the Phase 0 state for that forward walk.
 
 ## What you create
 
-- `_devprocess/requirements/handoff/plan-context.md` — Tech stack and
-  codebase snapshot, ready for `/coding`
-- `_devprocess/architecture/ADR-{XXX}-{slug}.md` — one per observable
-  architecture decision, `Status: Inferred from codebase`
-- `_devprocess/architecture/arc42.md` — structural snapshot,
-  `Status: Reverse-engineered snapshot`
-- `_devprocess/requirements/epics/EPIC-{NNN}-{slug}.md` — one or more
+- `_devprocess/requirements/handoff/plan-context.md`. Tech stack and
+  codebase snapshot, ready for `/coding`.
+- `_devprocess/architecture/ADR-{XXX}-{slug}.md`. One per observable
+  architecture decision, `Status: Inferred from codebase`.
+- `_devprocess/architecture/arc42.md`. Structural snapshot,
+  `Status: Reverse-engineered snapshot`.
+- `_devprocess/requirements/epics/EPIC-{NNN}-{slug}.md`. One or more
   **anticipated** Epics that group observed capabilities by theme.
   Even when the business motivation is not yet described, the epic
   gives the features a frame (domain, user group, module). Status:
   `Anticipated (not yet validated)`. `/business-analyse` and
   `/requirements-engineering` later refine, split, merge, or rename
   these epics.
-- `_devprocess/requirements/features/FEATURE-{EPIC}-{NNN}-{slug}.md` — one per
-  observable user-facing capability, `Status: Observed (not validated)`,
-  nested under its anticipated Epic's number.
-- `_devprocess/analysis/BA-{PROJECT}.md` — evidence-based draft,
-  `Status: Draft (reverse-engineered, awaiting validation in /business-analyse)`
-- Append entries to `_devprocess/context/10_backlog.md` — TODOs, FIXMEs,
-  observed gaps, tech debt, undocumented dependencies
+- `_devprocess/requirements/features/FEATURE-{EPIC}-{NNN}-{slug}.md`.
+  One per observable user-facing capability, `Status: Observed (not
+  validated)`, nested under its anticipated Epic's number.
+- `_devprocess/analysis/BA-{PROJECT}.md`. Evidence-based draft,
+  `Status: Draft (reverse-engineered, awaiting validation in /business-analyse)`.
+- Append entries to `_devprocess/context/10_backlog.md`. TODOs, FIXMEs,
+  observed gaps, tech debt, undocumented dependencies.
 
 ## What you do NOT create
 
@@ -97,7 +100,7 @@ were followed.
 2. **No source → placeholder, not a guess.** If you cannot find a
    concrete source for a section, you write:
    ```
-   [NEEDS USER INPUT — no evidence found in {searched sources}.
+   [NEEDS USER INPUT. No evidence found in {searched sources}.
    /business-analyse will fill this in.]
    ```
    You do not write a "reasonable assumption" in its place.
@@ -200,7 +203,7 @@ and consequential**. For each, write one ADR in MADR format with:
 - `Context:` what you see in the code that implies this decision was
   made (with source)
 - `Decision:` the observable choice
-- `Alternatives considered:` leave as `[NEEDS USER INPUT — not visible
+- `Alternatives considered:` leave as `[NEEDS USER INPUT, not visible
   in code]` unless the alternatives are mentioned in a comment or doc
 - `Consequences:` only the ones you can see (e.g. lock-in, operational
   implications that are visible in CI config)
@@ -312,7 +315,7 @@ Source: {file paths and line ranges that implement this feature}
 
 ## Benefits Hypothesis
 
-[NEEDS USER INPUT — /requirements-engineering will define this
+[NEEDS USER INPUT. /requirements-engineering will define this
 after /business-analyse has validated the WHY.]
 
 ## User Stories
@@ -339,10 +342,10 @@ capabilities into one feature.
 
 This is the most constrained phase. Read:
 
-- `README.md` — especially intro, use cases, motivation
+- `README.md` for intro, use cases, motivation
 - `docs/` or `documentation/` content
 - `package.json` / `pyproject.toml` `description`, `keywords`, `author`
-- `CHANGELOG.md` — historical goals and removed features
+- `CHANGELOG.md` for historical goals and removed features
 - Landing-page copy if the repo contains one
 - Issue/PR templates if they describe target users
 - Contributing guides
@@ -459,8 +462,8 @@ Append:
 
 Ask the user exactly this:
 
-> "Technical context is captured. I built an evidence-based BA draft
-> too — but it is **not validated**. Every claim in the BA comes
+> "Technical context is captured. I also built an evidence-based BA
+> draft, but it is **not validated**. Every claim in the BA comes
 > from existing docs, and {N} sections are marked `[NEEDS USER INPUT]`
 > because no source was found. The code is a good technical foundation,
 > but it does not tell us whether the product solves the right
@@ -487,7 +490,7 @@ Before you run the Handoff Ritual, verify:
 1. **Every non-placeholder sentence has a `Source:` line.** Grep the
    written files for sentences without attribution and fix them.
 2. **Every file has a status marker.** `plan-context.md`, `arc42.md`,
-   every ADR, every FEATURE, the BA draft — all carry an explicit
+   every ADR, every FEATURE, and the BA draft all carry an explicit
    status in the frontmatter or header.
 3. **No invented personas.** If the BA personas section has content,
    the content must quote or cite the documentation source. If it
@@ -501,7 +504,7 @@ Before you run the Handoff Ritual, verify:
    project, you missed the TODO/FIXME scan.
 
 If any gate fails, you fix it before running the Handoff Ritual.
-The user will not catch silent hallucinations — the gates are your
+The user will not catch silent hallucinations. The gates are your
 responsibility.
 
 ## When to use which phase depth

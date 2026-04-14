@@ -1,4 +1,4 @@
-# Backlog -- {PROJECT}
+# Backlog for {PROJECT}
 
 > Single Source of Truth fuer den Projektstand. Lebendes zentrales
 > PM-Artefakt des V-Model-Workflows. Wird nach JEDER Status-aendernden
@@ -33,19 +33,19 @@ Counts werden bei jedem Backlog-Write vom schreibenden Agent aktualisiert.
 
 **Status:**
 
-- `Planned`  -- eingetragen, noch nicht gestartet
-- `Active`   -- in Bearbeitung (Spec-, Plan- und Impl-Phase zusammengefasst)
-- `Review`   -- Arbeit abgeschlossen, in Review
-- `Done`     -- fertig, Eintrag bleibt beim zugehoerigen Epic
-- `Waiting`  -- blockiert, wartet auf Entscheidung oder Abhaengigkeit
-- `Deferred` -- bewusst zurueckgestellt, nicht committed
+- `Planned`: eingetragen, noch nicht gestartet
+- `Active`: in Bearbeitung (Spec-, Plan- und Impl-Phase zusammengefasst)
+- `Review`: Arbeit abgeschlossen, in Review
+- `Done`: fertig, Eintrag bleibt beim zugehoerigen Epic
+- `Waiting`: blockiert, wartet auf Entscheidung oder Abhaengigkeit
+- `Deferred`: bewusst zurueckgestellt, nicht committed
 
 **Prioritaet:**
 
-- `P0` -- Blocker, sofort
-- `P1` -- kurzfristig
-- `P2` -- mittelfristig
-- `P3` -- Idee, nicht committed
+- `P0`: Blocker, sofort
+- `P1`: kurzfristig
+- `P2`: mittelfristig
+- `P3`: Idee, nicht committed
 
 **Typ:** `Feature` | `Enhancement` | `Chore` | `Security` | `Bug-Followup`
 
@@ -64,8 +64,8 @@ Status: In Arbeit | Zielzeitraum: {Q2 2026}
 
 | ID     | Titel        | Typ     | Prio | Status  | Feature-Spec    | ADR     | Source | Commit    | Notizen    |
 |--------|--------------|---------|------|---------|-----------------|---------|--------|-----------|------------|
-| BL-001 | Kurzer Titel | Feature | P1   | Active  | FEATURE-001-001 | ADR-003 | BA     | --        | kurze Note |
-| BL-002 | Kurzer Titel | Chore   | P2   | Planned | --              | --      | REV    | --        |            |
+| BL-001 | Kurzer Titel | Feature | P1   | Active  | FEATURE-001-001 | ADR-003 | BA     |           | kurze Note |
+| BL-002 | Kurzer Titel | Chore   | P2   | Planned |                 |         | REV    |           |            |
 | BL-003 | Kurzer Titel | Feature | P1   | Done    | FEATURE-001-002 | ADR-002 | BA     | `a1b2c3d` | 2026-04-10 |
 
 ---
@@ -83,8 +83,8 @@ Security-Findings, direkte Stakeholder-Requests, technische Schuld.
 
 | ID     | Titel                    | Typ      | Prio | Status  | Evidence              | Source | Commit | Notizen |
 |--------|--------------------------|----------|------|---------|-----------------------|--------|--------|---------|
-| BL-050 | CSRF-Token fehlt         | Security | P1   | Planned | `src/api/login.ts:88` | SEC    | --     | H-2     |
-| BL-051 | Veraltete lodash-Version | Chore    | P3   | Planned | `package.json`        | REV    | --     |         |
+| BL-050 | CSRF-Token fehlt         | Security | P1   | Planned | `src/api/login.ts:88` | SEC    |        | H-2     |
+| BL-051 | Veraltete lodash-Version | Chore    | P3   | Planned | `package.json`        | REV    |        |         |
 
 ---
 
@@ -118,7 +118,7 @@ zentrales Einstiegsartefakt ab.
 
 - `Feature-Spec`: `_devprocess/requirements/features/FEATURE-{EPIC}-{NNN}-{slug}.md`
   (EPIC = 3-stellige Epic-Nummer, NNN = 3-stellige Feature-Nummer lokal
-  zum Epic -- Epic 001 ergibt FEATURE-001-001, FEATURE-001-002, ...;
+  zum Epic. Epic 001 ergibt FEATURE-001-001, FEATURE-001-002, ...;
   Epic 013 ergibt FEATURE-013-001, ...)
 - `Epic`: `_devprocess/requirements/epics/EPIC-{NNN}-{slug}.md`
 - `ADR`: `_devprocess/architecture/ADR-{NNN}-{slug}.md` (mehrere kommasepariert)

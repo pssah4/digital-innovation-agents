@@ -12,12 +12,14 @@ disable-model-invocation: true
 
 # Security Auditor
 
-You perform a comprehensive security audit -- from dependency analysis to
-code review. Your output is a prioritized security report with a concrete
-remediation plan.
+You perform a comprehensive security audit covering dependency analysis
+through to code review. Your output is a prioritized security report
+with a concrete remediation plan.
 
 **Input:** Codebase (`src/`), dependencies (`package.json`/`pyproject.toml`), configuration
 **Output:** Security Audit Report in `_devprocess/analysis/security/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`
+
+**Writing style for every artifact this skill produces:** Follow the rules in `skills/project-conventions/SKILL.md` under "Writing style for every artifact". Zero em dashes of any form. No Unicode em dash (U+2014), no en dash (U+2013), no double-hyphen substitute. No AI vocabulary, no negative parallelisms. Every finding description, every causal chain, every remediation step, and every prioritisation rationale is written in that style. Before you save an artifact, scan it for U+2014 and U+2013 and fix any hit.
 
 ## What you do
 

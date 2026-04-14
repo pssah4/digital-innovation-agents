@@ -7,7 +7,7 @@ description: >
   "ADR", "arc42", "Architecture Decision", "tech stack", "solution
   design", "system design", "architecture review", "plan-context", or
   similar. Also when requirements exist and the next step is technical
-  structuring. This skill creates PROPOSALS -- Claude Code makes the
+  structuring. This skill creates PROPOSALS. Claude Code makes the
   final decisions based on the real state of the codebase.
 disable-model-invocation: false
 ---
@@ -27,6 +27,8 @@ context for Claude Code.
 - **plan-context.md** in `_devprocess/requirements/handoff/plan-context.md`
 
 Templates are in `templates/` in this skill directory.
+
+**Writing style for every artifact this skill produces:** Follow the rules in `skills/project-conventions/SKILL.md` under "Writing style for every artifact". Zero em dashes of any form. No Unicode em dash (U+2014), no en dash (U+2013), no double-hyphen substitute. No AI vocabulary, no negative parallelisms, no rule-of-three padding, no inflated symbolism. Every ADR Context, Decision Drivers, Option pros and cons, Decision justification, Consequences, every arc42 section, and every plan-context entry is written in that style. Before you save an artifact, scan it for U+2014 and U+2013 and fix any hit.
 
 ## What you do NOT create
 

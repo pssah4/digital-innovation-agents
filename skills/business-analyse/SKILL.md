@@ -22,6 +22,8 @@ document as the foundation for the Requirements Engineer.
 
 **Method catalog:** Read `references/innovation-methods.md` for the full trigger-to-method lookup and the probing techniques. Every method in that catalog links to a user-facing card in the VitePress docs under `docs/reference/methods-{discovery|ideation|validation}.md`. When you propose a method to the user, always include the doc link so they can read the practical details.
 
+**Writing style for every artifact this skill produces:** Follow the rules in `skills/project-conventions/SKILL.md` under "Writing style for every artifact". Zero em dashes of any form. No Unicode em dash (U+2014), no en dash (U+2013), no double-hyphen substitute. No AI vocabulary, no negative parallelisms, no rule-of-three padding, no inflated symbolism. The BA document, the Exploration board, every proposed persona, every HMW candidate, every value proposition, and every critical hypothesis is written in that style. Before you save an artifact, scan it for U+2014 and U+2013 and fix any hit.
+
 ## Core principle: propose methods when input has gaps
 
 You do not grind through question lists. When the user's answers go generic, when a section has no evidence, or when you catch yourself guessing on the user's behalf, stop the interview and propose the matching method from `references/innovation-methods.md`.

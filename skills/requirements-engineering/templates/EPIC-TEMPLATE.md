@@ -17,13 +17,13 @@
 
 > Derived from the HMW question and the Value Proposition of the BA.
 
-FOR {target customer segment -- from HMW "user"}
-WHO {have need/problem -- from HMW "need" + "obstacle"}
-THE {product/solution -- from BA Value Proposition}
-IS A {product category -- from BA High-Level Concept}
-THAT {provides key benefit -- from BA Idea Potential "Value"}
-UNLIKE {competitive alternative -- from BA Competitor Analysis}
-OUR SOLUTION {primary differentiator -- from BA "The Wow" / "Unfair Advantage"}
+FOR {target customer segment, from HMW "user"}
+WHO {have need/problem, from HMW "need" and "obstacle"}
+THE {product/solution, from BA Value Proposition}
+IS A {product category, from BA High-Level Concept}
+THAT {provides key benefit, from BA Idea Potential "Value"}
+UNLIKE {competitive alternative, from BA Competitor Analysis}
+OUR SOLUTION {primary differentiator, from BA "The Wow" or "Unfair Advantage"}
 
 ## Business Outcomes (measurable)
 
@@ -34,8 +34,8 @@ OUR SOLUTION {primary differentiator -- from BA "The Wow" / "Unfair Advantage"}
 
 > Derived from the Critical Hypotheses of the BA (Section 7.3).
 
-- {Indicator 1}: {Description, how to measure} -- validates Hypothesis H-{XX}
-- {Indicator 2}: {Description, how to measure} -- validates Hypothesis H-{XX}
+- {Indicator 1}: {Description, how to measure}. Validates Hypothesis H-{XX}.
+- {Indicator 2}: {Description, how to measure}. Validates Hypothesis H-{XX}.
 
 ## Critical Hypotheses (from BA)
 

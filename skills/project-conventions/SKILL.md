@@ -110,6 +110,59 @@ Three living documents live side-by-side under `_devprocess/context/`:
 The numbering (`10_`, `20_`, `30_`) leaves room for future additions
 without renumbering.
 
+## Writing style for every artifact
+
+Every artifact produced by any V-Model skill (BA, EXPLORE, EPIC,
+FEATURE, ADR, arc42, plan-context, architect-handoff, backlog rows,
+bug-log entries, handoff-log entries, security-audit reports, release
+notes, CHANGELOG) follows the same writing rules. The rules apply to
+the prose the skill writes at runtime, not only to the templates.
+
+**No em dashes, ever.** No Unicode em dash (U+2014), no en dash
+(U+2013), no double-hyphen substitute written as two ASCII hyphens.
+Use a period, a comma, parentheses, or a plain "and" or "but". The
+user has explicitly said they hate em dashes. Every single one is a
+regression.
+
+**No AI writing tells.** These patterns leak into machine-generated
+prose and have to be avoided on purpose:
+
+- No negative parallelisms. Skip "not X but Y", "it is not about A,
+  it is about B", "more than just X". State the positive form.
+- No rule-of-three padding. If a default list has three parallel items,
+  drop to two, add a fourth, or rewrite.
+- No AI vocabulary: landscape, nuanced, delve, leverage, utilize,
+  intricate, crucial, pivotal, robust, seamless, game-changing,
+  revolutionary, unlock, empower, comprehensive, holistic, foster,
+  ensuring, highlighting, underscoring, emphasizing, reflecting,
+  symbolizing.
+- No inflated symbolism ("at its core", "fundamentally", "the real
+  question is", "this matters because").
+- No copula avoidance. Write "X is Y", not "X serves as Y" or "X
+  stands as Y".
+- No promotional language. No boasting adjectives.
+- No vague attributions ("it is often said", "many believe", "experts
+  argue") unless a specific source is named.
+- No filler phrases ("in order to", "it is important to note", "needless
+  to say", "due to the fact that").
+- No superficial -ing phrases ("highlighting the importance of X",
+  "reflecting the commitment to Y") tacked onto sentences to fake depth.
+- No title case in headings. Sentence case only.
+- No meta-signposting ("let me break this down", "here is what you need
+  to know"). Just write the content.
+- Active voice by default.
+
+**Grep before you save.** Before writing an artifact, the skill runs a
+mental grep for U+2014, U+2013, the double-hyphen substitute, and the
+forbidden vocabulary words ("crucial", "delve", "landscape", "foster",
+"nuanced"). Any hit gets rewritten. This applies whether the artifact
+is brand new, an edit, or a promotion from draft to validated.
+
+**Templates follow the same rule.** Every `skills/*/templates/*.md`
+file is held to the same standard. When a skill copies a template into
+`_devprocess/`, it copies the clean version, and any prose it fills
+into the placeholders is written in the same style.
+
 ## Language Conventions
 
 | Context | Language |

@@ -62,9 +62,9 @@
 ## 5. Potential Fields
 
 > Recurring themes that concern our users.
-> Indicators of concrete needs -- precursor to ideas for the IDEATION phase.
+> Indicators of concrete needs. Precursors to ideas for the IDEATION phase.
 
-1. **{Potential Field 1}**: {Description -- what pain or pattern is emerging?}
+1. **{Potential Field 1}**: {Description. What pain or pattern is emerging?}
 2. **{Potential Field 2}**: {Description}
 
 ---
@@ -114,7 +114,7 @@
 - {Insight about the context in which the problem occurs}
 
 ### Functional Insights
-> User actions -- how do they reach their goal?
+> User actions. How do they reach their goal?
 - {What do users actually do? What workarounds do they use?}
 
 ### Emotional Insights

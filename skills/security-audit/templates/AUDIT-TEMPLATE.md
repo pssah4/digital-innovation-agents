@@ -5,7 +5,7 @@
 | **Project** | {Projektname} |
 | **Date** | {YYYY-MM-DD} |
 | **Auditor** | Security Audit Skill |
-| **Scan Scope** | {Full / Partial -- welche Phasen} |
+| **Scan Scope** | {Full / Partial, welche Phasen} |
 | **Risk Rating** | {Critical / High / Medium / Low} |
 | **Languages** | {TypeScript / Python / etc.} |
 | **Previous Audit** | {Datum oder "First Audit"} |
@@ -39,7 +39,7 @@
 
 ### P1: Must Fix (Critical + High)
 
-{Detaillierte Findings -- Format siehe references/cwe-patterns.md}
+{Detaillierte Findings. Format siehe references/cwe-patterns.md}
 
 ### P2: Should Fix (Medium)
 
@@ -63,7 +63,7 @@
 
 ## Positive Findings
 
-{Was bereits gut umgesetzt ist -- Defense in Depth, vorhandene Massnahmen, etc.}
+{Was bereits gut umgesetzt ist. Defense in Depth, vorhandene Massnahmen, etc.}
 
 ---
 

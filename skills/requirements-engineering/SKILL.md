@@ -33,6 +33,8 @@ Templates are in `templates/` in this skill directory.
 
 **Method catalog:** The BA skill ships a method catalog at `skills/business-analyse/references/innovation-methods.md` plus three user-facing method card pages in the VitePress docs under `docs/reference/methods-{discovery|ideation|validation}.md`. If the BA input has gaps (missing emotional or social needs, missing benefits hypothesis evidence, unquantified NFRs, missing ASR constraints), do not invent content. Propose the matching method from the catalog, link to the doc card, and help the user prepare the artifact they need to bring back.
 
+**Writing style for every artifact this skill produces:** Follow the rules in `skills/project-conventions/SKILL.md` under "Writing style for every artifact". Zero em dashes of any form. No Unicode em dash (U+2014), no en dash (U+2013), no double-hyphen substitute. No AI vocabulary, no negative parallelisms, no rule-of-three padding. Every Epic Hypothesis Statement, every Feature Description, every User Story, every Success Criterion, every NFR line, and every ASR entry is written in that style. Before you save an artifact, scan it for U+2014 and U+2013 and fix any hit.
+
 Common RE triggers and matching methods:
 
 - Feature lacks emotional or social user stories: propose **Jobs to be done** (`docs/reference/methods-ideation.md#jobs-to-be-done`).
