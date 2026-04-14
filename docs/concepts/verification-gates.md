@@ -101,14 +101,6 @@ output has to be read, the verification has to succeed. No shortcuts.
   the orchestrator verifies that the final test run and security audit
   are both green
 
-## Credit where due
-
-This pattern was adapted from
-[superpowers `verification-before-completion`](https://github.com/obra/superpowers/blob/main/skills/verification-before-completion/SKILL.md)
-by Jesse Vincent. It is one of the few patterns Digital Innovation
-Agents imports almost verbatim. The original formulation is hard to
-improve.
-
 ## See also
 
 - [Coding guide](../guides/coding): Phase 4a Verification Gate detail

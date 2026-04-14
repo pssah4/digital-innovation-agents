@@ -1,0 +1,100 @@
+/**
+ * Digital Innovation Agents theme
+ *
+ * Vibrant orange as brand color (clearly distinct from VitePress default
+ * indigo/purple and from the Obsilo palette). Teal as accent.
+ */
+
+:root {
+  /* Brand colors: vibrant orange */
+  --vp-c-brand-1: #f97316;
+  --vp-c-brand-2: #ea580c;
+  --vp-c-brand-3: #c2410c;
+  --vp-c-brand-soft: rgba(249, 115, 22, 0.14);
+
+  /* Accent colors: bright teal */
+  --vp-c-tip-1: #0d9488;
+  --vp-c-tip-2: #0f766e;
+  --vp-c-tip-3: #115e59;
+  --vp-c-tip-soft: rgba(13, 148, 136, 0.14);
+
+  /* Buttons */
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-text: #ffffff;
+  --vp-button-brand-bg: #f97316;
+  --vp-button-brand-hover-border: transparent;
+  --vp-button-brand-hover-text: #ffffff;
+  --vp-button-brand-hover-bg: #ea580c;
+  --vp-button-brand-active-border: transparent;
+  --vp-button-brand-active-text: #ffffff;
+  --vp-button-brand-active-bg: #c2410c;
+
+  /* Links + active states */
+  --vp-c-text-accent: #f97316;
+
+  /* Home hero gradient (optional, subtle) */
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: -webkit-linear-gradient(120deg, #f97316 30%, #0d9488);
+  --vp-home-hero-image-background-image: linear-gradient(-45deg, #f97316 50%, #0d9488 50%);
+  --vp-home-hero-image-filter: blur(44px);
+}
+
+.dark {
+  /* Dark mode: softer orange to avoid glare on dark background */
+  --vp-c-brand-1: #fb923c;
+  --vp-c-brand-2: #f97316;
+  --vp-c-brand-3: #ea580c;
+  --vp-c-brand-soft: rgba(251, 146, 60, 0.16);
+
+  --vp-c-tip-1: #14b8a6;
+  --vp-c-tip-2: #0d9488;
+  --vp-c-tip-3: #0f766e;
+  --vp-c-tip-soft: rgba(20, 184, 166, 0.16);
+
+  --vp-button-brand-bg: #fb923c;
+  --vp-button-brand-hover-bg: #f97316;
+  --vp-button-brand-active-bg: #ea580c;
+
+  --vp-c-text-accent: #fb923c;
+}
+
+/* Dialog mock styling for the landing page */
+.dialog-turn {
+  border-left: 3px solid var(--vp-c-brand-1);
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  background: var(--vp-c-bg-soft);
+  border-radius: 0 6px 6px 0;
+}
+
+.dialog-turn.user {
+  border-left-color: var(--vp-c-tip-1);
+}
+
+.dialog-turn .speaker {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--vp-c-text-2);
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.dialog-turn.agent .speaker {
+  color: var(--vp-c-brand-1);
+}
+
+.dialog-turn.user .speaker {
+  color: var(--vp-c-tip-1);
+}
+
+.dialog-step {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--vp-c-text-3);
+  margin: 1.5rem 0 0.5rem;
+  font-weight: 600;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px dashed var(--vp-c-divider);
+}

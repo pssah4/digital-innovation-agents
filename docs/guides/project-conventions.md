@@ -58,7 +58,6 @@ filenames.
 - **Public documentation**: English
 - **Code, identifiers, variables**: English
 
-## Source
+## Read the skill file
 
-Full skill content in
-[`skills/project-conventions/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/project-conventions/SKILL.md).
+[`skills/project-conventions/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/project-conventions/SKILL.md) on GitHub.

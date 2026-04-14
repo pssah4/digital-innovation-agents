@@ -144,10 +144,11 @@ never frozen after Phase 3. They evolve with the code. See
 context in `30_handoffs.md` with references to FIX-NN bugs, Transition
 question for `/testing`).
 
-## Source
+## Read the skill file
 
-The canonical skill content is in
-[`skills/coding/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/coding/SKILL.md).
+Want to see the exact instructions the agent follows? The skill file
+is [`skills/coding/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/coding/SKILL.md)
+on GitHub.
 
 ## What's next
 

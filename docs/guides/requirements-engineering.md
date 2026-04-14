@@ -40,7 +40,6 @@ with numbers, identified ASRs (Critical/Moderate), and Definition of Done.
 
 Ends with the 3-part Handoff Ritual. Next phase: `/architecture`.
 
-## Source
+## Read the skill file
 
-Full skill content in
-[`skills/requirements-engineering/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/requirements-engineering/SKILL.md).
+[`skills/requirements-engineering/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/requirements-engineering/SKILL.md) on GitHub.

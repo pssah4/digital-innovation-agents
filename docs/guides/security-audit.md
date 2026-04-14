@@ -46,7 +46,6 @@ Ends with the 3-part Handoff Ritual. Next phase: Phase 7 Release
 Closure via `/v-model-workflow`. The handoff context includes the
 release readiness verdict (green, yellow, or red).
 
-## Source
+## Read the skill file
 
-Full skill content in
-[`skills/security-audit/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/security-audit/SKILL.md).
+[`skills/security-audit/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/security-audit/SKILL.md) on GitHub.

@@ -99,7 +99,7 @@ If you want the frozen v1.0.0 (Classic) release explicitly:
 
 The v1.0.0 snapshot is not available through the plugin marketplace.
 It remains installable via the legacy script for historical reference
-or to reproduce v1 behavior. See [v1.0.0 release notes](../releases/v1.0.0).
+or to reproduce v1 behavior.
 
 ## Still stuck?
 

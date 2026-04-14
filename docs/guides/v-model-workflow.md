@@ -117,10 +117,11 @@ runs 5 steps automatically:
 The result is a release-ready state with documentation that matches
 the code.
 
-## Source
+## Read the skill file
 
-The canonical skill content is in
-[`skills/v-model-workflow/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/v-model-workflow/SKILL.md).
+Want to see the exact instructions the agent follows?
+[`skills/v-model-workflow/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/v-model-workflow/SKILL.md)
+on GitHub.
 
 ## What's next
 

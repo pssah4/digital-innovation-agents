@@ -45,7 +45,6 @@ The handoff context documents any accepted coverage gaps with
 justification, brittle tests, and security-adjacent observations
 noticed during test writing.
 
-## Source
+## Read the skill file
 
-Full skill content in
-[`skills/testing/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/testing/SKILL.md).
+[`skills/testing/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/testing/SKILL.md) on GitHub.

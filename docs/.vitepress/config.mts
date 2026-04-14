@@ -78,16 +78,6 @@ const conceptsSidebar = [
   },
 ]
 
-const releasesSidebar = [
-  {
-    text: 'Releases',
-    items: [
-      { text: 'v2.0.0', link: '/releases/v2.0.0' },
-      { text: 'v1.0.0 (Classic)', link: '/releases/v1.0.0' },
-    ],
-  },
-]
-
 export default withMermaid(
   defineConfig({
     title: 'Digital Innovation Agents',
@@ -111,7 +101,6 @@ export default withMermaid(
         { text: 'Guides', link: '/guides/v-model-workflow', activeMatch: '/guides/' },
         { text: 'Reference', link: '/reference/commands', activeMatch: '/reference/' },
         { text: 'Concepts', link: '/concepts/v-model', activeMatch: '/concepts/' },
-        { text: 'Releases', link: '/releases/v2.0.0', activeMatch: '/releases/' },
         { text: 'About', link: '/about' },
       ],
       sidebar: {
@@ -119,7 +108,6 @@ export default withMermaid(
         '/guides/': guidesSidebar,
         '/reference/': referenceSidebar,
         '/concepts/': conceptsSidebar,
-        '/releases/': releasesSidebar,
       },
       socialLinks: [
         { icon: 'github', link: 'https://github.com/pssah4/digital-innovation-agents' },

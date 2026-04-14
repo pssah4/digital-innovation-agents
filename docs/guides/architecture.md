@@ -37,7 +37,6 @@ handoff context captures tech-stack justification, rejected alternatives
 (so `/coding` doesn't reopen them without a fresh reason), and known
 risks.
 
-## Source
+## Read the skill file
 
-Full skill content in
-[`skills/architecture/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/architecture/SKILL.md).
+[`skills/architecture/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/architecture/SKILL.md) on GitHub.

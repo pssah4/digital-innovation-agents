@@ -109,10 +109,11 @@ handing off with a half-finished BA.
 question for `/requirements-engineering`). See
 [Handoff Rituals](../concepts/handoff-rituals).
 
-## Source
+## Read the skill file
 
-The canonical skill content is in
-[`skills/business-analyse/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/business-analyse/SKILL.md).
+Want to see the exact instructions the agent follows?
+[`skills/business-analyse/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/business-analyse/SKILL.md)
+on GitHub.
 
 ## What's next
 
