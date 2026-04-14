@@ -66,14 +66,14 @@ description: Common installation issues and their solutions per platform.
 
 ### The agent doesn't follow the workflow
 
-This is by design -- the workflow is **advisory**, not enforcing. If
+This is by design. The workflow is advisory, not enforcing. If
 you want the agent to follow it, explicitly invoke `/v-model-workflow`
-or a specific phase skill. If you don't want the workflow, you can opt
-out at any point:
+or a specific phase skill. If you do not want the workflow, you can
+opt out at any point:
 
-- "stop" / "exit" / "I want to do something else" -- leaves the current loop
-- "ignore the V-Model today" -- disables the skills for the session
-- `/plugin disable digital-innovation-agents` -- permanent disable
+- "stop" / "exit" / "I want to do something else": leaves the current loop
+- "ignore the V-Model today": disables the skills for the session
+- `/plugin disable digital-innovation-agents`: permanent disable
 
 ### Artifacts aren't written to `_devprocess/`
 

@@ -5,26 +5,26 @@ description: The orchestrator that guides projects through all 7 V-Model phases,
 
 # V-Model workflow
 
-`/v-model-workflow` is the **orchestrator**. It drives projects through
+`/v-model-workflow` is the orchestrator. It drives projects through
 all 7 V-Model phases, manages the handoffs between phase skills, and
 ends with Phase 7 Release Closure.
 
 ## When to use the orchestrator
 
-**Use `/v-model-workflow` when:**
+Use `/v-model-workflow` when:
 
-- You're starting a new project and don't know which phase to begin with
+- You are starting a new project and do not know which phase to begin with
 - You want the full cycle without manually invoking each phase skill
-- You're unsure where you are in the V-Model and need an orientation
+- You are unsure where you are in the V-Model and need an orientation
 - You want automatic phase transitions (the orchestrator asks before
   each transition, but defaults to "yes" when you agree)
 
-**Invoke a phase skill directly when:**
+Invoke a phase skill directly when:
 
-- You know exactly which phase you need (e.g. `/coding` because
+- You know exactly which phase you need (for example, `/coding` because
   everything upstream is done)
 - You want to iterate on one phase multiple times without moving on
-- You're resuming a project mid-workflow
+- You are resuming a project mid-workflow
 
 Both modes produce the same artifacts. The orchestrator just reduces
 friction by handling transitions for you.
@@ -47,18 +47,19 @@ Phase 5 and 6 (verification), and ends with Phase 7 (release closure).
 
 ## Orchestrated phase transitions
 
-Every phase skill ends with a mandatory **Handoff Ritual** (3 parts):
+Every phase skill ends with a mandatory Handoff Ritual in 3 parts:
 
-1. **Artifact report** -- what was produced, with file paths
-2. **Handoff context** -- appended to `_devprocess/context/30_handoffs.md`
+1. **Artifact report**: what was produced, with file paths
+2. **Handoff context**: appended to `_devprocess/context/30_handoffs.md`
    with open questions, assumptions, and next-phase inputs
-3. **Transition question** -- "Start `/<next-skill>` now, or review first?"
+3. **Transition question**: "Start `/<next-skill>` now, or review first?"
 
 When running inside `/v-model-workflow`, the orchestrator reads the
-handoff context and launches the next skill automatically. **Every
-transition needs either an implicit "yes" (you say "go"/"next"/"continue")
-or an explicit approval.** You can always opt out: "stop", "I want to
-check first", or simply asking an unrelated question pauses the workflow.
+handoff context and launches the next skill automatically. Every
+transition needs either an implicit "yes" (you say "go", "next",
+"continue") or an explicit approval. You can always opt out: "stop",
+"I want to check first", or simply asking an unrelated question
+pauses the workflow.
 
 No endless loops. The orchestrator respects user control at every step.
 
@@ -68,9 +69,9 @@ Type `/v-model-workflow` when you want to enter the workflow at a
 specific phase. The orchestrator asks:
 
 ```
-V-Model Workflow -- where are you?
+V-Model Workflow: where are you?
 
-A) Starting from scratch            -> /business-analyse
+A) Starting from scratch             -> /business-analyse
 B) Problem clear, need requirements  -> /requirements-engineering
 C) Requirements exist, need arch     -> /architecture
 D) Architecture ready                -> /coding
@@ -85,18 +86,18 @@ you are and drives the remainder of the cycle.
 
 ## Opt-out
 
-The workflow is **advisory, not enforcing**. You can:
+The workflow is advisory, not enforcing. You can:
 
-- **Leave the loop**: At any handoff, say "stop" or ask something
+- **Leave the loop**: at any handoff, say "stop" or ask something
   unrelated. The workflow pauses immediately. No "are you sure?"
   pushback.
-- **Temporarily disable the skills**: Say "ignore the V-Model today"
+- **Temporarily disable the skills**: say "ignore the V-Model today"
   or "just help me with X without the workflow". The agent works in
   plain mode without invoking any phase skill.
 - **Permanently disable**: `/plugin disable digital-innovation-agents`
   removes the SessionStart hook entirely.
 
-The workflow state is preserved in `_devprocess/` -- you can resume
+The workflow state is preserved in `_devprocess/`. You can resume
 later by re-invoking `/v-model-workflow`.
 
 ## Phase 7: Release Closure
@@ -104,17 +105,17 @@ later by re-invoking `/v-model-workflow`.
 Phase 7 is the final phase that closes the cycle. The orchestrator
 runs 5 steps automatically:
 
-1. **Final artifact synchronization** across all phases -- BA, Features,
+1. **Final artifact synchronization** across all phases: BA, Features,
    ADRs, arc42, plan-context all reflect the actual implemented state
 2. **Generate release notes** from implemented features, fixed bugs
    (`20_bugs.md`), security findings, breaking changes
-3. **Update CHANGELOG** -- move `[Unreleased]` to `[{version}] - {date}`,
+3. **Update CHANGELOG**: move `[Unreleased]` to `[{version}] - {date}`,
    decide semver bump (patch/minor/major)
-4. **Backlog cleanup** -- open bugs referenced, future ideas captured
+4. **Backlog cleanup**: open bugs referenced, future ideas captured
 5. **Closing report** to the user with a full cycle summary
 
-The result is a release-ready state with documentation that truly
-matches the code.
+The result is a release-ready state with documentation that matches
+the code.
 
 ## Source
 
@@ -123,7 +124,7 @@ The canonical skill content is in
 
 ## What's next
 
-- [Business Analysis guide](./business-analyse) -- Phase 1 detail
-- [Coding guide](./coding) -- Phase 4 detail (the heart of the system)
-- [V-Model concept](../concepts/v-model) -- why this shape?
-- [Handoff Rituals concept](../concepts/handoff-rituals) -- how transitions work
+- [Business Analysis guide](./business-analyse): Phase 1 detail
+- [Coding guide](./coding): Phase 4 detail, the heart of the system
+- [V-Model concept](../concepts/v-model): why this shape?
+- [Handoff Rituals concept](../concepts/handoff-rituals): how transitions work

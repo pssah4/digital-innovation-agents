@@ -5,8 +5,8 @@ description: The mandatory 3-part ritual every phase skill runs at the end to en
 
 # Handoff Rituals
 
-Every V-Model phase skill runs a **3-part Handoff Ritual** at the end
-of its phase. This is the mechanism that keeps phase transitions
+Every V-Model phase skill runs a 3-part Handoff Ritual at the end of
+its phase. This is the mechanism that keeps phase transitions
 structured without introducing heavy gates or approval bureaucracy.
 
 ## The three parts
@@ -28,7 +28,7 @@ of what was done.
 ### Part 2: Handoff context
 
 The skill appends a new entry to `_devprocess/context/30_handoffs.md`
-with content that **isn't obvious from the artifacts alone**:
+with content that is not obvious from the artifacts alone:
 
 - Open decisions that were deferred
 - Assumptions that were made but not confirmed
@@ -38,7 +38,7 @@ with content that **isn't obvious from the artifacts alone**:
 Example entry in `30_handoffs.md`:
 
 ```markdown
-## 2026-04-14 14:30 -- business-analyse -> requirements-engineering
+## 2026-04-14 14:30, business-analyse -> requirements-engineering
 
 **Scope:** PoC
 
@@ -50,9 +50,9 @@ Example entry in `30_handoffs.md`:
 - HMW: "How might we help distributed product teams run retros that
   surface root causes, so action items actually ship?"
 - 2 Personas identified, Persona A (Product Manager) is primary
-- Critical hypothesis: "async format doesn't kill group dynamics" --
+- Critical hypothesis: "async format does not kill group dynamics",
   must be validated in PoC
-- Assumption: Slack integration is possible -- architect please verify
+- Assumption: Slack integration is possible. Architect please verify.
 ```
 
 The next phase skill reads this entry to pick up context.
@@ -77,33 +77,33 @@ so the user can resume later.
 
 ## Why 3 parts, not a gate?
 
-A **gate** is a pass/fail mechanism that blocks progress. Gates sound
+A gate is a pass/fail mechanism that blocks progress. Gates sound
 good in theory but duplicate the quality checks already inside each
-skill (e.g. `/business-analyse` already runs quality gates on its
-Exploration Board before handoff). An extra outer gate adds
+skill. For example, `/business-analyse` already runs quality gates on
+its Exploration Board before handoff. An extra outer gate adds
 bureaucracy without adding rigor.
 
-A **handoff ritual** is different: it's a deliberate, structured
-transfer of context. The ritual ensures:
+A handoff ritual is different. It is a deliberate, structured transfer
+of context. The ritual ensures:
 
 - Nothing is lost between phases (artifact report)
-- The next phase knows what's important and what's unknown (handoff context)
+- The next phase knows what is important and what is unknown (handoff context)
 - The user is in control at every transition (explicit question)
 
-It's verbose enough to be structured, but lightweight enough not to
+It is verbose enough to be structured, but lightweight enough not to
 slow the workflow down.
 
 ## The `30_handoffs.md` log
 
-`_devprocess/context/30_handoffs.md` is an **append-only** log of
-every phase transition in the project. Each entry has:
+`_devprocess/context/30_handoffs.md` is an append-only log of every
+phase transition in the project. Each entry has:
 
-- Timestamp and phase transition (e.g. `architecture -> coding`)
-- Artifacts produced / updated with full paths
+- Timestamp and phase transition (for example, `architecture -> coding`)
+- Artifacts produced or updated with full paths
 - Handoff context (free-form prose: open questions, risks, assumptions)
 
-The log is never rewritten or cleaned up -- it's a historical record.
-The next phase skill reads the latest entry; older entries stay for
+The log is never rewritten or cleaned up. It is a historical record.
+The next phase skill reads the latest entry. Older entries stay for
 audit and "how did we get here?" investigations.
 
 ## Integration with the orchestrator
@@ -112,7 +112,7 @@ When `/v-model-workflow` runs, the orchestrator reads the handoff
 context after each ritual and uses it as input for the next phase.
 When a skill runs directly (without the orchestrator), the ritual
 still runs, and the next skill finds the context in `30_handoffs.md`
-when it's eventually invoked.
+when it is eventually invoked.
 
 Both paths end up with the same artifacts and the same traceability.
 
@@ -120,14 +120,14 @@ Both paths end up with the same artifacts and the same traceability.
 
 Every phase skill (`/business-analyse`, `/requirements-engineering`,
 `/architecture`, `/coding`, `/testing`, `/security-audit`) implements
-this ritual at the end. The ritual is **mandatory** -- the skill does
-not consider itself complete until the ritual has run.
+this ritual at the end. The ritual is mandatory. The skill does not
+consider itself complete until the ritual has run.
 
 This is documented in `skills/<skill>/SKILL.md` under a section titled
 "Handoff Ritual (mandatory at end of phase)".
 
 ## See also
 
-- [V-Model workflow guide](../guides/v-model-workflow) -- the orchestrator
-- [Artifacts reference](../reference/artifacts) -- including `30_handoffs.md`
-- [V-Model concept](./v-model) -- the cycle the rituals serve
+- [V-Model workflow guide](../guides/v-model-workflow): the orchestrator
+- [Artifacts reference](../reference/artifacts): including `30_handoffs.md`
+- [V-Model concept](./v-model): the cycle the rituals serve

@@ -21,7 +21,7 @@ hero:
 features:
   - icon: 🧭
     title: V-Model workflow
-    details: Seven structured phases -- Business Analysis, Requirements Engineering, Architecture, Coding, Testing, Security Audit, Release Closure. Each phase produces artifacts that feed the next.
+    details: Seven structured phases. Business Analysis, Requirements Engineering, Architecture, Coding, Testing, Security Audit, Release Closure. Each phase produces artifacts that feed the next.
     link: /concepts/v-model
     linkText: Learn about the V-Model
 
@@ -39,7 +39,7 @@ features:
 
   - icon: 🚫
     title: Tech-agnostic Success Criteria
-    details: Requirements stay technology-neutral. No OAuth, REST, PostgreSQL in Success Criteria -- those belong in Technical NFRs. Enforced with a forbidden-terms list.
+    details: Requirements stay technology-neutral. No OAuth, REST, PostgreSQL in Success Criteria. Those belong in Technical NFRs. Enforced with a forbidden-terms list.
     link: /concepts/tech-agnostic-requirements
     linkText: See the rules
 

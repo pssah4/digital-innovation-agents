@@ -43,11 +43,11 @@ filenames.
 
 ## The `_devprocess/context/` files
 
-- **`10_backlog.md`** -- living backlog, maintained by `/requirements-engineering`
+- **`10_backlog.md`**: living backlog, maintained by `/requirements-engineering`
   and updated at the end of every V-Model cycle
-- **`20_bugs.md`** -- FIX-NN bug log, written by `/coding` Phase 3c
+- **`20_bugs.md`**: FIX-NN bug log, written by `/coding` Phase 3c
   (Debugging Protocol)
-- **`30_handoffs.md`** -- append-only phase handoffs log, written by
+- **`30_handoffs.md`**: append-only phase handoffs log, written by
   each phase skill at the end of its run
 
 ## Language rules

@@ -40,12 +40,12 @@ description: Naming rules, language conventions, commit style, and git workflow.
 | Skill files (`SKILL.md`) | English |
 
 The skill files are written in English so they are portable across
-language contexts. The agent **automatically switches to the user's
-language in dialog**.
+language contexts. The agent automatically switches to the user's
+language in dialog.
 
 ## Bug IDs
 
-- `FIX-NN` -- bug ID with priority `P0` (immediate), `P1` (short-term), or `P2` (medium-term)
+- `FIX-NN`: bug ID with priority `P0` (immediate), `P1` (short-term), or `P2` (medium-term)
 - Example: `FIX-042 (P1)`: Empty array causes null pointer in feature parser
 
 Every bug found during `/coding` lands in `_devprocess/context/20_bugs.md`
@@ -54,7 +54,7 @@ the error).
 
 ## Security finding IDs
 
-- `H-N` / `M-N` / `L-N` -- High / Medium / Low severity
+- `H-N` / `M-N` / `L-N`: High / Medium / Low severity
 - Example: `H-3`: XSS vulnerability in user-controlled HTML rendering
 
 ## Commit style
@@ -83,10 +83,10 @@ Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
 
 ## Git workflow
 
-- **Dual-remote:** private (origin, all branches) + public (only main)
-- **Branch flow:** `feature/*` -> `dev` -> `main` -> `public/main`
-- **Safe-merge:** merges to `dev` via `scripts/merge-to-dev.sh` (when available)
-- **No interactive git commands:** no `git rebase -i`, no `git add -i`
+- **Dual-remote**: private (origin, all branches) + public (only main)
+- **Branch flow**: `feature/*` -> `dev` -> `main` -> `public/main`
+- **Safe-merge**: merges to `dev` via `scripts/merge-to-dev.sh` (when available)
+- **No interactive git commands**: no `git rebase -i`, no `git add -i`
 - **Never amend published commits** without explicit user consent
 - **Two-stage stripping** for public distribution: dev tooling first,
   then internal docs
@@ -95,13 +95,13 @@ Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
 
 Every non-trivial plan follows the same structure:
 
-1. **Context** -- diagnostic, not descriptive. Root-cause analysis.
-2. **Changes** -- one subsection per file, BEFORE / AFTER code blocks
-3. **File summary** -- table (File | Change | Risk)
-4. **Not affected** -- explicit list of unchanged files (blast radius)
-5. **Verification** -- acceptance criteria, build always step 1
+1. **Context**: diagnostic, not descriptive. Root-cause analysis.
+2. **Changes**: one subsection per file, BEFORE / AFTER code blocks
+3. **File summary**: table (File | Change | Risk)
+4. **Not affected**: explicit list of unchanged files (blast radius)
+5. **Verification**: acceptance criteria, build always step 1
 
 ## See also
 
-- [Artifacts](./artifacts) -- directory structure
+- [Artifacts](./artifacts): directory structure
 - [Project Conventions guide](../guides/project-conventions)

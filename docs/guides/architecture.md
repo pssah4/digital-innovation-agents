@@ -5,8 +5,8 @@ description: Transform requirements into Architecture Decision Records (ADRs), a
 
 # Architecture
 
-`/architecture` transforms requirements into architecture **proposals**
--- the final decisions are made by `/coding` based on the real codebase.
+`/architecture` transforms requirements into architecture **proposals**.
+The final decisions are made by `/coding` based on the real codebase.
 
 **Input:** Epics, Features, ASRs, NFRs from `/requirements-engineering`
 **Output:** ADRs, arc42, plan-context.md

@@ -7,7 +7,7 @@ description: Install Digital Innovation Agents on your AI coding platform of cho
 
 Digital Innovation Agents works on multiple AI coding platforms. Pick
 the one you use and follow the steps below. All installations give you
-the same set of V-Model skills -- only the registration mechanism differs.
+the same set of V-Model skills. Only the registration mechanism differs.
 
 ## Claude Code (recommended)
 
@@ -16,7 +16,7 @@ the same set of V-Model skills -- only the registration mechanism differs.
 /plugin install digital-innovation-agents@pssah4-skills
 ```
 
-Start a new session and type `/` -- the skills appear in autocomplete.
+Start a new session and type `/`. The skills appear in autocomplete.
 The `using-digital-innovation-agents` skill loads automatically at
 session start to give you an orientation of the workflow.
 
@@ -112,15 +112,15 @@ Start a new session on your platform and try one of these:
 /business-analyse          Problem exploration, ideation, validation
 ```
 
-Or ask a natural-language question like **"help me analyze this
-business problem"** or **"let's plan this feature"**. The agent should
+Or ask a natural-language question like "help me analyze this
+business problem" or "let's plan this feature". The agent should
 invoke the relevant skill.
 
 ## What's next
 
-- [Run your first Business Analysis](./first-business-analysis) -- a
+- [Run your first Business Analysis](./first-business-analysis): a
   concrete walkthrough of `/business-analyse`
-- [A full V-Model run](./full-v-model-run) -- the whole cycle end to end,
+- [A full V-Model run](./full-v-model-run): the whole cycle end to end,
   from raw idea to release closure
-- [V-Model workflow guide](../guides/v-model-workflow) -- how the
+- [V-Model workflow guide](../guides/v-model-workflow): how the
   orchestrator treats phase transitions

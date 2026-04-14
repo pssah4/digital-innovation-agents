@@ -5,7 +5,7 @@ description: Walk through a concrete business analysis with the /business-analys
 
 # Your first Business Analysis
 
-Let's run a real business analysis. We'll take an idea, scope it, explore
+Let's run a real business analysis. We take an idea, scope it, explore
 the problem, design a solution, and end with a Business Analysis document
 that hands off cleanly to Requirements Engineering.
 
@@ -45,8 +45,8 @@ C) Minimum Viable Product (MVP)
    -> Functional product, 2-6 months
 ```
 
-Pick **B) PoC** for this walkthrough. The skill will now adapt the depth
-of the analysis -- shortened Exploration, full Ideation, hypothesis-based
+Pick **B) PoC** for this walkthrough. The skill now adapts the depth
+of the analysis: shortened Exploration, full Ideation, hypothesis-based
 Validation.
 
 ## Step 3: Exploration phase
@@ -54,17 +54,17 @@ Validation.
 The skill asks targeted questions, one at a time. For a PoC, expect
 8-12 questions covering:
 
-- **Users and personas**: Who is affected? Who pays? Who blocks?
-- **Needs**: What functional, emotional, and social needs exist?
-- **Insights**: What did you learn from real user statements?
-- **Trends and technology**: What's happening in the space?
-- **How-Might-We**: The synthesis question that bridges problem and solution
+- **Users and personas**: who is affected? Who pays? Who blocks?
+- **Needs**: what functional, emotional, and social needs exist?
+- **Insights**: what did you learn from real user statements?
+- **Trends and technology**: what is happening in the space?
+- **How-Might-We**: the synthesis question that bridges problem and solution
 
-Important: the skill **co-creates** artifacts with you. It proposes a
+Important: the skill co-creates artifacts with you. It proposes a
 draft persona and asks you to confirm or correct. It cites which user
 statement an insight comes from. Nothing is invented in the background.
 
-At the end of Exploration, you get a **How-Might-We question** like:
+At the end of Exploration, you get a How-Might-We question like:
 
 > How might we help distributed product teams run retros that surface
 > root causes, so action items actually ship?
@@ -83,9 +83,9 @@ solution. For a PoC, expect 8-10 questions:
 Example output of Idea Potential:
 
 ```
-Value/Urgency:    8/10 -- retros are a well-known pain point
-Transferability: 9/10 -- applies to any distributed team
-Feasibility:     6/10 -- async UX is tricky
+Value/Urgency:    8/10 (retros are a well-known pain point)
+Transferability: 9/10 (applies to any distributed team)
+Feasibility:     6/10 (async UX is tricky)
 ```
 
 ## Step 5: Validation phase
@@ -98,8 +98,8 @@ define test methods.
 
 The skill now creates two artifacts:
 
-- `_devprocess/analysis/BA-retrospectives.md` -- the full Business Analysis
-- `_devprocess/analysis/EXPLORE-retrospectives.md` -- the Exploration Board
+- `_devprocess/analysis/BA-retrospectives.md`: the full Business Analysis
+- `_devprocess/analysis/EXPLORE-retrospectives.md`: the Exploration Board
 
 Both follow the templates in `skills/business-analyse/templates/`.
 
@@ -119,5 +119,5 @@ the skill pauses and you can review the BA before moving on.
 
 - The BA document is the input for [`/requirements-engineering`](../guides/requirements-engineering),
   which turns it into Epics, Features, and tech-agnostic Success Criteria.
-- Or run the entire cycle in one go with [`/v-model-workflow`](../guides/v-model-workflow)
-  -- see the next tutorial: [A full V-Model run](./full-v-model-run).
+- Or run the entire cycle in one go with [`/v-model-workflow`](../guides/v-model-workflow).
+  See the next tutorial: [A full V-Model run](./full-v-model-run).

@@ -18,9 +18,9 @@ description: Sebastian Hanke, creator of Digital Innovation Agents, an AI-augmen
 
 ## About me
 
-I'm Sebastian, a product and technology generalist based in Germany. I've spent most of my career working on strategy, product development, and applied technology -- sometimes with early-stage projects, sometimes with established teams.
+I'm Sebastian, a product and technology generalist based in Germany. I've spent most of my career working on strategy, product development, and applied technology, sometimes with early-stage projects, sometimes with established teams.
 
-My interest in how teams move ideas from "this could work" to "this is live in production" led me to build Digital Innovation Agents. The goal: make AI coding assistants follow a structured V-Model workflow, so the path from raw idea to production code is deliberate, traceable, and reviewable -- not a black-box one-shot from prompt to pull request.
+My interest in how teams move ideas from "this could work" to "this is live in production" led me to build Digital Innovation Agents. The goal: make AI coding assistants follow a structured V-Model workflow, so the path from raw idea to production code is deliberate, traceable, and reviewable. Not a black-box one-shot from prompt to pull request.
 
 ## Why Digital Innovation Agents
 

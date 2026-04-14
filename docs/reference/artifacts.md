@@ -53,14 +53,14 @@ the change. See [Living Documents](../concepts/living-documents).
 `10_backlog.md`, `20_bugs.md`, and `30_handoffs.md` serve different
 purposes:
 
-- **`10_backlog.md`** -- living backlog. Entries for features not yet
+- **`10_backlog.md`**: living backlog. Entries for features not yet
   built, deferred issues, and future ideas. Written by
   `/requirements-engineering` and updated at the end of every V-Model cycle.
-- **`20_bugs.md`** -- FIX-NN bug log. Every bug found during `/coding`
+- **`20_bugs.md`**: FIX-NN bug log. Every bug found during `/coding`
   Phase 3c (Debugging Protocol) gets an entry with causal chain and
   priority. Resolved bugs carry the commit SHA and regression-test
   verification status.
-- **`30_handoffs.md`** -- append-only phase handoffs log. Each phase
+- **`30_handoffs.md`**: append-only phase handoffs log. Each phase
   skill appends one entry at the end of its run with artifacts produced,
   handoff context (open questions, assumptions, risks), and the next
   phase.
@@ -99,6 +99,6 @@ The `/project-conventions` skill runs this for you if you invoke it.
 
 ## See also
 
-- [Conventions](./conventions) -- naming rules and language conventions
-- [V-Model concept](../concepts/v-model) -- why this structure
+- [Conventions](./conventions): naming rules and language conventions
+- [V-Model concept](../concepts/v-model): why this structure
 - [Living Documents concept](../concepts/living-documents)

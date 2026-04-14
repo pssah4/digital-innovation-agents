@@ -6,31 +6,31 @@ description: The rule that Success Criteria must be technology-neutral, with a f
 # Tech-agnostic Requirements
 
 Digital Innovation Agents enforces a strict rule in Phase 2
-(Requirements Engineering): **Success Criteria must be
-technology-neutral.** Technology choices belong in a separate
-"Technical NFRs" section, which feeds Phase 3 (Architecture).
+(Requirements Engineering): Success Criteria must be technology-neutral.
+Technology choices belong in a separate "Technical NFRs" section, which
+feeds Phase 3 (Architecture).
 
 ## Why this matters
 
 When a Success Criterion says "OAuth 2.0 authentication with JWT
 tokens", the spec has already locked in a technology before the
-architect has made the decision. That's:
+architect has made the decision. That is:
 
 - **Premature**: the technical choice was made without architecture review
-- **Fragile**: the architect is boxed in -- if OAuth doesn't fit,
-  the Feature spec itself has to change
-- **Opaque**: the spec hides **why** authentication matters and what
+- **Fragile**: the architect is boxed in. If OAuth does not fit,
+  the Feature spec itself has to change.
+- **Opaque**: the spec hides why authentication matters and what
   the user-facing outcome is
 
-The fix is simple: Success Criteria describe **user-facing outcomes**.
-Technical NFRs describe **implementation constraints**. Architecture
+The fix is simple. Success Criteria describe user-facing outcomes.
+Technical NFRs describe implementation constraints. Architecture
 translates NFRs into ADRs.
 
 ## The separation
 
 | Success Criteria | Technical NFRs |
 |---|---|
-| What the user gets | How it's built |
+| What the user gets | How it is built |
 | Measurable, verifiable | Technology choices, concrete numbers |
 | Tech-neutral | Tech-specific |
 | Example: "Users are authenticated securely" | Example: "Auth via OAuth 2.0 / Azure AD B2C" |
@@ -86,7 +86,7 @@ Nothing is lost. The tech terms move from Success Criteria to the
 ```
 
 The architect sees both when creating ADRs. The business side sees
-only the SC -- clean, user-outcome-focused, verifiable.
+only the SC: clean, user-outcome-focused, verifiable.
 
 ## Enforcement in the skill
 
@@ -95,8 +95,8 @@ forbidden terms before writing the Feature file. If a term is found,
 the skill prompts the user to rephrase:
 
 ```
-FEATURE-042 SC-03 contains "PostgreSQL". That's a technology term --
-let's move it to Technical NFRs.
+FEATURE-042 SC-03 contains "PostgreSQL". That's a technology term.
+Let's move it to Technical NFRs.
 
 Rewrite SC-03 as a user-facing outcome. Example: "System efficiently
 handles 100K+ records without data loss."
@@ -104,11 +104,11 @@ handles 100K+ records without data loss."
 Should I update the file?
 ```
 
-## When the rule doesn't apply
+## When the rule does not apply
 
-Technical NFRs **do** contain tech terms -- that's the point. The
-forbidden list is only for Success Criteria, not for Technical NFRs,
-Definition of Done, or ADRs.
+Technical NFRs contain tech terms. That is the point. The forbidden
+list is only for Success Criteria, not for Technical NFRs, Definition
+of Done, or ADRs.
 
 ## Benefits
 
@@ -123,4 +123,4 @@ Definition of Done, or ADRs.
 ## See also
 
 - [Requirements Engineering guide](../guides/requirements-engineering)
-- [V-Model concept](./v-model) -- the phase where SC and NFR split matters
+- [V-Model concept](./v-model): the phase where SC and NFR split matters
