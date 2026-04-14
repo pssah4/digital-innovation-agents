@@ -97,9 +97,9 @@ hero:
     <text x="722" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">TDD · Debugging</text>
     <rect x="642" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="722" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Verification gate</text>
-    <rect x="632" y="115" width="180" height="120" rx="16" fill="#312e81" stroke="#818cf8" stroke-width="2.5"/>
-    <text x="722" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#e0e7ff">Coding</text>
-    <text x="722" y="205" text-anchor="middle" font-size="14" fill="#a5b4fc">Enhanced default agent</text>
+    <rect x="632" y="115" width="180" height="120" rx="16" fill="#4338ca" stroke="#a5b4fc" stroke-width="2.5"/>
+    <text x="722" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#eef2ff">Coding</text>
+    <text x="722" y="205" text-anchor="middle" font-size="14" fill="#c7d2fe">Enhanced default agent</text>
     <rect x="642" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="722" y="276" text-anchor="middle" font-size="15" fill="#475569">Source code</text>
     <text x="722" y="300" text-anchor="middle" font-size="15" fill="#475569">Bug log</text>
@@ -112,9 +112,9 @@ hero:
     <text x="926" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Unit + integration</text>
     <rect x="846" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="926" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Coverage targets</text>
-    <rect x="836" y="115" width="180" height="120" rx="16" fill="#581c87" stroke="#c084fc" stroke-width="2.5"/>
-    <text x="926" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#f3e8ff">Testing</text>
-    <text x="926" y="205" text-anchor="middle" font-size="14" fill="#d8b4fe">UT + IT</text>
+    <rect x="836" y="115" width="180" height="120" rx="16" fill="#7e22ce" stroke="#d8b4fe" stroke-width="2.5"/>
+    <text x="926" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#faf5ff">Testing</text>
+    <text x="926" y="205" text-anchor="middle" font-size="14" fill="#e9d5ff">UT + IT</text>
     <rect x="846" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="926" y="276" text-anchor="middle" font-size="15" fill="#475569">Test suites</text>
     <text x="926" y="300" text-anchor="middle" font-size="15" fill="#475569">Coverage</text>
@@ -127,10 +127,10 @@ hero:
     <text x="1130" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">LLM · SAST · SCA</text>
     <rect x="1050" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="1130" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Zero Trust</text>
-    <rect x="1040" y="115" width="180" height="120" rx="16" fill="#831843" stroke="#f472b6" stroke-width="2.5"/>
-    <text x="1130" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#fce7f3">Security</text>
-    <text x="1130" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#fce7f3">Audit</text>
-    <text x="1130" y="215" text-anchor="middle" font-size="14" fill="#f9a8d4">OWASP · LLM · SCA</text>
+    <rect x="1040" y="115" width="180" height="120" rx="16" fill="#be185d" stroke="#f9a8d4" stroke-width="2.5"/>
+    <text x="1130" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#fdf2f8">Security</text>
+    <text x="1130" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#fdf2f8">Audit</text>
+    <text x="1130" y="215" text-anchor="middle" font-size="14" fill="#fbcfe8">OWASP · LLM · SCA</text>
     <rect x="1050" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="1130" y="276" text-anchor="middle" font-size="15" fill="#475569">Audit report</text>
     <text x="1130" y="300" text-anchor="middle" font-size="15" fill="#475569">Backlog updates</text>

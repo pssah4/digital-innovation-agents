@@ -61,25 +61,6 @@
 
 /* ========== Hero ========== */
 
-/* Tools badge injected via home-hero-before slot */
-.hero-works-badge {
-  text-align: center;
-  margin: 0 auto -4rem;
-  padding: 0 24px;
-}
-
-.hero-works-badge span {
-  display: inline-block;
-  padding: 3px 14px;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 999px;
-  background: var(--vp-c-bg-soft);
-  font-size: 0.72rem;
-  color: var(--vp-c-text-2);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-}
-
 /* Center the entire hero block when no hero image is present */
 .VPHero:not(.has-image) .container {
   display: flex;
@@ -91,10 +72,11 @@
 
 .VPHero:not(.has-image) .main {
   text-align: center;
-  /* Override VitePress's scoped width: calc((100%/3)*2) rule at 960px+ so
-     the headline has the full container width to work with. */
+  /* Override VitePress's scoped width: calc((100%/3)*2) rule at 960px+.
+     Width matches the landing tile row (960px) so the headline, the
+     tagline, and the tiles all share one visual column. */
   width: 100%;
-  max-width: 1100px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
@@ -109,11 +91,11 @@
   justify-content: center;
 }
 
-/* Headline: strong solid color, no gradient, generous width.
+/* Headline: solid color, no gradient, matches tile-row width.
    white-space: pre-line respects hard line breaks from the YAML
    block scalar in hero.text so the comma sits at the end of line 1. */
 .VPHero .text {
-  max-width: 1040px;
+  max-width: 960px;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--vp-c-text-1);
@@ -122,19 +104,20 @@
 
 @media (min-width: 960px) {
   .VPHero .text {
-    max-width: 1040px;
+    max-width: 960px;
     font-size: 56px;
     line-height: 64px;
   }
 }
 
+/* Tagline matches the headline (and the tile row) width */
 .VPHero .tagline {
-  max-width: 720px;
+  max-width: 960px;
 }
 
 @media (min-width: 960px) {
   .VPHero .tagline {
-    max-width: 720px;
+    max-width: 960px;
   }
 }
 
@@ -204,7 +187,7 @@
 /* V-Model diagram sits below the tiles at the same width */
 .landing-diagram {
   max-width: 960px;
-  margin: 2rem auto 2rem;
+  margin: 4rem auto 2rem;
   padding: 0 24px;
   text-align: center;
 }
