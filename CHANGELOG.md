@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New `/reverse-engineering` skill as the brownfield entry point into
+  the V-Model workflow. Walks the V backwards over an existing
+  codebase and produces `plan-context.md`, ADRs (`Status: Inferred`),
+  an arc42 snapshot, a FEATURE inventory (`Status: Observed`), a seed
+  of backlog entries, and an evidence-based BA draft (`Status: Draft`)
+  with strict anti-hallucination rules: every claim carries a
+  `Source:` reference, placeholders replace guesses, personas are
+  never invented from code structure.
+- `/business-analyse` Phase 0 (Existing BA Detection) preflight. When
+  a draft BA exists, the skill enters Validation Mode and walks
+  section by section, confirming evidence-backed claims and filling
+  `[NEEDS USER INPUT]` placeholders via the normal interview. On
+  success it promotes the BA from `Status: Draft` to `Status: Validated`.
+- `/v-model-workflow` entry option A0 for brownfield projects, plus a
+  new "Reverse Engineering -> Business Analysis" transition that
+  always routes through `/business-analyse` to validate the WHY
+  before the forward walk resumes.
+
 ## [2.0.0] - 2026-04-14
 
 Major release: multi-platform plugin distribution, v2 skill content,

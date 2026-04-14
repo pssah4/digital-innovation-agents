@@ -142,6 +142,7 @@ Start a new session in your chosen platform and try one of these:
 ```
 /v-model-workflow          Full guided cycle from idea to security audit
 /business-analyse          Start a structured business analysis
+/reverse-engineering       Brownfield entry: ingest an existing codebase
 ```
 
 Or ask a natural-language question like "help me analyze this business problem". The agent should invoke the relevant skill.
@@ -159,6 +160,7 @@ If a skill does not appear:
 
 | Phase | What It Does | Claude Code | Copilot |
 |-------|-------------|-------------|---------|
+| **Reverse Engineering** | Brownfield entry. Walks the V backwards over an existing codebase and produces plan-context, ADRs, arc42, FEATURE inventory, backlog seed, and an evidence-based BA draft | `/reverse-engineering` | `@reverse-engineer` |
 | **Business Analysis** | Exploration, Ideation, Validation cycle with structured interviews and probing techniques | `/business-analyse` | `@business-analyst` |
 | **Requirements** | Epics, features, tech-agnostic success criteria, jobs-to-be-done | `/requirements-engineering` | `@requirements-engineer` |
 | **Architecture** | ADRs (MADR), arc42, plan-context.md | `/architecture` | `@architect` |
@@ -299,6 +301,9 @@ digital-innovation-agents/
 │   │       ├── codebase-awareness.md
 │   │       ├── directory-structure.md
 │   │       └── naming-conventions.md
+│   │
+│   ├── reverse-engineering/                     # Brownfield entry: walk the V backwards
+│   │   └── SKILL.md
 │   │
 │   ├── business-analyse/                        # Exploration/Ideation/Validation cycle
 │   │   ├── SKILL.md

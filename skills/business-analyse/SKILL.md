@@ -98,6 +98,62 @@ adding more topics. Quality over quantity.
 
 ## Interview Workflow
 
+### Phase 0: Existing BA Detection (Preflight)
+
+Before you ask the first interview question, check whether a BA
+document already exists for this project:
+
+```bash
+ls _devprocess/analysis/BA-*.md 2>/dev/null
+```
+
+Based on what you find, pick the interview mode:
+
+- **No file** -> **Standard New Mode**. Continue with Phase 1 below.
+  You run the full interview from scratch.
+
+- **File exists with `status: Draft (reverse-engineered, ...)` in the
+  frontmatter** -> **Validation Mode**. The file was produced by
+  `/reverse-engineering`. Do not start from scratch. Instead:
+
+  1. Read the entire draft BA.
+  2. Announce: "I found a reverse-engineered BA draft. I will walk
+     through each section with you. Evidence-backed sections get a
+     quick confirmation. Placeholder sections get the normal
+     interview questions."
+  3. For each section in the draft:
+     - **If the section has content with a `Source:` line:** present
+       the content and the source, and ask: "This came from
+       {source}. Does this still match your understanding, or do
+       you want to correct it?" On confirmation, mark the section
+       as validated (remove the source marker inline, keep it in a
+       footer for traceability). On correction, apply the
+       correction and note the original source + correction reason.
+     - **If the section is `[NEEDS USER INPUT]`:** ask the standard
+       Phase 2-4 question for that section. Fill it normally.
+  4. When every section has been walked through, update the
+     frontmatter:
+     ```yaml
+     status: Validated
+     validated-by: /business-analyse on {date}
+     reverse-engineering-provenance: true
+     ```
+     Remove `needs-validation: true` and leave `created-by:
+     /reverse-engineering` in place as historical record.
+  5. Proceed directly to the Handoff Ritual. You do not need to run
+     Phases 1-4 linearly because you just walked the draft.
+
+- **File exists without the Draft marker (`status: Validated` or no
+  status)** -> **Refresh Mode**. The BA was already validated in an
+  earlier session. Ask the user: "A validated BA already exists for
+  this project. Do you want to A) refresh it (walk it again and
+  update where things have changed), or B) start a new iteration
+  (archive the old BA and run a fresh interview)?" Proceed based on
+  the answer.
+
+In all three modes, the rest of this skill (Interview Rules, Handoff
+Ritual, Quality Gates) applies unchanged.
+
 ### Phase 1: Determine Project Purpose
 
 Start with this question:

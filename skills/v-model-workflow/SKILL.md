@@ -20,6 +20,13 @@ phase. All phases follow the conventions from `/project-conventions`.
 ## Workflow Overview
 
 ```
+Phase 0 (brownfield only): /reverse-engineering    REVERSE WALK
+  Input:  existing codebase + documentation          (backwards
+  Output: plan-context.md, ADRs (Inferred),           up the V)
+          arc42 (Snapshot), FEATURE-*.md (Observed),
+          BA-{PROJECT}.md (Draft), backlog seed
+    |
+    v (forward walk starts here)
 Phase 1: /business-analyse                         DESIGN
   Output: _devprocess/analysis/BA-{PROJECT}.md       (left side
     |                                                 of the V)
@@ -99,32 +106,64 @@ Ask the user:
 ```
 V-Model Workflow -- where are you?
 
-A) Starting from scratch -- project/feature not yet analyzed
-   -> Start with /business-analyse
+A0) I have an existing codebase but no V-Model artifacts (brownfield)
+    -> Start with /reverse-engineering (walks the V backwards to
+       capture technical context + evidence-based BA draft)
+    -> Then /business-analyse to validate the WHY
+    -> Then continue forward through the normal phases
 
-B) Problem is clear, need structured requirements
-   -> Start with /requirements-engineering
+A)  Starting from scratch -- project/feature not yet analyzed
+    -> Start with /business-analyse
 
-C) Requirements exist, need architecture proposals
-   -> Start with /architecture
+B)  Problem is clear, need structured requirements
+    -> Start with /requirements-engineering
 
-D) Architecture exists, plan-context.md is ready
-   -> Start with /coding
+C)  Requirements exist, need architecture proposals
+    -> Start with /architecture
 
-E) Implementation done, need tests
-   -> Start with /testing
+D)  Architecture exists, plan-context.md is ready
+    -> Start with /coding
 
-F) Tests passed, need security review
-   -> Start with /security-audit
+E)  Implementation done, need tests
+    -> Start with /testing
 
-G) Security audit done, need release closure
-   -> Start Phase 7 (Release Closure, see below)
+F)  Tests passed, need security review
+    -> Start with /security-audit
 
-H) Unsure -- help me figure out where to start
-   -> Short orientation interview
+G)  Security audit done, need release closure
+    -> Start Phase 7 (Release Closure, see below)
+
+H)  Unsure -- help me figure out where to start
+    -> Short orientation interview
 ```
 
 ## Phase Transitions
+
+### After Reverse Engineering -> Business Analysis (brownfield only)
+
+`/reverse-engineering` walks the V backwards and produces technical
+artifacts (plan-context.md, ADRs, arc42 snapshot, FEATURE inventory,
+backlog seed) plus an **evidence-based BA draft**. The draft is not
+validated: it contains only what could be cited from existing
+documentation, with `[NEEDS USER INPUT]` placeholders everywhere
+else.
+
+The orchestrator **always** hands off to `/business-analyse` next,
+even if the draft looks complete. Code is a good technical foundation
+but does not prove the product solves the right problem. The user
+must validate each section.
+
+```
+Reverse engineering complete! Next step:
+/business-analyse
+Input: _devprocess/analysis/BA-{PROJECT}.md (Draft, reverse-engineered)
+
+/business-analyse will:
+1. Detect the draft via its status frontmatter
+2. Enter Validation Mode automatically
+3. Walk through each section with the user
+4. Promote the status from Draft to Validated
+```
 
 ### After Business Analysis -> Requirements Engineering
 

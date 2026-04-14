@@ -14,6 +14,9 @@ testing, and security audit.
 
 - `/v-model-workflow` -- Guided cycle through all phases (recommended for
   new projects or when unsure where to start)
+- `/reverse-engineering` -- Brownfield entry point: walk the V backwards
+  over an existing codebase to produce plan-context, ADRs, arc42
+  snapshot, FEATURE inventory, and an evidence-based BA draft
 - `/business-analyse` -- Problem exploration, ideation, validation
 - `/requirements-engineering` -- Epics, features, tech-agnostic success criteria
 - `/architecture` -- ADRs (MADR), arc42, plan-context.md
@@ -47,6 +50,9 @@ All project artifacts live under `_devprocess/`:
 
 - If the user is starting something new and the problem space is unclear
   -> suggest `/v-model-workflow` to orchestrate the full cycle
+- If the user has an existing codebase but no V-Model artifacts
+  -> `/reverse-engineering` to walk the V backwards, then
+  `/business-analyse` to validate the WHY
 - If the user has a clear problem but no solution yet -> `/business-analyse`
 - If the user has features defined but no architecture -> `/architecture`
 - If the user is ready to implement -> `/coding`
