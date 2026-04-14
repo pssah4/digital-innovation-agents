@@ -1,6 +1,8 @@
 # Epic: {Name}
 
-> **Epic ID**: EPIC-{XXX}
+> **Epic ID**: EPIC-{NNN} (3-digit)
+> **Feature Prefix**: FEATURE-{EPIC}-... (where EPIC is this epic's
+> 3-digit number; e.g. EPIC-001 -> FEATURE-001-001, FEATURE-001-002, ...)
 > **Business Alignment**: _devprocess/analysis/BA-[PROJECT].md
 > **Scope**: [PoC / MVP]
 
@@ -41,15 +43,15 @@ OUR SOLUTION {primary differentiator -- from BA "The Wow" / "Unfair Advantage"}
 
 | BA Ref | Hypothesis | Validated by Feature | Status |
 |--------|-----------|---------------------|--------|
-| H-01 | {Hypothesis from BA} | FEATURE-{XXX} | {Open / Validated / Disproven} |
-| H-02 | {Hypothesis from BA} | FEATURE-{XXX} | {Open / Validated / Disproven} |
+| H-01 | {Hypothesis from BA} | FEATURE-{EPIC}-{NNN} | {Open / Validated / Disproven} |
+| H-02 | {Hypothesis from BA} | FEATURE-{EPIC}-{NNN} | {Open / Validated / Disproven} |
 
 ## MVP Features
 
-| Feature ID | Name | Priority | Effort | Status |
-|------------|------|----------|--------|--------|
-| FEATURE-001 | {Name} | P0 | M | Not Started |
-| FEATURE-002 | {Name} | P1 | L | Not Started |
+| Feature ID      | Name   | Priority | Effort | Status      |
+|-----------------|--------|----------|--------|-------------|
+| FEATURE-001-001 | {Name} | P0       | M      | Not Started |
+| FEATURE-001-002 | {Name} | P1       | L      | Not Started |
 
 **Priority:** P0-Critical (MVP does not work without it), P1-High (important), P2-Medium (value-adding)
 **Effort:** S (1-2 sprints), M (3-5 sprints), L (6+ sprints)

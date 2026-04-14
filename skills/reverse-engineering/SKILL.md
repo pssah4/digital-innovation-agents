@@ -54,8 +54,16 @@ artifacts become the Phase 0 state for that forward walk.
   architecture decision, `Status: Inferred from codebase`
 - `_devprocess/architecture/arc42.md` — structural snapshot,
   `Status: Reverse-engineered snapshot`
-- `_devprocess/requirements/features/FEATURE-{XXX}-{slug}.md` — one per
-  observable user-facing capability, `Status: Observed (not validated)`
+- `_devprocess/requirements/epics/EPIC-{NNN}-{slug}.md` — one or more
+  **anticipated** Epics that group observed capabilities by theme.
+  Even when the business motivation is not yet described, the epic
+  gives the features a frame (domain, user group, module). Status:
+  `Anticipated (not yet validated)`. `/business-analyse` and
+  `/requirements-engineering` later refine, split, merge, or rename
+  these epics.
+- `_devprocess/requirements/features/FEATURE-{EPIC}-{NNN}-{slug}.md` — one per
+  observable user-facing capability, `Status: Observed (not validated)`,
+  nested under its anticipated Epic's number.
 - `_devprocess/analysis/BA-{PROJECT}.md` — evidence-based draft,
   `Status: Draft (reverse-engineered, awaiting validation in /business-analyse)`
 - Append entries to `_devprocess/context/10_backlog.md` — TODOs, FIXMEs,
@@ -64,7 +72,11 @@ artifacts become the Phase 0 state for that forward walk.
 ## What you do NOT create
 
 - Code changes, refactorings, or new tests
-- Epics (strategic grouping comes after BA validation)
+- **Validated** Epics with Hypothesis Statements, Business Outcomes,
+  or HMW questions. This skill only writes **Anticipated Epics**
+  (thematic groupings of observed capabilities) with
+  `Status: Anticipated`. The strategic content comes from
+  `/business-analyse` and `/requirements-engineering` later.
 - Success Criteria or User Stories on the FEATURE inventory (those
   come from `/requirements-engineering` after `/business-analyse`)
 - Personas, HMW questions, or value propositions that are not
@@ -235,7 +247,7 @@ source: /reverse-engineering on {date}
 ---
 ```
 
-### Phase 3: Functional reverse engineering → FEATURE inventory
+### Phase 3: Functional reverse engineering → Anticipated Epics + FEATURE inventory
 
 Identify observable user-facing capabilities. A feature is anything
 the system lets a user (or an API consumer) do. Sources:
@@ -245,8 +257,44 @@ the system lets a user (or an API consumer) do. Sources:
 - Public exports if the project is a library
 - Test descriptions (`describe('user can ...')`, `it('admin should ...')`)
 
-For each feature, write `_devprocess/requirements/features/FEATURE-{XXX}-{slug}.md`
-using the existing `FEATURE-TEMPLATE.md` but with a reduced scope:
+**Step 3a: Anticipated Epics.** Before writing FEATURE files, group
+the observable capabilities into 1-N thematic clusters (e.g. by
+domain, module, user group). For each cluster, write an Epic
+placeholder at `_devprocess/requirements/epics/EPIC-{NNN}-{slug}.md`
+from `EPIC-TEMPLATE.md` with:
+
+```yaml
+---
+status: Anticipated (not yet validated)
+source: /reverse-engineering on {date}
+needs-validation: true
+---
+
+# EPIC-{NNN}: {thematic name, e.g. "User and access management"}
+
+> **Status**: Anticipated. Derived from observed capabilities,
+> not from a validated business motivation. `/business-analyse`
+> refines or replaces the Hypothesis Statement and outcomes.
+
+## Anticipated Scope
+
+{1-2 sentences: which observed capabilities this epic groups, and why}
+
+## Evidence
+
+- {module or directory, short description}
+- {route or API surface}
+- {test file that describes this capability cluster}
+```
+
+When no obvious clusters exist, create a single catch-all
+`EPIC-001-observed-capabilities.md`. Split later.
+
+**Step 3b: FEATURE files.** For each observable capability, write
+`_devprocess/requirements/features/FEATURE-{EPIC}-{NNN}-{slug}.md`
+using the existing `FEATURE-TEMPLATE.md` but with reduced scope.
+`{EPIC}` is the 3-digit number of the anticipated Epic the feature
+belongs to, `{NNN}` is the local counter inside that Epic.
 
 ```yaml
 ---
@@ -254,7 +302,7 @@ status: Observed (not validated)
 source: /reverse-engineering on {date}
 ---
 
-# FEATURE-{XXX}: {short name}
+# FEATURE-{EPIC}-{NNN}: {short name}
 
 ## Feature Description
 
@@ -354,16 +402,22 @@ Scan for:
   if major versions are pinned to old releases)
 - Missing CI steps (e.g. no security scan, no type-check, no linter)
 
-Append each finding as an entry to `_devprocess/context/10_backlog.md`
-with priority `P2` by default (the team will reprioritise during BA/RE):
+Append each finding as a row to `_devprocess/context/10_backlog.md`
+following the binding format in
+`skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`.
+Reverse-engineered findings go into the **Standalone Items** section
+(no Epic yet, to be reassigned during BA/RE) with:
 
-```
-### BL-{NNN}: {short title}
-Priority: P2
-Source: /reverse-engineering on {date}
-Evidence: {path:line or description}
-Notes: {1-2 sentences}
-```
+- `Status = Planned`
+- `Prio = P2` (default, the team reprioritises during BA/RE)
+- `Source = REV`
+- `Evidence = path:line` or short description
+- `Typ = Chore` (or `Security` for audit findings, `Bug-Followup` for
+  failing or skipped tests)
+
+If this skill seeds the backlog file itself, copy the template
+headers (Dashboard, Legende, Standalone Items, Traceability) first
+and update the dashboard counts after all rows are written.
 
 ### Phase 6: Handoff Ritual
 
@@ -470,9 +524,14 @@ status markers distinguishing reverse-engineered from validated
 artifacts. Ensure the structure exists before writing:
 
 ```bash
-mkdir -p _devprocess/{analysis,requirements/{features,handoff},architecture,context}
-touch _devprocess/context/10_backlog.md _devprocess/context/30_handoffs.md
+mkdir -p _devprocess/{analysis,requirements/{epics,features,handoff},architecture,context}
+touch _devprocess/context/30_handoffs.md
 ```
+
+For `_devprocess/context/10_backlog.md`, do not create an empty file.
+Seed it from
+`skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`
+so the first RE write already follows the binding format.
 
 ## Keywords
 

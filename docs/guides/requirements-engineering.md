@@ -102,7 +102,7 @@ We will know we were right if {measurable signal}.
 
 ### User stories across three levels of need
 
-Human needs stack in three layers. The skill writes user stories on all three layers where the need exists, because a feature that serves only the functional layer is dramatically less sticky than one that serves the emotional and social layers too.
+Human needs stack in three layers. The skill writes user stories on all three layers where the need exists, because a feature that serves only the functional layer is dramatically less sticky than one that serves the emotional and social layers too. The method that surfaces these three layers is the [Jobs to be done](../reference/methods-ideation#jobs-to-be-done) card.
 
 Functional is what the user is trying to do. Emotional is how they want to feel while doing it. Social is how they want to be seen while doing it.
 
@@ -160,9 +160,16 @@ The form does three things. It forces the feature to trace back to an Exploratio
 
 ## How the agent proposes methods in the dialog
 
-Like the BA, this skill spots gaps in your input and suggests the method that will close them. If the BA did not capture emotional needs, the agent points you at the [Jobs to be Done](../reference/methods-ideation#jobs-to-be-done) card. If you cannot articulate the current alternative for the Epic Hypothesis, it suggests [User journey](../reference/methods-discovery#user-journey) work focused on the "before" phase. If a Critical ASR has no number attached, it sends you to [Expert conversations](../reference/methods-discovery#expert-conversations) with the engineering or operations team.
+Like the BA, this skill spots gaps in your input and suggests the method that will close them. You run the method, you come back with data, the skill continues. Common triggers and the matching cards:
 
-You run the method, you come back with data, the skill continues.
+- **Epic Hypothesis missing the current alternative.** [User journey](../reference/methods-discovery#user-journey) focused on the "before" phase, so you can see how the user solves the problem today without your product.
+- **Feature has only functional user stories.** [Jobs to be done](../reference/methods-ideation#jobs-to-be-done) to surface the emotional and social layers so the stories stop feeling hollow.
+- **Benefits Hypothesis has no Exploration source.** [Qualitative interview](../reference/methods-discovery#qualitative-interview) or [User motivation analysis](../reference/methods-discovery#user-motivation-analysis) to anchor the hypothesis in real evidence.
+- **Technical NFR reads "fast" or "secure" without a number.** [Expert conversations](../reference/methods-discovery#expert-conversations) with the engineering or operations team to get a concrete target.
+- **ASR is suspected but unverified.** [Expert review](../reference/methods-validation#expert-review) so you can confirm feasibility before writing the ADR.
+- **Success Criterion cannot be made measurable.** [Test grid](../reference/methods-validation#test-grid) or [Value proposition quantification](../reference/methods-validation#value-proposition-quantification) for a baseline you can test against.
+- **Critical Hypothesis from BA has no test plan.** Pick the cheapest falsifier: [Wireframes, storyboards, and paper prototypes](../reference/methods-validation#wireframes-storyboards-and-paper-prototypes), [Wizard of Oz](../reference/methods-validation#wizard-of-oz), or [Appearance prototype](../reference/methods-validation#appearance-prototype).
+- **Risk blind spots before commit.** [Pre-mortem](../reference/methods-validation#pre-mortem) before the team locks resources.
 
 ## Priority: from Idea Potential to P0 / P1 / P2
 

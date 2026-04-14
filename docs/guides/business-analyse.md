@@ -53,6 +53,44 @@ The full set of methods the agent can suggest is documented as method cards on t
 
 Each card has the same structure: what the method produces, when the agent brings it up, how to run it, team and time, things that go wrong in practice, and what to bring back to the session.
 
+## Where the methods fit into the session
+
+The BA session walks through Exploration, Ideation, and Validation. Each phase has a natural set of methods the agent reaches for when your answers go thin. The mapping below is the practical answer to "what should I actually do next if I am stuck on this step".
+
+**Exploration, understanding users and the problem.**
+
+- Fuzzy user group: [Explorative interviews](../reference/methods-discovery#explorative-interviews), [Qualitative interview](../reference/methods-discovery#qualitative-interview), [Extreme users](../reference/methods-discovery#extreme-users).
+- Users describe the ideal instead of the real: [Fly on the wall](../reference/methods-discovery#fly-on-the-wall), [Self-test](../reference/methods-discovery#self-test).
+- Notes exist but no pattern: [User motivation analysis](../reference/methods-discovery#user-motivation-analysis), [Persona synthesis cluster](../reference/methods-discovery#persona-synthesis-cluster), [Persona](../reference/methods-discovery#persona).
+- Political or multi-department project: [Stakeholder map](../reference/methods-discovery#stakeholder-map).
+- B2B with several intermediaries: [Value proposition chain](../reference/methods-discovery#value-proposition-chain).
+- Broad fuzzy problem: [Research mind map](../reference/methods-discovery#research-mind-map).
+- Unknown market or competitors: [Market and trend analysis](../reference/methods-discovery#market-and-trend-analysis).
+- Experience spans several touchpoints: [User journey](../reference/methods-discovery#user-journey).
+- Private or self-censored behaviour: [Cultural probes](../reference/methods-discovery#cultural-probes).
+
+**Ideation, designing a response.**
+
+- Empty solution space: [Brainstorming](../reference/methods-ideation#brainstorming), [Brainwriting](../reference/methods-ideation#brainwriting).
+- Seed idea too thin to prototype: [Idea tower](../reference/methods-ideation#idea-tower).
+- Repeating the same variants: [Inspiration cards](../reference/methods-ideation#inspiration-cards).
+- Cannot explain why users would switch: [Jobs to be done](../reference/methods-ideation#jobs-to-be-done).
+- Team too close to the product: [Kill your company](../reference/methods-ideation#kill-your-company).
+- Too many ideas, no shortlist: [Idea clustering and selection](../reference/methods-ideation#idea-clustering-and-selection).
+- Genuine technical contradiction: [TRIZ](../reference/methods-ideation#triz).
+
+**Validation, testing whether it is worth building.**
+
+- A risky flow needs user feedback: [Wireframes, storyboards, and paper prototypes](../reference/methods-validation#wireframes-storyboards-and-paper-prototypes).
+- Expensive feature, unclear demand: [Wizard of Oz](../reference/methods-validation#wizard-of-oz).
+- Visual direction unclear: [Appearance prototype](../reference/methods-validation#appearance-prototype).
+- Environment matters more than the product: [Context and system prototypes](../reference/methods-validation#context-and-system-prototypes).
+- Feasibility question: [Expert review](../reference/methods-validation#expert-review).
+- Business model unclear: [Business plan](../reference/methods-validation#business-plan).
+- Multiple competing VPs: [Value proposition quantification](../reference/methods-validation#value-proposition-quantification).
+- Team too optimistic: [Pre-mortem](../reference/methods-validation#pre-mortem).
+- Menu or taxonomy confuses users: [Card sorting](../reference/methods-validation#card-sorting).
+
 ## The interview discipline
 
 A few rules that the skill follows consistently across every session.

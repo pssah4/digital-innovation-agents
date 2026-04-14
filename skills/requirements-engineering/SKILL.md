@@ -20,9 +20,14 @@ business analyses into structured, measurable requirements.
 
 ## What You Create
 
-- **Epics** in `_devprocess/requirements/epics/EPIC-{XXX}-{slug}.md` (PoC/MVP)
-- **Features** in `_devprocess/requirements/features/FEATURE-{XXX}-{slug}.md`
+- **Epics** in `_devprocess/requirements/epics/EPIC-{NNN}-{slug}.md` (PoC/MVP)
+- **Features** in `_devprocess/requirements/features/FEATURE-{EPIC}-{NNN}-{slug}.md`
+  (epic-local counter, 3-digit on both sides: Epic 001 -> FEATURE-001-001,
+  FEATURE-001-002, ...; Epic 013 -> FEATURE-013-001, ...)
 - **architect-handoff.md** in `_devprocess/requirements/handoff/`
+- **Backlog entries** in `_devprocess/context/10_backlog.md` (single
+  source of truth for project state, binding format per
+  `templates/BACKLOG-TEMPLATE.md`)
 
 Templates are in `templates/` in this skill directory.
 
@@ -191,6 +196,7 @@ Produced / updated:
 - _devprocess/requirements/epics/EPIC-*.md: {count} epics
 - _devprocess/requirements/features/FEATURE-*.md: {count} features
 - _devprocess/requirements/handoff/architect-handoff.md: aggregated input for architect
+- _devprocess/context/10_backlog.md: {count} BL-NNN entries added, dashboard updated
 - ASRs identified: {critical count}, {moderate count}
 ```
 
@@ -233,8 +239,27 @@ Ask the user:
 ## Project Structure
 
 This skill follows the conventions from `/project-conventions`.
-Ensure that `_devprocess/requirements/{epics,features,handoff}/` exists.
-Filenames: EPIC-{XXX}-{slug}.md, FEATURE-{XXX}-{slug}.md (3-digit, kebab-case).
+Ensure that `_devprocess/requirements/{epics,features,handoff}/` and
+`_devprocess/context/` exist.
+
+Filenames:
+
+- `EPIC-{NNN}-{slug}.md` (3-digit epic number, kebab-case slug)
+- `FEATURE-{EPIC}-{NNN}-{slug}.md` (epic-local; `EPIC` is the 3-digit
+  epic number identical to the parent epic's filename number, `NNN`
+  is the 3-digit feature counter local to that epic)
+
+## Backlog Ownership
+
+This skill owns `_devprocess/context/10_backlog.md`. On first run in a
+project, seed the file from `templates/BACKLOG-TEMPLATE.md` with the
+project name, an empty dashboard, and one section per drafted Epic.
+
+After every Epic or Feature created or modified, update the backlog
+in the same edit pass: add the new `BL-NNN` row to the matching Epic
+section, set status (typically `Planned` for fresh entries), link the
+Feature-Spec filename, and refresh the dashboard counts. The backlog
+MUST reflect the project state before the Handoff Ritual runs.
 
 ## Keywords
 Requirements, RE, Features, Epics, User Stories, Requirements, Success Criteria,

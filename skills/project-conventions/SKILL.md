@@ -60,9 +60,9 @@ Read `references/naming-conventions.md` for the full reference.
 |----------|---------|---------|
 | Business Analysis | `BA-{PROJECT}.md` | `BA-obsilo.md` |
 | Exploration Board | `EXPLORE-{PROJECT}.md` | `EXPLORE-obsilo.md` |
-| Epic | `EPIC-{XXX}-{slug}.md` | `EPIC-001-ai-agent-core.md` |
-| Feature | `FEATURE-{XXX}-{slug}.md` | `FEATURE-042-semantic-search.md` |
-| ADR | `ADR-{XXX}-{slug}.md` | `ADR-003-embedding-provider.md` |
+| Epic | `EPIC-{NNN}-{slug}.md` | `EPIC-001-ai-agent-core.md` |
+| Feature | `FEATURE-{EPIC}-{NNN}-{slug}.md` | `FEATURE-001-001-semantic-search.md` |
+| ADR | `ADR-{NNN}-{slug}.md` | `ADR-003-embedding-provider.md` |
 | Security Audit | `AUDIT-{PROJECT}-{YYYY-MM-DD}.md` | `AUDIT-obsilo-2026-03-22.md` |
 | Handoff (RE->Arch) | `architect-handoff.md` | Fixed name |
 | Handoff (Arch->Code) | `plan-context.md` | Fixed name |
@@ -72,13 +72,32 @@ Read `references/naming-conventions.md` for the full reference.
 
 Rules: 3-digit numbers, kebab-case slugs, no spaces, no umlauts in file names.
 
+**Epic-scoped feature numbering:** Features are numbered within their
+epic, not globally. The format is `FEATURE-{EPIC}-{NNN}-{slug}.md`
+where `EPIC` is the 3-digit epic number (identical to the number in
+the epic's filename) and `NNN` is the 3-digit feature counter local
+to that epic. Examples:
+
+- EPIC-001 -> FEATURE-001-001, FEATURE-001-002, FEATURE-001-003, ...
+- EPIC-002 -> FEATURE-002-001, FEATURE-002-002, ...
+- EPIC-013 -> FEATURE-013-001, FEATURE-013-002, ...
+
+This keeps epic and feature traceable via the filename alone, makes
+parallel epic work conflict-free (two epics can each start at
+FEATURE-{EPIC}-001), and keeps alphabetical sort order stable.
+
 ### The `_devprocess/context/` files
 
 Three living documents live side-by-side under `_devprocess/context/`:
 
-- **`10_backlog.md`** -- the project backlog. Entries for features not yet
-  built, deferred issues, future ideas. Updated continuously by RE and at
-  the end of every V-Model cycle.
+- **`10_backlog.md`** -- the project backlog and **single source of
+  truth for the project state**. Follows the binding template at
+  `skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`.
+  Entries for features, chores, security findings, and deferred items,
+  grouped by Epic with a dashboard on top. MUST be updated after every
+  status-changing action (new entry, status transition, priority or
+  epic change, implementation done). Every agent that touches the
+  project state also touches this file.
 - **`20_bugs.md`** -- the bug log. Populated by the `/coding` skill's
   debugging protocol (see `skills/coding/SKILL.md` Phase 3c). Each entry
   uses a `FIX-NN` ID with priority (P0/P1/P2), causal chain, and (after
@@ -171,7 +190,9 @@ mkdir -p src docs scripts memory
 ```
 
 And create the initial files:
-- `_devprocess/context/10_backlog.md` (empty backlog template)
+- `_devprocess/context/10_backlog.md` -- seeded from
+  `skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`
+  with the project name filled in and empty dashboard counts
 - `_devprocess/context/20_bugs.md` (empty bug log)
 - `_devprocess/context/30_handoffs.md` (empty handoffs log)
 - `CLAUDE.md` (project context template)

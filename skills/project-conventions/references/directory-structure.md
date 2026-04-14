@@ -14,19 +14,21 @@
 │   │
 │   ├── requirements/                    Requirements Engineering
 │   │   ├── epics/                       Strategische Initiativen
-│   │   │   └── EPIC-{XXX}-{slug}.md
-│   │   ├── features/                    Feature-Spezifikationen
-│   │   │   └── FEATURE-{XXX}-{slug}.md
+│   │   │   └── EPIC-{NNN}-{slug}.md
+│   │   ├── features/                    Feature-Spezifikationen (epic-lokal)
+│   │   │   └── FEATURE-{EPIC}-{NNN}-{slug}.md
 │   │   └── handoff/                     Uebergabe-Dokumente zwischen Phasen
 │   │       ├── architect-handoff.md     RE -> Architect
 │   │       └── plan-context.md          Architect -> Claude Code
 │   │
 │   ├── architecture/                    Architektur-Dokumentation
-│   │   ├── ADR-{XXX}-{slug}.md          Architecture Decision Records
+│   │   ├── ADR-{NNN}-{slug}.md          Architecture Decision Records
 │   │   └── arc42.md                     arc42 Gesamtdokument
 │   │
 │   └── context/                         Projekt-Status & Backlog
-│       └── 10_backlog.md                Lebendes Backlog-Dokument
+│       ├── 10_backlog.md                Lebendes Backlog (per BACKLOG-TEMPLATE.md)
+│       ├── 20_bugs.md                   FIX-NN Bug-Log
+│       └── 30_handoffs.md               Append-only Phasen-Handoffs
 │
 ├── src/                                 QUELLCODE
 │   ├── core/                            Kern-Logik, Pipeline, Context

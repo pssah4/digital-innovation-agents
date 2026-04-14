@@ -88,13 +88,13 @@ Success Criteria: {count} to verify
 
 CONFIRMED (matches codebase):
 - ADR-001: {title} -- proposal fits, {justification}
-- FEATURE-001 SC-01: {criterion} -- realistic
+- FEATURE-001-001 SC-01: {criterion} -- realistic
 
 CHANGES NEEDED (divergence from codebase):
 - ADR-002: {title} -- proposal: {original}
   Problem: {what doesn't fit}
   Recommendation: {what to do instead}
-- FEATURE-003 SC-02: {criterion}
+- FEATURE-002-003 SC-02: {criterion}
   Problem: {why not as specified}
   Recommendation: {alternative}
 
@@ -364,9 +364,16 @@ MANDATORY -- artifacts must reflect the actual state:
    - Add Implementation Notes with the actual outcome
    - Document deviations from the original proposal
 
-3. Backlog:
-   - Update _devprocess/context/10_backlog.md
-   - Add new findings or deferred items
+3. Backlog (single source of truth for project state):
+   - Update _devprocess/context/10_backlog.md per the binding format
+     in skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md
+   - For each BL-NNN implemented: set Status -> Done, add commit SHA,
+     entry stays with its Epic
+   - Add new findings (chores, tech debt, follow-ups) as new rows in
+     the matching Epic section or Standalone Items
+   - Refresh dashboard counts (status + priority) and "Letztes Update"
+   - The backlog MUST reflect the post-implementation state before
+     the Handoff Ritual runs
 
 4. Bug log:
    - All FIX-NN entries in _devprocess/context/20_bugs.md updated

@@ -86,7 +86,9 @@ Initialize manually:
 
 ```bash
 mkdir -p _devprocess/{analysis/security,requirements/{epics,features,handoff},architecture,context}
-touch _devprocess/context/10_backlog.md _devprocess/context/20_bugs.md _devprocess/context/30_handoffs.md
+touch _devprocess/context/20_bugs.md _devprocess/context/30_handoffs.md
+cp skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md \
+   _devprocess/context/10_backlog.md
 ```
 
 ## Version mismatch

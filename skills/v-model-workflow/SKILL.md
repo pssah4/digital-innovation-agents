@@ -96,8 +96,14 @@ If not, initialize it per `/project-conventions`:
 ```bash
 mkdir -p _devprocess/{analysis/security,requirements/{epics,features,handoff},architecture,context}
 mkdir -p src docs scripts memory
-touch _devprocess/context/10_backlog.md _devprocess/context/20_bugs.md _devprocess/context/30_handoffs.md
+touch _devprocess/context/20_bugs.md _devprocess/context/30_handoffs.md
 ```
+
+For `_devprocess/context/10_backlog.md`, do not `touch` an empty file.
+Seed it from
+`skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md` with
+the project name, an empty dashboard, and the placeholder sections.
+Every phase skill updates this file per the binding format.
 
 ## Start: Determine Phase
 
@@ -311,17 +317,17 @@ _devprocess/
       AUDIT-{PROJECT}-{DATE}.md        <- Phase 6: Security Audit
   requirements/
     epics/
-      EPIC-{XXX}-{slug}.md             <- Phase 2: Requirements
+      EPIC-{NNN}-{slug}.md             <- Phase 2: Requirements
     features/
-      FEATURE-{XXX}-{slug}.md          <- Phase 2: Requirements
+      FEATURE-{EPIC}-{NNN}-{slug}.md   <- Phase 2: Requirements (epic-local)
     handoff/
       architect-handoff.md             <- Phase 2 -> 3 handoff
       plan-context.md                  <- Phase 3 -> 4 handoff
   architecture/
-    ADR-{XXX}-{slug}.md                <- Phase 3: Architecture
+    ADR-{NNN}-{slug}.md                <- Phase 3: Architecture
     arc42.md                           <- Phase 3: Architecture
   context/
-    10_backlog.md                      <- living backlog
+    10_backlog.md                      <- living backlog (per BACKLOG-TEMPLATE.md)
     20_bugs.md                         <- FIX-NN bug log (Phase 4)
     30_handoffs.md                     <- append-only handoffs log
 ```

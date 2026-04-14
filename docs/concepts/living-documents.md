@@ -47,7 +47,7 @@ The loop runs three times per V-Model cycle:
 | ADRs | Status (`Accepted (modified)` or `Deprecated`), Implementation Notes, deviations from the original proposal |
 | `plan-context.md` | Tech stack (if changed), integrations, updated performance/security values |
 | arc42 | Affected sections when architecture shifts |
-| `_devprocess/context/10_backlog.md` | New findings, deferred items, future-considerations |
+| `_devprocess/context/10_backlog.md` | BL-NNN rows (Planned/Active/Review/Done/Waiting/Deferred), dashboard counts, new findings, status transitions, commit SHAs; binding format in `BACKLOG-TEMPLATE.md` |
 | `_devprocess/context/20_bugs.md` | Every bug found, with FIX-NN ID, causal chain, commit SHA |
 | `memory/MEMORY.md` | When architecture key facts change |
 | `CLAUDE.md` | When new project conventions emerge |

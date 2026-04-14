@@ -35,6 +35,32 @@ the detailed walkthrough. For this overview, the key outputs are:
 - `EXPLORE-{PROJECT}.md` (Exploration Board for PoC/MVP)
 - HMW question, personas, critical hypotheses
 
+::: tip Methods the BA agent will propose
+During this phase the agent stops the interview whenever a gap appears
+and points you at the matching field method. Most common entry points:
+
+- [Explorative interviews](../reference/methods-discovery#explorative-interviews)
+  and [Qualitative interview](../reference/methods-discovery#qualitative-interview)
+  when the user is still abstract.
+- [Fly on the wall](../reference/methods-discovery#fly-on-the-wall)
+  and [Self-test](../reference/methods-discovery#self-test) when
+  interviews keep producing the ideal workflow instead of the real one.
+- [Persona synthesis cluster](../reference/methods-discovery#persona-synthesis-cluster)
+  and [Persona](../reference/methods-discovery#persona) to turn
+  notes into a usable persona.
+- [Brainstorming](../reference/methods-ideation#brainstorming),
+  [Brainwriting](../reference/methods-ideation#brainwriting), or
+  [Jobs to be done](../reference/methods-ideation#jobs-to-be-done)
+  during Ideation.
+- [Wireframes, storyboards, and paper prototypes](../reference/methods-validation#wireframes-storyboards-and-paper-prototypes)
+  and [Pre-mortem](../reference/methods-validation#pre-mortem)
+  during Validation.
+
+Full catalog under [Discovery methods](../reference/methods-discovery),
+[Ideation methods](../reference/methods-ideation), and
+[Validation methods](../reference/methods-validation).
+:::
+
 At the end, the skill asks: "Start `/requirements-engineering` now?"
 Say "yes". The orchestrator passes the handoff context automatically.
 
@@ -42,9 +68,10 @@ Say "yes". The orchestrator passes the handoff context automatically.
 
 `/requirements-engineering` reads the BA and produces:
 
-- **Epics** (`EPIC-{XXX}-{slug}.md`) with Hypothesis Statements derived
+- **Epics** (`EPIC-{NNN}-{slug}.md`) with Hypothesis Statements derived
   from the HMW question
-- **Features** (`FEATURE-{XXX}-{slug}.md`) with tech-agnostic Success
+- **Features** (`FEATURE-{EPIC}-{NNN}-{slug}.md`, epic-local numbering
+  with 3-digit epic and feature numbers) with tech-agnostic Success
   Criteria and Technical NFRs
 - **Architect handoff** (`architect-handoff.md`) aggregating ASRs and NFRs
 
@@ -52,13 +79,34 @@ Key rule: Success Criteria must be technology-neutral. No "OAuth",
 "REST", "PostgreSQL". Those go into Technical NFRs. See
 [Tech-agnostic Requirements](../concepts/tech-agnostic-requirements).
 
+::: tip Methods the RE agent will propose
+If the BA input has gaps, the RE agent does not invent content. It
+sends you back to the user with the matching method:
+
+- [Jobs to be done](../reference/methods-ideation#jobs-to-be-done)
+  when a feature has only functional user stories and the emotional
+  and social layers are missing.
+- [Expert conversations](../reference/methods-discovery#expert-conversations)
+  when a Technical NFR reads "fast" or "secure" and needs an actual
+  number before it can become an ASR.
+- [Expert review](../reference/methods-validation#expert-review)
+  when an ASR is suspected but unverified and a full test would be
+  too expensive.
+- [User journey](../reference/methods-discovery#user-journey) focused
+  on the "before" phase when the Epic Hypothesis cannot name the
+  current alternative.
+- [Test grid](../reference/methods-validation#test-grid) and
+  [Value proposition quantification](../reference/methods-validation#value-proposition-quantification)
+  when a Benefits Hypothesis needs a measurable success signal.
+:::
+
 Handoff ritual ends with: "Start `/architecture` now?" -> yes.
 
 ## Phase 3: Architecture
 
 `/architecture` transforms requirements into proposals:
 
-- **ADRs** (`ADR-{XXX}-{slug}.md`) in MADR format, one per Critical ASR
+- **ADRs** (`ADR-{NNN}-{slug}.md`) in MADR format, one per Critical ASR
 - **arc42** documentation (scope-dependent section count)
 - **plan-context.md** as the context bridge to implementation
 
@@ -157,7 +205,7 @@ _devprocess/
     security/AUDIT-{PROJECT}-{DATE}.md
   requirements/
     epics/EPIC-001-*.md
-    features/FEATURE-001-*.md, FEATURE-002-*.md, ...
+    features/FEATURE-001-001-*.md, FEATURE-001-002-*.md, FEATURE-002-001-*.md, ...
     handoff/architect-handoff.md, plan-context.md
   architecture/
     ADR-001-*.md, ADR-002-*.md, ...

@@ -11,9 +11,9 @@ description: Naming rules, language conventions, commit style, and git workflow.
 |---|---|---|
 | Business Analysis | `BA-{PROJECT}.md` | `BA-obsilo.md` |
 | Exploration Board | `EXPLORE-{PROJECT}.md` | `EXPLORE-obsilo.md` |
-| Epic | `EPIC-{XXX}-{slug}.md` | `EPIC-001-ai-agent-core.md` |
-| Feature | `FEATURE-{XXX}-{slug}.md` | `FEATURE-042-semantic-search.md` |
-| ADR | `ADR-{XXX}-{slug}.md` | `ADR-003-embedding-provider.md` |
+| Epic | `EPIC-{NNN}-{slug}.md` | `EPIC-001-ai-agent-core.md` |
+| Feature | `FEATURE-{EPIC}-{NNN}-{slug}.md` | `FEATURE-001-001-semantic-search.md`, `FEATURE-013-002-reindex-job.md` |
+| ADR | `ADR-{NNN}-{slug}.md` | `ADR-003-embedding-provider.md` |
 | Security Audit | `AUDIT-{PROJECT}-{YYYY-MM-DD}.md` | `AUDIT-obsilo-2026-03-22.md` |
 | Handoff (RE -> Arch) | `architect-handoff.md` | Fixed name |
 | Handoff (Arch -> Code) | `plan-context.md` | Fixed name |
@@ -23,10 +23,20 @@ description: Naming rules, language conventions, commit style, and git workflow.
 
 **Rules:**
 
-- 3-digit numbers with leading zeros (`001`, `042`, not `1`, `42`)
+- 3-digit numbers with leading zeros for Epics and ADRs
+  (`001`, `042`, not `1`, `42`)
+- Features are epic-scoped: `FEATURE-{EPIC}-{NNN}-{slug}.md`, where
+  `EPIC` is the 3-digit parent epic number (identical to the epic's
+  filename number) and `NNN` is the 3-digit feature counter local to
+  that epic. Example: EPIC-001 gets FEATURE-001-001, FEATURE-001-002,
+  ...; EPIC-013 gets FEATURE-013-001, ... The 3-digit-on-both-sides
+  format keeps alphabetical sort order stable.
 - kebab-case slugs (`ai-agent-core`, not `aiAgentCore`)
 - No spaces, no umlauts in filenames
 - Dates as `YYYY-MM-DD`
+- Backlog follows the binding template at
+  `skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md` and
+  is the single source of truth for project state
 
 ## Language
 

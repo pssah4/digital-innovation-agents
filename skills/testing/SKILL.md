@@ -340,7 +340,7 @@ Produced / updated:
 - Coverage report: {line}% / {branch}% / {function}%
 - Fix-loop status: {N iterations, N fixes applied}
 - _devprocess/requirements/features/FEATURE-*.md: {test-status updates}
-- _devprocess/context/10_backlog.md: {new coverage items}
+- _devprocess/context/10_backlog.md: {new coverage items added per BACKLOG-TEMPLATE.md, dashboard refreshed}
 ```
 
 ### Part 2: Handoff context

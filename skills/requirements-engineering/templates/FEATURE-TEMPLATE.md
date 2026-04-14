@@ -1,7 +1,10 @@
 # Feature: {Name}
 
-> **Feature ID**: FEATURE-{XXX}
-> **Epic**: EPIC-{XXX} - {Link}
+> **Feature ID**: FEATURE-{EPIC}-{NNN} (epic-local: `EPIC` = 3-digit
+> epic number identical to the parent epic's filename number,
+> `NNN` = 3-digit feature counter inside the epic)
+> **Epic**: EPIC-{NNN} - {Link}
+> **Backlog ID**: BL-{NNN} (link from `_devprocess/context/10_backlog.md`)
 > **Priority**: [P0-Critical / P1-High / P2-Medium]
 > **Effort Estimate**: [S / M / L]
 
@@ -128,7 +131,8 @@
 
 ### Documentation
 - [ ] Feature spec updated (Status: Implemented)
-- [ ] Backlog updated
+- [ ] Backlog updated (`10_backlog.md`: BL-NNN row set to `Done`,
+      commit SHA added, dashboard counts refreshed)
 
 ---
 

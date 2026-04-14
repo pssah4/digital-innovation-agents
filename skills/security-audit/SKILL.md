@@ -201,12 +201,17 @@ The loop repeats until all in-scope findings are resolved or the user aborts.
 
 Findings not fixed immediately (e.g. P2/P3 on Option B):
 
-1. **Feature backlog**: each open finding gets an entry in
-   `_devprocess/context/10_backlog.md` with:
-   - Finding ID and severity
-   - Affected file and line
-   - Short risk description
-   - Estimated fix effort
+1. **Backlog**: each open finding gets a row in
+   `_devprocess/context/10_backlog.md` following the binding format
+   from `skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`.
+   Security findings live in the **Standalone Items** section with:
+   - `Typ = Security`
+   - `Source = SEC`
+   - `Prio` mapped from finding severity (H -> P1, M -> P2, L -> P3)
+   - `Status = Planned`
+   - `Evidence = path:line`
+   - `Notes` = finding ID (H-N / M-N / L-N) + short risk description
+   After adding rows, refresh the dashboard counts and "Letztes Update".
 
 2. **Audit report**: status stays `Confirmed` with note "Deferred to backlog"
 

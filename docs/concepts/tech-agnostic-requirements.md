@@ -95,7 +95,7 @@ forbidden terms before writing the Feature file. If a term is found,
 the skill prompts the user to rephrase:
 
 ```
-FEATURE-042 SC-03 contains "PostgreSQL". That's a technology term.
+FEATURE-001-003 SC-03 contains "PostgreSQL". That's a technology term.
 Let's move it to Technical NFRs.
 
 Rewrite SC-03 as a user-facing outcome. Example: "System efficiently

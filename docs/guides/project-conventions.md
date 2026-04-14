@@ -30,21 +30,30 @@ by the other phase skills.
 | Artifact | Pattern |
 |---|---|
 | Business Analysis | `BA-{PROJECT}.md` |
-| Epic | `EPIC-{XXX}-{slug}.md` |
-| Feature | `FEATURE-{XXX}-{slug}.md` |
-| ADR | `ADR-{XXX}-{slug}.md` |
+| Epic | `EPIC-{NNN}-{slug}.md` |
+| Feature | `FEATURE-{EPIC}-{NNN}-{slug}.md` (epic-local, e.g. `FEATURE-001-001-...`) |
+| ADR | `ADR-{NNN}-{slug}.md` |
 | Security Audit | `AUDIT-{PROJECT}-{YYYY-MM-DD}.md` |
 | Backlog | `10_backlog.md` |
 | Bug log | `20_bugs.md` |
 | Handoffs log | `30_handoffs.md` |
 
 Rules: 3-digit numbers, kebab-case slugs, no spaces, no umlauts in
-filenames.
+filenames. Features are numbered inside their parent epic, not
+globally: `FEATURE-{EPIC}-{NNN}` where `EPIC` is the 3-digit epic
+number identical to the parent epic's filename number. Example:
+EPIC-001 owns FEATURE-001-001, FEATURE-001-002, ...; EPIC-013 owns
+FEATURE-013-001, ...
 
 ## The `_devprocess/context/` files
 
-- **`10_backlog.md`**: living backlog, maintained by `/requirements-engineering`
-  and updated at the end of every V-Model cycle
+- **`10_backlog.md`**: living backlog and **single source of truth
+  for the project state**. Follows the binding format at
+  [`skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md)
+  with a dashboard on top, entries grouped by Epic, standalone items
+  for epic-free findings, and a reference list of open bugs from
+  `20_bugs.md`. Every phase skill that changes project state updates
+  this file in the same edit pass
 - **`20_bugs.md`**: FIX-NN bug log, written by `/coding` Phase 3c
   (Debugging Protocol)
 - **`30_handoffs.md`**: append-only phase handoffs log, written by

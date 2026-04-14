@@ -20,17 +20,18 @@ _devprocess/
       AUDIT-{PROJECT}-{YYYY-MM-DD}.md  Phase 6: Security Audit report
   requirements/
     epics/
-      EPIC-{XXX}-{slug}.md             Phase 2: Epic spec
+      EPIC-{NNN}-{slug}.md             Phase 2: Epic spec
     features/
-      FEATURE-{XXX}-{slug}.md          Phase 2: Feature spec
+      FEATURE-{EPIC}-{NNN}-{slug}.md   Phase 2: Feature spec (epic-local)
     handoff/
       architect-handoff.md             Phase 2 -> 3: aggregated ASRs + NFRs
       plan-context.md                  Phase 3 -> 4: tech stack + integrations
   architecture/
-    ADR-{XXX}-{slug}.md                Phase 3: Architecture Decision Record
+    ADR-{NNN}-{slug}.md                Phase 3: Architecture Decision Record
     arc42.md                           Phase 3: arc42 documentation
   context/
-    10_backlog.md                      Living backlog (RE + Phase 7)
+    10_backlog.md                      Single source of truth for project state
+                                       (per BACKLOG-TEMPLATE.md)
     20_bugs.md                         FIX-NN bug log (/coding Phase 3c)
     30_handoffs.md                     Append-only phase handoffs log (all phases)
 ```
@@ -53,9 +54,14 @@ the change. See [Living Documents](../concepts/living-documents).
 `10_backlog.md`, `20_bugs.md`, and `30_handoffs.md` serve different
 purposes:
 
-- **`10_backlog.md`**: living backlog. Entries for features not yet
-  built, deferred issues, and future ideas. Written by
-  `/requirements-engineering` and updated at the end of every V-Model cycle.
+- **`10_backlog.md`**: living backlog and **single source of truth
+  for the project state**. Follows the binding format in
+  [`skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md):
+  dashboard on top, entries grouped by Epic (BL-NNN rows with status,
+  priority, Feature-Spec, ADR, source, commit), standalone items for
+  epic-free findings, a reference list of open bugs, deferred items.
+  Every phase skill that changes project state updates this file in
+  the same edit pass (new row, status transition, dashboard refresh).
 - **`20_bugs.md`**: FIX-NN bug log. Every bug found during `/coding`
   Phase 3c (Debugging Protocol) gets an entry with causal chain and
   priority. Resolved bugs carry the commit SHA and regression-test
@@ -92,8 +98,14 @@ When starting a new project, initialize the structure:
 
 ```bash
 mkdir -p _devprocess/{analysis/security,requirements/{epics,features,handoff},architecture,context}
-touch _devprocess/context/10_backlog.md _devprocess/context/20_bugs.md _devprocess/context/30_handoffs.md
+touch _devprocess/context/20_bugs.md _devprocess/context/30_handoffs.md
+cp skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md \
+   _devprocess/context/10_backlog.md
 ```
+
+`10_backlog.md` is seeded from the template (not created empty) so
+the first write already follows the binding format. Replace
+`{PROJECT}` in the header with the actual project name.
 
 The `/project-conventions` skill runs this for you if you invoke it.
 
