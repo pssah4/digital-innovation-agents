@@ -18,40 +18,7 @@ have code plus documentation that matches what you actually built.
 
 ## The workflow in one picture
 
-```mermaid
-flowchart LR
-    BA["<b>BA</b><br/>Why"]:::design
-    RE["<b>RE</b><br/>What"]:::design
-    AR["<b>Arch</b><br/>How"]:::design
-    RV["<b>Review</b><br/>Handoff"]:::handoff
-    CC["<b>Claude Code</b><br/>Default agent"]:::agent
-    TE["<b>Testing</b><br/>UT + IT"]:::verify
-    SA["<b>Security</b><br/>Audit"]:::secure
-
-    BA --> RE --> AR --> RV --> CC --> TE --> SA
-
-    BA -.- BAdoc["BA doc"]:::artifact
-    RE -.- feat["Features<br/>Handoff"]:::artifact
-    AR -.- adr["ADRs<br/>plan-context"]:::artifact
-    TE -.- tests["Test suites"]:::artifact
-    SA -.- audit["Audit report"]:::artifact
-
-    CC -. "Test fix loop" .-> TE
-    CC -. "Security fix loop" .-> SA
-    RV -. "Review sync" .-> AR
-
-    classDef design fill:#d1f4e8,stroke:#0d9488,stroke-width:2px,color:#065f46
-    classDef handoff fill:#ffedd5,stroke:#f97316,stroke-width:2px,color:#9a3412
-    classDef agent fill:#f3f4f6,stroke:#6b7280,stroke-width:2px,color:#374151
-    classDef verify fill:#ede9fe,stroke:#8b5cf6,stroke-width:2px,color:#5b21b6
-    classDef secure fill:#fee2e2,stroke:#ef4444,stroke-width:2px,color:#991b1b
-    classDef artifact fill:#ffffff,stroke:#d1d5db,stroke-width:1px,color:#6b7280,font-size:11px
-```
-
-<p style="text-align: center; color: var(--vp-c-text-2); font-size: 0.9rem; margin-top: -0.5rem;">
-Structured AI skills from analysis to security audit, with fix loops
-and living documents. Each phase produces artifacts that feed the next.
-</p>
+![V-Model workflow for Claude Code](/v-model-overview.svg)
 
 ## How it works
 
