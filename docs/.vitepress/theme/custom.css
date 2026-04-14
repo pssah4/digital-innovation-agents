@@ -6,12 +6,13 @@
  */
 
 :root {
-  /* Lead colour matches the BA/RE/Architecture boxes in the landing SVG.
-     Sky-600 as the primary, sky-700 and sky-800 as darker states. */
-  --vp-c-brand-1: #0284c7;
-  --vp-c-brand-2: #0369a1;
-  --vp-c-brand-3: #075985;
-  --vp-c-brand-soft: rgba(2, 132, 199, 0.14);
+  /* Lead colour matches the petrol fill of the BA/RE/Architecture boxes
+     in the landing SVG. Identical tone in light and dark mode so the
+     buttons, links, and boxes all share the same family. */
+  --vp-c-brand-1: #164e63;
+  --vp-c-brand-2: #0e7490;
+  --vp-c-brand-3: #0891b2;
+  --vp-c-brand-soft: rgba(22, 78, 99, 0.14);
 
   --vp-c-tip-1: #0d9488;
   --vp-c-tip-2: #0f766e;
@@ -20,34 +21,36 @@
 
   --vp-button-brand-border: transparent;
   --vp-button-brand-text: #ffffff;
-  --vp-button-brand-bg: #0284c7;
+  --vp-button-brand-bg: #164e63;
   --vp-button-brand-hover-border: transparent;
   --vp-button-brand-hover-text: #ffffff;
-  --vp-button-brand-hover-bg: #0369a1;
+  --vp-button-brand-hover-bg: #0e7490;
   --vp-button-brand-active-border: transparent;
   --vp-button-brand-active-text: #ffffff;
-  --vp-button-brand-active-bg: #075985;
+  --vp-button-brand-active-bg: #0891b2;
 
-  --vp-c-text-accent: #0284c7;
+  --vp-c-text-accent: #164e63;
 }
 
 .dark {
-  /* Lift the lead colour a couple of steps for contrast on dark backgrounds */
-  --vp-c-brand-1: #38bdf8;
-  --vp-c-brand-2: #0ea5e9;
-  --vp-c-brand-3: #0284c7;
-  --vp-c-brand-soft: rgba(56, 189, 248, 0.16);
+  /* Same petrol in dark mode. Buttons keep the solid petrol background.
+     Link text lifts one step (cyan-600) so body-text links stay legible
+     against the dark page background. */
+  --vp-c-brand-1: #164e63;
+  --vp-c-brand-2: #0e7490;
+  --vp-c-brand-3: #0891b2;
+  --vp-c-brand-soft: rgba(22, 78, 99, 0.24);
 
   --vp-c-tip-1: #14b8a6;
   --vp-c-tip-2: #0d9488;
   --vp-c-tip-3: #0f766e;
   --vp-c-tip-soft: rgba(20, 184, 166, 0.16);
 
-  --vp-button-brand-bg: #38bdf8;
-  --vp-button-brand-hover-bg: #0ea5e9;
-  --vp-button-brand-active-bg: #0284c7;
+  --vp-button-brand-bg: #164e63;
+  --vp-button-brand-hover-bg: #0e7490;
+  --vp-button-brand-active-bg: #0891b2;
 
-  --vp-c-text-accent: #38bdf8;
+  --vp-c-text-accent: #0891b2;
 }
 
 .vp-doc .mermaid {
@@ -60,7 +63,7 @@
 /* Tools badge injected via home-hero-before slot */
 .hero-works-badge {
   text-align: center;
-  margin: 0.75rem auto -1.25rem;
+  margin: 0 auto -2.5rem;
   padding: 0 24px;
 }
 
@@ -87,7 +90,7 @@
 
 .VPHero:not(.has-image) .main {
   text-align: center;
-  max-width: 960px;
+  max-width: 1060px;
   margin: 0 auto;
 }
 
@@ -106,7 +109,7 @@
    white-space: pre-line respects hard line breaks from the YAML
    block scalar in hero.text so the comma sits at the end of line 1. */
 .VPHero .text {
-  max-width: 860px;
+  max-width: 1000px;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--vp-c-text-1);
@@ -115,7 +118,7 @@
 
 @media (min-width: 960px) {
   .VPHero .text {
-    max-width: 860px;
+    max-width: 1000px;
     font-size: 56px;
     line-height: 64px;
   }
@@ -234,22 +237,23 @@
 
 /* ========== Dark-mode overrides for the V-Model SVG ========== */
 
+/* The three design boxes (petrol) are identical in both modes, so no
+   dark-mode override is needed for their fill, stroke, or text. Only
+   the neutral pill boxes, the coding amber box, the verification rose
+   boxes, the output boxes, and the loop labels get a dark-mode tweak. */
+
 .dark .landing-diagram svg rect[fill="#f1f5f9"] { fill: #1e293b; }
 .dark .landing-diagram svg rect[fill="#ffffff"] { fill: #0f172a; }
-.dark .landing-diagram svg rect[fill="#e0f2fe"] { fill: #164e63; }
 .dark .landing-diagram svg rect[fill="#fef3c7"] { fill: #713f12; }
 .dark .landing-diagram svg rect[fill="#ffe4e6"] { fill: #7f1d1d; }
 
 .dark .landing-diagram svg rect[stroke="#cbd5e1"] { stroke: #475569; }
 .dark .landing-diagram svg line[stroke="#cbd5e1"] { stroke: #475569; }
-.dark .landing-diagram svg rect[stroke="#0ea5e9"] { stroke: #38bdf8; }
 .dark .landing-diagram svg rect[stroke="#f59e0b"] { stroke: #fbbf24; }
 .dark .landing-diagram svg rect[stroke="#f43f5e"] { stroke: #fb7185; }
 .dark .landing-diagram svg path[stroke="#94a3b8"] { stroke: #64748b; }
 
 .dark .landing-diagram svg text[fill="#334155"] { fill: #cbd5e1; }
-.dark .landing-diagram svg text[fill="#0c4a6e"] { fill: #e0f2fe; }
-.dark .landing-diagram svg text[fill="#0284c7"] { fill: #7dd3fc; }
 .dark .landing-diagram svg text[fill="#78350f"] { fill: #fef3c7; }
 .dark .landing-diagram svg text[fill="#b45309"] { fill: #fcd34d; }
 .dark .landing-diagram svg text[fill="#881337"] { fill: #ffe4e6; }

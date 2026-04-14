@@ -50,10 +50,10 @@ hero:
     <text x="110" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">JTBD · Hypotheses</text>
     <rect x="30" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="110" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Pricing · Viability</text>
-    <rect x="20" y="115" width="180" height="120" rx="16" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="2.5"/>
-    <text x="110" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#0c4a6e">Business</text>
-    <text x="110" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#0c4a6e">Analysis</text>
-    <text x="110" y="215" text-anchor="middle" font-size="14" fill="#0284c7">Why</text>
+    <rect x="20" y="115" width="180" height="120" rx="16" fill="#164e63" stroke="#38bdf8" stroke-width="2.5"/>
+    <text x="110" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#e0f2fe">Business</text>
+    <text x="110" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#e0f2fe">Analysis</text>
+    <text x="110" y="215" text-anchor="middle" font-size="14" fill="#7dd3fc">Why</text>
     <rect x="30" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="110" y="276" text-anchor="middle" font-size="15" fill="#475569">BA doc</text>
     <text x="110" y="300" text-anchor="middle" font-size="15" fill="#475569">Exploration board</text>
@@ -66,10 +66,10 @@ hero:
     <text x="314" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">User stories (F/E/S)</text>
     <rect x="234" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="314" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Validation criteria</text>
-    <rect x="224" y="115" width="180" height="120" rx="16" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="2.5"/>
-    <text x="314" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#0c4a6e">Requirements</text>
-    <text x="314" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#0c4a6e">Engineering</text>
-    <text x="314" y="215" text-anchor="middle" font-size="14" fill="#0284c7">What</text>
+    <rect x="224" y="115" width="180" height="120" rx="16" fill="#164e63" stroke="#38bdf8" stroke-width="2.5"/>
+    <text x="314" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#e0f2fe">Requirements</text>
+    <text x="314" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#e0f2fe">Engineering</text>
+    <text x="314" y="215" text-anchor="middle" font-size="14" fill="#7dd3fc">What</text>
     <rect x="234" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="314" y="276" text-anchor="middle" font-size="15" fill="#475569">Epics · Features</text>
     <text x="314" y="300" text-anchor="middle" font-size="15" fill="#475569">Backlog · Handoff</text>
@@ -82,9 +82,9 @@ hero:
     <text x="518" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">arc42</text>
     <rect x="438" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="518" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">plan-context</text>
-    <rect x="428" y="115" width="180" height="120" rx="16" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="2.5"/>
-    <text x="518" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#0c4a6e">Architecture</text>
-    <text x="518" y="205" text-anchor="middle" font-size="14" fill="#0284c7">How</text>
+    <rect x="428" y="115" width="180" height="120" rx="16" fill="#164e63" stroke="#38bdf8" stroke-width="2.5"/>
+    <text x="518" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#e0f2fe">Architecture</text>
+    <text x="518" y="205" text-anchor="middle" font-size="14" fill="#7dd3fc">How</text>
     <rect x="438" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="518" y="276" text-anchor="middle" font-size="15" fill="#475569">ADRs · arc42</text>
     <text x="518" y="300" text-anchor="middle" font-size="15" fill="#475569">plan-context</text>
