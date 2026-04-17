@@ -1,0 +1,83 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  skills:
+    name: Skill frontmatter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate skills
+        run: bash scripts/validate-skills.sh
+
+  links:
+    name: Link check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check links with lychee
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --config .github/lychee.toml './**/*.md'
+          fail: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  json:
+    name: JSON syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate JSON files
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s globstar nullglob
+          failed=0
+          for f in \
+            .claude-plugin/plugin.json \
+            .claude-plugin/marketplace.json \
+            hooks/hooks.json \
+            hooks/hooks-cursor.json \
+            gemini-extension.json \
+            package.json; do
+            if [ -f "$f" ]; then
+              if node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))"; then
+                echo "ok: $f"
+              else
+                echo "FAIL: $f" >&2
+                failed=1
+              fi
+            fi
+          done
+          exit $failed
+
+  shell:
+    name: Shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run shellcheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          severity: warning
+          scandir: .
+          ignore_paths: node_modules docs/.vitepress/dist docs/.vitepress/cache backup

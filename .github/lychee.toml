@@ -1,0 +1,41 @@
+# Configuration for lychee link checker (https://lychee.cli.rs/)
+
+# Treat local files as relative to the repo root
+base = "."
+
+# Verbose output helps CI logs
+verbose = "info"
+
+# Reasonable timeout for slow upstreams
+timeout = 30
+
+# Don't fail on transient HTTP issues
+max_retries = 2
+retry_wait_time = 5
+
+# Skip checking anchors — authors frequently use semantic anchors that
+# differ from the rendered slug
+include_fragments = false
+
+# Accept these status codes as OK (GitHub rate-limits unauthenticated HEAD)
+accept = [200, 206, 301, 302, 304, 403, 429]
+
+# Exclusions for links we know are safe or not checkable in CI
+exclude = [
+  # Local dev URLs in docs examples
+  "^http://localhost",
+  "^http://127\\.0\\.0\\.1",
+  # Example placeholders
+  "example\\.com",
+  # GitHub user-attachment URLs — signed and not always reachable from CI
+  "github\\.com/user-attachments/",
+]
+
+# Only scan Markdown files (documentation)
+exclude_path = [
+  "node_modules/",
+  "docs/.vitepress/dist/",
+  "docs/.vitepress/cache/",
+  "backup/",
+  "package-lock.json",
+]
