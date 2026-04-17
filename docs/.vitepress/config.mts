@@ -90,6 +90,14 @@ const conceptsSidebar = [
       { text: 'Verification Gates', link: '/concepts/verification-gates' },
     ],
   },
+  {
+    text: 'Contributor reference',
+    items: [
+      { text: 'Skill Authoring Style Guide', link: '/concepts/skill-authoring' },
+      { text: 'Versioning Policy', link: '/concepts/versioning' },
+      { text: 'Artifact Ownership Matrix', link: '/concepts/artifact-ownership' },
+    ],
+  },
 ]
 
 export default withMermaid(
