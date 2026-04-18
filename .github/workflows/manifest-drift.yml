@@ -1,0 +1,25 @@
+name: manifest-drift
+
+on:
+  pull_request:
+    paths:
+      - "skills/**"
+      - "scripts/install-skills.sh"
+      - "scripts/check-manifest-drift.sh"
+      - "hooks/session-start"
+      - ".github/workflows/manifest-drift.yml"
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check manifest drift
+        run: bash scripts/check-manifest-drift.sh
