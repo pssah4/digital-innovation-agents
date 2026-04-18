@@ -8,6 +8,7 @@ description: >
   analysis to implementation", "full cycle" or similar. Also when it is
   unclear which phase to start in. All phases follow the conventions from
   /project-conventions.
+depends_on: [project-conventions]
 disable-model-invocation: true
 ---
 

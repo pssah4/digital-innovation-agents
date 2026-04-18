@@ -7,6 +7,7 @@ description: >
   "User Stories", "Requirements", "Success Criteria", "NFRs", "ASRs",
   "Acceptance Criteria", or similar. Also when a BA document exists and the
   next step is the formalization of requirements.
+depends_on: [business-analyse, project-conventions]
 disable-model-invocation: false
 ---
 

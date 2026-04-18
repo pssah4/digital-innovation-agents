@@ -9,6 +9,7 @@ description: >
   NOT take over the coding workflow -- the Default Claude Code agent remains
   responsible for the actual implementation. This skill ensures the context
   is critically reviewed, cleanly handed off, and artifacts stay up to date.
+depends_on: [architecture, project-conventions]
 disable-model-invocation: false
 ---
 

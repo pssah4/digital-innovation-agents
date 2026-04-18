@@ -11,6 +11,7 @@ description: >
   "Idea Potential", "Innovation", or similar. Also when the user wants to start
   a new project and does not yet have a clear requirement. This skill helps
   understand the problem before discussing solutions.
+depends_on: [project-conventions]
 disable-model-invocation: false
 ---
 

@@ -9,6 +9,7 @@ description: >
   similar. Also when requirements exist and the next step is technical
   structuring. This skill creates PROPOSALS. Claude Code makes the
   final decisions based on the real state of the codebase.
+depends_on: [requirements-engineering, project-conventions]
 disable-model-invocation: false
 ---
 

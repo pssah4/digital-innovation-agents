@@ -7,6 +7,7 @@ description: >
   "unit tests", "integration tests", "test coverage", "testing", "tests
   missing", "TDD" or similar. Also after implementation when tests need to
   be created or updated.
+depends_on: [coding, project-conventions]
 disable-model-invocation: false
 ---
 

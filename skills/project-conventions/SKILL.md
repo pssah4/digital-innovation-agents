@@ -7,6 +7,7 @@ description: >
   the user mentions "project setup", "project structure", "conventions",
   "init", "initialize project", "directory structure", or similar. Also
   automatically relevant when starting a new project.
+depends_on: []
 disable-model-invocation: false
 ---
 

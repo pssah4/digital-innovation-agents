@@ -1,6 +1,7 @@
 ---
 name: using-digital-innovation-agents
 description: Introduces the V-Model skill set and entry points. Advisory, not enforcing - user can always opt out.
+depends_on: []
 ---
 
 # Using Digital Innovation Agents

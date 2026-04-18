@@ -7,6 +7,7 @@ description: >
   this skill when the user mentions "security audit", "security review",
   "OWASP", "vulnerability check", "threat model", "dependency audit",
   "CVE check", "penetration", "security scan" or similar.
+depends_on: [testing, project-conventions]
 disable-model-invocation: true
 ---
 

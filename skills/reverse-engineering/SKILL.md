@@ -12,6 +12,7 @@ description: >
   engineer", "import existing code", "brownfield", "we already have
   code", "onboard existing project", or when the user wants to enter
   the V-Model workflow but artifacts do not exist yet.
+depends_on: [project-conventions]
 disable-model-invocation: false
 ---
 
