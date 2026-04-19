@@ -49,6 +49,7 @@ The loop runs three times per V-Model cycle:
 | arc42 | Affected sections when architecture shifts |
 | `_devprocess/context/10_backlog.md` | BL-NNN rows (Planned/Active/Review/Done/Waiting/Deferred), dashboard counts, new findings, status transitions, commit SHAs; binding format in `BACKLOG-TEMPLATE.md` |
 | `_devprocess/context/20_bugs.md` | Every bug found, with FIX-NN ID, causal chain, commit SHA |
+| `_devprocess/context/40_metrics.md` | Cycle time per FEATURE, drift count, hypothesis status, phase transitions, cross-phase trigger counts. Append-additive, written from inside existing phase actions |
 | `memory/MEMORY.md` | When architecture key facts change |
 | `CLAUDE.md` | When new project conventions emerge |
 

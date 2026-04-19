@@ -34,6 +34,9 @@ _devprocess/
                                        (per BACKLOG-TEMPLATE.md)
     20_bugs.md                         FIX-NN bug log (/coding Phase 3c)
     30_handoffs.md                     Append-only phase handoffs log (all phases)
+    40_metrics.md                      Signal layer (per METRICS-TEMPLATE.md)
+                                       cycle time, drift count, hypothesis status,
+                                       phase transitions, cross-phase triggers
 ```
 
 ## Living Documents
@@ -49,19 +52,23 @@ doesn't match the existing codebase. The ADR file is updated in place
 with `Status: Accepted (modified by review)` and the justification for
 the change. See [Living Documents](../concepts/living-documents).
 
-## The three context files
+## The four context files
 
-`10_backlog.md`, `20_bugs.md`, and `30_handoffs.md` serve different
-purposes:
+`10_backlog.md`, `20_bugs.md`, `30_handoffs.md`, and `40_metrics.md`
+serve different purposes:
 
 - **`10_backlog.md`**: living backlog and **single source of truth
   for the project state**. Follows the binding format in
   [`skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md):
   dashboard on top, entries grouped by Epic (BL-NNN rows with status,
-  priority, Feature-Spec, ADR, source, commit), standalone items for
-  epic-free findings, a reference list of open bugs, deferred items.
-  Every phase skill that changes project state updates this file in
-  the same edit pass (new row, status transition, dashboard refresh).
+  priority, **Claim** (`{pair-id} @ YYYY-MM-DD`), Feature-Spec, ADR,
+  source, commit), standalone items for epic-free findings, a reference
+  list of open bugs, deferred items. Every phase skill that changes
+  project state updates this file in the same edit pass (new row,
+  status transition, claim acquire or release, dashboard refresh).
+  The Claim column lets multiple human-agent pairs work the backlog
+  concurrently without a central lock service. The pair-id convention
+  is `{human-handle}-{model}` (for example `seb-opus-4-7`).
 - **`20_bugs.md`**: FIX-NN bug log. Every bug found during `/coding`
   Phase 3c (Debugging Protocol) gets an entry with causal chain and
   priority. Resolved bugs carry the commit SHA and regression-test
@@ -69,9 +76,19 @@ purposes:
 - **`30_handoffs.md`**: append-only phase handoffs log. Each phase
   skill appends one entry at the end of its run with artifacts produced,
   handoff context (open questions, assumptions, risks), and the next
-  phase.
+  phase. Phase 7 Release Closure also appends a `release-to-ba` entry
+  that queues the BA Post-Release Review.
+- **`40_metrics.md`**: signal layer. Five append-additive tables seeded
+  from
+  [`skills/v-model-workflow/templates/METRICS-TEMPLATE.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/v-model-workflow/templates/METRICS-TEMPLATE.md):
+  cycle time per FEATURE, drift count (`plan-context.md` vs. real
+  code), BA hypothesis validation status, phase transition counts,
+  cross-phase trigger counts. Writes happen inside existing phase
+  actions, no separate metrics-collection ceremony. Rows are never
+  deleted.
 
-The numbering (`10_`, `20_`, `30_`) leaves room for future additions.
+The numbering (`10_`, `20_`, `30_`, `40_`) leaves room for future
+additions.
 
 ## Traceability chain
 
@@ -101,6 +118,8 @@ mkdir -p _devprocess/{analysis/security,requirements/{epics,features,handoff},ar
 touch _devprocess/context/20_bugs.md _devprocess/context/30_handoffs.md
 cp skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md \
    _devprocess/context/10_backlog.md
+cp skills/v-model-workflow/templates/METRICS-TEMPLATE.md \
+   _devprocess/context/40_metrics.md
 ```
 
 `10_backlog.md` is seeded from the template (not created empty) so

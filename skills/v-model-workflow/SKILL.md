@@ -1,14 +1,18 @@
 ---
 name: v-model-workflow
 description: >
-  Orchestrates the V-Model development cycle: Business Analysis ->
-  Requirements Engineering -> Architecture -> Coding (Implementation) ->
-  Testing -> Security Audit -> Release Closure. Use this skill when the
-  user mentions "V-Model", "full workflow", "set up new project", "from
-  analysis to implementation", "full cycle" or similar. Also when it is
-  unclear which phase to start in. All phases follow the conventions from
-  /project-conventions.
-disable-model-invocation: true
+  Orchestrates the COMPLETE V-Model development cycle end-to-end (Business
+  Analysis -> Requirements Engineering -> Architecture -> Coding -> Testing
+  -> Security Audit -> Release Closure). TRIGGER ONLY when the user
+  explicitly requests the full orchestrator or end-to-end cycle: "V-Model",
+  "full V-Model cycle", "orchestrate the full workflow", "set up new
+  project end-to-end", "from analysis to release", "which phase do I start
+  in", "ich weiss nicht wo ich starten soll". DO NOT trigger for
+  individual phase work (use the specific phase skill instead:
+  business-analyse, requirements-engineering, architecture, coding,
+  testing, security-audit, release), generic mentions of "workflow",
+  "process", or "next step", or when a phase skill is already running.
+disable-model-invocation: false
 ---
 
 # V-Model Workflow Orchestrator

@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-04-19
+
+Patch release. Documentation update for v2.2.0 features and a new
+standalone PULSE page that frames the team operating model on top of
+the V-Model workflow. Two skills (`v-model-workflow`, `security-audit`)
+flipped from `disable-model-invocation: true` to `false` with sharper
+descriptions so the slash menu surfaces them and auto-invocation only
+fires on explicit triggers.
+
+### Added (docs)
+
+- **PULSE page** (`docs/pulse.md`). Standalone framework page describing
+  the team operating model: four manifesto values, three nested tempos
+  (execution / coordination / product), the shared context layer linking
+  to every V-Model artifact, the conscious filter, communication
+  channels, roles as hats, and the PULSE-V-Model relationship.
+  Includes an "Open conversations" section that records substantive
+  LinkedIn challenges and the replies, with links to the v2.2.0
+  features that closed the gaps each commenter named.
+- **PULSE in top-level nav** (`docs/.vitepress/config.mts`).
+
+### Changed (docs)
+
+- `docs/reference/artifacts.md`: `40_metrics.md` added to the directory
+  tree, "three context files" expanded to "four context files" with the
+  signal-layer description and the Claim column on backlog rows. Project
+  initialisation snippet copies `METRICS-TEMPLATE.md` too.
+- `docs/reference/conventions.md`: `40_metrics.md` added to the file-name
+  table, new "Pair IDs (concurrent agent coordination)" section with the
+  `{human-handle}-{model}` format and Claim cell convention.
+- `docs/concepts/handoff-rituals.md`: new section "Dialog handoffs, not
+  blockers" describing the Questions/Answers tables in `architect-handoff.md`
+  and `plan-context.md`, the agent-agent self-answer path, and the
+  `AskUserQuestion` fallback for the residue.
+- `docs/concepts/living-documents.md`: `40_metrics.md` added to the
+  writeback table.
+- `docs/guides/business-analyse.md`: new "Phase 8: Post-Release Review"
+  section describing how Critical Hypotheses get classified against
+  real usage evidence and how the phase is queued via the `release-to-ba`
+  handoff entry.
+
+### Changed (skills)
+
+- `skills/v-model-workflow/SKILL.md` and `skills/security-audit/SKILL.md`:
+  `disable-model-invocation` flipped to `false` so both skills appear in
+  the `/` slash menu. Descriptions tightened with explicit TRIGGER ONLY
+  / DO NOT trigger lists so auto-invocation does not fire on generic
+  mentions of "workflow" or "security".
+
 ## [2.2.0] - 2026-04-19
 
 Minor release. Closes the forward-bias gap in the V-Model workflow

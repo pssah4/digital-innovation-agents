@@ -20,6 +20,7 @@ description: Naming rules, language conventions, commit style, and git workflow.
 | Backlog | `10_backlog.md` | Fixed name |
 | Bug log | `20_bugs.md` | Fixed name (FIX-NN entries) |
 | Handoffs log | `30_handoffs.md` | Fixed name (append-only) |
+| Signal layer | `40_metrics.md` | Fixed name (per METRICS-TEMPLATE.md) |
 
 **Rules:**
 
@@ -61,6 +62,20 @@ language in dialog.
 Every bug found during `/coding` lands in `_devprocess/context/20_bugs.md`
 with a causal chain (Problem, Root Cause, Chain of steps leading to
 the error).
+
+## Pair IDs (concurrent agent coordination)
+
+When multiple human-agent pairs work the same backlog, each pair
+identifies itself with a pair-id in the `Claim` column of
+`10_backlog.md`:
+
+- Format: `{human-handle}-{model}`
+- Examples: `seb-opus-4-7`, `marie-sonnet-4-6`, `tom-codex`
+- Claim cell value: `{pair-id} @ {YYYY-MM-DD}`, for example
+  `seb-opus-4-7 @ 2026-04-19`
+- Phase skills claim a row at start, release on phase end or `Status: Done`
+
+The backlog itself is the lock. There is no central lock service.
 
 ## Security finding IDs
 

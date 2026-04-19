@@ -115,6 +115,7 @@ export default withMermaid(
         { text: 'Guides', link: '/guides/v-model-workflow', activeMatch: '/guides/' },
         { text: 'Reference', link: '/reference/commands', activeMatch: '/reference/' },
         { text: 'Concepts', link: '/concepts/v-model', activeMatch: '/concepts/' },
+        { text: 'PULSE', link: '/pulse' },
         { text: 'About', link: '/about' },
       ],
       sidebar: {

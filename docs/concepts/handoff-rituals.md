@@ -93,6 +93,27 @@ of context. The ritual ensures:
 It is verbose enough to be structured, but lightweight enough not to
 slow the workflow down.
 
+## Dialog handoffs, not blockers
+
+Both inter-phase handoff documents (`architect-handoff.md` and
+`plan-context.md`) carry a `## Dialog` section with a Questions table
+and an Answers table. The receiving skill scans the Questions table
+on session start and tries the agent-agent path first: it self-answers
+from existing artifacts (BA, ADRs, FEATURE specs, codebase). What it
+cannot resolve from artifacts gets bundled into a single
+`AskUserQuestion` for the user.
+
+Pending dialog entries never block unrelated work. Only the affected
+ADR or feature waits. Other work continues with a `blocked-by` note
+that cites the open question.
+
+This pattern keeps phase transitions structured without forcing every
+question through a meeting or a Slack thread. The handoff document is
+the conversation transcript, and the next session reads it on start.
+
+The seed format for both documents lives in
+[`skills/requirements-engineering/templates/ARCHITECT-HANDOFF-TEMPLATE.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/requirements-engineering/templates/ARCHITECT-HANDOFF-TEMPLATE.md).
+
 ## The `30_handoffs.md` log
 
 `_devprocess/context/30_handoffs.md` is an append-only log of every

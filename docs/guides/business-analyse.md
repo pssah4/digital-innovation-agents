@@ -162,6 +162,35 @@ If a gate fails, the skill returns to the relevant section instead of handing of
 2. Handoff context entry in `_devprocess/context/30_handoffs.md`.
 3. Transition question. "Shall I start `/requirements-engineering` now?"
 
+## Phase 8: Post-Release Review (BA as living document)
+
+The BA is not done when the first release ships. Once a feature is in
+front of real users, the Critical Hypotheses formulated in Ideation
+become testable against actual usage.
+
+Phase 8 walks each Critical Hypothesis and classifies it against
+real-world evidence:
+
+- **Confirmed by usage**: the hypothesis held up. The metric in the
+  test card was met or exceeded.
+- **Contradicted by usage**: the hypothesis was wrong. The data tells
+  a different story. A backlog entry is created so the team can react
+  (pivot the feature, change the value proposition, drop it).
+- **Inconclusive**: not enough data yet, or the metric is ambiguous.
+  Stays open, gets re-reviewed at the next release.
+
+The hypothesis status is also written to
+`_devprocess/context/40_metrics.md` so the signal layer accumulates a
+trace of what the team predicted versus what actually happened.
+
+Phase 8 is queued automatically. `/v-model-workflow` Phase 7 (Release
+Closure) appends a `release-to-ba` entry to `30_handoffs.md`. The
+next time `/business-analyse` runs, it picks up that handoff and runs
+Phase 8 before any new exploration work.
+
+This closes the BA-to-release loop. The BA file ages with the product
+instead of becoming a stale document from the first sprint.
+
 ## Validation Mode for brownfield projects
 
 When `/business-analyse` detects a BA draft created by [`/reverse-engineering`](./reverse-engineering), it enters Validation Mode. Instead of starting a new interview from scratch, it walks through each section of the existing draft, confirms the evidence-backed claims with you, and fills the `[NEEDS USER INPUT]` placeholders through the normal interview cycle. Each section gets promoted from `Draft` to `Validated` as you confirm it.
