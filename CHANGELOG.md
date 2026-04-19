@@ -7,7 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+## [2.1.0] - 2026-04-19
+
+Minor release. Brownfield entry point, method-proposal protocol across
+BA and RE, binding User Interaction Protocol, mid-course bug trigger in
+`/coding`, canonical writing style for every artifact, and a complete
+VitePress landing-page overhaul with a handcrafted V-Model SVG.
+
+### Added (Skills)
 
 - New `/reverse-engineering` skill as the brownfield entry point into
   the V-Model workflow. Walks the V backwards over an existing
@@ -26,6 +33,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   new "Reverse Engineering -> Business Analysis" transition that
   always routes through `/business-analyse` to validate the WHY
   before the forward walk resumes.
+- Explicit method-proposal protocol in `/business-analyse` and
+  `/requirements-engineering`: when user answers go generic or
+  sections lack evidence, the skill stops the interview and proposes
+  the matching method from `skills/business-analyse/references/innovation-methods.md`,
+  always linked to its user-facing docs card.
+- Mid-course bug discovery trigger in `/coding`: when a new bug
+  surfaces during implementation, the flow pauses, routes through
+  BUG-NNN / FEATURE-NNNN / ADR-amendment triage, writes a root-cause
+  analysis, adds a backlog entry BEFORE the fix, and cites both items
+  in the commit message (`Refs: FEATURE-0507, BUG-018`).
+- Per-commit backlog writeback gate in `/coding`: the backlog MUST
+  reflect the post-implementation state before every commit that
+  references a FEATURE-NNNN or BUG-NNN. Stricter than end-of-phase
+  writeback to prevent drift across long phases.
+- Binding User Interaction Protocol in `/using-digital-innovation-agents`
+  and `/v-model-workflow`: one question per turn, use
+  `AskUserQuestion`, every option carries a labelled Pro and Con, the
+  recommended option is the first entry with "(Recommended)", no
+  dealer's choice framing.
+- Canonical "Writing style for every artifact" guide in
+  `/project-conventions`. Zero em dashes (U+2014), no en dashes
+  (U+2013), no double-hyphen substitute, no AI vocabulary, no
+  negative parallelisms, no rule-of-three padding, sentence-case
+  headings, active voice, grep-before-save rule. Every phase-skill
+  now carries a pointer block to this canonical section.
+
+### Added (Documentation)
+
+- VitePress landing page overhaul: handcrafted V-Model SVG with six
+  clickable phase boxes (Business Analysis, Requirements Engineering,
+  Architecture, Coding, Testing, Security Audit), method pills above
+  each phase, artifact cards below, handoff arrows between phases,
+  dashed loops for test fix / security fix / living-documents
+  writeback. Three-zone palette with petrol/pink/indigo gradient.
+- Method-catalog pages for Discovery, Ideation, and Validation under
+  `docs/reference/methods-*.md`, each with a user-facing card for
+  every method referenced by the BA and RE skills.
+- Dedicated reverse-engineering guide with an expanded methodology
+  chapter.
+- About page with Sebastian Hanke bio and Buy Me A Coffee sponsorship;
+  refreshed README and Security Audit section in the landing diagram.
+
+### Changed
+
+- Templates de-em-dashed throughout (`BA-TEMPLATE.md`,
+  `EXPLORATION-BOARD.md`, `BACKLOG-TEMPLATE.md`, `EPIC-TEMPLATE.md`,
+  `FEATURE-TEMPLATE.md`, `AUDIT-TEMPLATE.md`). Prose uses commas,
+  periods, parentheses, or colons instead of em dashes.
+- Bash command permissions in `.claude/settings.json` expanded for
+  the reverse-engineering and documentation workflows.
+
+### Fixed
+
+- SVG layout across multiple iterations: phase alignment, orthogonal
+  fix loops, writeback arrows, two-line phase labels, clickable
+  navigation to guides.
 
 ## [2.0.0] - 2026-04-14
 
