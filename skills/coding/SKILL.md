@@ -346,6 +346,39 @@ resolved and the regression test marked as valid.
 **Documentation:** The entry in `_devprocess/context/20_bugs.md` gets a
 note: "Regression test verified via red-green cycle on {date}".
 
+### Mid-course bug discovery (binding trigger)
+
+If a NEW bug surfaces while implementing the current plan (not in
+the original feature specs, ADRs, or FIX-list), the coding flow
+MUST pause and route through the artefact layer BEFORE writing the
+fix. Skipping this step leaks code changes without backlog trace.
+
+```
+Mid-course handling, do NOT fix the bug silently:
+
+1. STOP the current code edit. Do not write the fix yet.
+2. Triage:
+   - Is this a BUG in shipped code?         -> create BUG-NNN
+   - Is this a missing requirement in plan? -> create FEATURE-NNNN
+   - Is this a design gap?                  -> amend ADR / arc42
+3. Write a minimal root-cause analysis in _devprocess/analysis/
+   (3-10 lines is fine: problem, cause, fix direction, risk)
+4. Add the new item to _devprocess/context/10_backlog.md under
+   the active Epic so it appears in the backlog before any code
+   touches disk
+5. NOW write the fix. Commit message cites BOTH the in-progress
+   FEATURE-NNNN and the new BUG-NNN (e.g.
+   `Refs: FEATURE-0507, BUG-018`)
+6. After the fix: run the standard Final synchronization block
+   below, marking the new BUG-NNN as resolved
+```
+
+Why this matters: BUG-017 (tool_use pairing) and BUG-018 (plugin
+routing) were found during Obsilo v2.5.0 beta testing. Without
+this trigger they got fixed in code first and documented only
+after release, the backlog then drifted from the code state for
+days.
+
 ### Final synchronization (cross-artifact)
 
 After implementation is verified, check:
@@ -372,8 +405,16 @@ MANDATORY -- artifacts must reflect the actual state:
    - Add new findings (chores, tech debt, follow-ups) as new rows in
      the matching Epic section or Standalone Items
    - Refresh dashboard counts (status + priority) and "Letztes Update"
-   - The backlog MUST reflect the post-implementation state before
-     the Handoff Ritual runs
+   - **Per-commit gate (binding):** The backlog MUST reflect the
+     post-implementation state BEFORE every commit that references
+     a FEATURE-NNNN or BUG-NNN. Stricter than "before handoff
+     ritual" because phase-end writeback drifts when phases stretch
+     across multiple commits or when new bugs appear mid-phase.
+   - **Commit message must cite the artefacts it touches:**
+     `Refs: FEATURE-0409, BUG-013` (or similar). This creates a
+     searchable trail from code back to backlog, so a future
+     verification query `git log --grep="FEATURE-0409"` lists every
+     commit that claimed to move that item forward.
 
 4. Bug log:
    - All FIX-NN entries in _devprocess/context/20_bugs.md updated

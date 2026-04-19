@@ -106,6 +106,38 @@ hook entirely. Mention this only if the user asks how to disable permanently.
 - **Advisory, not enforcing**: if the user doesn't want the workflow, don't
   force it -- they know their task better than we do
 
+## User Interaction Protocol (binding across every V-Model skill)
+
+When any phase-skill or the orchestrator needs a decision from the user,
+the following rules are mandatory. They apply inside `/v-model-workflow`
+and when any phase-skill is invoked standalone.
+
+1. **One question per turn.** Never batch multiple open decisions into a
+   single message. Ask Q1, wait for the answer, then ask Q2.
+2. **Use the `AskUserQuestion` tool.** Plain markdown lists force the user
+   to type back; the tool offers clickable options plus a free-text
+   "Other" slot. Free-form prose questions in chat are only for quick
+   factual confirmations, not for decisions between alternatives.
+3. **Each option must list BOTH a Pro and a Con, explicitly labelled.**
+   Format the `description` with two lines so the trade-off reads at a
+   glance:
+   ```
+   + Pro: one short sentence stating the main upside.
+   - Con: one short sentence stating the main downside or cost.
+   ```
+   The user must be able to see both sides without opening anything else.
+   A description that lists only advantages is a bug.
+4. **Mark the recommended option as the first entry** with "(Recommended)"
+   in its label. If the rationale for the recommendation is not obvious
+   from the Pros/Cons, add a one-line "Empfehlung: ... weil ..." sentence
+   in the turn text BEFORE the `AskUserQuestion` call.
+5. **No "dealer's choice" framing.** If you genuinely have no preference,
+   say so in the lead-in text; do not silently drop the recommendation.
+
+These rules bind regardless of project language. Pros/Cons stay
+labelled with "+ Pro:" / "- Con:" so both sides are visually identifiable
+at a glance.
+
 ## Scope adaptation
 
 The V-Model workflow adapts to project scope:
