@@ -184,12 +184,18 @@ Every feature goes through:
 
 ```
 1. BACKLOG          -- Entry in _devprocess/context/10_backlog.md
-2. FEATURE-SPEC     -- Write spec BEFORE implementation
-3. PLAN             -- Plan-Mode: create implementation plan
-4. IMPLEMENTATION   -- Code, build+deploy after each step
-5. SPEC UPDATE      -- Feature-spec becomes reference doc
-6. BACKLOG UPDATE   -- Immediately after implementation
+2. CLAIM            -- Set Claim column to {pair-id} @ {date}
+3. FEATURE-SPEC     -- Write spec BEFORE implementation
+4. PLAN             -- Plan-Mode: create implementation plan
+5. IMPLEMENTATION   -- Code, build+deploy after each step
+6. SPEC UPDATE      -- Feature-spec becomes reference doc
+7. BACKLOG UPDATE   -- Immediately after implementation
+8. RELEASE CLAIM    -- Clear Claim column when phase ends
 ```
+
+See the Concurrent-agent coordination section in
+`skills/v-model-workflow/SKILL.md` for the Claim protocol and
+conflict-resolution rules when multiple pairs work in parallel.
 
 ## Plan Structure
 

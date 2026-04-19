@@ -476,6 +476,64 @@ See:
 - `skills/requirements-engineering/templates/ARCHITECT-HANDOFF-TEMPLATE.md`
 - `skills/architecture/templates/plan-context-TEMPLATE.md`
 
+## Concurrent-agent coordination
+
+When multiple human-agent pairs work on the same repo in parallel, the
+backlog is the single synchronization point. Without explicit
+ownership, two pairs can start the same backlog row at the same time,
+write conflicting commits, and discover the collision only at merge.
+
+The backlog template adds a `Claim` column to every active row. The
+value encodes the human-agent pair and the claim timestamp:
+
+```
+{pair-id} @ {YYYY-MM-DD}
+```
+
+Example: `sebastian-opus-4.7 @ 2026-04-19`. An empty Claim cell means
+the row is free to be picked up.
+
+**Claim protocol:**
+
+1. **Claim on phase start.** When a phase-skill starts work on a
+   backlog row (reading FEATURE spec, writing ADR, implementing),
+   it sets the Claim column to its own `pair-id` and today's date
+   BEFORE any other write. The write is atomic: set Claim, then
+   work.
+2. **Release on phase end or `Status: Done`.** When the phase
+   finishes (Handoff Ritual runs) or the item reaches Status=Done,
+   the Claim column gets cleared. Rows at Status=Done do not need
+   a Claim.
+3. **Claim conflict.** If a pair wants to claim a row that already
+   has a non-empty Claim, it does NOT overwrite. It surfaces the
+   conflict to the user via `AskUserQuestion`:
+   "BL-{NNN} is already claimed by {other-pair} since {date}.
+   Options: (a) Ask the other pair to release; (b) Take over with
+   acknowledgement; (c) Work on a different item; (d) Split the row
+   into two related entries." The user decides. If "Take over" is
+   chosen, the new pair appends a note to the Claim history (see
+   rule 5).
+4. **Stale claims.** Claims older than the phase-expected duration
+   (e.g. a Feature stuck at Active for >14 days with an active
+   Claim) get flagged in the next Handoff Ritual as stale. The
+   orchestrator proposes to ask the claiming pair for status or to
+   release.
+5. **Claim history is append-additive.** The Claim cell always holds
+   the CURRENT claim. Previous claims live in the `Notizen` column
+   as a dated note: `Notizen: Claim handover 2026-04-19:
+   sebastian-opus-4.7 -> anna-sonnet-4.6 (context: ADR-012
+   rework)`.
+
+**Pair-id convention:** `{human-handle}-{model}`. Use a model slug that
+distinguishes sessions (e.g. `opus-4.7`, `sonnet-4.6`). No spaces. If
+your organisation already has a naming convention, use that instead
+and document it in the project CLAUDE.md.
+
+**No central lock service.** The backlog is the lock. Every write
+happens through the normal Markdown edit cycle, so merge conflicts on
+the Claim column surface the collision at the exact moment two pairs
+try to own the same row. That is the correct behaviour.
+
 ## Signal layer
 
 The workflow writes a set of lightweight signals to

@@ -53,6 +53,12 @@ Counts werden bei jedem Backlog-Write vom schreibenden Agent aktualisiert.
 
 **ID-Schema:** `BL-NNN` fortlaufend, monoton, nie wiederverwendet.
 
+**Claim:** `{pair-id} @ {YYYY-MM-DD}` markiert, welches
+Mensch-Agent-Paar den Eintrag aktiv bearbeitet. Leeres Feld = frei.
+Beispiel: `sebastian-opus-4.7 @ 2026-04-19`. Claim wird beim
+Phasen-Start gesetzt und beim Phasen-Ende oder bei Status `Done`
+entfernt.
+
 ---
 
 ## Aktive Epics
@@ -62,11 +68,11 @@ Counts werden bei jedem Backlog-Write vom schreibenden Agent aktualisiert.
 Link: `_devprocess/requirements/epics/EPIC-001-{slug}.md`
 Status: In Arbeit | Zielzeitraum: {Q2 2026}
 
-| ID     | Titel        | Typ     | Prio | Status  | Feature-Spec    | ADR     | Source | Commit    | Notizen    |
-|--------|--------------|---------|------|---------|-----------------|---------|--------|-----------|------------|
-| BL-001 | Kurzer Titel | Feature | P1   | Active  | FEATURE-001-001 | ADR-003 | BA     |           | kurze Note |
-| BL-002 | Kurzer Titel | Chore   | P2   | Planned |                 |         | REV    |           |            |
-| BL-003 | Kurzer Titel | Feature | P1   | Done    | FEATURE-001-002 | ADR-002 | BA     | `a1b2c3d` | 2026-04-10 |
+| ID     | Titel        | Typ     | Prio | Status  | Feature-Spec    | ADR     | Source | Commit    | Claim                    | Notizen    |
+|--------|--------------|---------|------|---------|-----------------|---------|--------|-----------|--------------------------|------------|
+| BL-001 | Kurzer Titel | Feature | P1   | Active  | FEATURE-001-001 | ADR-003 | BA     |           | sebastian-opus-4.7 @ 2026-04-19 | kurze Note |
+| BL-002 | Kurzer Titel | Chore   | P2   | Planned |                 |         | REV    |           |                          |            |
+| BL-003 | Kurzer Titel | Feature | P1   | Done    | FEATURE-001-002 | ADR-002 | BA     | `a1b2c3d` |                          | 2026-04-10 |
 
 ---
 
@@ -81,10 +87,10 @@ Status: In Arbeit | Zielzeitraum: {Q2 2026}
 Eintraege ohne Epic-Zuordnung: Reverse-Engineering-Funde,
 Security-Findings, direkte Stakeholder-Requests, technische Schuld.
 
-| ID     | Titel                    | Typ      | Prio | Status  | Evidence              | Source | Commit | Notizen |
-|--------|--------------------------|----------|------|---------|-----------------------|--------|--------|---------|
-| BL-050 | CSRF-Token fehlt         | Security | P1   | Planned | `src/api/login.ts:88` | SEC    |        | H-2     |
-| BL-051 | Veraltete lodash-Version | Chore    | P3   | Planned | `package.json`        | REV    |        |         |
+| ID     | Titel                    | Typ      | Prio | Status  | Evidence              | Source | Commit | Claim                    | Notizen |
+|--------|--------------------------|----------|------|---------|-----------------------|--------|--------|--------------------------|---------|
+| BL-050 | CSRF-Token fehlt         | Security | P1   | Planned | `src/api/login.ts:88` | SEC    |        |                          | H-2     |
+| BL-051 | Veraltete lodash-Version | Chore    | P3   | Planned | `package.json`        | REV    |        | anna-sonnet-4.6 @ 2026-04-19 |         |
 
 ---
 
