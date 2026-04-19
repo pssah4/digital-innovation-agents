@@ -94,3 +94,41 @@ Claude Code sollte folgende Dokumente als Kontext lesen:
 2. `_devprocess/architecture/arc42.md` (Architektur-Entwurf)
 3. `_devprocess/requirements/features/FEATURE-*.md` (alle Features)
 4. `_devprocess/requirements/epics/EPIC-*.md` (wenn vorhanden)
+
+---
+
+## Dialog
+
+> Bidirectional channel between Coder and Architect. NOT a blocker:
+> the Coder proceeds with implementation that does not depend on
+> pending questions. Only the specific change that needs clarification
+> waits.
+
+### Questions from Coder to Architect
+
+| ID | Date | Question | Addressed by | Status |
+|---|---|---|---|---|
+| Q-001 | 2026-04-19 | {concrete question about an ADR or a stack choice} | ADR-007 | Pending |
+
+### Answers from Architect
+
+| ID | Date | Answer | Affected artifacts | Status |
+|---|---|---|---|---|
+| A-001 | 2026-04-20 | {concrete answer; if the Architect updates an ADR, cite it here} | ADR-007 (amended) | Resolved |
+
+### Dialog rules
+
+- **Not a blocker.** Pending entries do not stop unrelated
+  implementation work. Only the code change that depends on the
+  pending question waits.
+- **Try to self-answer first.** When the Coder (or Architect on a
+  return pass) starts a new session and sees pending dialog entries,
+  it attempts to answer from existing artifacts (ADRs, arc42, code)
+  BEFORE asking the user.
+- **One question per session to the user.** If self-answering fails,
+  the skill surfaces ALL unresolved entries in a single
+  `AskUserQuestion` at session start: "N questions from Coder could
+  not be answered from existing artifacts. Address now, defer to end
+  of session, or record as open issues?"
+- **Entries are append-only.** Answers supersede questions by setting
+  Status to Resolved. Rows are never deleted.

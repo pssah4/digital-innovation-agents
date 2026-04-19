@@ -46,6 +46,23 @@ OPTIONAL (if present):
 10. memory/MEMORY.md                                   (architecture key facts)
 ```
 
+**Dialog check.** After loading `plan-context.md`, scan its `## Dialog`
+section. If there are entries under "Answers from Architect" with
+`Status: Resolved` that your previous session did not yet see, read
+them now. They carry answers to questions you raised in an earlier
+pass.
+
+If there are "Questions from Coder" entries still at `Status: Pending`,
+try to self-answer each one from the current artifacts (updated ADRs,
+arc42, codebase). For every question you can answer from the
+artifacts, append the resolution to "Answers from Architect" in the
+plan-context Dialog section and mark the question Resolved. For every
+question you still cannot answer, surface the remaining set to the
+user in a single `AskUserQuestion` at the end of Phase 1: "N pending
+Dialog questions could not be self-answered. Address now, defer to
+end of session, or record as open issues?" Do not block. Proceed with
+whatever the user chose.
+
 If no `plan-context.md` exists:
 
 ```
@@ -129,6 +146,26 @@ artifacts BEFORE implementation begins:
 - **New ADR needed** -> create new ADR file
 
 After writing back: emit a summary of the changed files.
+
+### 2d: Signal writeback (drift count)
+
+Append a row to `_devprocess/context/40_metrics.md` under the
+"Drift count (plan-context.md vs. real code)" table:
+
+- Date: today
+- ADR count: how many ADRs were reviewed
+- arc42 section count: how many arc42 sections were reviewed
+- plan-context item count: how many plan-context entries were checked
+- Drift flagged: count of CHANGES NEEDED + MISSING items from the review
+- Drift resolved: count of items actually written back in step 2c
+- Open: count that remained unresolved (for example because the user
+  wanted to discuss first)
+
+If `40_metrics.md` does not yet exist, copy
+`skills/v-model-workflow/templates/METRICS-TEMPLATE.md` into the
+file first, then append. A rising drift count over multiple
+reconciliation runs signals that the ADRs or plan-context are losing
+touch with reality.
 
 ---
 
@@ -379,6 +416,45 @@ this trigger they got fixed in code first and documented only
 after release, the backlog then drifted from the code state for
 days.
 
+### Mid-course design discovery (binding trigger)
+
+If the implementation reveals that an architectural decision does not
+match reality (ADR says X, the codebase proves Y works better, or the
+constraints the ADR relied on turned out to be wrong), pause the
+coding flow and route through the architecture layer BEFORE continuing
+the feature. Silent design drift is worse than a bug: the ADR keeps
+claiming a state of the world that no longer exists.
+
+```
+Mid-course handling for a design finding, do NOT silently deviate:
+
+1. STOP the current code edit. Do not keep coding around the
+   mismatched ADR.
+2. Triage:
+   - Can the ADR be amended with a small correction?
+     -> update ADR, keep status "Accepted (modified)"
+   - Is the original decision wrong at the root?
+     -> supersede ADR: old one becomes "Superseded by ADR-NNN",
+        new ADR captures the actual decision
+   - Does the discovery only clarify wording, not decision?
+     -> update ADR Context or Consequences in place
+3. Write a root-cause entry in _devprocess/analysis/ADR-{NNN}-review.md
+   (3-10 lines: what the ADR claimed, what the code proves, what
+   changes, what still holds)
+4. Update arc42.md and plan-context.md if the discovery affects
+   either. Keep them consistent with the ADR change.
+5. Only NOW resume or rewrite the code. Commit message cites the ADR
+   change alongside the in-progress FEATURE
+   (e.g. `Refs: FEATURE-0507, ADR-012 (amended)`)
+6. After the fix: run the standard Final synchronization block
+   below. The amended or superseded ADR is part of the writeback.
+```
+
+Why this matters: an ADR that silently diverges from the code stops
+being a decision record and becomes a historical fiction. The next
+reviewer who consults it makes worse decisions because they trust a
+document that no longer reflects reality.
+
 ### Final synchronization (cross-artifact)
 
 After implementation is verified, check:
@@ -420,11 +496,23 @@ MANDATORY -- artifacts must reflect the actual state:
    - All FIX-NN entries in _devprocess/context/20_bugs.md updated
      (Status=resolved with commit SHA, regression test verified)
 
+5. Metrics (signal layer):
+   - Append a row to _devprocess/context/40_metrics.md under the
+     "Cycle time per FEATURE" table for each FEATURE that reached
+     Status=Implemented this session
+   - Columns: FEATURE ID, Started (first commit with Refs:FEATURE-NNNN),
+     Completed (latest commit with Refs:FEATURE-NNNN), Cycle time,
+     Scope, Notes
+   - Append a row to "Phase transition counts" under "Coding -> Testing"
+     (or the next phase) if this session ended a phase
+   - Append a row to "Cross-phase trigger counts" for every
+     mid-course trigger that fired during this session
+
 IF APPLICABLE:
-5. plan-context.md: update if tech stack has changed
-6. arc42: update affected sections
-7. memory/MEMORY.md: if architecture key facts have changed
-8. CLAUDE.md: if new project conventions emerged
+6. plan-context.md: update if tech stack has changed
+7. arc42: update affected sections
+8. memory/MEMORY.md: if architecture key facts have changed
+9. CLAUDE.md: if new project conventions emerged
 ```
 
 ### Completion summary

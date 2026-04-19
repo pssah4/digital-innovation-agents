@@ -304,6 +304,38 @@ Tip: For a new cycle, start again with /business-analyse or
      /requirements-engineering (depending on how deep the change is).
 ```
 
+### Step 6: Queue Post-Release BA Review
+
+After the release ships, the Critical Hypotheses in
+`_devprocess/analysis/BA-{PROJECT}.md` Section 7.3 become testable
+against real usage data. To avoid the BA freezing at
+`Status: Validated` forever, append an entry to
+`_devprocess/context/30_handoffs.md` of type `release-to-ba`:
+
+```
+## release-to-ba {YYYY-MM-DD}
+
+Project: {PROJECT}
+Version: v{version}
+Release date: {YYYY-MM-DD}
+Signals source: _devprocess/context/40_metrics.md (or user-provided)
+
+Ready for BA Post-Release Review: yes
+Recommended timing: {after N days of real usage, per scope:
+  Simple Test: 1-3 days; PoC: 7-14 days; MVP: 14-30 days}
+
+Hypotheses to re-validate:
+- H-01: {text}
+- H-02: {text}
+...
+```
+
+The user (or the orchestrator on a later invocation of
+`/business-analyse`) reads this entry and triggers
+`/business-analyse` Phase 8 once enough signal has accumulated.
+Without this queue entry, the BA review depends on human memory and
+does not happen.
+
 ---
 
 ## Artifact Directory Structure
@@ -330,6 +362,7 @@ _devprocess/
     10_backlog.md                      <- living backlog (per BACKLOG-TEMPLATE.md)
     20_bugs.md                         <- FIX-NN bug log (Phase 4)
     30_handoffs.md                     <- append-only handoffs log
+    40_metrics.md                      <- signal layer (per METRICS-TEMPLATE.md)
 ```
 
 ## Traceability Chain
@@ -362,6 +395,175 @@ This workflow follows the standards from `/project-conventions`:
 - Language: skill instructions in English, user dialog in the user's language
 - Directories: `_devprocess/` for internal documents
 - Feature lifecycle: BACKLOG -> SPEC -> PLAN -> IMPL -> UPDATE
+
+## V-Model as a decision graph, not a straight path
+
+The Workflow Overview above shows phases in a linear sequence for
+readability. In practice, the V is a decision graph. You do not always
+walk it once from Phase 0 to Phase 7. Several triggers allow a running
+phase to pause and route work back to a previous phase before
+continuing.
+
+The three cross-phase feedback triggers:
+
+1. **Mid-course bug discovery** (in `/coding`). A new bug surfaces
+   during implementation that is not in the feature specs, ADRs, or
+   FIX-list. The coding flow pauses, routes through BUG-NNN triage,
+   writes a root-cause analysis, adds the backlog entry, and only
+   then writes the fix. Commit references both items.
+2. **Mid-course design discovery** (in `/coding`). The implementation
+   reveals that an architectural choice does not match reality. The
+   coding flow pauses, amends or supersedes the affected ADR, updates
+   arc42 and plan-context.md, and only then continues the feature.
+3. **Mid-course requirements discovery** (in `/architecture`). The
+   tech design reveals that a FEATURE spec has a gap, ambiguity, or
+   impossible constraint. Architecture pauses, routes the issue back
+   to `/requirements-engineering` as a FEATURE-spec update, waits
+   for the updated handoff, and only then proceeds with ADRs.
+
+Each trigger follows the same 6-step pattern: STOP, triage, write a
+minimal root-cause analysis, add a backlog entry BEFORE any code or
+artifact change, make the change with a commit that cites the
+artefacts, then run the Final synchronization block.
+
+**When a phase returns to an earlier phase, the lower phases downstream
+do NOT re-run automatically.** The user decides whether the trigger
+fix is local or whether the full walk continues from the updated
+phase. The backlog entry carries the decision.
+
+The linear look is a simplification for the orchestrated flow, not a
+law. Real projects iterate. The workflow acknowledges iteration
+explicitly and keeps the forward walk as the default, not the only
+path.
+
+## Dialog handoffs
+
+Both handoff documents (`architect-handoff.md` and `plan-context.md`)
+carry a `## Dialog` section that creates a bidirectional channel
+between phases. The sender writes answers to questions the receiver
+raised earlier. The receiver writes new questions that came up on
+this pass. This turns the handoff from a one-way throw-over-the-fence
+into a conversation that works across agent sessions (which have no
+memory) and human pauses.
+
+**Binding rules:**
+
+- **Not a blocker.** Pending dialog entries never stop unrelated work.
+  Only the specific ADR, FEATURE, or code change that depends on a
+  pending question waits. Everything else continues.
+- **Try to self-answer first.** When a phase-skill starts a new
+  session and sees pending dialog entries addressed to its side, it
+  attempts to answer each from existing artifacts (codebase, ADRs,
+  FEATURE specs, BA doc) BEFORE asking the user.
+- **One question per session to the user.** If self-answering fails,
+  the skill surfaces ALL unresolved entries in a single
+  `AskUserQuestion` at session start: "N questions from {sender}
+  could not be self-answered. Address now, defer to end of session,
+  or record as open issues?" Per the User Interaction Protocol, one
+  question per turn.
+- **Append-only.** Entries and answers are never deleted. Answered
+  questions have `Status: Resolved`. Questions that outlive multiple
+  sessions without resolution become candidates for a backlog entry.
+
+**Agent-agent and agent-human paths.** The self-answer step is the
+agent-agent path. Two agent sessions (across time) negotiate via the
+shared handoff document without a human in the loop, as long as the
+artifacts contain the answer. The user only enters the loop when an
+answer cannot be derived. This preserves fast forward progress
+without losing the conversation trail.
+
+See:
+- `skills/requirements-engineering/templates/ARCHITECT-HANDOFF-TEMPLATE.md`
+- `skills/architecture/templates/plan-context-TEMPLATE.md`
+
+## Concurrent-agent coordination
+
+When multiple human-agent pairs work on the same repo in parallel, the
+backlog is the single synchronization point. Without explicit
+ownership, two pairs can start the same backlog row at the same time,
+write conflicting commits, and discover the collision only at merge.
+
+The backlog template adds a `Claim` column to every active row. The
+value encodes the human-agent pair and the claim timestamp:
+
+```
+{pair-id} @ {YYYY-MM-DD}
+```
+
+Example: `sebastian-opus-4.7 @ 2026-04-19`. An empty Claim cell means
+the row is free to be picked up.
+
+**Claim protocol:**
+
+1. **Claim on phase start.** When a phase-skill starts work on a
+   backlog row (reading FEATURE spec, writing ADR, implementing),
+   it sets the Claim column to its own `pair-id` and today's date
+   BEFORE any other write. The write is atomic: set Claim, then
+   work.
+2. **Release on phase end or `Status: Done`.** When the phase
+   finishes (Handoff Ritual runs) or the item reaches Status=Done,
+   the Claim column gets cleared. Rows at Status=Done do not need
+   a Claim.
+3. **Claim conflict.** If a pair wants to claim a row that already
+   has a non-empty Claim, it does NOT overwrite. It surfaces the
+   conflict to the user via `AskUserQuestion`:
+   "BL-{NNN} is already claimed by {other-pair} since {date}.
+   Options: (a) Ask the other pair to release; (b) Take over with
+   acknowledgement; (c) Work on a different item; (d) Split the row
+   into two related entries." The user decides. If "Take over" is
+   chosen, the new pair appends a note to the Claim history (see
+   rule 5).
+4. **Stale claims.** Claims older than the phase-expected duration
+   (e.g. a Feature stuck at Active for >14 days with an active
+   Claim) get flagged in the next Handoff Ritual as stale. The
+   orchestrator proposes to ask the claiming pair for status or to
+   release.
+5. **Claim history is append-additive.** The Claim cell always holds
+   the CURRENT claim. Previous claims live in the `Notizen` column
+   as a dated note: `Notizen: Claim handover 2026-04-19:
+   sebastian-opus-4.7 -> anna-sonnet-4.6 (context: ADR-012
+   rework)`.
+
+**Pair-id convention:** `{human-handle}-{model}`. Use a model slug that
+distinguishes sessions (e.g. `opus-4.7`, `sonnet-4.6`). No spaces. If
+your organisation already has a naming convention, use that instead
+and document it in the project CLAUDE.md.
+
+**No central lock service.** The backlog is the lock. Every write
+happens through the normal Markdown edit cycle, so merge conflicts on
+the Claim column surface the collision at the exact moment two pairs
+try to own the same row. That is the correct behaviour.
+
+## Signal layer
+
+The workflow writes a set of lightweight signals to
+`_devprocess/context/40_metrics.md`, seeded from
+`skills/v-model-workflow/templates/METRICS-TEMPLATE.md`. The file
+answers one question: **is this project pulsing in the right direction
+or just moving fast somewhere else?**
+
+Signals and who writes them:
+
+| Signal | Writer | When |
+|---|---|---|
+| Cycle time per FEATURE | `/coding` | Final synchronization, after commits with `Refs: FEATURE-NNNN` |
+| Drift count (plan-context vs. code) | `/coding` | After Phase 2a codebase reconciliation |
+| BA hypothesis validation status | `/business-analyse` | Phase 8 Post-Release Review, or any re-validation |
+| Phase transition counts | this orchestrator (or phase-skill if invoked standalone) | Every Handoff Ritual |
+| Cross-phase trigger counts | the firing skill | On every mid-course trigger |
+
+**Rules:**
+- The metrics file is **append-additive**. Rows are never deleted.
+  Stale cells get superseded by a new row with the same key
+  (FEATURE ID, date, or trigger type).
+- Writes happen **inside existing phase actions** (Handoff Ritual,
+  codebase reconciliation, mid-course triggers). No separate
+  metrics-collection step, no new ceremony.
+- If the file does not yet exist when a skill wants to write, the
+  skill copies `METRICS-TEMPLATE.md` first, then adds its row.
+- Consumers read the file to decide whether to trigger a
+  reconciliation run, a post-release review, or a conversation
+  about workflow adherence.
 
 ## User Interaction Protocol (binding for all phase-skills)
 

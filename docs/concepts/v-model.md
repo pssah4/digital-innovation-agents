@@ -112,6 +112,33 @@ and an explicit transition question. The [V-Model workflow orchestrator](../guid
 drives transitions when you run `/v-model-workflow`. Individual phase
 skills run the ritual too when invoked directly.
 
+## The V is iterative, not linear
+
+The diagram above shows a straight walk from Phase 1 to Phase 7. In
+practice the V is a decision graph. Real projects discover things mid
+flight: a bug surfaces during `/coding` that nobody predicted, an
+architectural choice turns out to be wrong once the code exists, a
+FEATURE spec reveals a gap once you try to design around it.
+
+Three cross-phase feedback triggers make the iteration explicit:
+
+- **Mid-course bug discovery** in `/coding`. A new bug pauses the
+  implementation. Triage routes the issue to BUG-NNN or FEATURE-NNNN,
+  root-cause analysis lands in `_devprocess/analysis/`, and a backlog
+  entry appears BEFORE any fix gets written.
+- **Mid-course design discovery** in `/coding`. An ADR no longer
+  matches reality. The coding flow pauses, amends or supersedes the
+  ADR, updates `arc42.md` and `plan-context.md`, and only then
+  continues the feature.
+- **Mid-course requirements discovery** in `/architecture`. A FEATURE
+  spec has a gap or an impossible constraint. Architecture pauses and
+  routes the issue back to `/requirements-engineering` for a FEATURE
+  update.
+
+Each trigger follows the same 6-step pattern (STOP, triage, root
+cause, backlog, change with commit Refs, Final sync). The forward
+walk remains the default. Iteration is an option, not a detour.
+
 ## Scope adaptation
 
 The same V-Model runs for:

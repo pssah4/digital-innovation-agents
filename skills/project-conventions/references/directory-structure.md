@@ -28,7 +28,8 @@
 │   └── context/                         Projekt-Status & Backlog
 │       ├── 10_backlog.md                Lebendes Backlog (per BACKLOG-TEMPLATE.md)
 │       ├── 20_bugs.md                   FIX-NN Bug-Log
-│       └── 30_handoffs.md               Append-only Phasen-Handoffs
+│       ├── 30_handoffs.md               Append-only Phasen-Handoffs
+│       └── 40_metrics.md                Signal-Layer (per METRICS-TEMPLATE.md)
 │
 ├── src/                                 QUELLCODE
 │   ├── core/                            Kern-Logik, Pipeline, Context
