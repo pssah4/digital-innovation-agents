@@ -309,6 +309,81 @@ Read the template files in `templates/` and fill them based on the interview:
 The BA document references the results from the Exploration Board and
 integrates IDEATION and EVALUATE results.
 
+### Phase 8: Post-Release Review (optional, after first real usage)
+
+A BA that freezes at `Status: Validated` after the handoff to
+Requirements Engineering is only validated by reasoning. Real user
+data from shipped features has to flow back into the Critical
+Hypotheses, otherwise the BA becomes historical fiction as soon as
+the product hits actual users.
+
+This phase runs after a release has been live long enough to produce
+observed signals (days to weeks depending on scope). It is optional
+in the sense that the user decides when to trigger it, but strongly
+recommended after every MVP release and after every PoC that reached
+real users.
+
+**Trigger conditions:**
+
+- The user invokes `/business-analyse` with an existing BA document
+  that is at `Status: Validated` AND a release has happened since
+  the validation timestamp, OR
+- The `/coding` skill wrote a post-release handoff entry in
+  `_devprocess/context/30_handoffs.md` flagging the release as
+  "Ready for BA Post-Release Review".
+
+**Process:**
+
+1. **Load evidence sources.** Read in order:
+   - `_devprocess/analysis/BA-{PROJECT}.md` Section 7.3 (Critical
+     Hypotheses)
+   - `_devprocess/context/40_metrics.md` (if present) for the
+     observed signals
+   - Any additional user-provided evidence (support tickets, usage
+     analytics, interview notes, retention data)
+
+2. **Walk each hypothesis.** For every Critical Hypothesis H-NN in
+   Section 7.3, ask the user one question per turn (per User
+   Interaction Protocol): "H-{NN} said {hypothesis}. What evidence
+   have you collected since release?". Offer options via
+   `AskUserQuestion`:
+   - `Confirmed by usage` with Pro/Con labeled description
+   - `Contradicted by usage` with Pro/Con labeled description
+   - `Inconclusive` (not enough data yet) with Pro/Con
+
+3. **Update the BA document.** For each hypothesis, append an
+   evidence block under its status marker:
+
+   ```
+   H-01: {hypothesis text}
+   Status: Confirmed by usage
+   Evidence (2026-04-19): {metric, quote, or data source}
+   Source: {link to dashboard, interview transcript, or
+            usage report}
+   ```
+
+   Rows are never deleted. New evidence blocks append.
+
+4. **Propagate to 40_metrics.md.** Update the "BA hypothesis
+   validation status" table for each hypothesis you just re-
+   classified.
+
+5. **Contradictions trigger backlog entries.** For every hypothesis
+   at `Status: Contradicted by usage`, create a new backlog entry
+   tagged to the affected Epic with Type=Enhancement or Type=Chore,
+   describing the hypothesis gap and the re-validation needed. The
+   user reviews the entry at the next planning pass.
+
+6. **Update status at the top of the BA.** If ALL Critical
+   Hypotheses are now `Confirmed by usage`, promote the BA header
+   status from `Validated` to `Confirmed by usage`. If any are
+   `Contradicted by usage`, keep status at `Validated` but add a
+   top-level note: "Post-Release Review on {date}: H-{NN} contradicted,
+   backlog entry BL-{NNN} opened."
+
+The phase writes back in the same style every other phase does. Zero
+em dashes. No AI vocab. Active voice. Append-only on evidence blocks.
+
 ## Quality Gates
 
 Before handoff to the Requirements Engineer, these criteria must be met:

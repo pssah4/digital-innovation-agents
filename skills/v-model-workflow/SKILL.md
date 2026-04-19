@@ -304,6 +304,38 @@ Tip: For a new cycle, start again with /business-analyse or
      /requirements-engineering (depending on how deep the change is).
 ```
 
+### Step 6: Queue Post-Release BA Review
+
+After the release ships, the Critical Hypotheses in
+`_devprocess/analysis/BA-{PROJECT}.md` Section 7.3 become testable
+against real usage data. To avoid the BA freezing at
+`Status: Validated` forever, append an entry to
+`_devprocess/context/30_handoffs.md` of type `release-to-ba`:
+
+```
+## release-to-ba {YYYY-MM-DD}
+
+Project: {PROJECT}
+Version: v{version}
+Release date: {YYYY-MM-DD}
+Signals source: _devprocess/context/40_metrics.md (or user-provided)
+
+Ready for BA Post-Release Review: yes
+Recommended timing: {after N days of real usage, per scope:
+  Simple Test: 1-3 days; PoC: 7-14 days; MVP: 14-30 days}
+
+Hypotheses to re-validate:
+- H-01: {text}
+- H-02: {text}
+...
+```
+
+The user (or the orchestrator on a later invocation of
+`/business-analyse`) reads this entry and triggers
+`/business-analyse` Phase 8 once enough signal has accumulated.
+Without this queue entry, the BA review depends on human memory and
+does not happen.
+
 ---
 
 ## Artifact Directory Structure
