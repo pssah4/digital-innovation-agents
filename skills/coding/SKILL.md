@@ -130,6 +130,26 @@ artifacts BEFORE implementation begins:
 
 After writing back: emit a summary of the changed files.
 
+### 2d: Signal writeback (drift count)
+
+Append a row to `_devprocess/context/40_metrics.md` under the
+"Drift count (plan-context.md vs. real code)" table:
+
+- Date: today
+- ADR count: how many ADRs were reviewed
+- arc42 section count: how many arc42 sections were reviewed
+- plan-context item count: how many plan-context entries were checked
+- Drift flagged: count of CHANGES NEEDED + MISSING items from the review
+- Drift resolved: count of items actually written back in step 2c
+- Open: count that remained unresolved (for example because the user
+  wanted to discuss first)
+
+If `40_metrics.md` does not yet exist, copy
+`skills/v-model-workflow/templates/METRICS-TEMPLATE.md` into the
+file first, then append. A rising drift count over multiple
+reconciliation runs signals that the ADRs or plan-context are losing
+touch with reality.
+
 ---
 
 ## Phase 3: Implementation (delegated to Default Agent)
@@ -459,11 +479,23 @@ MANDATORY -- artifacts must reflect the actual state:
    - All FIX-NN entries in _devprocess/context/20_bugs.md updated
      (Status=resolved with commit SHA, regression test verified)
 
+5. Metrics (signal layer):
+   - Append a row to _devprocess/context/40_metrics.md under the
+     "Cycle time per FEATURE" table for each FEATURE that reached
+     Status=Implemented this session
+   - Columns: FEATURE ID, Started (first commit with Refs:FEATURE-NNNN),
+     Completed (latest commit with Refs:FEATURE-NNNN), Cycle time,
+     Scope, Notes
+   - Append a row to "Phase transition counts" under "Coding -> Testing"
+     (or the next phase) if this session ended a phase
+   - Append a row to "Cross-phase trigger counts" for every
+     mid-course trigger that fired during this session
+
 IF APPLICABLE:
-5. plan-context.md: update if tech stack has changed
-6. arc42: update affected sections
-7. memory/MEMORY.md: if architecture key facts have changed
-8. CLAUDE.md: if new project conventions emerged
+6. plan-context.md: update if tech stack has changed
+7. arc42: update affected sections
+8. memory/MEMORY.md: if architecture key facts have changed
+9. CLAUDE.md: if new project conventions emerged
 ```
 
 ### Completion summary

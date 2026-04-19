@@ -330,6 +330,7 @@ _devprocess/
     10_backlog.md                      <- living backlog (per BACKLOG-TEMPLATE.md)
     20_bugs.md                         <- FIX-NN bug log (Phase 4)
     30_handoffs.md                     <- append-only handoffs log
+    40_metrics.md                      <- signal layer (per METRICS-TEMPLATE.md)
 ```
 
 ## Traceability Chain
@@ -402,6 +403,37 @@ The linear look is a simplification for the orchestrated flow, not a
 law. Real projects iterate. The workflow acknowledges iteration
 explicitly and keeps the forward walk as the default, not the only
 path.
+
+## Signal layer
+
+The workflow writes a set of lightweight signals to
+`_devprocess/context/40_metrics.md`, seeded from
+`skills/v-model-workflow/templates/METRICS-TEMPLATE.md`. The file
+answers one question: **is this project pulsing in the right direction
+or just moving fast somewhere else?**
+
+Signals and who writes them:
+
+| Signal | Writer | When |
+|---|---|---|
+| Cycle time per FEATURE | `/coding` | Final synchronization, after commits with `Refs: FEATURE-NNNN` |
+| Drift count (plan-context vs. code) | `/coding` | After Phase 2a codebase reconciliation |
+| BA hypothesis validation status | `/business-analyse` | Phase 8 Post-Release Review, or any re-validation |
+| Phase transition counts | this orchestrator (or phase-skill if invoked standalone) | Every Handoff Ritual |
+| Cross-phase trigger counts | the firing skill | On every mid-course trigger |
+
+**Rules:**
+- The metrics file is **append-additive**. Rows are never deleted.
+  Stale cells get superseded by a new row with the same key
+  (FEATURE ID, date, or trigger type).
+- Writes happen **inside existing phase actions** (Handoff Ritual,
+  codebase reconciliation, mid-course triggers). No separate
+  metrics-collection step, no new ceremony.
+- If the file does not yet exist when a skill wants to write, the
+  skill copies `METRICS-TEMPLATE.md` first, then adds its row.
+- Consumers read the file to decide whether to trigger a
+  reconciliation run, a post-release review, or a conversation
+  about workflow adherence.
 
 ## User Interaction Protocol (binding for all phase-skills)
 
