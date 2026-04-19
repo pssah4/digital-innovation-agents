@@ -404,6 +404,46 @@ law. Real projects iterate. The workflow acknowledges iteration
 explicitly and keeps the forward walk as the default, not the only
 path.
 
+## Dialog handoffs
+
+Both handoff documents (`architect-handoff.md` and `plan-context.md`)
+carry a `## Dialog` section that creates a bidirectional channel
+between phases. The sender writes answers to questions the receiver
+raised earlier. The receiver writes new questions that came up on
+this pass. This turns the handoff from a one-way throw-over-the-fence
+into a conversation that works across agent sessions (which have no
+memory) and human pauses.
+
+**Binding rules:**
+
+- **Not a blocker.** Pending dialog entries never stop unrelated work.
+  Only the specific ADR, FEATURE, or code change that depends on a
+  pending question waits. Everything else continues.
+- **Try to self-answer first.** When a phase-skill starts a new
+  session and sees pending dialog entries addressed to its side, it
+  attempts to answer each from existing artifacts (codebase, ADRs,
+  FEATURE specs, BA doc) BEFORE asking the user.
+- **One question per session to the user.** If self-answering fails,
+  the skill surfaces ALL unresolved entries in a single
+  `AskUserQuestion` at session start: "N questions from {sender}
+  could not be self-answered. Address now, defer to end of session,
+  or record as open issues?" Per the User Interaction Protocol, one
+  question per turn.
+- **Append-only.** Entries and answers are never deleted. Answered
+  questions have `Status: Resolved`. Questions that outlive multiple
+  sessions without resolution become candidates for a backlog entry.
+
+**Agent-agent and agent-human paths.** The self-answer step is the
+agent-agent path. Two agent sessions (across time) negotiate via the
+shared handoff document without a human in the loop, as long as the
+artifacts contain the answer. The user only enters the loop when an
+answer cannot be derived. This preserves fast forward progress
+without losing the conversation trail.
+
+See:
+- `skills/requirements-engineering/templates/ARCHITECT-HANDOFF-TEMPLATE.md`
+- `skills/architecture/templates/plan-context-TEMPLATE.md`
+
 ## Signal layer
 
 The workflow writes a set of lightweight signals to

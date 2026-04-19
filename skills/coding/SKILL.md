@@ -46,6 +46,23 @@ OPTIONAL (if present):
 10. memory/MEMORY.md                                   (architecture key facts)
 ```
 
+**Dialog check.** After loading `plan-context.md`, scan its `## Dialog`
+section. If there are entries under "Answers from Architect" with
+`Status: Resolved` that your previous session did not yet see, read
+them now. They carry answers to questions you raised in an earlier
+pass.
+
+If there are "Questions from Coder" entries still at `Status: Pending`,
+try to self-answer each one from the current artifacts (updated ADRs,
+arc42, codebase). For every question you can answer from the
+artifacts, append the resolution to "Answers from Architect" in the
+plan-context Dialog section and mark the question Resolved. For every
+question you still cannot answer, surface the remaining set to the
+user in a single `AskUserQuestion` at the end of Phase 1: "N pending
+Dialog questions could not be self-answered. Address now, defer to
+end of session, or record as open issues?" Do not block. Proceed with
+whatever the user chose.
+
 If no `plan-context.md` exists:
 
 ```

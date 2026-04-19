@@ -44,6 +44,26 @@ Claude Code makes the FINAL decisions based on the real codebase.
 
 ### Phase 1: Requirements Review (15 min)
 
+**Step 1a: Dialog check on architect-handoff.md**
+
+Before reading the requirements, scan
+`_devprocess/requirements/handoff/architect-handoff.md` for the
+`## Dialog` section. If there are entries under "Answers from RE"
+with `Status: Resolved` that your previous session did not yet see,
+read them now. They carry the answers to questions you raised in an
+earlier pass.
+
+If there are "Questions from Architect" entries still at
+`Status: Pending`, try to self-answer each one from the updated
+artifacts (FEATURE specs, BA document, backlog entries). For every
+question you can answer from the artifacts, append the resolution to
+"Answers from RE" and mark the question Resolved. For every question
+you still cannot answer, carry it into Phase 1 Step 1b.
+
+This check runs once per session, not per question. Do not block.
+
+**Step 1b: Requirements Review**
+
 Read the input documents and confirm:
 
 ```
@@ -57,7 +77,16 @@ Critical ASRs (need ADRs):
 NFR Summary:
 - Performance: {summary}
 - Security: {summary}
+
+Unresolved Dialog questions (from Step 1a): {count}
 ```
+
+If "Unresolved Dialog questions" is > 0, surface them to the user in
+a single `AskUserQuestion`: "N questions from Architect could not be
+self-answered. Address now, defer to end of session, or record as
+open issues?" Proceed based on the user's choice. If the user defers,
+keep the questions at `Status: Pending` and do not re-ask this
+session.
 
 ### Phase 2: ADR Creation (20-30 min per ADR)
 

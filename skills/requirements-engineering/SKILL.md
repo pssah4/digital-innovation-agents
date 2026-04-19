@@ -147,8 +147,11 @@ Technical details go into **Technical NFRs** -> `architect-handoff.md` -> Archit
 - Definition of Done
 
 ### 4. Create architect-handoff.md (15min)
+- Read `templates/ARCHITECT-HANDOFF-TEMPLATE.md` for the format
 - Aggregate all ASRs, summarize NFRs
 - Document constraints, list open questions
+- Keep the `## Dialog` section empty at creation time. The Architect
+  and any later return passes fill it. Rows never get deleted.
 
 ### 5. Validation
 - All features have tech-agnostic SC?
