@@ -7,6 +7,108 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-04-19
+
+Minor release. Closes the forward-bias gap in the V-Model workflow
+identified by LinkedIn comments on the PULSE article. The workflow
+now has return channels at every handoff, cross-phase feedback
+triggers, a lightweight signal layer, a post-release BA review, a
+claim protocol for concurrent human-agent pairs, explicit
+documentation of iteration, and SHA-pinned GitHub Actions for
+supply-chain hardening.
+
+### Added (workflow)
+
+- **Signal layer** (FEATURE-001-001). New artifact
+  `_devprocess/context/40_metrics.md`, seeded from
+  `skills/v-model-workflow/templates/METRICS-TEMPLATE.md`. Five
+  tables: cycle time per FEATURE, drift count (plan-context.md vs.
+  real code), BA hypothesis validation status, phase transition
+  counts, cross-phase trigger counts. Append-additive, no rows ever
+  deleted. Writes happen inside existing phase actions: `/coding`
+  Phase 2d (drift count during codebase reconciliation), `/coding`
+  Final synchronization step 5 (cycle time, transitions, triggers),
+  `/business-analyse` Phase 8 (hypothesis status). No separate
+  metrics-collection ceremony.
+- **Dialog handoffs, not blockers** (FEATURE-001-002). Both handoff
+  documents (`architect-handoff.md` and `plan-context.md`) carry a
+  `## Dialog` section with Questions and Answers tables. Receiving
+  skills scan for pending entries on session start, attempt to
+  self-answer from existing artifacts (agent-agent path), and
+  surface the unresolvable residue to the user in a single
+  `AskUserQuestion` (agent-human path). Pending entries never block
+  unrelated work. New template
+  `skills/requirements-engineering/templates/ARCHITECT-HANDOFF-TEMPLATE.md`.
+- **Cross-phase feedback triggers** (FEATURE-001-003). Two new
+  binding triggers that complete the decision-graph pattern
+  alongside the existing mid-course bug trigger. Mid-course design
+  discovery in `/coding` amends or supersedes an ADR when the code
+  proves the design wrong. Mid-course requirements discovery in
+  `/architecture` routes a gap or contradiction back to
+  `/requirements-engineering` with local blocking (only the
+  affected ADR waits, others continue with `blocked-by` dependency
+  cite).
+- **BA as living document after release** (FEATURE-001-004). New
+  `/business-analyse` Phase 8: Post-Release Review. Walks each
+  Critical Hypothesis, classifies per real usage evidence as
+  `Confirmed by usage`, `Contradicted by usage`, or `Inconclusive`.
+  Contradictions trigger backlog entries. Queued automatically by
+  `/v-model-workflow` Phase 7 Step 6 via a `release-to-ba` handoff
+  entry.
+- **Concurrent-agent coordination** (FEATURE-001-005). Backlog rows
+  gain a `Claim` column with format `{pair-id} @ {YYYY-MM-DD}`.
+  Phase skills claim on start and release on phase end or
+  `Status: Done`. Claim conflict surfaces via `AskUserQuestion`
+  with four options (ask release, take over, different item,
+  split). No central lock service, the backlog itself is the lock.
+  Pair-id convention: `{human-handle}-{model}`.
+- **V-Model as decision graph** (FEATURE-001-006). New section in
+  `skills/v-model-workflow/SKILL.md` and in `docs/concepts/v-model.md`
+  that names the three cross-phase triggers and explicitly says the
+  forward walk is the default, not the only path. Closes the PULSE
+  comment #6 critique that the V looks like waterfall.
+
+### Added (security)
+
+- **SHA-pinned GitHub Actions** (FEATURE-002-001, Issue #9 Gap 1).
+  Every third-party action in `.github/workflows/deploy-docs.yml`
+  pinned to a 40-char commit SHA with the human-readable version as
+  trailing comment. New `.github/dependabot.yml` enables weekly
+  bumps for `github-actions` and `npm`. Dependabot updates both SHA
+  and comment together.
+
+### Added (planning)
+
+- `_devprocess/plans/v2.2.0-plan.md`. Seven FEATURE specs,
+  sequencing rationale (smallest-risk first), acceptance criteria.
+  Dog-foods the V-Model planning conventions on the project's own
+  improvements.
+
+### Changed
+
+- `project-conventions/SKILL.md` Feature Lifecycle extended with
+  CLAIM and RELEASE CLAIM steps. Directory structure reference
+  includes `40_metrics.md`.
+- `v-model-workflow/SKILL.md` Phase 7 Release Closure Step 6 writes
+  the `release-to-ba` handoff entry that queues the BA review.
+- `coding/SKILL.md` Phase 1 scans plan-context.md for pending
+  Dialog entries. Phase 2d (new) writes the drift-count row.
+  Final synchronization step 5 (new) writes cycle time and phase
+  transition rows.
+- `architecture/SKILL.md` Phase 1a (new) scans architect-handoff.md
+  for pending Dialog entries and tries to self-answer.
+- `requirements-engineering/SKILL.md` references the new
+  ARCHITECT-HANDOFF-TEMPLATE.
+- `business-analyse/SKILL.md` adds Phase 8 (Post-Release Review).
+
+### Not in this release
+
+- Issue #9 Gap 2 (cosign release signing). Waits for a key-management
+  decision.
+- Issue #9 Gap 3 (`SHA256SUMS` publishing). Sequenced with Gap 2.
+- UX/Design as an optional V-Model phase. Waiting for Claude Design
+  availability and validation.
+
 ## [2.1.0] - 2026-04-19
 
 Minor release. Brownfield entry point, method-proposal protocol across
