@@ -379,6 +379,45 @@ this trigger they got fixed in code first and documented only
 after release, the backlog then drifted from the code state for
 days.
 
+### Mid-course design discovery (binding trigger)
+
+If the implementation reveals that an architectural decision does not
+match reality (ADR says X, the codebase proves Y works better, or the
+constraints the ADR relied on turned out to be wrong), pause the
+coding flow and route through the architecture layer BEFORE continuing
+the feature. Silent design drift is worse than a bug: the ADR keeps
+claiming a state of the world that no longer exists.
+
+```
+Mid-course handling for a design finding, do NOT silently deviate:
+
+1. STOP the current code edit. Do not keep coding around the
+   mismatched ADR.
+2. Triage:
+   - Can the ADR be amended with a small correction?
+     -> update ADR, keep status "Accepted (modified)"
+   - Is the original decision wrong at the root?
+     -> supersede ADR: old one becomes "Superseded by ADR-NNN",
+        new ADR captures the actual decision
+   - Does the discovery only clarify wording, not decision?
+     -> update ADR Context or Consequences in place
+3. Write a root-cause entry in _devprocess/analysis/ADR-{NNN}-review.md
+   (3-10 lines: what the ADR claimed, what the code proves, what
+   changes, what still holds)
+4. Update arc42.md and plan-context.md if the discovery affects
+   either. Keep them consistent with the ADR change.
+5. Only NOW resume or rewrite the code. Commit message cites the ADR
+   change alongside the in-progress FEATURE
+   (e.g. `Refs: FEATURE-0507, ADR-012 (amended)`)
+6. After the fix: run the standard Final synchronization block
+   below. The amended or superseded ADR is part of the writeback.
+```
+
+Why this matters: an ADR that silently diverges from the code stops
+being a decision record and becomes a historical fiction. The next
+reviewer who consults it makes worse decisions because they trust a
+document that no longer reflects reality.
+
 ### Final synchronization (cross-artifact)
 
 After implementation is verified, check:

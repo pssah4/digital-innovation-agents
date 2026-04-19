@@ -97,6 +97,49 @@ Must contain:
 5. External Integrations
 6. Performance & Security (with concrete numbers)
 
+### Mid-course requirements discovery (binding trigger)
+
+If the tech design reveals that a FEATURE spec has a gap, ambiguity, or
+a physically impossible constraint (conflicting NFRs, success criterion
+that cannot be met with any technology, a user story that assumes a
+data source that does not exist), pause architecture and route the
+issue back to requirements BEFORE writing the ADR around a broken
+spec. Designing around a faulty spec produces brittle ADRs.
+
+```
+Mid-course handling for a requirements finding, do NOT architect
+around the gap:
+
+1. STOP the current ADR or arc42 edit.
+2. Triage:
+   - Is this a gap in the FEATURE spec?
+     -> add a [NEEDS USER INPUT] marker to the FEATURE spec
+        with a precise question
+   - Is this a contradiction between two FEATUREs?
+     -> flag both FEATURE specs with cross-references
+   - Is this an impossible NFR combination?
+     -> note the conflict in architect-handoff.md under
+        "Open Questions"
+3. Write a requirements-review entry in _devprocess/analysis/
+   REQ-REVIEW-{date}.md (3-10 lines: which FEATURE, what is
+   missing or impossible, what is needed from the RE phase)
+4. Add a backlog entry to _devprocess/context/10_backlog.md
+   tagged Epic + FEATURE-NNNN that the RE phase needs to address
+5. Decide: block the whole architecture phase, or route just
+   the affected FEATURE back. Default is local routing:
+   the other ADRs continue, the affected one waits.
+6. Notify the user. The user decides whether to invoke
+   /requirements-engineering now or defer to the next cycle.
+   Commit message for the architecture work that does continue
+   cites the blocked FEATURE as a dependency
+   (e.g. `Refs: ADR-007, blocked-by FEATURE-0412`)
+```
+
+Why this matters: an ADR that designs around a faulty FEATURE spec
+carries that fault forward into the code. The Coder then implements a
+correct architecture for a broken requirement, and the gap only
+surfaces at test time or in production.
+
 ## Quality Gates
 
 ### ADR-ASR Traceability
