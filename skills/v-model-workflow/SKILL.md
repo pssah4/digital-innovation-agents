@@ -363,6 +363,46 @@ This workflow follows the standards from `/project-conventions`:
 - Directories: `_devprocess/` for internal documents
 - Feature lifecycle: BACKLOG -> SPEC -> PLAN -> IMPL -> UPDATE
 
+## V-Model as a decision graph, not a straight path
+
+The Workflow Overview above shows phases in a linear sequence for
+readability. In practice, the V is a decision graph. You do not always
+walk it once from Phase 0 to Phase 7. Several triggers allow a running
+phase to pause and route work back to a previous phase before
+continuing.
+
+The three cross-phase feedback triggers:
+
+1. **Mid-course bug discovery** (in `/coding`). A new bug surfaces
+   during implementation that is not in the feature specs, ADRs, or
+   FIX-list. The coding flow pauses, routes through BUG-NNN triage,
+   writes a root-cause analysis, adds the backlog entry, and only
+   then writes the fix. Commit references both items.
+2. **Mid-course design discovery** (in `/coding`). The implementation
+   reveals that an architectural choice does not match reality. The
+   coding flow pauses, amends or supersedes the affected ADR, updates
+   arc42 and plan-context.md, and only then continues the feature.
+3. **Mid-course requirements discovery** (in `/architecture`). The
+   tech design reveals that a FEATURE spec has a gap, ambiguity, or
+   impossible constraint. Architecture pauses, routes the issue back
+   to `/requirements-engineering` as a FEATURE-spec update, waits
+   for the updated handoff, and only then proceeds with ADRs.
+
+Each trigger follows the same 6-step pattern: STOP, triage, write a
+minimal root-cause analysis, add a backlog entry BEFORE any code or
+artifact change, make the change with a commit that cites the
+artefacts, then run the Final synchronization block.
+
+**When a phase returns to an earlier phase, the lower phases downstream
+do NOT re-run automatically.** The user decides whether the trigger
+fix is local or whether the full walk continues from the updated
+phase. The backlog entry carries the decision.
+
+The linear look is a simplification for the orchestrated flow, not a
+law. Real projects iterate. The workflow acknowledges iteration
+explicitly and keeps the forward walk as the default, not the only
+path.
+
 ## User Interaction Protocol (binding for all phase-skills)
 
 When a phase-skill (`/business-analyse`, `/requirements-engineering`,
