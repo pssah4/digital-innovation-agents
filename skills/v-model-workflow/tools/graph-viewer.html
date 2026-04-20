@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<title>V-Model Graph Viewer</title>
+<script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; background: #0f172a; color: #e2e8f0; height: 100vh; display: flex; flex-direction: column; }
+  header { padding: 12px 20px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 16px; font-weight: 600; }
+  header .lens { display: flex; gap: 8px; }
+  header button { background: #334155; border: 1px solid #475569; color: #e2e8f0; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+  header button.active { background: #2563eb; border-color: #3b82f6; }
+  header button:hover:not(.active) { background: #475569; }
+  main { flex: 1; display: flex; min-height: 0; }
+  #cy { flex: 1; background: #0f172a; }
+  #sidebar { width: 360px; background: #1e293b; border-left: 1px solid #334155; overflow-y: auto; padding: 16px; }
+  #sidebar h2 { margin: 0 0 12px 0; font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+  #sidebar .empty { color: #64748b; font-style: italic; }
+  #sidebar .node-info { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 12px; }
+  #sidebar .node-info h3 { margin: 0 0 8px 0; color: #60a5fa; font-size: 15px; word-break: break-word; }
+  #sidebar .node-info .meta { color: #94a3b8; font-size: 12px; margin-bottom: 10px; }
+  #sidebar .node-info .meta-row { display: flex; gap: 6px; margin-bottom: 4px; }
+  #sidebar .node-info .meta-row strong { min-width: 80px; color: #cbd5e1; }
+  #sidebar .node-info a { color: #60a5fa; text-decoration: none; word-break: break-all; }
+  #sidebar .node-info a:hover { text-decoration: underline; }
+  #sidebar .edges { margin-top: 16px; }
+  #sidebar .edges h4 { font-size: 13px; color: #94a3b8; margin: 12px 0 6px; }
+  #sidebar .edges ul { margin: 0; padding-left: 18px; }
+  #sidebar .edges li { color: #cbd5e1; font-size: 12px; margin: 2px 0; cursor: pointer; }
+  #sidebar .edges li:hover { color: #60a5fa; }
+  #loader { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #94a3b8; font-size: 16px; }
+  #filedrop { padding: 20px; text-align: center; color: #94a3b8; border: 2px dashed #475569; border-radius: 8px; margin: 40px; cursor: pointer; }
+  #filedrop.hover { border-color: #3b82f6; color: #e2e8f0; }
+  footer { padding: 8px 20px; background: #1e293b; border-top: 1px solid #334155; font-size: 12px; color: #64748b; display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+<header>
+  <h1>V-Model Graph Viewer</h1>
+  <div class="lens">
+    <button data-lens="overview" class="active">Uebersicht</button>
+    <button data-lens="persona">Persona-Lens</button>
+    <button data-lens="phase">Phase-Lens</button>
+    <button data-lens="health">Health-Lens</button>
+    <button data-lens="epic">Epic-Fokus</button>
+  </div>
+  <div style="margin-left:auto; display:flex; gap:8px;">
+    <button id="reloadBtn">Reload JSON</button>
+    <button id="fitBtn">Fit</button>
+  </div>
+</header>
+<main>
+  <div id="cy"></div>
+  <aside id="sidebar">
+    <h2>Details</h2>
+    <div id="info"><p class="empty">Klick auf einen Knoten, um Details zu sehen.</p></div>
+  </aside>
+</main>
+<footer>
+  <span id="stats">Keine Daten geladen.</span>
+  <span>JSON-Input: Query-Parameter <code>?data=...</code> oder Drag &amp; Drop</span>
+</footer>
+
+<div id="dropzone" style="position:fixed; inset:0; background: rgba(15,23,42,0.95); display:none; z-index: 1000; flex-direction: column; align-items: center; justify-content: center; gap: 16px; color: #e2e8f0;">
+  <h2 style="margin:0; font-size:20px;">Graph-JSON hier ablegen</h2>
+  <p style="margin:0; color:#94a3b8;">Oder JSON-Inhalt einfuegen (Cmd/Ctrl+V)</p>
+  <textarea id="jsonPaste" rows="10" cols="60" placeholder='{"nodes":[...],"edges":[...]}' style="background:#1e293b; color:#e2e8f0; border:1px solid #334155; padding:10px; font-family:monospace; font-size:12px;"></textarea>
+  <button id="loadPasteBtn" style="background:#2563eb; color:#fff; border:none; padding:8px 20px; border-radius:4px; cursor:pointer;">Laden</button>
+</div>
+
+<script>
+// Node/Edge-Farben pro Typ
+const NODE_COLORS = {
+  'BA-Section': '#f59e0b',
+  'Persona':    '#f97316',
+  'Epic':       '#8b5cf6',
+  'Feature':    '#3b82f6',
+  'SC':         '#06b6d4',
+  'ADR':        '#10b981',
+  'arc42':      '#14b8a6',
+  'PLAN':       '#a855f7',
+  'BL-Item':    '#ef4444',
+  'Code':       '#64748b'
+};
+
+// Phase-Farben (fuer Phase-Lens)
+const PHASE_COLORS = {
+  'Fertig':    '#10b981',
+  'Umsetzung': '#f59e0b',
+  'Roadmap':   '#64748b',
+  'Unknown':   '#475569'
+};
+
+let cy = null;
+let rawData = null;
+let currentLens = 'overview';
+
+function initCy(data) {
+  rawData = data;
+  if (cy) cy.destroy();
+
+  const elements = buildElements(data, currentLens);
+
+  cy = cytoscape({
+    container: document.getElementById('cy'),
+    elements: elements,
+    style: [
+      {
+        selector: 'node',
+        style: {
+          'background-color': 'data(color)',
+          'label': 'data(label)',
+          'text-valign': 'bottom',
+          'text-halign': 'center',
+          'color': '#e2e8f0',
+          'font-size': '11px',
+          'text-margin-y': 4,
+          'width': 'data(size)',
+          'height': 'data(size)',
+          'border-width': 1,
+          'border-color': '#1e293b'
+        }
+      },
+      {
+        selector: 'node:selected',
+        style: {
+          'border-color': '#fbbf24',
+          'border-width': 3
+        }
+      },
+      {
+        selector: 'node[orphan]',
+        style: {
+          'border-color': '#ef4444',
+          'border-width': 2,
+          'border-style': 'dashed'
+        }
+      },
+      {
+        selector: 'edge',
+        style: {
+          'width': 1,
+          'line-color': '#334155',
+          'target-arrow-color': '#334155',
+          'target-arrow-shape': 'triangle',
+          'curve-style': 'bezier',
+          'label': 'data(label)',
+          'font-size': '9px',
+          'color': '#64748b',
+          'text-rotation': 'autorotate'
+        }
+      },
+      {
+        selector: 'edge:selected',
+        style: {
+          'line-color': '#fbbf24',
+          'target-arrow-color': '#fbbf24',
+          'width': 2
+        }
+      }
+    ],
+    layout: getLayoutFor(currentLens)
+  });
+
+  cy.on('tap', 'node', evt => showNodeInfo(evt.target));
+  cy.on('tap', function(evt) {
+    if (evt.target === cy) clearInfo();
+  });
+
+  updateStats(data);
+}
+
+function buildElements(data, lens) {
+  const elements = [];
+  const nodes = data.nodes || [];
+  const edges = data.edges || [];
+
+  // Welche Nodes zeigen wir in diesem Lens?
+  let visibleNodeIds = new Set(nodes.map(n => n.id));
+
+  if (lens === 'overview') {
+    // Epics + Features + ADRs only
+    visibleNodeIds = new Set(nodes.filter(n => ['Epic', 'Feature', 'ADR'].includes(n.type)).map(n => n.id));
+  } else if (lens === 'persona') {
+    visibleNodeIds = new Set(nodes.filter(n => ['Persona', 'Epic', 'Feature'].includes(n.type)).map(n => n.id));
+  } else if (lens === 'phase') {
+    visibleNodeIds = new Set(nodes.filter(n => ['Epic', 'Feature'].includes(n.type)).map(n => n.id));
+  } else if (lens === 'health') {
+    // nur Orphans + ihre direkten Nachbarn
+    const orphans = new Set(nodes.filter(n => n.orphan).map(n => n.id));
+    const neighbors = new Set();
+    edges.forEach(e => {
+      if (orphans.has(e.source)) neighbors.add(e.target);
+      if (orphans.has(e.target)) neighbors.add(e.source);
+    });
+    visibleNodeIds = new Set([...orphans, ...neighbors]);
+  } else if (lens === 'epic') {
+    // Epics + their immediate feature/ADR children
+    const epics = new Set(nodes.filter(n => n.type === 'Epic').map(n => n.id));
+    const children = new Set();
+    edges.forEach(e => {
+      if (epics.has(e.source) || epics.has(e.target)) {
+        children.add(e.source);
+        children.add(e.target);
+      }
+    });
+    visibleNodeIds = new Set([...epics, ...children]);
+  }
+
+  // Build nodes
+  nodes.forEach(n => {
+    if (!visibleNodeIds.has(n.id)) return;
+    let color = NODE_COLORS[n.type] || '#64748b';
+    if (lens === 'phase' && n.phase) {
+      color = PHASE_COLORS[n.phase] || PHASE_COLORS['Unknown'];
+    }
+    const size = n.type === 'Epic' ? 40 : (n.type === 'Feature' ? 28 : 22);
+    elements.push({
+      group: 'nodes',
+      data: {
+        id: n.id,
+        label: n.label || n.id,
+        type: n.type,
+        color: color,
+        size: size,
+        orphan: n.orphan || false,
+        raw: n
+      }
+    });
+  });
+
+  // Build edges
+  edges.forEach(e => {
+    if (!visibleNodeIds.has(e.source) || !visibleNodeIds.has(e.target)) return;
+    elements.push({
+      group: 'edges',
+      data: {
+        id: `${e.source}-${e.target}`,
+        source: e.source,
+        target: e.target,
+        label: e.label || '',
+        raw: e
+      }
+    });
+  });
+
+  return elements;
+}
+
+function getLayoutFor(lens) {
+  if (lens === 'persona' || lens === 'phase') {
+    return { name: 'cose', animate: false, fit: true, padding: 30 };
+  }
+  if (lens === 'health') {
+    return { name: 'circle', padding: 30 };
+  }
+  return { name: 'cose', animate: false, fit: true, padding: 30, idealEdgeLength: 80, nodeRepulsion: 50000 };
+}
+
+function showNodeInfo(node) {
+  const raw = node.data('raw');
+  const connectedEdges = node.connectedEdges();
+  const incoming = connectedEdges.filter(e => e.target().id() === node.id());
+  const outgoing = connectedEdges.filter(e => e.source().id() === node.id());
+
+  const path = raw.path || '';
+  const pathLink = path ? `<a href="file://${encodeURI(path)}" target="_blank">${path}</a>` : '<em>kein Pfad</em>';
+
+  let html = `<div class="node-info">`;
+  html += `<h3>${raw.label || raw.id}</h3>`;
+  html += `<div class="meta">`;
+  html += `<div class="meta-row"><strong>ID:</strong> ${raw.id}</div>`;
+  html += `<div class="meta-row"><strong>Typ:</strong> ${raw.type}</div>`;
+  if (raw.phase) html += `<div class="meta-row"><strong>Phase:</strong> ${raw.phase}</div>`;
+  if (raw.status) html += `<div class="meta-row"><strong>Status:</strong> ${raw.status}</div>`;
+  if (raw.epic) html += `<div class="meta-row"><strong>Epic:</strong> ${raw.epic}</div>`;
+  if (raw.orphan) html += `<div class="meta-row"><strong style="color:#ef4444;">Warnung:</strong> Orphan (keine Edge)</div>`;
+  html += `<div class="meta-row"><strong>Datei:</strong> ${pathLink}</div>`;
+  html += `</div>`;
+
+  if (outgoing.length) {
+    html += `<div class="edges"><h4>Zeigt auf (${outgoing.length})</h4><ul>`;
+    outgoing.forEach(e => {
+      const t = e.target();
+      html += `<li data-target="${t.id()}">${t.data('label')} <span style="color:#64748b;">(${t.data('type')})</span></li>`;
+    });
+    html += `</ul></div>`;
+  }
+  if (incoming.length) {
+    html += `<div class="edges"><h4>Wird referenziert von (${incoming.length})</h4><ul>`;
+    incoming.forEach(e => {
+      const s = e.source();
+      html += `<li data-target="${s.id()}">${s.data('label')} <span style="color:#64748b;">(${s.data('type')})</span></li>`;
+    });
+    html += `</ul></div>`;
+  }
+
+  html += `</div>`;
+
+  document.getElementById('info').innerHTML = html;
+  document.querySelectorAll('#sidebar .edges li').forEach(li => {
+    li.addEventListener('click', () => {
+      const id = li.dataset.target;
+      const n = cy.getElementById(id);
+      if (n.length) {
+        cy.center(n);
+        n.select();
+        showNodeInfo(n);
+      }
+    });
+  });
+}
+
+function clearInfo() {
+  document.getElementById('info').innerHTML = '<p class="empty">Klick auf einen Knoten, um Details zu sehen.</p>';
+}
+
+function updateStats(data) {
+  const nodes = data.nodes || [];
+  const byType = {};
+  nodes.forEach(n => { byType[n.type] = (byType[n.type] || 0) + 1; });
+  const orphans = nodes.filter(n => n.orphan).length;
+  const parts = Object.entries(byType).map(([t, c]) => `${t}: ${c}`);
+  document.getElementById('stats').textContent = `${nodes.length} Knoten, ${(data.edges || []).length} Kanten` +
+    (orphans ? ` - ${orphans} Orphan(s)` : '') + ` [${parts.join(', ')}]`;
+}
+
+// Lens-Buttons
+document.querySelectorAll('header button[data-lens]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('header button[data-lens]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentLens = btn.dataset.lens;
+    if (rawData) initCy(rawData);
+  });
+});
+
+document.getElementById('fitBtn').addEventListener('click', () => { if (cy) cy.fit(null, 30); });
+
+document.getElementById('reloadBtn').addEventListener('click', () => {
+  document.getElementById('dropzone').style.display = 'flex';
+  document.getElementById('jsonPaste').focus();
+});
+
+document.getElementById('loadPasteBtn').addEventListener('click', () => {
+  const txt = document.getElementById('jsonPaste').value.trim();
+  if (!txt) return;
+  try {
+    const data = JSON.parse(txt);
+    document.getElementById('dropzone').style.display = 'none';
+    initCy(data);
+  } catch (e) {
+    alert('Ungueltiges JSON: ' + e.message);
+  }
+});
+
+// Drag & Drop
+document.addEventListener('dragover', e => { e.preventDefault(); });
+document.addEventListener('drop', async e => {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const txt = await file.text();
+  try {
+    initCy(JSON.parse(txt));
+  } catch (err) {
+    alert('Konnte JSON nicht lesen: ' + err.message);
+  }
+});
+
+// URL-Parameter ?data=<base64-json> oder ?url=<path>
+window.addEventListener('load', async () => {
+  const params = new URLSearchParams(window.location.search);
+  const inlineData = params.get('data');
+  const urlData = params.get('url');
+  if (inlineData) {
+    try {
+      initCy(JSON.parse(atob(decodeURIComponent(inlineData))));
+      return;
+    } catch (e) {
+      console.error('Inline data decode failed', e);
+    }
+  }
+  if (urlData) {
+    try {
+      const res = await fetch(urlData);
+      initCy(await res.json());
+      return;
+    } catch (e) {
+      console.error('URL fetch failed', e);
+    }
+  }
+  // Fallback: demo message
+  document.getElementById('dropzone').style.display = 'flex';
+  document.getElementById('jsonPaste').focus();
+});
+</script>
+</body>
+</html>

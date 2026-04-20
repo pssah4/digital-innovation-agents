@@ -111,41 +111,68 @@ Every phase skill updates this file per the binding format.
 
 ## Start: Determine Phase
 
-Ask the user:
+Before asking the user, the orchestrator runs a **hybrid entry-point
+detection** (added 2026-04-20): it scans the project, diagnoses the
+graph state, and formulates a recommendation. The user keeps the
+override.
+
+### Step 1: Scan + recommend
+
+1. Detect the project root convention (`_devprocess/` or `docs/`).
+2. Run `/consistency-check` in Mode A (syntactic). The result is the
+   current Graph-Health snapshot.
+3. Infer the likely entry point from the snapshot:
+
+| Observation                                                   | Recommended entry                          |
+| ------------------------------------------------------------- | ------------------------------------------ |
+| No V-Model artifacts at all, empty repo or pure greenfield    | `/business-analyse`                        |
+| Code exists, no `docs/analysis/BA-*.md`, no FEATUREs          | `/reverse-engineering`                     |
+| BA exists as Draft, not yet validated                         | `/business-analyse` Validation Mode        |
+| BA validated, no Epics or Features                            | `/requirements-engineering`                |
+| Features exist, no ADRs or plan-context.md                    | `/architecture`                            |
+| plan-context.md exists, no recent code changes                | `/coding`                                  |
+| Coding done, no test coverage / failing tests                 | `/testing`                                 |
+| Tests green, no security audit                                | `/security-audit`                          |
+| Everything closed, release pending                            | Phase 7 Release Closure                    |
+| Graph-Health shows many orphans or dead links                 | `/consistency-check` + Cleanup first       |
+
+### Step 2: Present recommendation + alternatives
+
+Show the user one `AskUserQuestion` with the recommendation as the
+first option and the manual list as alternatives:
 
 ```
-V-Model Workflow -- where are you?
+Graph-State (letzter Check {date}):
+- Epics {n}, Features {n} (Released {a}, Building {b}, Planned {c}, Candidates {d}),
+  ADRs {n}, BL-Items {n}, offene Luecken {n}.
 
-A0) I have an existing codebase but no V-Model artifacts (brownfield)
-    -> Start with /reverse-engineering (walks the V backwards to
-       capture technical context + evidence-based BA draft)
-    -> Then /business-analyse to validate the WHY
-    -> Then continue forward through the normal phases
+Empfehlung basierend auf dem Graph-State: {recommended entry}
 
-A)  Starting from scratch -- project/feature not yet analyzed
-    -> Start with /business-analyse
-
-B)  Problem is clear, need structured requirements
-    -> Start with /requirements-engineering
-
-C)  Requirements exist, need architecture proposals
-    -> Start with /architecture
-
-D)  Architecture exists, plan-context.md is ready
-    -> Start with /coding
-
-E)  Implementation done, need tests
-    -> Start with /testing
-
-F)  Tests passed, need security review
-    -> Start with /security-audit
-
-G)  Security audit done, need release closure
-    -> Start Phase 7 (Release Closure, see below)
-
-H)  Unsure -- help me figure out where to start
-    -> Short orientation interview
+Oder du waehlst manuell aus:
+A0 /reverse-engineering (brownfield)
+A  /business-analyse (BA von Beginn)
+B  /requirements-engineering
+C  /architecture
+D  /coding
+E  /testing
+F  /security-audit
+G  Phase 7 Release Closure
+H  /consistency-check (nur Graph-Pflege)
+I  Orientierungs-Interview (helfe beim Entscheiden)
 ```
+
+If the user picks the recommended option or says "ok/go/next", start
+that phase. If the user picks a different option, start that one. If
+the user wants an interview, ask short follow-up questions to refine
+the recommendation.
+
+### Step 3: Phase-Entry mit Konsistenz-Hinweis
+
+Beim Start der gewaehlten Phase zeigt der Orchestrator eventuelle
+Konsistenz-Luecken aus `/consistency-check`, die fuer die Phase
+relevant sind. Beispiel: vor `/architecture`-Start "Du hast 3
+Features ohne Epic-Parent, das sollten wir vorher klaeren, willst
+du `/consistency-check` auto-fixes laufen lassen?"
 
 ## Phase Transitions
 

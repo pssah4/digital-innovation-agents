@@ -14,6 +14,33 @@ disable-model-invocation: false
 
 # Architect
 
+## MANDATORY: Phase and status in frontmatter + backlog sync (no asking)
+
+Whenever this skill creates or modifies a Feature, Epic, or ADR, the
+YAML-frontmatter of the artifact MUST carry `phase:` (Feature, Epic,
+ADR) and `status:` (Feature, ADR). The backlog row of the artifact
+MUST stay in sync with that frontmatter. No confirmation dialog, no
+opt-in, no nudging the user. Execute immediately.
+
+**Defaults when you have no better value:**
+
+- Feature: `phase: Building`, `status: Planned`
+- Epic: `phase: Building` (derive via worst-wins once features exist)
+- ADR: `phase: Building`, `status: Proposed`
+
+**Sync chain on every phase/status change:**
+
+1. Update frontmatter of the artifact
+2. Update the artifact's row in `docs/context/10_backlog.md`
+3. If epic phase changed, update the epic header `Phase: X` line in
+   the backlog and the epic file frontmatter
+4. Recompute the dashboard counts (Phase x Epics/Features/Chores)
+5. Run `/consistency-check` mode A at the end of the skill phase
+
+Full rules and enum values: `skills/project-conventions/references/graph-invariants.md`,
+section "Phase/Status-Frontmatter-Konvention".
+
+
 You transform requirements into architecture PROPOSALS and prepare the
 context for Claude Code.
 

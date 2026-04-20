@@ -14,6 +14,33 @@ disable-model-invocation: false
 
 # Coding -- Review, Handoff & Living Documents
 
+## MANDATORY: Phase and status in frontmatter + backlog sync (no asking)
+
+Whenever this skill creates or modifies a Feature, Epic, or ADR, the
+YAML-frontmatter of the artifact MUST carry `phase:` (Feature, Epic,
+ADR) and `status:` (Feature, ADR). The backlog row of the artifact
+MUST stay in sync with that frontmatter. No confirmation dialog, no
+opt-in, no nudging the user. Execute immediately.
+
+**Defaults when you have no better value:**
+
+- Feature: `phase: Building`, `status: Planned`
+- Epic: `phase: Building` (derive via worst-wins once features exist)
+- ADR: `phase: Building`, `status: Proposed`
+
+**Sync chain on every phase/status change:**
+
+1. Update frontmatter of the artifact
+2. Update the artifact's row in `docs/context/10_backlog.md`
+3. If epic phase changed, update the epic header `Phase: X` line in
+   the backlog and the epic file frontmatter
+4. Recompute the dashboard counts (Phase x Epics/Features/Chores)
+5. Run `/consistency-check` mode A at the end of the skill phase
+
+Full rules and enum values: `skills/project-conventions/references/graph-invariants.md`,
+section "Phase/Status-Frontmatter-Konvention".
+
+
 This skill has three main responsibilities:
 
 1. **Load context** from the design phases
@@ -622,6 +649,101 @@ Gate re-run is what closes the loop: the plan stays aligned with the
 post-amendment spec, and a future reviewer can see, via the Change
 Log trigger=requirement entry, that the gap was caught and closed in
 the right order.
+
+### Mid-course capability discovery (binding trigger, added 2026-04-20)
+
+The prior trigger covers amendments to **existing** FEATUREs. This
+one covers the other case: the implementation is about to introduce
+a **new user-facing capability** that no FEATURE in the repository
+describes yet. Agents that code without spec catch-up create exactly
+the drift the consistency-check (see `/consistency-check`) flags as
+orphan code. The fix is to pause and capture the capability with a
+short user dialog, then resume.
+
+**Detection.** A new capability is discovered when any of these
+happen:
+
+- A new route, handler, or command is added that was not in
+  `plan-context.md` or in any existing FEATURE's
+  `Source (Implementation):` list.
+- A new Sidebar entry, Settings tab, or top-level UI surface is
+  introduced.
+- A new CLI flag or public API endpoint that changes the user-facing
+  contract.
+
+Tech-only changes (helpers, refactors, private utilities, bugfixes,
+documentation, test additions) do NOT trigger this dialog.
+
+```
+Mid-course capability handling, do NOT silently add new features:
+
+1. STOP the current code edit. A new FEATURE entry is needed
+   before the code lands.
+2. Triage with one `AskUserQuestion` at a time, per the User
+   Interaction Protocol. The agent must not invent answers here;
+   the WHY and WHO require user input.
+
+   Question A - Is this a real new user-facing capability, or is
+   it a technical byproduct? If technical byproduct: skip dialog,
+   just add to code. If user-facing: continue.
+
+   Question B - For which Persona? Pick from the BA's current
+   persona list, or select "Other" and supply name + short
+   description.
+
+   Question C - Which Job-to-be-Done is solved? Free text. The
+   agent does not infer from code paths; user articulates.
+
+   Question D - Which measurable outcome do we expect? Free text.
+   If the user cannot answer now, accept `[AWAITING BA Nachtrag]`
+   and continue (the Feature will carry the placeholder).
+
+3. Write the FEATURE-spec draft now, not after the code. Use
+   `skills/requirements-engineering/templates/FEATURE-TEMPLATE.md`.
+   Frontmatter: `status: Draft (User-Input {date})`,
+   `source: capability-capture during /coding`. Fill Capability
+   line (observable SC-01), Persona, JTBD, outcome-placeholder.
+
+4. Write a BA-Nachtrag. Append to `docs/analysis/BA-{project}.md`
+   under a `## User-Input-Capture ({date})` section. Mark the
+   entry `unvalidated` with the same date. Never edit validated
+   BA sections silently; appendix-only.
+
+5. Update the Epic assignment. If the capability fits an existing
+   Epic, add a row to that Epic's MVP-Features table. If not,
+   create a new Epic with `status: Draft (User-Input {date})` and
+   a placeholder Hypothesis Statement.
+
+6. Add a BL-Item to the backlog under the relevant Epic section.
+   Phase = Building if user provided all four answers;
+   Phase = Candidates with `needs refinement: BA-Anchor fehlt` if
+   Question D was deferred.
+
+7. Run `/consistency-check` to verify the new Feature/Epic/BA
+   links hold.
+
+8. NOW continue the code edit. Commit message cites the new
+   FEATURE-ID and BL-Item
+   (e.g. `Refs: FEATURE-0817, BL-084, PLAN-018`).
+
+9. At the end of the session, the Final Synchronization block
+   promotes the FEATURE status from Draft to Implemented if the
+   capability is fully realised.
+```
+
+Why this matters: this is where the graph stays honest. Agents alone
+cannot write a useful Persona or Business-Outcome for a capability
+they did not conceive. The user is the only source for those; the
+agent captures, does not invent. Without this trigger the code
+outruns the graph and the consistency-check produces a growing list
+of orphan-feature BL-items that nobody understands later.
+
+**When this trigger is skipped.** If the user explicitly says "this
+is a scratch change, no feature yet", the agent may bypass the
+dialog for that one commit. The commit message then carries
+`[no-capture: scratch]` and `/consistency-check` will later flag the
+orphan for a retroactive capture. Deliberate bypass is a recorded
+action, not a hidden one.
 
 ### Final synchronization (cross-artifact)
 

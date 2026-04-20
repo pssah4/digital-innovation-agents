@@ -17,6 +17,33 @@ disable-model-invocation: false
 
 # Reverse Engineering
 
+## MANDATORY: Phase and status in frontmatter + backlog sync (no asking)
+
+Whenever this skill creates or modifies a Feature, Epic, or ADR, the
+YAML-frontmatter of the artifact MUST carry `phase:` (Feature, Epic,
+ADR) and `status:` (Feature, ADR). The backlog row of the artifact
+MUST stay in sync with that frontmatter. No confirmation dialog, no
+opt-in, no nudging the user. Execute immediately.
+
+**Defaults when you have no better value:**
+
+- Feature: `phase: Building`, `status: Planned`
+- Epic: `phase: Building` (derive via worst-wins once features exist)
+- ADR: `phase: Building`, `status: Proposed`
+
+**Sync chain on every phase/status change:**
+
+1. Update frontmatter of the artifact
+2. Update the artifact's row in `docs/context/10_backlog.md`
+3. If epic phase changed, update the epic header `Phase: X` line in
+   the backlog and the epic file frontmatter
+4. Recompute the dashboard counts (Phase x Epics/Features/Chores)
+5. Run `/consistency-check` mode A at the end of the skill phase
+
+Full rules and enum values: `skills/project-conventions/references/graph-invariants.md`,
+section "Phase/Status-Frontmatter-Konvention".
+
+
 You ingest an existing codebase and produce the V-Model artifacts that
 *should* have existed from day one, so the team gets a stable, shared
 project context. You walk the V backwards, from Coding up through
@@ -127,6 +154,49 @@ were followed.
 
 You walk backwards through the V, one phase at a time. Each phase
 produces one or more artifacts before you move up to the next.
+
+### Phase -1: Pre-check for existing workflow artifacts (binding)
+
+**Added 2026-04-20 after a real run on a downstream project revealed that two
+parallel workflows (Superpowers and V-Model reverse-engineering) had
+produced overlapping artifacts in the same project.** Before any
+scan, probe the project for existing workflow residues. Greenfield
+projects skip this phase; brownfield with prior tooling does not.
+
+Check these locations and patterns:
+
+- `docs/adr/`, `docs/architecture/ADR-*.md`, `_devprocess/architecture/ADR-*.md`
+- `docs/superpowers/`, `docs/plans/`, `docs/specs/`, `_devprocess/implementation/plans/`
+- `docs/requirements/`, `docs/analysis/`
+- README, CONTRIBUTING, or CLAUDE.md references to workflow skills,
+  DIA, MADR, arc42
+- Multiple ADR-format styles in the same directory (MADR vs custom)
+- Multiple numbering series (ADR-001..037 alongside 037..045 without
+  prefix)
+
+If ANY of these are found, stop before producing new artifacts and
+ask the user a single `AskUserQuestion` (per the User Interaction
+Protocol, one-at-a-time with Pro/Con):
+
+> "I found existing workflow artifacts under {paths}. How should we
+> proceed? (a) consolidate them into the V-Model format before I
+> reverse-engineer the rest, (b) keep them untouched and produce new
+> artifacts alongside (flagged as separate source), (c) replace them
+> with reverse-engineered versions (destructive)."
+
+Only after the decision is recorded do you proceed with Phase 0.
+
+**Numbering collision protocol.** If two ADR series coexist, the
+consolidation must decide which numbers win. Rule of thumb: the
+series with the higher count of external references in source code,
+commits, and backlog wins. Renumber the smaller series with a clear
+note in the renumbered ADR header ("Before 2026-04-20 this ran as
+ADR-037; renumbered to ADR-046 because Superpowers series used 037").
+
+**Dedup protocol.** If two files describe the same decision or
+feature (different language, different format, same topic), merge
+under the newer structure and add a "Previous variants" note that
+lists the sources. Do not silently delete.
 
 ### Phase 0: Scope and codebase scan (5-10 min)
 
@@ -338,6 +408,47 @@ Keep FEATURE names short and capability-focused ("User login",
 "Project export", "Admin user management"). Do not lump multiple
 capabilities into one feature.
 
+**Step 3c: Observable Success Criteria (added 2026-04-20).**
+
+Previously RE left every SC as a pure `[AWAITING RE]` placeholder.
+That produced features the consistency-check could not anchor. The
+updated rule: RE writes one SC entry per observable capability, with
+the Target field split:
+
+- **Capability line** comes from what the code does. Example:
+  "Nutzer kann eine vergangene Unterhaltung erneut oeffnen". This is
+  derivable from routes, handlers, or tests.
+- **Target** stays `[AWAITING BA]` unless the code itself declares
+  a deterministic target (timeout constants, rate limits, explicit
+  performance assertions in tests). In that case the observed target
+  goes in with `Source:` line; a business-target reserved cell stays
+  `[AWAITING BA]` next to it.
+- **Measurement** follows the same rule: observable measurement
+  from code/tests, otherwise placeholder.
+
+The resulting SC table looks like:
+
+```
+| ID    | Kriterium (observable)                     | Target             | Messung                    |
+| ----- | ------------------------------------------ | ------------------ | -------------------------- |
+| SC-01 | Nutzer kann eine vergangene Unterhaltung   | [AWAITING BA]      | Pilot-Interview oder NPS   |
+|       | erneut oeffnen                             |                    |                            |
+| SC-02 | Startup-Abbruch wenn Sandbox nach 30s      | 30s (hart codiert) | Integration-Test           |
+|       | nicht bereit                               | Source: src/main/. | src/tests/.../timeout.test |
+|       |                                            | index.ts:1088      |                            |
+```
+
+Every SC line that has no observable Target gets `[AWAITING BA]`.
+The consistency-check's invariant N-4 is satisfied (every feature has
+at least one SC), and the RE-Handoff can honestly claim the Feature
+inventory is mapped against code, even when business targets are
+still open.
+
+When `/business-analyse` or `/requirements-engineering` later runs,
+it fills the `[AWAITING BA]` placeholders with validated business
+targets. Observable targets remain as-is unless the user explicitly
+revises them.
+
 ### Phase 4: Business reverse engineering → BA draft
 
 This is the most constrained phase. Read:
@@ -422,6 +533,119 @@ If this skill seeds the backlog file itself, copy the template
 headers (Dashboard, Legende, Standalone Items, Traceability) first
 and update the dashboard counts after all rows are written.
 
+**Phase-Schema for the backlog (added 2026-04-20 after a real run).**
+Brownfield projects often sit in a hybrid state where some features
+are fully implemented, others are in progress, and others exist only
+as ideas. A binary Done/Planned status does not capture that.
+Introduce three Phase categories in the backlog Dashboard and Legende:
+
+- `Released` - feature is **completely** implemented and verified
+  against the codebase. Status=Done alone is not sufficient; the
+  Phase=Released claim requires all Success Criteria to be traceable in
+  code. Partial implementation belongs in `Building`, not `Released`.
+- `Building` - in progress or ready to start. Scope, acceptance
+  criteria, and dependencies are clear.
+- `Planned` - anticipated but not ready. Needs refinement (analysis,
+  target group, scope, or architecture). Each Candidates item carries a
+  `needs refinement: {reason}` marker in its Notes column.
+
+Phase and Status are orthogonal: an Epic can be partially Released
+(for FEATURE-A) and partially Planned (for FEATURE-B) at the same
+time. Phase describes the lifecycle assignment, Status describes the
+progress indicator.
+
+Reverse-engineered items default to `Phase = Building` (code exists,
+awaiting validation) unless Phase 7 (Codebase-Verification) upgrades
+them to `Released` or downgrades them to `Planned` based on code
+evidence.
+
+### Phase 6: Handoff Ritual (moved, see below)
+
+### Phase 7: Codebase-Verification Gate (added 2026-04-20)
+
+Before the Handoff Ritual runs, every FEATURE-spec and every ADR
+from Phases 2-3 gets an explicit verification against the codebase.
+This is the gate that lifts claims from "we wrote it down" to "we
+checked it compiles with reality."
+
+**Mechanism.** For each FEATURE-spec and each ADR, append a section
+`## Codebase-Verifikation ({date})` with this content:
+
+```
+## Codebase-Verifikation ({date})
+
+**Phase:** {Released | Building | Planned | Candidates}
+
+**Refinement-Bedarf:** {none | reason if Candidates or Planned}
+
+**Verifikations-Befund:**
+- Source-Pfade geprueft: {n/m existieren}
+- Success-Criteria stichprobe (Features) oder Kern-Decision (ADRs):
+  {n/m belegt}
+- Drift-Findings: {keine | "Doc: X / Code: Y / Einschaetzung: ..."}
+
+**Backlog-Vorschlag:** {none | concrete BL-Item text}
+```
+
+**Parallelisation.** For large projects (20+ FEATUREs, 30+ ADRs),
+split the verification into 3-6 concurrent agents with non-
+overlapping file slices (e.g. FEATURE-001..007, FEATURE-008..015,
+FEATURE-016..021; ADR-001..015, ADR-016..030, ADR-031..046). Each
+agent reads its slice, verifies against the code, and writes the
+verification section directly. At the end, consolidate the Phase
+counts into the Backlog Dashboard and add drift-specific BL-items
+where the verification surfaced issues.
+
+**Backlog drift items.** Every Drift-Finding that cannot be fixed
+with a one-line doc edit becomes a new Backlog entry. Typical drift
+patterns:
+
+- Source paths or line numbers outdated (Chore, Building).
+- SCs marked `AWAITING RE` (Chore, Building).
+- UI disabled in code but active in doc (Bug-Followup, Planned if
+  PO-decision needed).
+- Architecture decision describes X, code implements Y (Chore to
+  update the ADR, or Refactor if code should be changed).
+- BA says "separate vorhaben", code shows full implementation: flag
+  as Planned with `needs refinement: Scope-Entscheidung` and
+  escalate to the PO via the User Interaction Protocol.
+
+The gate is non-destructive. It does not rewrite artifacts, it
+attaches verification evidence. After the gate, the Backlog
+Dashboard shows real Phase counts and the Handoff Ritual reports
+honest numbers.
+
+### Phase 8: Graph-Konsistenz-Check (added 2026-04-20)
+
+Nach Phase 7 (Codebase-Verifikation pro Artefakt) folgt Phase 8:
+der Graph-weite Konsistenz-Check. Phase 7 fragt "stimmt dieses
+Feature mit dem Code ueberein?" Phase 8 fragt "ist der Artefakt-
+Graph als Ganzes konsistent?"
+
+**Mechanismus.** RE ruft `/consistency-check` im Mode A (syntaktisch,
+kostenlos). Der Skill pruft alle Invarianten aus
+`skills/project-conventions/references/graph-invariants.md` und
+liefert:
+
+- Eine **Graph-Health-Sektion** im Backlog mit Invarianten-Status.
+- **Automatische BL-Items** fuer jede gefundene Luecke
+  (`Source = CONSISTENCY-CHECK`).
+- Eine Konsole-Summary fuer den Handoff Ritual.
+
+**Optional Mode A+B.** Bei Projekten mit bereits gueltiger BA, die
+semantische Konsistenz pruefen wollen (Feature-ADR-Coherence,
+BA-Feature-Anker), ruft RE `/consistency-check --deep` auf. Dies
+kostet Agent-Zeit und sollte nur bei MVP-Scope gemacht werden.
+
+**Gueltig vor Phase 8:** Phase 0-7 alle durch. Phase 8 darf nicht
+im Zwischenstand laufen; sonst sind alle Luecken falsch (weil
+Artefakte noch nicht alle geschrieben sind).
+
+**Output-Integration.** Die Handoff-Ritual-Zusammenfassung enthaelt
+die Graph-Health-Zahlen. Wenn der Check kritische Luecken findet
+(Dead-Links, Orphan-Features ohne Epic), weist der Handoff den User
+explizit darauf hin, bevor `/business-analyse` startet.
+
 ### Phase 6: Handoff Ritual
 
 The handoff follows the standard 3-part pattern.
@@ -502,6 +726,21 @@ Before you run the Handoff Ritual, verify:
 6. **Backlog is non-empty for anything but a pristine codebase.** If
    the backlog has zero entries after reverse-engineering a real
    project, you missed the TODO/FIXME scan.
+7. **No format or numbering conflicts.** (added 2026-04-20) If
+   multiple ADR formats coexist in `docs/adr/` (e.g. MADR vs simple
+   German headers), flag and normalise. If multiple ADR numbering
+   series coexist (ADR-001..037 alongside 037..045 without prefix),
+   resolve the collision per Phase -1 before running the Handoff
+   Ritual.
+8. **Codebase-Verifikation present on every FEATURE and ADR.** (added
+   2026-04-20) Phase 7 adds a `## Codebase-Verifikation ({date})`
+   section to every FEATURE-spec and every ADR with an explicit
+   Phase (Released / Building / Planned / Candidates), source-path check, and
+   drift-findings list.
+9. **Backlog Phase-counts reflect Phase 7 results.** (added
+   2026-04-20) Dashboard has four counters (Released, Building,
+   Planned, Candidates) and drift-findings from Phase 7 appear as
+   backlog rows.
 
 If any gate fails, you fix it before running the Handoff Ritual.
 The user will not catch silent hallucinations. The gates are your
@@ -521,20 +760,43 @@ under-produce for a full onboarding.
 
 ## Project structure
 
-This skill follows the conventions from `/project-conventions`. It
-writes to the same `_devprocess/` paths the forward skills use, with
-status markers distinguishing reverse-engineered from validated
-artifacts. Ensure the structure exists before writing:
+This skill follows the conventions from `/project-conventions`. The
+default paths are `_devprocess/…`. However, many real projects use
+`docs/…` as the root for internal documentation (public-vs-internal
+is then handled per file via `.gitignore` and stripping). **Check
+which convention the project already uses before writing.**
+(added 2026-04-20 after a real run.)
+
+Detection rules:
+
+- If `docs/adr/` or `docs/architecture/` exists: use `docs/` as root.
+- If `docs/analysis/BA-*.md` exists: the project follows the
+  `docs/`-based convention for internal docs.
+- If `_devprocess/` exists: use `_devprocess/` (the canonical path).
+- If neither exists and the project has a CLAUDE.md that references
+  either, follow the CLAUDE.md hint.
+- If nothing is present, default to `_devprocess/` as per
+  `/project-conventions`.
+
+Ensure the structure exists before writing:
 
 ```bash
-mkdir -p _devprocess/{analysis,requirements/{epics,features,handoff},architecture,context}
-touch _devprocess/context/30_handoffs.md
+# Replace {ROOT} with either _devprocess or docs based on detection above.
+mkdir -p {ROOT}/{analysis,requirements/{epics,features,handoff},architecture,adr,context,implementation/plans}
+touch {ROOT}/context/30_handoffs.md
 ```
 
-For `_devprocess/context/10_backlog.md`, do not create an empty file.
+`adr/` is the canonical location for ADR files. If the project
+already puts them under `architecture/ADR-*.md`, consolidate into
+`adr/` during Phase -1 before producing new ADRs, to avoid mixed
+paths.
+
+For `{ROOT}/context/10_backlog.md`, do not create an empty file.
 Seed it from
 `skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`
-so the first RE write already follows the binding format.
+so the first RE write already follows the binding format. Include
+the three Phase counters (Released / Building / Planned / Candidates) in the
+Dashboard per Phase 5's schema update.
 
 ## Keywords
 

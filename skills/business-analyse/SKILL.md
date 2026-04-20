@@ -38,17 +38,120 @@ After the user agrees, prepare the concrete artifact they need (interview guidel
 
 ## What You Create
 
-- **Exploration Board** in `_devprocess/analysis/EXPLORE-{PROJECT}.md` (PoC/MVP)
-- **Business Analysis Document** in `_devprocess/analysis/BA-{PROJECT}.md`
-- Optional: **Constitution Draft** for project principles
+The BA stack is hierarchical. Each level owns different decisions and
+artifacts that stay compact.
+
+- **Project-BA** (full product-context document) at
+  `{docs-root}/analysis/BA-{PROJECT}.md` or
+  `_devprocess/analysis/BA-{PROJECT}.md`. After reading it, a new
+  team member or a new agent must know what the product is for, for
+  whom, with what value, in what scope, and under what constraints.
+  Typical length 500-900 lines. The document is compact in the
+  sense that it carries *results, not process iterations* (no team-
+  review markers, no discarded candidates, no session diaries), but
+  it contains the full substance.
+- **Epic-BA** (Mini) at `{docs-root}/requirements/epics/EPIC-NNN-ba.md`,
+  one per epic that needs BA depth. Max 80 lines. References the
+  Project-BA, never duplicates it.
+- **Feature-BA** (rare) only when a feature activates a new persona,
+  has its own hypotheses, or delivers measurably different value.
+  Usually the FEATURE-spec with Success Criteria is enough and no
+  Feature-BA is created.
+- **Exploration Board** at `{docs-root}/analysis/EXPLORE-{PROJECT}.md`
+  for PoC/MVP projects where discovery work runs ahead of the BA.
+- Optional: **Constitution Draft** for project principles.
 
 ## What You Do NOT Create
 
-- Epics/Features (done by RE with `/requirements-engineering`)
+- Epics/Features specs themselves (done by RE with
+  `/requirements-engineering`). You may create the Epic-BA that feeds
+  the Epic spec, but not the Epic spec or its Feature list.
 - Technical solutions (done by Architect with `/architecture`)
 - User Stories (done by RE)
 
 Your focus: **WHY & WHO**, not WHAT & HOW.
+
+## BA Hierarchy and Inheritance
+
+The Project-BA is the stable product layer. Epic-BAs reference it.
+The rules below are enforced by `/consistency-check` via invariants
+`N-8` and `N-9` in `skills/project-conventions/references/graph-invariants.md`.
+
+### Project-BA owns (single source of truth)
+
+The Project-BA is organized in these mandatory sections. Length
+grows with project complexity; a small project may be shorter, a
+brownfield ingest longer. Stakeholder politics are *not* a mandatory
+section and typically belong elsewhere (strategic fit note,
+roadmap).
+
+1. **Executive Summary:** Problem Statement / HMW (Meta + persona-
+   specific + cross-cutting) / Value Proposition (core sentences +
+   value dimensions WITH explanation + interplay + growth mechanics)
+   / High-Level Concept + Leitmetapher / Expected Outcomes
+2. **Business Context:** Background, As-Is, To-Be, Gap Analysis
+3. **Personas and Needs:** for each persona, role + goal + pain +
+   quote + top needs; plus Cross-Persona needs
+4. **Problem Analysis:** Problem dimensions, Root Causes, Impact,
+   JTBDs per persona
+5. **Goals and KPIs:** Business Goals, User Goals, KPIs (qualitative
+   first where quantitative baselines are missing)
+6. **Nordstern, Wow, Anti-Definition**
+7. **Scope:** In-Scope existing, In-Scope new candidates from
+   persona walk, Out-of-Scope, Assumptions
+8. **Risks:** product-wide only
+9. **Constraints:** technical, strategic, delivery/operations
+10. **Requirements Overview:** pointer into Epic/Feature/ADR
+    documents, plus NFR priority order
+
+Stable IDs used across this BA: persona IDs (P1, P2, P3, ...), value
+dimension numbers, KPI dimension names, risk IDs (R-1, R-2, ...).
+Epic-BAs reference these IDs.
+
+### Epic-BA owns (per epic)
+
+- Reference to relevant Personas by ID only (no redefinition)
+- Reference to adressed value dimensions by index
+- Part-problem: what is specific to this epic
+- JTBDs per adressed persona
+- Three falsifiable epic hypotheses
+- Epic-KPIs, each mapped to a Project-BA strategic KPI via the
+  frontmatter field `project-kpi-ref:`
+- Epic-specific risks (only what is new or different vs product-level)
+- Scope boundary against neighbor epics
+
+### Inheritance rules (verbindlich)
+
+1. **Epic-BA must not redefine** personas, value dimensions, or
+   nordstern. It references by ID.
+2. **New persona candidates** discovered while writing an Epic-BA go
+   first into the Project-BA (via Update Mode of this skill), then
+   the Epic-BA can reference them.
+3. **Epic-KPIs must map** to a Project-BA strategic KPI. Without a
+   `project-kpi-ref:` in the Epic-BA frontmatter, the epic cannot
+   advance beyond phase Candidates.
+4. **If the Project-BA changes** (persona deferred, value dimension
+   removed, risk escalated), `/consistency-check` flags every
+   dependent Epic-BA as `needs review` so they can be re-validated.
+5. **When should you create a Feature-BA?** Answer these three
+   questions. If all are "no", skip it and rely on the FEATURE-spec:
+   - Does this feature activate a persona not covered by its Epic-BA?
+   - Does this feature have hypotheses the Epic-BA does not cover?
+   - Does this feature deliver a measurably different value that
+     needs its own KPI baseline?
+
+### Templates
+
+- Project-BA: `templates/BA-TEMPLATE.md`
+- Epic-BA: `templates/EPIC-BA-TEMPLATE.md` (compact, reference-first)
+
+### Archiving long-form BAs
+
+If the Project-BA has grown beyond the One-Pager budget (for example
+from a reverse-engineering ingest of a legacy project), move the full
+document to `{docs-root}/analysis/archive/BA-{PROJECT}-v1-full.md` and
+compose a compact Project-BA that references the archive per section.
+The archive stays readable as the evidence trail.
 
 ## Process Overview
 
