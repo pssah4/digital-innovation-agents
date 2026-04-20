@@ -7,6 +7,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-04-20
+
+Minor release. Adds `/consistency-check` as a first-class graph-health
+skill and rolls a mandatory Phase/Status frontmatter convention across
+five V-Model skills. `/business-analyse` gets a three-level BA
+hierarchy (Project-BA / Epic-BA / Feature-BA) with inheritance rules
+that keep downstream artifacts compact. `/coding` and
+`/reverse-engineering` grow binding mid-course triggers that prevent
+drift between code and spec. `/v-model-workflow` replaces the static
+entry-point question with a hybrid detection that scans the project,
+runs a graph-health check, and recommends the next phase.
+
+### Added (skills)
+
+- **`/consistency-check`** (`skills/consistency-check/SKILL.md`). New
+  skill that validates the V-Model artifact graph in two modes. Mode
+  A is syntactic (links, IDs, refs, frontmatter, backlog-artifact
+  sync) and runs at the end of every phase skill. Mode B is semantic
+  (content-level consistency via agent) and runs before release or
+  on explicit request. Returns a Graph-Health snapshot used by the
+  orchestrator to diagnose the next entry point.
+- **Phase/Status frontmatter convention** across `architecture`,
+  `coding`, `requirements-engineering`, `reverse-engineering`, and
+  `v-model-workflow`. Every Feature, Epic, and ADR carries `phase:`
+  and `status:` in frontmatter; the backlog row stays in sync on
+  every change. Enum values and sync chain live in
+  `skills/project-conventions/references/graph-invariants.md`
+  (new reference file).
+- **BA hierarchy** in `/business-analyse`. Project-BA
+  (`_devprocess/analysis/BA-{project}.md`) is the single source of
+  truth for personas, value dimensions, strategic KPIs, and product-
+  wide risk. Epic-BA (`requirements/epics/EPIC-NNN-ba.md`, max 80
+  lines) references Project-BA IDs; Epic-KPIs must map to a
+  Project-BA KPI via frontmatter `project-kpi-ref:`. Feature-BA is
+  rare, only when a feature activates a new persona or owns its own
+  hypotheses. New template
+  `skills/business-analyse/templates/EPIC-BA-TEMPLATE.md`.
+- **Mid-course capability discovery trigger** in `/coding`. New user-
+  facing capability (route, handler, command, Sidebar entry, settings
+  tab, CLI flag, public API endpoint) pauses the coding flow, runs a
+  short dialog (persona, JTBD, expected outcome), writes a FEATURE-
+  spec draft and a BA-Nachtrag before the code lands, and closes
+  with a `/consistency-check` run. Prevents orphan-code drift.
+- **Phase -1 pre-check for existing workflow residues** in
+  `/reverse-engineering`. Brownfield projects with prior tooling
+  (parallel ADR series, Superpowers artifacts, multiple numbering
+  styles) get a decision dialog before any scan starts: consolidate,
+  keep alongside, or replace. Includes a numbering-collision
+  protocol and a dedup protocol.
+- **Observable Success Criteria** in `/reverse-engineering`. SC
+  entries get split into an observable capability line derived from
+  code and tests, and a `[AWAITING BA]` target placeholder where the
+  code has no deterministic target. Replaces the previous pure
+  placeholder pattern so the consistency-check can anchor every
+  Feature.
+- **Hybrid entry-point detection** in `/v-model-workflow`. The
+  orchestrator scans the project, runs `/consistency-check` Mode A,
+  and recommends the likely entry phase from the Graph-Health
+  snapshot. The user sees the recommendation plus manual
+  alternatives via `AskUserQuestion` and keeps the override. On
+  phase start, consistency gaps relevant to that phase get surfaced.
+
+### Added (tools)
+
+- **Graph visualisation** under `skills/v-model-workflow/tools/`:
+  `graph-viewer.html` (browser-side viewer for the artifact graph),
+  `parse-graph.py` (scans the project and emits graph data), and
+  `open-graph.sh` (one-shot runner).
+
+### Not in this release
+
+- Docs guides (`docs/guides/*.md`) do not yet describe the new
+  consistency-check skill, BA hierarchy, or hybrid entry-point
+  detection. Deferred to a follow-up patch release once the skill
+  behaviour is validated in real projects.
+
 ## [2.3.0] - 2026-04-20
 
 Minor release. Promotes plan persistence to a first-class artifact of
