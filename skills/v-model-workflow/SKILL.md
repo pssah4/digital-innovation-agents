@@ -98,7 +98,7 @@ Before a phase starts, check whether the directory structure exists.
 If not, initialize it per `/project-conventions`:
 
 ```bash
-mkdir -p _devprocess/{analysis/security,requirements/{epics,features,handoff},architecture,context}
+mkdir -p _devprocess/{analysis/security,requirements/{epics,features,handoff},architecture,implementation/plans,context}
 mkdir -p src docs scripts memory
 touch _devprocess/context/20_bugs.md _devprocess/context/30_handoffs.md
 ```
@@ -207,9 +207,15 @@ Input: _devprocess/requirements/handoff/plan-context.md
 /coding will:
 1. Load plan-context.md + all ADRs + Features
 2. Accept/modify ADR proposals (critical codebase review)
-3. Create an implementation plan (plan-mode) with task-breakdown guidelines
-4. Apply the verification gate before every completion claim
-5. Write Feature specs and backlog back to artifacts
+3. Persist an implementation plan as
+   _devprocess/implementation/plans/PLAN-{NNN}-{slug}.md
+   (template: skills/coding/templates/PLAN-TEMPLATE.md)
+4. Hand off to the Default agent with the persisted plan as
+   source of truth; mid-course deviations append to the plan's
+   Change Log, never rewrite past entries
+5. Apply the verification gate before every completion claim
+6. Close the plan (Status: Implemented, task commit SHAs) and
+   write Feature specs, ADRs, and backlog back to artifacts
 ```
 
 ### After Coding -> Testing
@@ -362,6 +368,9 @@ _devprocess/
   architecture/
     ADR-{NNN}-{slug}.md                <- Phase 3: Architecture
     arc42.md                           <- Phase 3: Architecture
+  implementation/
+    plans/
+      PLAN-{NNN}-{slug}.md             <- Phase 4: persisted implementation plan
   context/
     10_backlog.md                      <- living backlog (per BACKLOG-TEMPLATE.md)
     20_bugs.md                         <- FIX-NN bug log (Phase 4)
@@ -379,13 +388,14 @@ BA document (Why?)
         -> ADR (How do we solve it?)
           -> plan-context.md (Context bridge)
             -> Critical Review (Does it fit the codebase?)
-              -> Code (Implementation)
-                -> Tests (Does it work?)
-                  -> Fix-loop until green
-                    -> Security Audit (Is it safe?)
-                      -> Fix-loop until resolved
-                        -> Backlog (What's still open?)
-                          -> Phase 7 Release Closure (Close the cycle)
+              -> PLAN-NNN (Which tasks, in what order, with TDD gates?)
+                -> Code (Implementation, commits cite PLAN-NNN)
+                  -> Tests (Does it work?)
+                    -> Fix-loop until green
+                      -> Security Audit (Is it safe?)
+                        -> Fix-loop until resolved
+                          -> Backlog (What's still open?)
+                            -> Phase 7 Release Closure (Close the cycle)
 ```
 
 Backchannel: changes in every phase flow back into the source artifacts
@@ -419,11 +429,15 @@ The three cross-phase feedback triggers:
    reveals that an architectural choice does not match reality. The
    coding flow pauses, amends or supersedes the affected ADR, updates
    arc42 and plan-context.md, and only then continues the feature.
-3. **Mid-course requirements discovery** (in `/architecture`). The
-   tech design reveals that a FEATURE spec has a gap, ambiguity, or
-   impossible constraint. Architecture pauses, routes the issue back
-   to `/requirements-engineering` as a FEATURE-spec update, waits
-   for the updated handoff, and only then proceeds with ADRs.
+3. **Mid-course requirements discovery** (in `/architecture` or
+   `/coding`). The tech design or the implementation reveals that a
+   FEATURE spec has a gap, ambiguity, or impossible constraint.
+   Architecture pauses, routes the issue back to
+   `/requirements-engineering` as a FEATURE-spec update, waits for
+   the updated handoff, and only then proceeds with ADRs. Coding
+   amends the FEATURE in place (per the Mid-course requirements
+   trigger in `/coding`), re-runs the Plan Coverage Gate against the
+   amended spec, and only then continues implementation.
 
 Each trigger follows the same 6-step pattern: STOP, triage, write a
 minimal root-cause analysis, add a backlog entry BEFORE any code or

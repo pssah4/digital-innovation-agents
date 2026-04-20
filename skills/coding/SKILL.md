@@ -40,10 +40,11 @@ REQUIRED:
 OPTIONAL (if present):
 5. _devprocess/architecture/arc42.md                   (overall architecture)
 6. _devprocess/requirements/epics/EPIC-*.md            (strategic context)
-7. _devprocess/context/10_backlog.md                   (open items)
-8. _devprocess/context/20_bugs.md                      (known bugs, FIX-NN entries)
-9. _devprocess/context/30_handoffs.md                  (last handoff entry from /architecture)
-10. memory/MEMORY.md                                   (architecture key facts)
+7. _devprocess/implementation/plans/PLAN-*.md          (prior and active plans; Status=Active carries in-flight work)
+8. _devprocess/context/10_backlog.md                   (open items)
+9. _devprocess/context/20_bugs.md                      (known bugs, FIX-NN entries)
+10. _devprocess/context/30_handoffs.md                 (last handoff entry from /architecture)
+11. memory/MEMORY.md                                   (architecture key facts)
 ```
 
 **Dialog check.** After loading `plan-context.md`, scan its `## Dialog`
@@ -172,12 +173,120 @@ touch with reality.
 ## Phase 3: Implementation (delegated to Default Agent)
 
 After the review, implementation is handed off to the Default Claude Code
-agent. Before handing off, the `/coding` skill provides the agent with the
-following guidelines, which are mandatory for this session.
+agent. The `/coding` skill does two things before the agent writes code:
+(a) persists the plan the agent produces (Phase 3a), and (b) carries
+cross-cutting protocols the agent binds to for this session (TDD toggle,
+debugging, verification gate, writeback). These are scoped per
+sub-section below. Phase 3a itself does not impose a plan shape.
 
-### Phase 3a: Task-breakdown guidelines
+### Phase 3a: Plan persistence
 
-Pass these rules to the Default agent before it enters plan-mode:
+**Persist the plan as a file (binding).**
+
+Every non-trivial implementation run leaves a PLAN-NNN file behind.
+Without this file the plan lives only in the agent's session and
+disappears after context reset.
+
+Location: `_devprocess/implementation/plans/PLAN-{NNN}-{slug}.md`.
+Template: `skills/coding/templates/PLAN-TEMPLATE.md`.
+
+**What this skill prescribes vs. what the coding agent owns.**
+
+This skill prescribes only the traceability wrapper: frontmatter with
+id / status / date / refs / pair-id, a Change Log section, and an
+Implementation Notes section. Everything else -- how tasks are
+decomposed, whether TDD is used, what structure the body has -- belongs
+to the coding agent that produces the plan. Claude Code has a strong
+native planning mode, and it keeps improving. This skill persists
+whatever plan the agent produces; it does not reshape it into a fixed
+schema that would freeze old patterns into every project.
+
+Flow:
+
+1. Determine the next free 3-digit number by scanning
+   `_devprocess/implementation/plans/` (highest NNN + 1). If the
+   directory does not exist, create it and start at `001`.
+2. Copy the template to
+   `_devprocess/implementation/plans/PLAN-{NNN}-{slug}.md`.
+3. Fill the frontmatter: id, title, date (today), feature-refs,
+   adr-refs, bug-refs (if applicable), pair-id, status `Draft`.
+4. Paste the coding agent's plan verbatim into the body section
+   between the frontmatter and the `## Change Log` header. If the
+   agent runs in Claude Code, this is the plan Claude Code wrote in
+   plan-mode. Do not edit the structure. If the agent is less
+   capable and produced nothing usable, fall back to the minimal
+   structure described in the template.
+5. Flip status to `Active` once implementation begins.
+6. Every mid-course trigger (see "Mid-course bug discovery" and
+   "Mid-course design discovery" below) appends a dated entry to the
+   plan's `## Change Log` section BEFORE the code edit. Never
+   rewrite earlier entries or earlier task descriptions.
+
+Skip the plan file only for:
+- Single-step typo / comment fixes
+- Documentation-only edits
+- Edits already covered by an existing Active plan (append a Change
+  Log entry instead of creating a new file)
+
+The plan file is part of the artifact report in the Handoff Ritual.
+
+**Plan Coverage Gate (binding, runs before Status flips to Active).**
+
+Regardless of which agent produced the plan, the skill checks four
+things against the source artifacts. The check happens AFTER the
+plan body is persisted and BEFORE implementation begins. If any item
+fails, the flow loops: update the affected artifact, then re-run the
+gate. No code is written while an item is open.
+
+1. **SC coverage.** Every Success Criterion from every referenced
+   FEATURE spec either maps to a concrete task in the plan or is
+   explicitly marked "Deferred: {reason}" in the plan body.
+   - Gap found -> two options:
+     (a) add task(s) to the plan body (agent decides shape), or
+     (b) amend the FEATURE: remove / split / reword the SC, with
+         justification. Every FEATURE amendment bumps the FEATURE's
+         `Last updated` and gets a one-line comment explaining the
+         change.
+2. **ADR alignment.** Every ADR listed in `adr-refs` has at least one
+   task that operationalizes its Decision section.
+   - Gap found -> either add a task, or route through the Mid-course
+     design trigger (the ADR itself may be wrong).
+3. **Codebase anchoring.** Every task names at least one concrete file
+   path (Create / Modify / Test). Abstract tasks like "clean up state
+   management" fail the gate until they name files.
+4. **Verification gates.** The plan body contains at least one build
+   command and one test command that prove the plan done. If the
+   repo has no tests yet, a smoke script is acceptable; the plan
+   names it.
+
+On completion: add a short "## Coverage Gate" block at the bottom of
+the plan body (before `## Change Log`) listing which SC mapped to
+which task, which SC got deferred, and which ADRs got touched. This
+block is what a later reviewer (human or agent) reads to verify the
+gate actually ran.
+
+**Re-run the gate whenever a source artifact changes.** If a FEATURE,
+ADR, or plan-context.md is amended while a PLAN is at Status=Active
+(from codebase reconciliation, mid-course triggers, or external
+edits), the Coverage Gate runs again on that PLAN before the next
+code edit. Log the re-run as a Change Log entry with trigger=coverage
+and the amended artifact ID. This is the writeback loop that keeps
+the plan honest when upstream artifacts move.
+
+### Phase 3a-bis: Guidance for agents without a native planning mode
+
+The rules below are a fallback. If the coding agent is Claude Code (or
+any agent with its own mature planning conventions), its plan-mode
+output supersedes this guidance. The skill persists that plan verbatim
+(per Phase 3a above). Do not rewrite the agent's plan to match the
+rules below. The point of the rules is to prevent an underpowered
+agent from producing a plan that is too vague to execute; they are
+not a ceiling on what a stronger agent can do.
+
+Use the rules when:
+- the coding agent has no native planning step, or
+- its plan is visibly thin (no file paths, no test strategy, no
+  verification gates) and needs to be repaired before implementation.
 
 **Bite-size tasks (2-5 minutes per step):**
 
@@ -312,6 +421,7 @@ Should I write these changes back now? [Y/N]
 - Unexpected constraint discovered
 
 **What gets written back:**
+- PLAN-NNN: append a Change Log entry (never rewrite past tasks in place)
 - ADR: Decision, Status, Implementation Notes
 - FEATURE: Success Criteria, Technical NFRs, Definition of Done
 - plan-context.md: Tech Stack, Integrations (if fundamentally changed)
@@ -403,10 +513,13 @@ Mid-course handling, do NOT fix the bug silently:
 4. Add the new item to _devprocess/context/10_backlog.md under
    the active Epic so it appears in the backlog before any code
    touches disk
-5. NOW write the fix. Commit message cites BOTH the in-progress
+5. Append a Change Log entry to the active PLAN-NNN file with
+   trigger=bug, the new BUG-NNN reference, and a one-line summary
+   of what the fix changes. Never rewrite past tasks in place.
+6. NOW write the fix. Commit message cites BOTH the in-progress
    FEATURE-NNNN and the new BUG-NNN (e.g.
-   `Refs: FEATURE-0507, BUG-018`)
-6. After the fix: run the standard Final synchronization block
+   `Refs: FEATURE-0507, BUG-018, PLAN-012`)
+7. After the fix: run the standard Final synchronization block
    below, marking the new BUG-NNN as resolved
 ```
 
@@ -443,10 +556,15 @@ Mid-course handling for a design finding, do NOT silently deviate:
    changes, what still holds)
 4. Update arc42.md and plan-context.md if the discovery affects
    either. Keep them consistent with the ADR change.
-5. Only NOW resume or rewrite the code. Commit message cites the ADR
-   change alongside the in-progress FEATURE
-   (e.g. `Refs: FEATURE-0507, ADR-012 (amended)`)
-6. After the fix: run the standard Final synchronization block
+5. Append a Change Log entry to the active PLAN-NNN file with
+   trigger=design, the affected ADR(s), and a one-line summary of
+   how the plan pivots. If the pivot invalidates remaining tasks,
+   mark the plan as Superseded and create PLAN-{NNN+1} with the
+   revised task list; the old plan stays for traceability.
+6. Only NOW resume or rewrite the code. Commit message cites the ADR
+   change alongside the in-progress FEATURE and the plan
+   (e.g. `Refs: FEATURE-0507, ADR-012 (amended), PLAN-012`)
+7. After the fix: run the standard Final synchronization block
    below. The amended or superseded ADR is part of the writeback.
 ```
 
@@ -454,6 +572,56 @@ Why this matters: an ADR that silently diverges from the code stops
 being a decision record and becomes a historical fiction. The next
 reviewer who consults it makes worse decisions because they trust a
 document that no longer reflects reality.
+
+### Mid-course requirements discovery (binding trigger)
+
+If the implementation reveals that a FEATURE spec is ambiguous,
+incomplete, or contradicts what the codebase needs (a Success
+Criterion cannot be met as written, an SC is missing, or an SC turns
+out to mean something different than intended), pause the coding flow
+and route through the requirements layer BEFORE continuing. Coding
+around a broken FEATURE spec produces code that tests cannot verify
+against the spec and a spec that stops describing the product.
+
+```
+Mid-course handling for a requirements finding, do NOT silently reinterpret:
+
+1. STOP the current code edit. Do not paper over the spec gap with
+   code that "should work".
+2. Triage:
+   - Is the SC only ambiguous (wording unclear)?
+     -> update the FEATURE: rewrite the SC, keep its number, add a
+        one-line comment with the clarification rationale
+   - Is an SC missing (feature behavior exists in the codebase need
+     but not in the spec)?
+     -> add a new SC to the FEATURE with the next number
+   - Is an SC wrong (impossible, contradicts another SC, or the user
+     no longer wants it)?
+     -> either amend the SC or mark it "Removed: {reason}". Do not
+        delete the line; removal is an append-only event
+   - Is the scope wrong at the root (FEATURE splits into two, or
+     merges into another)?
+     -> open the decision with the user via AskUserQuestion; do not
+        re-shape the feature graph unilaterally
+3. Update plan-context.md if the FEATURE change affects the tech
+   stack or integration assumptions.
+4. Re-run the Plan Coverage Gate on the active PLAN-NNN. Every SC
+   that was amended must re-map to a task or be marked Deferred.
+   Append a Change Log entry to the plan with trigger=requirement,
+   the amended SC IDs, and a one-line summary of how tasks changed.
+5. Only NOW resume or rewrite the code. Commit message cites the
+   FEATURE change alongside the plan
+   (e.g. `Refs: FEATURE-0507 (SC-03 amended), PLAN-012`)
+6. After the fix: run the standard Final synchronization block below.
+   The amended FEATURE is part of the writeback.
+```
+
+Why this matters: a FEATURE that the code no longer matches is not a
+spec anymore. Tests that pass against it prove nothing. The Coverage
+Gate re-run is what closes the loop: the plan stays aligned with the
+post-amendment spec, and a future reviewer can see, via the Change
+Log trigger=requirement entry, that the gap was caught and closed in
+the right order.
 
 ### Final synchronization (cross-artifact)
 
@@ -472,6 +640,17 @@ MANDATORY -- artifacts must reflect the actual state:
    - All statuses finalized (Accepted / Accepted (modified) / Deprecated)
    - Add Implementation Notes with the actual outcome
    - Document deviations from the original proposal
+
+2b. Implementation plan (PLAN-NNN):
+   - Status -> "Implemented" (or "Superseded" if a later plan replaced
+     it mid-run)
+   - Fill "Implementation Notes" section: per-task commit SHA (short
+     form), deviations summary, test count delta, cycle time
+     (first-commit -> last-commit)
+   - Every task either has a commit SHA or an explicit "Not executed
+     because ..." note. No task silently dropped.
+   - The Change Log keeps every mid-course entry appended during the
+     run. Never rewrite past entries.
 
 3. Backlog (single source of truth for project state):
    - Update _devprocess/context/10_backlog.md per the binding format
@@ -521,6 +700,7 @@ IF APPLICABLE:
 Implementation complete!
 
 Artifact status:
+- {N} Plans closed (Status: Implemented, {N} superseded)
 - {N} Features updated (Status: Implemented)
 - {N} ADRs finalized ({N} accepted, {N} modified, {N} deprecated)
 - {N} artifacts written back during implementation
@@ -545,6 +725,7 @@ List all artifacts produced or updated with full paths:
 ```
 Produced / updated:
 - src/{files}: {summary}
+- _devprocess/implementation/plans/PLAN-*.md: {status updates, SHAs}
 - _devprocess/requirements/features/FEATURE-*.md: {status updates}
 - _devprocess/architecture/ADR-*.md: {status and implementation notes}
 - _devprocess/requirements/handoff/plan-context.md: {tech stack updates if any}
@@ -599,4 +780,5 @@ Design -> Review (corrections) -> Implementation (running updates) -> Final Sync
 ## Keywords
 Implement, code, build, plan-context, feature realization, review,
 task breakdown, TDD, debugging, verification gate, regression test,
-living documents, handoff, writeback
+living documents, handoff, writeback, PLAN-NNN, implementation plan,
+persisted plan, plan change log

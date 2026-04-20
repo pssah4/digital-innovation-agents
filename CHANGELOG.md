@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-04-20
+
+Minor release. Promotes plan persistence to a first-class artifact of
+the `/coding` phase. Every non-trivial implementation run now leaves a
+`PLAN-NNN-{slug}.md` file behind in `_devprocess/implementation/plans/`,
+protected by a Plan Coverage Gate that checks Success Criterion
+coverage, ADR alignment, codebase anchoring, and verification gates
+before any code is written. The plan body stays free-form so the
+skill inherits improvements in the coding agent's native planning mode
+instead of freezing a fixed schema. `/v-model-workflow` updated to
+route implementation through the persisted plan and to surface
+mid-course requirements discovery from `/coding` as well as
+`/architecture`.
+
+### Added (skills)
+
+- **`skills/coding/templates/PLAN-TEMPLATE.md`**. New template for
+  persisted plan files. Prescribes only the traceability wrapper
+  (frontmatter with id / status / date / feature-refs / adr-refs /
+  bug-refs / pair-id, a Change Log section, and an Implementation
+  Notes section). The plan body belongs to the coding agent; the
+  skill never reshapes it.
+
+### Changed (skills)
+
+- `skills/coding/SKILL.md`: new Phase 3a "Plan persistence" describing
+  the PLAN-NNN file flow, a four-item Plan Coverage Gate (SC coverage,
+  ADR alignment, codebase anchoring, verification gates), and a
+  writeback loop that re-runs the gate whenever a source artifact
+  changes while a plan is Active. Adds source-artifact reading
+  instruction for prior and active plans. Explicit guidance for
+  Mid-course requirements discovery during coding (amend the FEATURE
+  in place, re-run the Coverage Gate).
+- `skills/v-model-workflow/SKILL.md`: implementation step now persists
+  a PLAN-NNN file and hands off to the Default agent with the plan as
+  source of truth; mid-course deviations append to the plan's Change
+  Log. Cycle diagram updated to include the PLAN step. `_devprocess`
+  scaffold includes `implementation/plans/`.
+
+### Not in this release
+
+- Docs guides (`docs/guides/coding.md`, `docs/guides/v-model-workflow.md`)
+  do not yet describe plan persistence or the Coverage Gate. Deferred
+  to a follow-up patch release once the skill behaviour is validated
+  in real projects.
+
 ## [2.2.1] - 2026-04-19
 
 Patch release. Documentation update for v2.2.0 features and a new
