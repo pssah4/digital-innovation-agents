@@ -1,18 +1,45 @@
 ---
 name: architecture
 description: >
-  Creates Architecture Decision Records (ADRs) in MADR format and arc42
-  documentation. Generates plan-context.md as the context bridge to
-  Claude Code. Use this skill when the user mentions "architecture",
-  "ADR", "arc42", "Architecture Decision", "tech stack", "solution
-  design", "system design", "architecture review", "plan-context", or
-  similar. Also when requirements exist and the next step is technical
-  structuring. This skill creates PROPOSALS. Claude Code makes the
-  final decisions based on the real state of the codebase.
+ Creates Architecture Decision Records (ADRs) in MADR format and arc42
+ documentation. Generates plan-context.md as the context bridge to
+ Claude Code. Use this skill when the user mentions "architecture",
+ "ADR", "arc42", "Architecture Decision", "tech stack", "solution
+ design", "system design", "architecture review", "plan-context", or
+ similar. Also when requirements exist and the next step is technical
+ structuring. This skill creates PROPOSALS. Claude Code makes the
+ final decisions based on the real state of the codebase.
 disable-model-invocation: false
 ---
 
 # Architect
+
+## MANDATORY Phase 0: Artefakt-Triage (2026-04-21)
+
+Vor jeder Code-, Doku- oder Spezifikations-Aenderung muss der Skill
+feststellen, in welche Artefakt-Kategorie die Arbeit faellt:
+
+1. **Neues FEATURE** (user-facing Capability, die es vorher nicht gab).
+2. **IMPROVEMENT (IMP)** an bestehendem Feature (Refactor, Performance,
+   Doku-Drift, Tests, Konfig).
+3. **FIX** fuer einen Bug oder eine Drift auf bestehendem Feature.
+4. **ADR** wenn die Arbeit eine Architektur-Entscheidung ist.
+
+**Regel:** Wenn die Zuordnung aus dem User-Prompt nicht eindeutig
+ableitbar ist, stellt der Skill vor allem anderen eine praegnante
+Frage:
+
+> "Ist das ein neues Feature, ein Improvement an einem bestehenden
+> Feature, oder ein Fix fuer einen Bug? Falls Feature oder IMP/FIX:
+> welches Feature und welches Epic?"
+
+Keine Code- oder Spec-Aenderung ohne diese Zuordnung. FIX und IMP
+verlangen zwingend `feature:` und `epic:` im Frontmatter
+(Invarianten N-13, N-14). Details zum Entscheidungsbaum und den
+Ausnahmen stehen in
+`skills/project-conventions/references/graph-invariants.md`
+(Abschnitt "Artefakt-Triage am Einstiegspunkt").
+
 
 ## MANDATORY: Phase and status in frontmatter + backlog sync (no asking)
 
@@ -33,7 +60,7 @@ opt-in, no nudging the user. Execute immediately.
 1. Update frontmatter of the artifact
 2. Update the artifact's row in `docs/context/10_backlog.md`
 3. If epic phase changed, update the epic header `Phase: X` line in
-   the backlog and the epic file frontmatter
+ the backlog and the epic file frontmatter
 4. Recompute the dashboard counts (Phase x Epics/Features/Chores)
 5. Run `/consistency-check` mode A at the end of the skill phase
 
@@ -46,6 +73,74 @@ context for Claude Code.
 
 **Input:** Epics, Features, ASRs, NFRs from Requirements Engineering
 **Output:** ADR proposals + arc42 draft + plan-context.md
+
+
+## MANDATORY: FIX/IMP statt Chores, depends-on als Graph-Kante (2026-04-21)
+
+**Chore-Begriff und FIX/IMP-Knoten entfallen.** Jede Arbeit ausserhalb
+eines Features ist entweder:
+
+- **FIX-NNN** (Bug-/Issue-Followup) unter
+ `docs/context/fixes/FIX-{NNN}-{slug}.md`
+- **IMPROVEMENT / IMP-NNN** (technische oder andersartige Aenderung, die
+ kein eigenes Feature ist) unter
+ `docs/context/improvements/IMP-{NNN}-{slug}.md`
+
+**Pflicht-Frontmatter fuer FIX und IMP:**
+
+```yaml
+feature: FEATURE-NNN # Pflicht: zu welchem Feature gehoert das?
+epic: EPIC-NNN # Pflicht: in welchem Epic lebt das?
+phase: Released|Building|Planned|Candidates
+status: Planned|Active|Done|Waiting|Deferred
+depends-on: [FEATURE-..., ADR-..., FIX-..., IMP-...] # optional
+```
+
+FIX und IMP ohne `feature:` und `epic:` sind invalid
+(Invarianten N-13, N-14).
+
+**Abhaengigkeiten (depends-on):** Jedes Artefakt (Epic, Feature, ADR,
+FIX, IMP) darf im Frontmatter `depends-on: [ID, ID, ...]` fuehren. Der
+resultierende Graph ist azyklisch (E-11). Zielen mit IDs auf existierende
+Artefakte (E-10). Details: graph-invariants.md Abschnitt
+"Abhaengigkeiten und Implementierungsreihenfolge".
+
+## MANDATORY: Lesbare deutsche Epic-Statements und HMW
+
+Epic-Hypothesis-Statements werden als **ganze deutsche Saetze**
+formuliert. Keine eingestreuten Template-Platzhalter wie `FOR`, `WHO`,
+`THE`, `IS A`, `THAT`, `UNLIKE`, `OUR SOLUTION`. Der Kern bleibt
+(Persona / Problem / Loesung / Differenzierung), aber als lesbarer
+Prosa-Absatz.
+
+**Alt (Template-Rest, nicht mehr erlaubt):**
+
+> FOR **Software-Teams bei a downstream project (P1)**
+> WHO **mit driftenden Artefakten arbeiten** ...
+
+**Neu (deutscher Satz):**
+
+> Fuer Software-Teams bei a downstream project, die mit driftenden Artefakten
+> zwischen Code, Wiki, Backlog und Roadmap arbeiten, liefert dieses
+> Epic ein Capability-Bundle aus Cross-Artifact-Lesen, Rollen-
+> Uebersetzung, Content-Creation und Forward-Inferenz. Es unterscheidet
+> sich von Cursor oder Claude Code dadurch, dass die Richtung Code-zu-
+> Fachsprache ist, nicht umgekehrt.
+
+HMW-Ueberschriften und HMW-Fragen werden ebenfalls durchgehend auf
+Deutsch formuliert ("Wie koennen wir ..." statt "How might we ...").
+
+## MANDATORY: Umlaute und /humanizer
+
+- Alle vom Skill erzeugten Dokumente verwenden korrekte deutsche
+ Umlaute: `ae -> ae`, `oe -> oe`, `ue -> ue`, `ss -> ss` bzw.
+ `ae/oe/ue/ss` nicht zulaessig, stattdessen `ä/ö/ü/ß`.
+- /humanizer-Regeln werden IMMER angewendet: keine Em-Dashes, keine
+ AI-Vokabular-Woerter (landscape, nuanced, delve, leverage, crucial,
+ robust, seamless, holistic, foster, ensuring, highlighting,
+ underscoring, etc.), keine negativen Parallelismen, aktive Stimme,
+ keine Rule-of-Three-Paddings.
+
 
 ## What you create
 
@@ -168,27 +263,27 @@ around the gap:
 
 1. STOP the current ADR or arc42 edit.
 2. Triage:
-   - Is this a gap in the FEATURE spec?
-     -> add a [NEEDS USER INPUT] marker to the FEATURE spec
-        with a precise question
-   - Is this a contradiction between two FEATUREs?
-     -> flag both FEATURE specs with cross-references
-   - Is this an impossible NFR combination?
-     -> note the conflict in architect-handoff.md under
-        "Open Questions"
+ - Is this a gap in the FEATURE spec?
+ -> add a [NEEDS USER INPUT] marker to the FEATURE spec
+ with a precise question
+ - Is this a contradiction between two FEATUREs?
+ -> flag both FEATURE specs with cross-references
+ - Is this an impossible NFR combination?
+ -> note the conflict in architect-handoff.md under
+ "Open Questions"
 3. Write a requirements-review entry in _devprocess/analysis/
-   REQ-REVIEW-{date}.md (3-10 lines: which FEATURE, what is
-   missing or impossible, what is needed from the RE phase)
+ REQ-REVIEW-{date}.md (3-10 lines: which FEATURE, what is
+ missing or impossible, what is needed from the RE phase)
 4. Add a backlog entry to _devprocess/context/10_backlog.md
-   tagged Epic + FEATURE-NNNN that the RE phase needs to address
+ tagged Epic + FEATURE-NNNN that the RE phase needs to address
 5. Decide: block the whole architecture phase, or route just
-   the affected FEATURE back. Default is local routing:
-   the other ADRs continue, the affected one waits.
+ the affected FEATURE back. Default is local routing:
+ the other ADRs continue, the affected one waits.
 6. Notify the user. The user decides whether to invoke
-   /requirements-engineering now or defer to the next cycle.
-   Commit message for the architecture work that does continue
-   cites the blocked FEATURE as a dependency
-   (e.g. `Refs: ADR-007, blocked-by FEATURE-0412`)
+ /requirements-engineering now or defer to the next cycle.
+ Commit message for the architecture work that does continue
+ cites the blocked FEATURE as a dependency
+ (e.g. `Refs: ADR-007, blocked-by FEATURE-0412`)
 ```
 
 Why this matters: an ADR that designs around a faulty FEATURE spec
@@ -203,8 +298,8 @@ surfaces at test time or in production.
 Every Critical ASR MUST have an ADR. Check:
 
 ```
-ASR: Response Time < 200ms -> ADR-003: Caching Strategy  (OK)
-ASR: 10,000 concurrent users -> ???                       (MISSING!)
+ASR: Response Time < 200ms -> ADR-003: Caching Strategy (OK)
+ASR: 10,000 concurrent users -> ??? (MISSING!)
 ```
 
 ### plan-context.md Consistency
@@ -265,11 +360,11 @@ Append a new entry to `_devprocess/context/30_handoffs.md` with:
 
 - **Tech stack justification**: why this combination was chosen
 - **Rejected alternatives**: options considered but not picked (so they
-  don't get reopened by `/coding` without a fresh reason)
+ don't get reopened by `/coding` without a fresh reason)
 - **Known risks**: architectural risks that need monitoring during coding
-  (e.g. "library X has an open issue with feature Y")
+ (e.g. "library X has an open issue with feature Y")
 - **Open items**: decisions explicitly deferred to `/coding` because they
-  depend on the real codebase state
+ depend on the real codebase state
 - **Consistency check**: confirmation that plan-context.md matches all ADRs
 
 ### Part 3: Transition question

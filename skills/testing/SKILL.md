@@ -15,6 +15,31 @@ disable-model-invocation: false
 Creates tests that fit seamlessly into the existing codebase. Detects the
 framework, patterns, and conventions automatically from the project.
 
+## MANDATORY Phase 0: Artefakt-Triage (2026-04-21)
+
+Neue Tests zaehlen als Doku-/Code-Aenderung und muessen an ein
+existierendes Artefakt gebunden sein. Bevor der erste Test geschrieben
+wird, muss eine dieser Zuordnungen vorliegen:
+
+- **FEATURE-ID** -- Tests zu neuen oder bestehenden Feature-Specs
+- **IMP-ID** -- Tests als Teil eines Improvements (z. B. Coverage-
+  Erhoehung, Refactor-Sicherung)
+- **FIX-ID** -- Regressionstests zu einem behobenen Bug
+
+**Ausnahme:** reine Test-Analyse (Coverage-Report lesen, Gaps
+identifizieren, bestehende Tests lesen) ist read-only und braucht keine
+Triage.
+
+Wenn die Zuordnung nicht aus dem User-Prompt ableitbar ist, stellt der
+Skill vor dem ersten neuen Test genau eine Frage:
+
+> "Gehoert dieser Test-Lauf zu einem FEATURE, einem IMP oder einem
+> FIX? Bitte die ID nennen."
+
+Details und Entscheidungsbaum:
+`skills/project-conventions/references/graph-invariants.md`
+(Abschnitt "Artefakt-Triage am Einstiegspunkt").
+
 ## Codebase analysis first
 
 Before writing a single test, analyze the project:

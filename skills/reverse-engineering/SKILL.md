@@ -1,21 +1,48 @@
 ---
 name: reverse-engineering
 description: >
-  Brownfield entry point for the V-Model workflow. Reverse-engineers an
-  existing codebase into the standard V-Model artifacts: plan-context.md,
-  ADRs, arc42 snapshot, FEATURE inventory, backlog seed, and an
-  evidence-based BA draft. Walks the V backwards from Coding up to
-  Business Analysis, filling every step only with what can be proven
-  from the code or the existing documentation. Every claim is sourced
-  (path:line or doc section); nothing is invented. Use this skill when
-  the user mentions "existing project", "legacy codebase", "reverse
-  engineer", "import existing code", "brownfield", "we already have
-  code", "onboard existing project", or when the user wants to enter
-  the V-Model workflow but artifacts do not exist yet.
+ Brownfield entry point for the V-Model workflow. Reverse-engineers an
+ existing codebase into the standard V-Model artifacts: plan-context.md,
+ ADRs, arc42 snapshot, FEATURE inventory, backlog seed, and an
+ evidence-based BA draft. Walks the V backwards from Coding up to
+ Business Analysis, filling every step only with what can be proven
+ from the code or the existing documentation. Every claim is sourced
+ (path:line or doc section); nothing is invented. Use this skill when
+ the user mentions "existing project", "legacy codebase", "reverse
+ engineer", "import existing code", "brownfield", "we already have
+ code", "onboard existing project", or when the user wants to enter
+ the V-Model workflow but artifacts do not exist yet.
 disable-model-invocation: false
 ---
 
 # Reverse Engineering
+
+## MANDATORY Phase 0: Artefakt-Triage (2026-04-21)
+
+Vor jeder Code-, Doku- oder Spezifikations-Aenderung muss der Skill
+feststellen, in welche Artefakt-Kategorie die Arbeit faellt:
+
+1. **Neues FEATURE** (user-facing Capability, die es vorher nicht gab).
+2. **IMPROVEMENT (IMP)** an bestehendem Feature (Refactor, Performance,
+   Doku-Drift, Tests, Konfig).
+3. **FIX** fuer einen Bug oder eine Drift auf bestehendem Feature.
+4. **ADR** wenn die Arbeit eine Architektur-Entscheidung ist.
+
+**Regel:** Wenn die Zuordnung aus dem User-Prompt nicht eindeutig
+ableitbar ist, stellt der Skill vor allem anderen eine praegnante
+Frage:
+
+> "Ist das ein neues Feature, ein Improvement an einem bestehenden
+> Feature, oder ein Fix fuer einen Bug? Falls Feature oder IMP/FIX:
+> welches Feature und welches Epic?"
+
+Keine Code- oder Spec-Aenderung ohne diese Zuordnung. FIX und IMP
+verlangen zwingend `feature:` und `epic:` im Frontmatter
+(Invarianten N-13, N-14). Details zum Entscheidungsbaum und den
+Ausnahmen stehen in
+`skills/project-conventions/references/graph-invariants.md`
+(Abschnitt "Artefakt-Triage am Einstiegspunkt").
+
 
 ## MANDATORY: Phase and status in frontmatter + backlog sync (no asking)
 
@@ -36,7 +63,7 @@ opt-in, no nudging the user. Execute immediately.
 1. Update frontmatter of the artifact
 2. Update the artifact's row in `docs/context/10_backlog.md`
 3. If epic phase changed, update the epic header `Phase: X` line in
-   the backlog and the epic file frontmatter
+ the backlog and the epic file frontmatter
 4. Recompute the dashboard counts (Phase x Epics/Features/Chores)
 5. Run `/consistency-check` mode A at the end of the skill phase
 
@@ -56,6 +83,74 @@ every team member can trust, ready to be validated and carried forward
 through the normal V-Model phases.
 
 **Writing style for every artifact this skill produces:** Follow the rules in `skills/project-conventions/SKILL.md` under "Writing style for every artifact". Zero em dashes of any form. No Unicode em dash (U+2014), no en dash (U+2013), no double-hyphen substitute. No AI vocabulary, no negative parallelisms, no rule-of-three padding. Every reverse-engineered ADR, every FEATURE description, every anticipated Epic, the BA draft sections you fill from sources, and every backlog entry is written in that style. Before you save an artifact, scan it for U+2014 and U+2013 and fix any hit.
+
+
+## MANDATORY: FIX/IMP statt Chores, depends-on als Graph-Kante (2026-04-21)
+
+**Chore-Begriff und FIX/IMP-Knoten entfallen.** Jede Arbeit ausserhalb
+eines Features ist entweder:
+
+- **FIX-NNN** (Bug-/Issue-Followup) unter
+ `docs/context/fixes/FIX-{NNN}-{slug}.md`
+- **IMPROVEMENT / IMP-NNN** (technische oder andersartige Aenderung, die
+ kein eigenes Feature ist) unter
+ `docs/context/improvements/IMP-{NNN}-{slug}.md`
+
+**Pflicht-Frontmatter fuer FIX und IMP:**
+
+```yaml
+feature: FEATURE-NNN # Pflicht: zu welchem Feature gehoert das?
+epic: EPIC-NNN # Pflicht: in welchem Epic lebt das?
+phase: Released|Building|Planned|Candidates
+status: Planned|Active|Done|Waiting|Deferred
+depends-on: [FEATURE-..., ADR-..., FIX-..., IMP-...] # optional
+```
+
+FIX und IMP ohne `feature:` und `epic:` sind invalid
+(Invarianten N-13, N-14).
+
+**Abhaengigkeiten (depends-on):** Jedes Artefakt (Epic, Feature, ADR,
+FIX, IMP) darf im Frontmatter `depends-on: [ID, ID, ...]` fuehren. Der
+resultierende Graph ist azyklisch (E-11). Zielen mit IDs auf existierende
+Artefakte (E-10). Details: graph-invariants.md Abschnitt
+"Abhaengigkeiten und Implementierungsreihenfolge".
+
+## MANDATORY: Lesbare deutsche Epic-Statements und HMW
+
+Epic-Hypothesis-Statements werden als **ganze deutsche Saetze**
+formuliert. Keine eingestreuten Template-Platzhalter wie `FOR`, `WHO`,
+`THE`, `IS A`, `THAT`, `UNLIKE`, `OUR SOLUTION`. Der Kern bleibt
+(Persona / Problem / Loesung / Differenzierung), aber als lesbarer
+Prosa-Absatz.
+
+**Alt (Template-Rest, nicht mehr erlaubt):**
+
+> FOR **Software-Teams bei a downstream project (P1)**
+> WHO **mit driftenden Artefakten arbeiten** ...
+
+**Neu (deutscher Satz):**
+
+> Fuer Software-Teams bei a downstream project, die mit driftenden Artefakten
+> zwischen Code, Wiki, Backlog und Roadmap arbeiten, liefert dieses
+> Epic ein Capability-Bundle aus Cross-Artifact-Lesen, Rollen-
+> Uebersetzung, Content-Creation und Forward-Inferenz. Es unterscheidet
+> sich von Cursor oder Claude Code dadurch, dass die Richtung Code-zu-
+> Fachsprache ist, nicht umgekehrt.
+
+HMW-Ueberschriften und HMW-Fragen werden ebenfalls durchgehend auf
+Deutsch formuliert ("Wie koennen wir ..." statt "How might we ...").
+
+## MANDATORY: Umlaute und /humanizer
+
+- Alle vom Skill erzeugten Dokumente verwenden korrekte deutsche
+ Umlaute: `ae -> ae`, `oe -> oe`, `ue -> ue`, `ss -> ss` bzw.
+ `ae/oe/ue/ss` nicht zulaessig, stattdessen `ä/ö/ü/ß`.
+- /humanizer-Regeln werden IMMER angewendet: keine Em-Dashes, keine
+ AI-Vokabular-Woerter (landscape, nuanced, delve, leverage, crucial,
+ robust, seamless, holistic, foster, ensuring, highlighting,
+ underscoring, etc.), keine negativen Parallelismen, aktive Stimme,
+ keine Rule-of-Three-Paddings.
+
 
 ## Core philosophy
 
@@ -79,38 +174,38 @@ artifacts become the Phase 0 state for that forward walk.
 ## What you create
 
 - `_devprocess/requirements/handoff/plan-context.md`. Tech stack and
-  codebase snapshot, ready for `/coding`.
+ codebase snapshot, ready for `/coding`.
 - `_devprocess/architecture/ADR-{XXX}-{slug}.md`. One per observable
-  architecture decision, `Status: Inferred from codebase`.
+ architecture decision, `Status: Inferred from codebase`.
 - `_devprocess/architecture/arc42.md`. Structural snapshot,
-  `Status: Reverse-engineered snapshot`.
+ `Status: Reverse-engineered snapshot`.
 - `_devprocess/requirements/epics/EPIC-{NNN}-{slug}.md`. One or more
-  **anticipated** Epics that group observed capabilities by theme.
-  Even when the business motivation is not yet described, the epic
-  gives the features a frame (domain, user group, module). Status:
-  `Anticipated (not yet validated)`. `/business-analyse` and
-  `/requirements-engineering` later refine, split, merge, or rename
-  these epics.
+ **anticipated** Epics that group observed capabilities by theme.
+ Even when the business motivation is not yet described, the epic
+ gives the features a frame (domain, user group, module). Status:
+ `Anticipated (not yet validated)`. `/business-analyse` and
+ `/requirements-engineering` later refine, split, merge, or rename
+ these epics.
 - `_devprocess/requirements/features/FEATURE-{EPIC}-{NNN}-{slug}.md`.
-  One per observable user-facing capability, `Status: Observed (not
-  validated)`, nested under its anticipated Epic's number.
+ One per observable user-facing capability, `Status: Observed (not
+ validated)`, nested under its anticipated Epic's number.
 - `_devprocess/analysis/BA-{PROJECT}.md`. Evidence-based draft,
-  `Status: Draft (reverse-engineered, awaiting validation in /business-analyse)`.
+ `Status: Draft (reverse-engineered, awaiting validation in /business-analyse)`.
 - Append entries to `_devprocess/context/10_backlog.md`. TODOs, FIXMEs,
-  observed gaps, tech debt, undocumented dependencies.
+ observed gaps, tech debt, undocumented dependencies.
 
 ## What you do NOT create
 
 - Code changes, refactorings, or new tests
 - **Validated** Epics with Hypothesis Statements, Business Outcomes,
-  or HMW questions. This skill only writes **Anticipated Epics**
-  (thematic groupings of observed capabilities) with
-  `Status: Anticipated`. The strategic content comes from
-  `/business-analyse` and `/requirements-engineering` later.
+ or HMW questions. This skill only writes **Anticipated Epics**
+ (thematic groupings of observed capabilities) with
+ `Status: Anticipated`. The strategic content comes from
+ `/business-analyse` and `/requirements-engineering` later.
 - Success Criteria or User Stories on the FEATURE inventory (those
-  come from `/requirements-engineering` after `/business-analyse`)
+ come from `/requirements-engineering` after `/business-analyse`)
 - Personas, HMW questions, or value propositions that are not
-  explicitly stated in the existing documentation
+ explicitly stated in the existing documentation
 
 ## Anti-hallucination rules
 
@@ -119,36 +214,36 @@ comply with them, and the Quality Gates at the end check that they
 were followed.
 
 1. **Source per claim.** Every non-placeholder sentence you write
-   must carry a `Source:` line. Format:
-   - For code: `Source: src/api/auth/handlers.ts:42-58`
-   - For docs: `Source: README.md § "Getting Started"`
-   - For config: `Source: package.json "dependencies.prisma"`
+ must carry a `Source:` line. Format:
+ - For code: `Source: src/api/auth/handlers.ts:42-58`
+ - For docs: `Source: README.md § "Getting Started"`
+ - For config: `Source: package.json "dependencies.prisma"`
 
 2. **No source → placeholder, not a guess.** If you cannot find a
-   concrete source for a section, you write:
-   ```
-   [NEEDS USER INPUT. No evidence found in {searched sources}.
-   /business-analyse will fill this in.]
-   ```
-   You do not write a "reasonable assumption" in its place.
+ concrete source for a section, you write:
+ ```
+ [NEEDS USER INPUT. No evidence found in {searched sources}.
+ /business-analyse will fill this in.]
+ ```
+ You do not write a "reasonable assumption" in its place.
 
 3. **No persona from code structure.** You never infer personas from
-   route names, directory names, or endpoint signatures. Endpoints
-   are technical facts, not user research. Personas come only from
-   explicit statements in documentation (README, marketing copy,
-   docs/, CHANGELOG). If docs mention no user types, the persona
-   section is a placeholder.
+ route names, directory names, or endpoint signatures. Endpoints
+ are technical facts, not user research. Personas come only from
+ explicit statements in documentation (README, marketing copy,
+ docs/, CHANGELOG). If docs mention no user types, the persona
+ section is a placeholder.
 
 4. **No HMW question without an explicit problem statement.** If the
-   existing documentation nowhere states the problem the product
-   solves, the HMW section is a placeholder.
+ existing documentation nowhere states the problem the product
+ solves, the HMW section is a placeholder.
 
 5. **Status markers everywhere.** Every file this skill writes carries
-   a status marker in its frontmatter or header. No silent documents.
+ a status marker in its frontmatter or header. No silent documents.
 
 6. **One decision per ADR.** You do not bundle multiple decisions into
-   one ADR to make the output look tidier. If you observe five
-   decisions, you write five ADRs.
+ one ADR to make the output look tidier. If you observe five
+ decisions, you write five ADRs.
 
 ## Workflow
 
@@ -169,10 +264,10 @@ Check these locations and patterns:
 - `docs/superpowers/`, `docs/plans/`, `docs/specs/`, `_devprocess/implementation/plans/`
 - `docs/requirements/`, `docs/analysis/`
 - README, CONTRIBUTING, or CLAUDE.md references to workflow skills,
-  DIA, MADR, arc42
+ DIA, MADR, arc42
 - Multiple ADR-format styles in the same directory (MADR vs custom)
 - Multiple numbering series (ADR-001..037 alongside 037..045 without
-  prefix)
+ prefix)
 
 If ANY of these are found, stop before producing new artifacts and
 ask the user a single `AskUserQuestion` (per the User Interaction
@@ -206,30 +301,30 @@ Ask the user which scope applies, same tiers as `/business-analyse`:
 What is the scope of this reverse-engineering run?
 
 A) Simple Test / single-feature onboarding
-   -> Scan the affected module, produce minimal artifacts
-   -> Timeframe: 30-60 min
+ -> Scan the affected module, produce minimal artifacts
+ -> Timeframe: 30-60 min
 
 B) Proof of Concept / small repo
-   -> Full tech-stack extraction, 3-8 ADRs, 5-15 features, BA draft
-   -> Timeframe: 1-3 h
+ -> Full tech-stack extraction, 3-8 ADRs, 5-15 features, BA draft
+ -> Timeframe: 1-3 h
 
 C) Minimum Viable Product / full project onboarding
-   -> Full arc42 snapshot, 8+ ADRs, 15+ features, full BA draft,
-      complete backlog seed
-   -> Timeframe: 3-8 h
+ -> Full arc42 snapshot, 8+ ADRs, 15+ features, full BA draft,
+ complete backlog seed
+ -> Timeframe: 3-8 h
 ```
 
 Then scan the codebase structure and list:
 
 - Package / build manifests (`package.json`, `pyproject.toml`,
-  `Cargo.toml`, `go.mod`, `pom.xml`, `Gemfile`)
+ `Cargo.toml`, `go.mod`, `pom.xml`, `Gemfile`)
 - Top-level directories and their apparent purpose
 - Entry points (`main.*`, `app.*`, `index.*`, `src/index.*`)
 - Test directories and test runner config
 - CI config (`.github/workflows/*`, `.gitlab-ci.yml`, etc.)
 - Lint/format config, tsconfig/pyproject, etc.
 - Existing documentation (`README.md`, `docs/`, `CHANGELOG.md`,
-  `CONTRIBUTING.md`, `ARCHITECTURE.md`)
+ `CONTRIBUTING.md`, `ARCHITECTURE.md`)
 
 Report this as a Codebase Map before proceeding. This is the
 inventory you will draw sources from for the rest of the walk.
@@ -271,12 +366,12 @@ and consequential**. For each, write one ADR in MADR format with:
 
 - `Status: Inferred from codebase` in the frontmatter
 - `Context:` what you see in the code that implies this decision was
-  made (with source)
+ made (with source)
 - `Decision:` the observable choice
 - `Alternatives considered:` leave as `[NEEDS USER INPUT, not visible
-  in code]` unless the alternatives are mentioned in a comment or doc
+ in code]` unless the alternatives are mentioned in a comment or doc
 - `Consequences:` only the ones you can see (e.g. lock-in, operational
-  implications that are visible in CI config)
+ implications that are visible in CI config)
 - `Source:` footer with all files/lines that support the decision
 
 Typical decisions to look for:
@@ -297,17 +392,17 @@ Then produce `_devprocess/architecture/arc42.md` as a **snapshot**.
 Fill only the sections you can back with sources:
 
 - **§1 Introduction and Goals:** copy from README/docs if present,
-  otherwise placeholder
+ otherwise placeholder
 - **§2 Architecture Constraints:** from package.json engines, CI
-  targets, license file
+ targets, license file
 - **§3 System Scope and Context:** from entry points + external
-  integrations you can see in config
+ integrations you can see in config
 - **§4 Solution Strategy:** reference the inferred ADRs
 - **§5 Building Block View:** from top-level directories + module
-  boundaries you can observe
+ boundaries you can observe
 - **§6 Runtime View:** placeholder unless explicit docs exist
 - **§7 Deployment View:** from CI config and Dockerfile/k8s manifests
-  if present
+ if present
 - **§8 Crosscutting:** from config (auth, logging, error handling)
 - **§9-12:** placeholders unless evidence exists
 
@@ -416,26 +511,26 @@ updated rule: RE writes one SC entry per observable capability, with
 the Target field split:
 
 - **Capability line** comes from what the code does. Example:
-  "Nutzer kann eine vergangene Unterhaltung erneut oeffnen". This is
-  derivable from routes, handlers, or tests.
+ "Nutzer kann eine vergangene Unterhaltung erneut oeffnen". This is
+ derivable from routes, handlers, or tests.
 - **Target** stays `[AWAITING BA]` unless the code itself declares
-  a deterministic target (timeout constants, rate limits, explicit
-  performance assertions in tests). In that case the observed target
-  goes in with `Source:` line; a business-target reserved cell stays
-  `[AWAITING BA]` next to it.
+ a deterministic target (timeout constants, rate limits, explicit
+ performance assertions in tests). In that case the observed target
+ goes in with `Source:` line; a business-target reserved cell stays
+ `[AWAITING BA]` next to it.
 - **Measurement** follows the same rule: observable measurement
-  from code/tests, otherwise placeholder.
+ from code/tests, otherwise placeholder.
 
 The resulting SC table looks like:
 
 ```
-| ID    | Kriterium (observable)                     | Target             | Messung                    |
+| ID | Kriterium (observable) | Target | Messung |
 | ----- | ------------------------------------------ | ------------------ | -------------------------- |
-| SC-01 | Nutzer kann eine vergangene Unterhaltung   | [AWAITING BA]      | Pilot-Interview oder NPS   |
-|       | erneut oeffnen                             |                    |                            |
-| SC-02 | Startup-Abbruch wenn Sandbox nach 30s      | 30s (hart codiert) | Integration-Test           |
-|       | nicht bereit                               | Source: src/main/. | src/tests/.../timeout.test |
-|       |                                            | index.ts:1088      |                            |
+| SC-01 | Nutzer kann eine vergangene Unterhaltung | [AWAITING BA] | Pilot-Interview oder NPS |
+| | erneut oeffnen | | |
+| SC-02 | Startup-Abbruch wenn Sandbox nach 30s | 30s (hart codiert) | Integration-Test |
+| | nicht bereit | Source: src/main/. | src/tests/.../timeout.test |
+| | | index.ts:1088 | |
 ```
 
 Every SC line that has no observable Target gets `[AWAITING BA]`.
@@ -476,21 +571,21 @@ needs-validation: true
 For each section of the BA template:
 
 - **Project purpose / scope:** fill from README intro if present,
-  otherwise placeholder.
+ otherwise placeholder.
 - **Primary persona:** fill ONLY if the docs explicitly name a user
-  type. Quote the exact phrase. If no user type is named, placeholder.
+ type. Quote the exact phrase. If no user type is named, placeholder.
 - **Secondary personas:** same rule.
 - **Problem statement:** from README motivation / "Why this exists"
-  sections. Otherwise placeholder.
+ sections. Otherwise placeholder.
 - **How-Might-We question:** only if the docs contain an explicit
-  problem statement you can frame as HMW. Otherwise placeholder.
+ problem statement you can frame as HMW. Otherwise placeholder.
 - **Value proposition:** from README or marketing copy. Otherwise
-  placeholder.
+ placeholder.
 - **Jobs to be Done:** only if the docs mention concrete user jobs.
 - **Idea Potential, Pricing, Competitors:** placeholders unless
-  explicitly documented.
+ explicitly documented.
 - **Critical hypotheses:** placeholder unless the docs mention
-  assumptions the team was testing.
+ assumptions the team was testing.
 
 Every non-placeholder sentence carries a `Source:` line.
 
@@ -509,11 +604,11 @@ Scan for:
 - `TODO`, `FIXME`, `HACK`, `XXX` comments in code
 - Failing or skipped tests (`.skip`, `xit`, `pytest.mark.skip`)
 - Undocumented environment variables (referenced in code but missing
-  from `.env.example` or README)
+ from `.env.example` or README)
 - Missing test coverage on observable features (Phase 3 features
-  without matching test files)
+ without matching test files)
 - Outdated dependencies (if a lockfile and package.json disagree, or
-  if major versions are pinned to old releases)
+ if major versions are pinned to old releases)
 - Missing CI steps (e.g. no security scan, no type-check, no linter)
 
 Append each finding as a row to `_devprocess/context/10_backlog.md`
@@ -527,7 +622,7 @@ Reverse-engineered findings go into the **Standalone Items** section
 - `Source = REV`
 - `Evidence = path:line` or short description
 - `Typ = Chore` (or `Security` for audit findings, `Bug-Followup` for
-  failing or skipped tests)
+ failing or skipped tests)
 
 If this skill seeds the backlog file itself, copy the template
 headers (Dashboard, Legende, Standalone Items, Traceability) first
@@ -540,14 +635,14 @@ as ideas. A binary Done/Planned status does not capture that.
 Introduce three Phase categories in the backlog Dashboard and Legende:
 
 - `Released` - feature is **completely** implemented and verified
-  against the codebase. Status=Done alone is not sufficient; the
-  Phase=Released claim requires all Success Criteria to be traceable in
-  code. Partial implementation belongs in `Building`, not `Released`.
+ against the codebase. Status=Done alone is not sufficient; the
+ Phase=Released claim requires all Success Criteria to be traceable in
+ code. Partial implementation belongs in `Building`, not `Released`.
 - `Building` - in progress or ready to start. Scope, acceptance
-  criteria, and dependencies are clear.
+ criteria, and dependencies are clear.
 - `Planned` - anticipated but not ready. Needs refinement (analysis,
-  target group, scope, or architecture). Each Candidates item carries a
-  `needs refinement: {reason}` marker in its Notes column.
+ target group, scope, or architecture). Each Candidates item carries a
+ `needs refinement: {reason}` marker in its Notes column.
 
 Phase and Status are orthogonal: an Epic can be partially Released
 (for FEATURE-A) and partially Planned (for FEATURE-B) at the same
@@ -581,10 +676,10 @@ checked it compiles with reality."
 **Verifikations-Befund:**
 - Source-Pfade geprueft: {n/m existieren}
 - Success-Criteria stichprobe (Features) oder Kern-Decision (ADRs):
-  {n/m belegt}
+ {n/m belegt}
 - Drift-Findings: {keine | "Doc: X / Code: Y / Einschaetzung: ..."}
 
-**Backlog-Vorschlag:** {none | concrete BL-Item text}
+**Backlog-Vorschlag:** {none | concrete FIX/IMP text}
 ```
 
 **Parallelisation.** For large projects (20+ FEATUREs, 30+ ADRs),
@@ -603,12 +698,12 @@ patterns:
 - Source paths or line numbers outdated (Chore, Building).
 - SCs marked `AWAITING RE` (Chore, Building).
 - UI disabled in code but active in doc (Bug-Followup, Planned if
-  PO-decision needed).
+ PO-decision needed).
 - Architecture decision describes X, code implements Y (Chore to
-  update the ADR, or Refactor if code should be changed).
+ update the ADR, or Refactor if code should be changed).
 - BA says "separate vorhaben", code shows full implementation: flag
-  as Planned with `needs refinement: Scope-Entscheidung` and
-  escalate to the PO via the User Interaction Protocol.
+ as Planned with `needs refinement: Scope-Entscheidung` and
+ escalate to the PO via the User Interaction Protocol.
 
 The gate is non-destructive. It does not rewrite artifacts, it
 attaches verification evidence. After the gate, the Backlog
@@ -628,8 +723,8 @@ kostenlos). Der Skill pruft alle Invarianten aus
 liefert:
 
 - Eine **Graph-Health-Sektion** im Backlog mit Invarianten-Status.
-- **Automatische BL-Items** fuer jede gefundene Luecke
-  (`Source = CONSISTENCY-CHECK`).
+- **Automatische FIX/IMPs** fuer jede gefundene Luecke
+ (`Source = CONSISTENCY-CHECK`).
 - Eine Konsole-Summary fuer den Handoff Ritual.
 
 **Optional Mode A+B.** Bei Projekten mit bereits gueltiger BA, die
@@ -659,13 +754,13 @@ Scope: {Simple / PoC / MVP}
 Tech stack: {summary from plan-context.md}
 
 Artifacts produced:
-- plan-context.md                          (Snapshot)
-- {N} ADRs                                 (Inferred)
-- arc42.md                                 (Snapshot, {M}/12 sections filled)
-- {N} FEATURE-*.md                         (Observed)
-- BA-{PROJECT}.md                          (Draft, {filled}/{total} sections
-                                            evidence-backed, {placeholder} open)
-- {N} new backlog entries                  (BL-NNN, P2)
+- plan-context.md (Snapshot)
+- {N} ADRs (Inferred)
+- arc42.md (Snapshot, {M}/12 sections filled)
+- {N} FEATURE-*.md (Observed)
+- BA-{PROJECT}.md (Draft, {filled}/{total} sections
+ evidence-backed, {placeholder} open)
+- {N} new backlog entries (FIX-NNN oder IMP-NNN, P2)
 
 Sources walked:
 - {N} code files scanned
@@ -712,35 +807,35 @@ and the user can resume any time.
 Before you run the Handoff Ritual, verify:
 
 1. **Every non-placeholder sentence has a `Source:` line.** Grep the
-   written files for sentences without attribution and fix them.
+ written files for sentences without attribution and fix them.
 2. **Every file has a status marker.** `plan-context.md`, `arc42.md`,
-   every ADR, every FEATURE, and the BA draft all carry an explicit
-   status in the frontmatter or header.
+ every ADR, every FEATURE, and the BA draft all carry an explicit
+ status in the frontmatter or header.
 3. **No invented personas.** If the BA personas section has content,
-   the content must quote or cite the documentation source. If it
-   does not, replace it with `[NEEDS USER INPUT]`.
+ the content must quote or cite the documentation source. If it
+ does not, replace it with `[NEEDS USER INPUT]`.
 4. **No invented HMW.** Same rule as personas.
 5. **FEATURE count matches observable capabilities.** If the code has
-   12 routes and you produced 4 features, you under-counted. If you
-   produced 30, you over-fragmented.
+ 12 routes and you produced 4 features, you under-counted. If you
+ produced 30, you over-fragmented.
 6. **Backlog is non-empty for anything but a pristine codebase.** If
-   the backlog has zero entries after reverse-engineering a real
-   project, you missed the TODO/FIXME scan.
+ the backlog has zero entries after reverse-engineering a real
+ project, you missed the TODO/FIXME scan.
 7. **No format or numbering conflicts.** (added 2026-04-20) If
-   multiple ADR formats coexist in `docs/adr/` (e.g. MADR vs simple
-   German headers), flag and normalise. If multiple ADR numbering
-   series coexist (ADR-001..037 alongside 037..045 without prefix),
-   resolve the collision per Phase -1 before running the Handoff
-   Ritual.
+ multiple ADR formats coexist in `docs/adr/` (e.g. MADR vs simple
+ German headers), flag and normalise. If multiple ADR numbering
+ series coexist (ADR-001..037 alongside 037..045 without prefix),
+ resolve the collision per Phase -1 before running the Handoff
+ Ritual.
 8. **Codebase-Verifikation present on every FEATURE and ADR.** (added
-   2026-04-20) Phase 7 adds a `## Codebase-Verifikation ({date})`
-   section to every FEATURE-spec and every ADR with an explicit
-   Phase (Released / Building / Planned / Candidates), source-path check, and
-   drift-findings list.
+ 2026-04-20) Phase 7 adds a `## Codebase-Verifikation ({date})`
+ section to every FEATURE-spec and every ADR with an explicit
+ Phase (Released / Building / Planned / Candidates), source-path check, and
+ drift-findings list.
 9. **Backlog Phase-counts reflect Phase 7 results.** (added
-   2026-04-20) Dashboard has four counters (Released, Building,
-   Planned, Candidates) and drift-findings from Phase 7 appear as
-   backlog rows.
+ 2026-04-20) Dashboard has four counters (Released, Building,
+ Planned, Candidates) and drift-findings from Phase 7 appear as
+ backlog rows.
 
 If any gate fails, you fix it before running the Handoff Ritual.
 The user will not catch silent hallucinations. The gates are your
@@ -749,10 +844,10 @@ responsibility.
 ## When to use which phase depth
 
 - **Simple Test:** Phases 0-2 only, skip BA draft (Phase 4), output
-  is plan-context + 1-3 ADRs. Use when the user is onboarding one
-  small feature into the workflow.
+ is plan-context + 1-3 ADRs. Use when the user is onboarding one
+ small feature into the workflow.
 - **PoC:** Phases 0-4, skip full arc42 (keep the §1-5 skeleton), skip
-  exhaustive backlog scan. Output is the core artifact set.
+ exhaustive backlog scan. Output is the core artifact set.
 - **MVP / full onboarding:** All phases, full rigor.
 
 Match depth to scope. Do not over-produce for a small target; do not
@@ -771,12 +866,12 @@ Detection rules:
 
 - If `docs/adr/` or `docs/architecture/` exists: use `docs/` as root.
 - If `docs/analysis/BA-*.md` exists: the project follows the
-  `docs/`-based convention for internal docs.
+ `docs/`-based convention for internal docs.
 - If `_devprocess/` exists: use `_devprocess/` (the canonical path).
 - If neither exists and the project has a CLAUDE.md that references
-  either, follow the CLAUDE.md hint.
+ either, follow the CLAUDE.md hint.
 - If nothing is present, default to `_devprocess/` as per
-  `/project-conventions`.
+ `/project-conventions`.
 
 Ensure the structure exists before writing:
 

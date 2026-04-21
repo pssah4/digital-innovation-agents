@@ -16,16 +16,23 @@ Mode A entsprechend angepasst werden.
 - `Project-BA` - `docs/analysis/BA-{PROJECT}.md` (One-Pager, Produkt-Schicht)
 - `Epic-BA` - `docs/requirements/epics/EPIC-{NNN}-ba.md` (Mini, optional pro Epic)
 - `BA-Section` - eine Ueberschrift in `Project-BA` oder `Epic-BA`
-  (Personas, JTBDs, Problem, Value Props, KPIs, Risks, usw.)
+ (Personas, JTBDs, Problem, Value Props, KPIs, Risks, usw.)
 - `Epic` - `docs/requirements/epics/EPIC-{NNN}-{slug}.md`
 - `Feature` - `docs/requirements/features/FEATURE-*.md`
 - `SC` - eine Zeile in der Success-Criteria-Tabelle eines Features
 - `ADR` - `docs/adr/ADR-{NNN}-{slug}.md`
 - `arc42-Section` - eine Ueberschrift in
-  `docs/architecture/arc42.md` (§1..§12)
+ `docs/architecture/arc42.md` (§1..§12)
 - `PLAN` - `docs/implementation/plans/PLAN-{NNN}-{slug}.md`
-- `BL-Item` - eine Zeile in `docs/context/10_backlog.md`
+- `FIX` - `docs/context/fixes/FIX-{NNN}-{slug}.md` (Bug-/Issue-Followup, Pflicht-Bindung an Feature/Epic)
+- `IMP` - `docs/context/improvements/IMP-{NNN}-{slug}.md` (technische Verbesserung, Pflicht-Bindung an Feature/Epic)
 - `Code` - eine Datei oder Zeilenspanne unter `src/`
+
+> **Hinweis (2026-04-21):** Die alten Konzepte `BL-Item (historisch)` und
+> `Chore` wurden abgeschafft. Bugs/Issues werden als **FIX**, technische
+> Aenderungen ohne Feature-Charakter als **IMPROVEMENT** (kurz **IMP**)
+> gefuehrt. Beide haben verpflichtend ein `feature:` und `epic:` im
+> Frontmatter, weil jeder Code aus einem Feature-Kontext entsteht.
 
 **Kanten (Referenz-Typen):**
 
@@ -42,59 +49,68 @@ Mode A entsprechend angepasst werden.
 - `ADR -> ADR` (supersedes / related)
 - `PLAN -> Feature` (realisiert: feature-refs im PLAN-Frontmatter)
 - `PLAN -> ADR` (realisiert: adr-refs im PLAN-Frontmatter)
-- `BL-Item -> (Feature | ADR | Bug | PLAN | Code)` (zeigt auf)
+- `FIX -> Feature` / `FIX -> Epic` (Pflicht: gehoert zu)
+- `IMP -> Feature` / `IMP -> Epic` (Pflicht: gehoert zu)
+- `* -> *` **depends-on** (Implementierungs-Reihenfolge; Artefakt wartet
+ auf die Fertigstellung eines anderen; gerichtet, azyklisch)
 
 ## Node-Invarianten
 
-| ID   | Invariante                                                                              | Pruefregel                                                                 |
+| ID | Invariante | Pruefregel |
 | ---- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| N-1  | Jedes Feature hat genau einen Epic-Parent.                                              | Feature-Frontmatter oder -Header enthaelt `Epic:` Link zu existierendem Epic. |
-| N-2  | Jedes Epic hat mindestens ein Feature in MVP-Tabelle oder ist `Phase: Candidates`.         | Epic-Datei `## MVP Features` Tabelle ist nicht leer, oder Phase-Candidates-Marker vorhanden. |
-| N-3  | Jede ADR ist mindestens einmal referenziert (Feature, arc42 oder Backlog).              | Grep nach ADR-ID in allen Features, arc42, Backlog.                       |
-| N-4  | Jedes Feature hat mindestens einen Success-Criterion-Eintrag (Platzhalter erlaubt).     | Feature `## Success Criteria`-Tabelle hat mind. eine Zeile, auch `[AWAITING BA]` ist gueltig. |
-| N-5  | Jedes Feature mit `status: Implemented` hat einen `## Codebase-Verifikation` Abschnitt. | Section-Header existiert.                                                  |
-| N-6  | Jedes BL-Item hat ein Phase-Label (`Released | Building | Planned | Candidates`).       | Spalte oder Notizen-Prefix `[Phase: ...]` vorhanden.                       |
-| N-7  | Jedes BL-Item mit `Phase: Candidates` hat `needs refinement: {Grund}`-Marker.           | Notizen-Feld enthaelt den Marker.                                          |
-| N-8  | Epic-BA definiert keine Personas, Value-Dimensionen oder Nordstern - referenziert sie nur via ID. | Epic-BA enthaelt keine `## Personas`-Section mit Persona-Definitionen; `personas:` im Frontmatter listet nur IDs, die in Project-BA §2 existieren. |
-| N-9  | Jede Epic-KPI im Epic-BA hat einen `project-kpi-ref:`-Eintrag im Frontmatter, der auf eine KPI in Project-BA referenziert. | Frontmatter-Feld `project-kpi-ref` vorhanden, Wert matcht einen KPI-Namen im Project-BA. |
+| N-1 | Jedes Feature hat genau einen Epic-Parent. | Feature-Frontmatter oder -Header enthaelt `Epic:` Link zu existierendem Epic. |
+| N-2 | Jedes Epic hat mindestens ein Feature in MVP-Tabelle oder ist `Phase: Candidates`. | Epic-Datei `## MVP Features` Tabelle ist nicht leer, oder Phase-Candidates-Marker vorhanden. |
+| N-3 | Jede ADR ist mindestens einmal referenziert (Feature, arc42 oder Backlog). | Grep nach ADR-ID in allen Features, arc42, Backlog. |
+| N-4 | Jedes Feature hat mindestens einen Success-Criterion-Eintrag (Platzhalter erlaubt). | Feature `## Success Criteria`-Tabelle hat mind. eine Zeile, auch `[AWAITING BA]` ist gueltig. |
+| N-5 | Jedes Feature mit `status: Implemented` hat einen `## Codebase-Verifikation` Abschnitt. | Section-Header existiert. |
+| N-6 | Jedes FIX/IMP hat ein Phase-Label (`Released | Building | Planned | Candidates`). | Spalte oder Notizen-Prefix `[Phase: ...]` vorhanden. |
+| N-7 | Jedes FIX/IMP mit `Phase: Candidates` hat `needs refinement: {Grund}`-Marker. | Notizen-Feld enthaelt den Marker. |
+| N-8 | Epic-BA definiert keine Personas, Value-Dimensionen oder Nordstern - referenziert sie nur via ID. | Epic-BA enthaelt keine `## Personas`-Section mit Persona-Definitionen; `personas:` im Frontmatter listet nur IDs, die in Project-BA §2 existieren. |
+| N-9 | Jede Epic-KPI im Epic-BA hat einen `project-kpi-ref:`-Eintrag im Frontmatter, der auf eine KPI in Project-BA referenziert. | Frontmatter-Feld `project-kpi-ref` vorhanden, Wert matcht einen KPI-Namen im Project-BA. |
 | N-10 | Jedes Feature-Frontmatter enthaelt `phase: Released|Building|Planned|Candidates` und `status: <Arbeitsstatus>`. | YAML-Frontmatter parsen, Pflicht-Felder pruefen. |
 | N-11 | Jedes Epic-Frontmatter enthaelt `phase: Released|Building|Planned|Candidates`. | YAML-Frontmatter parsen, Pflicht-Feld pruefen. |
 | N-12 | Jedes ADR-Frontmatter enthaelt `status: Proposed|Accepted|Superseded|Deprecated` und `phase: Released|Building|Planned|Candidates`. | YAML-Frontmatter parsen, beide Felder pruefen. |
+| N-13 | Jede FIX-Datei hat `feature:` (Pflicht) und `epic:` (Pflicht) im Frontmatter. Beide Felder zeigen auf existierende Artefakte. | YAML-Frontmatter parsen; FIX-Felder vs docs/requirements. |
+| N-14 | Jede IMP-Datei (IMPROVEMENT) hat `feature:` (Pflicht) und `epic:` (Pflicht) im Frontmatter. Beide zeigen auf existierende Artefakte. | YAML-Frontmatter parsen; IMP-Felder vs docs/requirements. |
+| N-15 | FIX- und IMP-Dateien haben `phase:` und `status:` im Frontmatter (gleiche Enum-Werte wie Features). | YAML-Frontmatter parsen. |
+| N-16 | Die alten Begriffe "Chore" und "BL-Item (historisch)" sowie der Backlog-Abschnitt `## Standalone Chores` werden nicht mehr verwendet. | Grep auf "Chore"/"BL-Item (historisch)"/"Standalone Chores" in docs/ (archive ausgenommen). |
 
 ## Edge-Invarianten
 
-| ID  | Invariante                                                                         | Pruefregel                                                                                 |
+| ID | Invariante | Pruefregel |
 | --- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| E-1 | Jeder Markdown-Link auf projekt-interne Pfade ist gueltig.                         | Regex auf `](docs/...)`, `](../...)`, `](src/...)`, Pfad-Existenz-Check.                   |
-| E-2 | Jeder `Source (Implementation)`-Pfad im Feature existiert oder Phase in {Planned, Candidates}.      | Feature-Source-Pfade vs. Dateisystem.                                                      |
-| E-3 | Jede ADR in Feature `Related-ADRs` existiert unter `docs/adr/`.                    | ADR-IDs vs. `docs/adr/`-Inhalt.                                                            |
-| E-4 | Jede ADR in arc42 §9 Tabelle existiert unter `docs/adr/`.                          | arc42 §9 Zeilen vs. `docs/adr/`-Inhalt.                                                    |
-| E-5 | Jede ADR unter `docs/adr/` ist in arc42 §9 Tabelle ODER als deprecated markiert.   | `docs/adr/`-Inhalt vs. arc42 §9.                                                           |
-| E-6 | Jede BL-Item-Zeile mit Feature/ADR/PLAN-Spalte zeigt auf existierendes Artefakt.   | Link-Check pro Zeile.                                                                      |
-| E-7 | Backlog-Feature-Zeile `Phase` stimmt mit Feature-Frontmatter `phase:` ueberein.   | Fuer jedes FEATURE-NNN: Feature-Tabellenzeile im Backlog vs `phase:` im Frontmatter.       |
-| E-8 | Backlog-Epic-Header `Phase: ...` stimmt mit Epic-Frontmatter `phase:` ueberein.   | Fuer jedes EPIC-NNN: Header-Zeile `Phase: X` im Backlog vs `phase:` im Frontmatter.        |
-| E-9 | Dashboard-Counts im Backlog stimmen mit Summe der Feature-/Epic-/Chore-Phasen ueberein. | Dashboard-Tabelle neu berechnen aus Frontmatters + Standalone-Chores-Tabelle.         |
+| E-1 | Jeder Markdown-Link auf projekt-interne Pfade ist gueltig. | Regex auf `](docs/...)`, `](../...)`, `](src/...)`, Pfad-Existenz-Check. |
+| E-2 | Jeder `Source (Implementation)`-Pfad im Feature existiert oder Phase in {Planned, Candidates}. | Feature-Source-Pfade vs. Dateisystem. |
+| E-3 | Jede ADR in Feature `Related-ADRs` existiert unter `docs/adr/`. | ADR-IDs vs. `docs/adr/`-Inhalt. |
+| E-4 | Jede ADR in arc42 §9 Tabelle existiert unter `docs/adr/`. | arc42 §9 Zeilen vs. `docs/adr/`-Inhalt. |
+| E-5 | Jede ADR unter `docs/adr/` ist in arc42 §9 Tabelle ODER als deprecated markiert. | `docs/adr/`-Inhalt vs. arc42 §9. |
+| E-6 | Jede FIX/IMP-Zeile mit Feature/ADR/PLAN-Spalte zeigt auf existierendes Artefakt. | Link-Check pro Zeile. |
+| E-7 | Backlog-Feature-Zeile `Phase` stimmt mit Feature-Frontmatter `phase:` ueberein. | Fuer jedes FEATURE-NNN: Feature-Tabellenzeile im Backlog vs `phase:` im Frontmatter. |
+| E-8 | Backlog-Epic-Header `Phase: ...` stimmt mit Epic-Frontmatter `phase:` ueberein. | Fuer jedes EPIC-NNN: Header-Zeile `Phase: X` im Backlog vs `phase:` im Frontmatter. |
+| E-9 | Dashboard-Counts im Backlog stimmen mit Summe der Feature-/Epic-/FIX-/IMP-Phasen ueberein. | Dashboard-Tabelle neu berechnen aus Frontmatters (Epic, Feature, FIX, IMP). |
+| E-10 | `depends-on`-Referenzen in Feature/Epic/ADR/FIX/IMP-Frontmatter zeigen auf existierende Artefakte. | YAML-Feld parsen, Ziel-ID im Dateisystem pruefen. |
+| E-11 | Der `depends-on`-Graph ist azyklisch (DAG). Keine Implementierungs-Zyklen. | Topologisches Sortieren ueber alle `depends-on`-Kanten; Zyklen detektieren. |
 
 ## Semantische Invarianten (Mode B, nur on-demand)
 
-| ID  | Invariante                                                                        | Pruefregel                                                                                 |
+| ID | Invariante | Pruefregel |
 | --- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| S-1 | Feature-Beschreibung widerspricht nicht den referenzierten ADRs.                  | Subagent liest Feature + alle Related ADRs, meldet inhaltliche Widersprueche.              |
-| S-2 | Feature ohne passendes BA-JTBD ist explizit geflaggt.                             | Subagent prueft: hat das Feature einen JTBD-Verweis in BA? Wenn nein, BL-Item `needs BA-anchor`. |
-| S-3 | arc42-Sektion zur ADR-Decision spiegelt aktuellen ADR-Text, nicht eine alte Revision. | Subagent liest arc42-Sektion + zitierte ADR, meldet Drift.                                 |
-| S-4 | Features mit `status: Implemented` haben ihre SCs plausibel im Code belegbar.     | Subagent stichprobenartig pro Feature; Ergebnis im Codebase-Verifikations-Abschnitt.       |
+| S-1 | Feature-Beschreibung widerspricht nicht den referenzierten ADRs. | Subagent liest Feature + alle Related ADRs, meldet inhaltliche Widersprueche. |
+| S-2 | Feature ohne passendes BA-JTBD ist explizit geflaggt. | Subagent prueft: hat das Feature einen JTBD-Verweis in BA? Wenn nein, FIX/IMP `needs BA-anchor`. |
+| S-3 | arc42-Sektion zur ADR-Decision spiegelt aktuellen ADR-Text, nicht eine alte Revision. | Subagent liest arc42-Sektion + zitierte ADR, meldet Drift. |
+| S-4 | Features mit `status: Implemented` haben ihre SCs plausibel im Code belegbar. | Subagent stichprobenartig pro Feature; Ergebnis im Codebase-Verifikations-Abschnitt. |
 
 ## Phase/Status-Frontmatter-Konvention (verbindlich fuer alle Skills)
 
 **Pflichtfelder im YAML-Frontmatter:**
 
-| Artefakt | Pflichtfelder                                                           | Default beim Anlegen            |
+| Artefakt | Pflichtfelder | Default beim Anlegen |
 | -------- | ----------------------------------------------------------------------- | ------------------------------- |
-| Feature  | `phase: <Lebenszyklus>`, `status: <Arbeitsstatus>`                      | `phase: Building`, `status: Planned` |
-| Epic     | `phase: <Lebenszyklus>`                                                 | `phase: Building` (abgeleitet worst-wins) |
-| ADR      | `phase: <Lebenszyklus>`, `status: Proposed|Accepted|Superseded|Deprecated` | `phase: Building`, `status: Proposed` |
-| PLAN     | `status: Draft|Active|Completed`                                        | `status: Draft`                 |
-| BL-Item  | Phase-Spalte in Backlog-Tabelle                                         | `Building`                      |
+| Feature | `phase: <Lebenszyklus>`, `status: <Arbeitsstatus>` | `phase: Building`, `status: Planned` |
+| Epic | `phase: <Lebenszyklus>` | `phase: Building` (abgeleitet worst-wins) |
+| ADR | `phase: <Lebenszyklus>`, `status: Proposed|Accepted|Superseded|Deprecated` | `phase: Building`, `status: Proposed` |
+| PLAN | `status: Draft|Active|Completed` | `status: Draft` |
+| FIX/IMP | Phase-Spalte in Backlog-Tabelle | `Building` |
 
 **Phase-Werte (Enum):** `Released | Building | Planned | Candidates`.
 Siehe Phase-Schema-Konvention unten fuer Semantik.
@@ -113,10 +129,10 @@ Aendern synchron nachgezogen werden.
 
 1. Frontmatter im Artefakt aktualisieren.
 2. Backlog-Zeile des Artefakts aktualisieren (Feature-Tabellenzeile
-   unter dem Epic-Abschnitt, bzw. Epic-Header `Phase: X`).
+ unter dem Epic-Abschnitt, bzw. Epic-Header `Phase: X`).
 3. Wenn Epic-Phase neu abgeleitet werden muss (worst-wins ueber
-   Features): Epic-Frontmatter und Epic-Header-Zeile im Backlog
-   aktualisieren.
+ Features): Epic-Frontmatter und Epic-Header-Zeile im Backlog
+ aktualisieren.
 4. Dashboard-Counts im Backlog (Phase-Tabelle) neu berechnen.
 5. Epic-KPI-Referenzen (falls betroffen) pruefen.
 
@@ -137,33 +153,33 @@ Details siehe "Ableitung" im Phase-Schema-Abschnitt.
 ## Phase-Schema-Konvention (2026-04-20, aktualisiert)
 
 Jedes Feature traegt eine **Phase**. Features sind die primaere
-Quelle der Phase-Zuordnung. Epics/ADRs/PLANs/BL-Items erben ihre
+Quelle der Phase-Zuordnung. Epics/ADRs/PLANs/FIX/IMPs erben ihre
 Phase vom Feature-Graph (Details siehe "Ableitung" unten).
 
 - `Released` - vollstaendig implementiert, ausgeliefert und gegen
-  Codebase verifiziert. Alle SCs im Code belegt UND alle
-  referenzierten ADRs ebenfalls Released.
+ Codebase verifiziert. Alle SCs im Code belegt UND alle
+ referenzierten ADRs ebenfalls Released.
 - `Building` - in aktiver Umsetzung oder umsetzungsreif; Scope, AK
-  und Abhaengigkeiten geklaert.
+ und Abhaengigkeiten geklaert.
 - `Planned` - vorgesehen, noch nicht gestartet. Refinement
-  weitgehend vorhanden.
+ weitgehend vorhanden.
 - `Candidates` - Ideen und Optionen ohne verbindliche Zusage.
-  Refinement ausstehend. `needs refinement: {Grund}` Pflicht.
-  Moegliche Gruende: `Analyse fehlt`, `Zielgruppe unklar`,
-  `Scope offen`, `Architektur offen`, `Baseline-Messung fehlt`.
+ Refinement ausstehend. `needs refinement: {Grund}` Pflicht.
+ Moegliche Gruende: `Analyse fehlt`, `Zielgruppe unklar`,
+ `Scope offen`, `Architektur offen`, `Baseline-Messung fehlt`.
 
 **Ableitung:**
 
 - **Feature-Phase**: aus `Codebase-Verifikation` (direkte Angabe).
-  Downgrade: wenn ein referenzierter ADR nicht Released ist, ist das
-  Feature maximal Building, nicht Released.
+ Downgrade: wenn ein referenzierter ADR nicht Released ist, ist das
+ Feature maximal Building, nicht Released.
 - **Epic-Phase**: worst-wins ueber alle enthaltenen Features (ein
-  Building unter den Features -> Epic Building).
+ Building unter den Features -> Epic Building).
 - **ADR-Phase**: Phase des Features, das auf es zeigt; bei mehreren
-  Owner-Features worst-wins. Orphan-ADRs fallen in Candidates.
+ Owner-Features worst-wins. Orphan-ADRs fallen in Candidates.
 - **PLAN-Phase**: Phase des Features, das der PLAN realisiert.
-- **BL-Item-Phase**: Phase des Features (oder ADRs), das das BL-Item
-  referenziert.
+- **FIX/IMP-Phase**: Phase des Features (oder ADRs), das das FIX/IMP
+ referenziert.
 
 **Legacy-Mapping** (fuer Projekte mit alten Phase-Labels, automatisch
 durch `/consistency-check` und den Graph-Viewer gemappt):
@@ -176,20 +192,132 @@ durch `/consistency-check` und den Graph-Viewer gemappt):
 ## Wie Skills mit diesen Invarianten umgehen
 
 - `/reverse-engineering` Phase 8: ruft `/consistency-check` im Mode A
-  auf, behandelt gefundene Luecken als Phase-8-Output.
+ auf, behandelt gefundene Luecken als Phase-8-Output.
 - `/requirements-engineering`: erzeugt Features so, dass N-1, N-4
-  eingehalten werden. Verweist auf Epic-ID und legt SCs an (mind. als
-  Platzhalter).
+ eingehalten werden. Verweist auf Epic-ID und legt SCs an (mind. als
+ Platzhalter).
 - `/architecture`: erzeugt ADRs so, dass N-3, E-5 nicht verletzt
-  werden (arc42 §9 Tabelle wird aktualisiert beim Anlegen einer neuen
-  ADR).
+ werden (arc42 §9 Tabelle wird aktualisiert beim Anlegen einer neuen
+ ADR).
 - `/coding`: fuehrt Mid-Course Feature-Capture-Dialog wenn neue
-  user-facing Capabilities hinzukommen (N-1, N-4, BA-Anker).
+ user-facing Capabilities hinzukommen (N-1, N-4, BA-Anker).
 - `/v-model-workflow`: ruft `/consistency-check` beim Start (Mode A)
-  und bei Release-Closure (Mode A+B).
+ und bei Release-Closure (Mode A+B).
 - `/consistency-check`: liest alle Invarianten aus dieser Datei und
-  prueft sie. Ergebnisse landen in der Graph-Health-Sektion des
-  Backlogs plus als BL-Items.
+ prueft sie. Ergebnisse landen in der Graph-Health-Sektion des
+ Backlogs plus als FIX/IMPs.
+
+## Abhaengigkeiten und Implementierungsreihenfolge
+
+Jedes Artefakt (Epic, Feature, ADR, FIX, IMP) darf im Frontmatter
+`depends-on:` als Liste von Artefakt-IDs fuehren. Semantik: "Dieses
+Artefakt kann erst umgesetzt werden, wenn die gelisteten Artefakte
+Phase `Released` erreicht haben."
+
+**Frontmatter-Syntax:**
+
+```yaml
+depends-on: [FEATURE-030, ADR-047]
+```
+
+**Regeln:**
+
+- Referenzen zeigen auf existierende Artefakte (Invariante E-10).
+- Der Graph der `depends-on`-Kanten ist azyklisch (E-11). Zyklen sind
+ Konsistenz-Fehler und werden von `/consistency-check` gemeldet.
+- Cross-Artefakt-Typen erlaubt: ein Feature kann auf eine ADR warten,
+ eine IMP auf ein anderes Feature, ein Epic auf einen anderen Epic.
+- Transitive Reihenfolge: wenn A auf B und B auf C wartet, ist C vor
+ B vor A.
+
+**Darstellung:**
+
+- **Backlog**: Spalte `Abhaengig von` in jeder Feature-/FIX-/IMP-
+ Tabelle. Eintrag als komma-separierte ID-Liste oder `-`.
+- **Epic-/Feature-/ADR-Spezifikation**: eigener Abschnitt
+ `## Abhaengigkeiten` im Body, der das Frontmatter-Feld spiegelt
+ und kurz begruendet, warum die Abhaengigkeit existiert.
+- **Graph-Viewer**: eigene Kanten-Art `depends-on` (eigene Farbe,
+ gestrichelt). Topologische Reihenfolge kann als Layout-Option
+ gewaehlt werden ("Implementierungs-Sequenz").
+- **`/consistency-check`**: zeigt am Ende die topologisch sortierten
+ Strata (Level 0 = keine unerfuellten Abhaengigkeiten, Level n = alle
+ Abhaengigkeiten in Level < n).
+
+## Artefakt-Triage am Einstiegspunkt (verbindlich fuer alle Skills)
+
+**Regel:** Jede Aktivitaet, die Code, Doku oder Spezifikationen aendert,
+ist vor der ersten inhaltlichen Arbeit einem Artefakt-Typ zuzuordnen.
+Das gilt unabhaengig davon, welcher Skill den Einstieg bildet.
+
+Minimal-Anforderung an den User (bzw. an den Skill, der das vom User
+erfragt): Eine Antwort auf die Frage
+
+> "Ist das, was du jetzt tust, ein neues Feature, eine Verbesserung
+> (Improvement) an einem bestehenden Feature, oder ein Fix fuer einen
+> Bug oder eine Drift?"
+
+**Entscheidungsbaum (Skill wendet ihn ohne Rueckfrage an, wenn eindeutig):**
+
+1. **Neue user-facing Capability** (Funktion, die es vorher nicht gab):
+   - neues **FEATURE** anlegen, Pflicht-Bindung an ein Epic (existierend oder neu)
+   - Frontmatter `phase: Candidates` oder `Planned`, `status: Planned`
+   - `/requirements-engineering` uebernimmt
+
+2. **Verbesserung an bestehendem Feature** (Refactor, Performance,
+   Doku-Drift, zusaetzliche Tests, Konfig-Update, etc.):
+   - neues **IMP** unter `docs/context/improvements/IMP-NNN-slug.md`
+   - Frontmatter `feature:` + `epic:` PFLICHT
+   - Frontmatter `phase:`, `status:`, `priority:`, optional `depends-on:`
+
+3. **Fix fuer einen beobachteten Bug oder eine Drift** (Symptom: etwas
+   funktioniert nicht wie spezifiziert):
+   - neues **FIX** unter `docs/context/fixes/FIX-NNN-slug.md`
+   - Frontmatter `feature:` + `epic:` PFLICHT
+   - kausale Kette im Body pflegen
+
+4. **Architektur-Entscheidung**, die weitere Artefakte beeinflusst:
+   - neue **ADR** (MADR-Format), verknuepft mit betroffenen Features
+   - `/architecture` uebernimmt
+
+**Kein Skill darf Code- oder Doku-Aenderungen ausfuehren, bevor diese
+Zuordnung erfolgt ist.** Wenn die Zuordnung nicht eindeutig aus dem
+User-Prompt ableitbar ist, stellt der Skill genau eine praegnante
+Frage und setzt dann fort. Keine Diskussion, keine Optionen-Liste
+ueber mehrere Entscheidungen.
+
+**Ausnahmen:**
+
+- Reine Leseoperationen (Recherche, Analyse, Reports) brauchen keine
+  Triage.
+- `/consistency-check` prueft und fixt bestehende Artefakte, erzeugt
+  keine neuen.
+- `/reverse-engineering` triagiert rueckwaertsgerichtet: existierender
+  Code wird in Features, Epics, ADRs, FIXes, IMPs zerlegt.
+
+**Wo der Einstieg triagiert wird:**
+
+- `/v-model-workflow`: in der Hybrid-Entry-Detection direkt nach der
+  Projektstand-Erkennung.
+- `/business-analyse`: vor Phase 1, wenn der User direkt mit einer
+  Feature-Idee kommt statt mit Problem/Persona.
+- `/requirements-engineering`: am Start, wenn der User ohne BA-Bezug
+  ein Feature vorschlaegt.
+- `/architecture`: am Start, um zu pruefen ob die ADR-Idee ein Feature
+  voraussetzt.
+- `/coding`: **immer** vor dem ersten Edit. Ohne eindeutige Zuordnung
+  wird die Triage-Frage gestellt.
+- `/testing`: vor dem ersten neuen Test. Reine Test-Analyse (Coverage-
+  Report, Lesen bestehender Tests) ist read-only und braucht keine
+  Triage.
+
+**Handoff-Durchreichung (gegen Mehrfach-Fragen):**
+
+Die Triage-Zuordnung wird im ersten Handoff-Eintrag verankert und
+danach von allen nachfolgenden Skills als gesetzt uebernommen. Format
+und Regel: siehe `skills/v-model-workflow/SKILL.md` Abschnitt
+"Handoff entry format". Pflichtfelder im Kopfblock: `triage:`,
+`triage_kind:`; bei IMP und FIX zusaetzlich `feature:` und `epic:`.
 
 ## Aenderungs-Protokoll
 

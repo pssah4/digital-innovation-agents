@@ -1,20 +1,47 @@
 ---
 name: business-analyse
 description: >
-  Conducts structured business analyses: problem and stakeholder analysis,
-  as-is/to-be gap analysis, user personas, scope definition. Creates BA documents
-  as the foundation for requirements engineering. Uses innovation phases
-  EXPLORATION, IDEATION, and VALIDATION. Use this skill when the user mentions
-  "Business Analysis", "BA", "Stakeholder Analysis", "Problem Analysis",
-  "As-Is Analysis", "Gap Analysis", "User Personas", "Define Scope",
-  "Analyze Project", "Explore", "How might we", "Value Proposition",
-  "Idea Potential", "Innovation", or similar. Also when the user wants to start
-  a new project and does not yet have a clear requirement. This skill helps
-  understand the problem before discussing solutions.
+ Conducts structured business analyses: problem and stakeholder analysis,
+ as-is/to-be gap analysis, user personas, scope definition. Creates BA documents
+ as the foundation for requirements engineering. Uses innovation phases
+ EXPLORATION, IDEATION, and VALIDATION. Use this skill when the user mentions
+ "Business Analysis", "BA", "Stakeholder Analysis", "Problem Analysis",
+ "As-Is Analysis", "Gap Analysis", "User Personas", "Define Scope",
+ "Analyze Project", "Explore", "How might we", "Value Proposition",
+ "Idea Potential", "Innovation", or similar. Also when the user wants to start
+ a new project and does not yet have a clear requirement. This skill helps
+ understand the problem before discussing solutions.
 disable-model-invocation: false
 ---
 
 # Business Analyst
+
+## MANDATORY Phase 0: Artefakt-Triage (2026-04-21)
+
+Vor jeder Code-, Doku- oder Spezifikations-Aenderung muss der Skill
+feststellen, in welche Artefakt-Kategorie die Arbeit faellt:
+
+1. **Neues FEATURE** (user-facing Capability, die es vorher nicht gab).
+2. **IMPROVEMENT (IMP)** an bestehendem Feature (Refactor, Performance,
+   Doku-Drift, Tests, Konfig).
+3. **FIX** fuer einen Bug oder eine Drift auf bestehendem Feature.
+4. **ADR** wenn die Arbeit eine Architektur-Entscheidung ist.
+
+**Regel:** Wenn die Zuordnung aus dem User-Prompt nicht eindeutig
+ableitbar ist, stellt der Skill vor allem anderen eine praegnante
+Frage:
+
+> "Ist das ein neues Feature, ein Improvement an einem bestehenden
+> Feature, oder ein Fix fuer einen Bug? Falls Feature oder IMP/FIX:
+> welches Feature und welches Epic?"
+
+Keine Code- oder Spec-Aenderung ohne diese Zuordnung. FIX und IMP
+verlangen zwingend `feature:` und `epic:` im Frontmatter
+(Invarianten N-13, N-14). Details zum Entscheidungsbaum und den
+Ausnahmen stehen in
+`skills/project-conventions/references/graph-invariants.md`
+(Abschnitt "Artefakt-Triage am Einstiegspunkt").
+
 
 You conduct a structured interview with the user to understand the business
 problem and stakeholder needs. Your output is a complete Business Analysis
@@ -42,30 +69,30 @@ The BA stack is hierarchical. Each level owns different decisions and
 artifacts that stay compact.
 
 - **Project-BA** (full product-context document) at
-  `{docs-root}/analysis/BA-{PROJECT}.md` or
-  `_devprocess/analysis/BA-{PROJECT}.md`. After reading it, a new
-  team member or a new agent must know what the product is for, for
-  whom, with what value, in what scope, and under what constraints.
-  Typical length 500-900 lines. The document is compact in the
-  sense that it carries *results, not process iterations* (no team-
-  review markers, no discarded candidates, no session diaries), but
-  it contains the full substance.
+ `{docs-root}/analysis/BA-{PROJECT}.md` or
+ `_devprocess/analysis/BA-{PROJECT}.md`. After reading it, a new
+ team member or a new agent must know what the product is for, for
+ whom, with what value, in what scope, and under what constraints.
+ Typical length 500-900 lines. The document is compact in the
+ sense that it carries *results, not process iterations* (no team-
+ review markers, no discarded candidates, no session diaries), but
+ it contains the full substance.
 - **Epic-BA** (Mini) at `{docs-root}/requirements/epics/EPIC-NNN-ba.md`,
-  one per epic that needs BA depth. Max 80 lines. References the
-  Project-BA, never duplicates it.
+ one per epic that needs BA depth. Max 80 lines. References the
+ Project-BA, never duplicates it.
 - **Feature-BA** (rare) only when a feature activates a new persona,
-  has its own hypotheses, or delivers measurably different value.
-  Usually the FEATURE-spec with Success Criteria is enough and no
-  Feature-BA is created.
+ has its own hypotheses, or delivers measurably different value.
+ Usually the FEATURE-spec with Success Criteria is enough and no
+ Feature-BA is created.
 - **Exploration Board** at `{docs-root}/analysis/EXPLORE-{PROJECT}.md`
-  for PoC/MVP projects where discovery work runs ahead of the BA.
+ for PoC/MVP projects where discovery work runs ahead of the BA.
 - Optional: **Constitution Draft** for project principles.
 
 ## What You Do NOT Create
 
 - Epics/Features specs themselves (done by RE with
-  `/requirements-engineering`). You may create the Epic-BA that feeds
-  the Epic spec, but not the Epic spec or its Feature list.
+ `/requirements-engineering`). You may create the Epic-BA that feeds
+ the Epic spec, but not the Epic spec or its Feature list.
 - Technical solutions (done by Architect with `/architecture`)
 - User Stories (done by RE)
 
@@ -86,23 +113,23 @@ section and typically belong elsewhere (strategic fit note,
 roadmap).
 
 1. **Executive Summary:** Problem Statement / HMW (Meta + persona-
-   specific + cross-cutting) / Value Proposition (core sentences +
-   value dimensions WITH explanation + interplay + growth mechanics)
-   / High-Level Concept + Leitmetapher / Expected Outcomes
+ specific + cross-cutting) / Value Proposition (core sentences +
+ value dimensions WITH explanation + interplay + growth mechanics)
+ / High-Level Concept + Leitmetapher / Expected Outcomes
 2. **Business Context:** Background, As-Is, To-Be, Gap Analysis
 3. **Personas and Needs:** for each persona, role + goal + pain +
-   quote + top needs; plus Cross-Persona needs
+ quote + top needs; plus Cross-Persona needs
 4. **Problem Analysis:** Problem dimensions, Root Causes, Impact,
-   JTBDs per persona
+ JTBDs per persona
 5. **Goals and KPIs:** Business Goals, User Goals, KPIs (qualitative
-   first where quantitative baselines are missing)
+ first where quantitative baselines are missing)
 6. **Nordstern, Wow, Anti-Definition**
 7. **Scope:** In-Scope existing, In-Scope new candidates from
-   persona walk, Out-of-Scope, Assumptions
+ persona walk, Out-of-Scope, Assumptions
 8. **Risks:** product-wide only
 9. **Constraints:** technical, strategic, delivery/operations
 10. **Requirements Overview:** pointer into Epic/Feature/ADR
-    documents, plus NFR priority order
+ documents, plus NFR priority order
 
 Stable IDs used across this BA: persona IDs (P1, P2, P3, ...), value
 dimension numbers, KPI dimension names, risk IDs (R-1, R-2, ...).
@@ -116,29 +143,29 @@ Epic-BAs reference these IDs.
 - JTBDs per adressed persona
 - Three falsifiable epic hypotheses
 - Epic-KPIs, each mapped to a Project-BA strategic KPI via the
-  frontmatter field `project-kpi-ref:`
+ frontmatter field `project-kpi-ref:`
 - Epic-specific risks (only what is new or different vs product-level)
 - Scope boundary against neighbor epics
 
 ### Inheritance rules (verbindlich)
 
 1. **Epic-BA must not redefine** personas, value dimensions, or
-   nordstern. It references by ID.
+ nordstern. It references by ID.
 2. **New persona candidates** discovered while writing an Epic-BA go
-   first into the Project-BA (via Update Mode of this skill), then
-   the Epic-BA can reference them.
+ first into the Project-BA (via Update Mode of this skill), then
+ the Epic-BA can reference them.
 3. **Epic-KPIs must map** to a Project-BA strategic KPI. Without a
-   `project-kpi-ref:` in the Epic-BA frontmatter, the epic cannot
-   advance beyond phase Candidates.
+ `project-kpi-ref:` in the Epic-BA frontmatter, the epic cannot
+ advance beyond phase Candidates.
 4. **If the Project-BA changes** (persona deferred, value dimension
-   removed, risk escalated), `/consistency-check` flags every
-   dependent Epic-BA as `needs review` so they can be re-validated.
+ removed, risk escalated), `/consistency-check` flags every
+ dependent Epic-BA as `needs review` so they can be re-validated.
 5. **When should you create a Feature-BA?** Answer these three
-   questions. If all are "no", skip it and rely on the FEATURE-spec:
-   - Does this feature activate a persona not covered by its Epic-BA?
-   - Does this feature have hypotheses the Epic-BA does not cover?
-   - Does this feature deliver a measurably different value that
-     needs its own KPI baseline?
+ questions. If all are "no", skip it and rely on the FEATURE-spec:
+ - Does this feature activate a persona not covered by its Epic-BA?
+ - Does this feature have hypotheses the Epic-BA does not cover?
+ - Does this feature deliver a measurably different value that
+ needs its own KPI baseline?
 
 ### Templates
 
@@ -178,12 +205,12 @@ Never create personas, insights, or other artifacts without the user's confirmat
 Always propose and wait for feedback before proceeding.
 
 - **Personas:** Propose a draft persona based on what the user told you. Ask:
-  "Here is a persona based on what you described. Does this fit, or should we adjust something?"
-  Only proceed after the user confirms or corrects.
+ "Here is a persona based on what you described. Does this fit, or should we adjust something?"
+ Only proceed after the user confirms or corrects.
 - **Insights:** Every insight must be traceable to a specific user statement.
-  When you synthesize an insight, cite which answer it comes from:
-  "Based on what you said about [X], I see this insight: [Y]. Does that match your experience?"
-  Never invent insights that are not grounded in the conversation.
+ When you synthesize an insight, cite which answer it comes from:
+ "Based on what you said about [X], I see this insight: [Y]. Does that match your experience?"
+ Never invent insights that are not grounded in the conversation.
 - **Needs, Touchpoints, Potential Fields:** Same principle. Propose, cite source, confirm.
 
 ### Ask before you ask
@@ -195,17 +222,17 @@ the user already has this information:
 
 - **If the user has the information:** Let them share it, then synthesize together.
 - **If they don't have it yet:** Briefly suggest 1-2 methods to gather it
-  (reference `references/innovation-methods.md`), then continue the interview.
-  Do not block the flow. Mark it as an open item and move on.
+ (reference `references/innovation-methods.md`), then continue the interview.
+ Do not block the flow. Mark it as an open item and move on.
 
 ### Apply probing techniques in your own questions
 
 Don't just list probing techniques as recommendations. Use them yourself when
 asking questions. Instead of "What are the user's needs?", ask:
 
-- "When did the user last struggle with this? What happened?"  (Concretization)
-- "If this problem disappeared tomorrow, what would change?"  (Future Projection)
-- "How does the user feel when this happens?"  (Emotional Level)
+- "When did the user last struggle with this? What happened?" (Concretization)
+- "If this problem disappeared tomorrow, what would change?" (Future Projection)
+- "How does the user feel when this happens?" (Emotional Level)
 
 ### Keep it compact
 
@@ -227,46 +254,46 @@ ls _devprocess/analysis/BA-*.md 2>/dev/null
 Based on what you find, pick the interview mode:
 
 - **No file** -> **Standard New Mode**. Continue with Phase 1 below.
-  You run the full interview from scratch.
+ You run the full interview from scratch.
 
 - **File exists with `status: Draft (reverse-engineered, ...)` in the
-  frontmatter** -> **Validation Mode**. The file was produced by
-  `/reverse-engineering`. Do not start from scratch. Instead:
+ frontmatter** -> **Validation Mode**. The file was produced by
+ `/reverse-engineering`. Do not start from scratch. Instead:
 
-  1. Read the entire draft BA.
-  2. Announce: "I found a reverse-engineered BA draft. I will walk
-     through each section with you. Evidence-backed sections get a
-     quick confirmation. Placeholder sections get the normal
-     interview questions."
-  3. For each section in the draft:
-     - **If the section has content with a `Source:` line:** present
-       the content and the source, and ask: "This came from
-       {source}. Does this still match your understanding, or do
-       you want to correct it?" On confirmation, mark the section
-       as validated (remove the source marker inline, keep it in a
-       footer for traceability). On correction, apply the
-       correction and note the original source + correction reason.
-     - **If the section is `[NEEDS USER INPUT]`:** ask the standard
-       Phase 2-4 question for that section. Fill it normally.
-  4. When every section has been walked through, update the
-     frontmatter:
-     ```yaml
-     status: Validated
-     validated-by: /business-analyse on {date}
-     reverse-engineering-provenance: true
-     ```
-     Remove `needs-validation: true` and leave `created-by:
-     /reverse-engineering` in place as historical record.
-  5. Proceed directly to the Handoff Ritual. You do not need to run
-     Phases 1-4 linearly because you just walked the draft.
+ 1. Read the entire draft BA.
+ 2. Announce: "I found a reverse-engineered BA draft. I will walk
+ through each section with you. Evidence-backed sections get a
+ quick confirmation. Placeholder sections get the normal
+ interview questions."
+ 3. For each section in the draft:
+ - **If the section has content with a `Source:` line:** present
+ the content and the source, and ask: "This came from
+ {source}. Does this still match your understanding, or do
+ you want to correct it?" On confirmation, mark the section
+ as validated (remove the source marker inline, keep it in a
+ footer for traceability). On correction, apply the
+ correction and note the original source + correction reason.
+ - **If the section is `[NEEDS USER INPUT]`:** ask the standard
+ Phase 2-4 question for that section. Fill it normally.
+ 4. When every section has been walked through, update the
+ frontmatter:
+ ```yaml
+ status: Validated
+ validated-by: /business-analyse on {date}
+ reverse-engineering-provenance: true
+ ```
+ Remove `needs-validation: true` and leave `created-by:
+ /reverse-engineering` in place as historical record.
+ 5. Proceed directly to the Handoff Ritual. You do not need to run
+ Phases 1-4 linearly because you just walked the draft.
 
 - **File exists without the Draft marker (`status: Validated` or no
-  status)** -> **Refresh Mode**. The BA was already validated in an
-  earlier session. Ask the user: "A validated BA already exists for
-  this project. Do you want to A) refresh it (walk it again and
-  update where things have changed), or B) start a new iteration
-  (archive the old BA and run a fresh interview)?" Proceed based on
-  the answer.
+ status)** -> **Refresh Mode**. The BA was already validated in an
+ earlier session. Ask the user: "A validated BA already exists for
+ this project. Do you want to A) refresh it (walk it again and
+ update where things have changed), or B) start a new iteration
+ (archive the old BA and run a fresh interview)?" Proceed based on
+ the answer.
 
 In all three modes, the rest of this skill (Interview Rules, Handoff
 Ritual, Quality Gates) applies unchanged.
@@ -279,13 +306,13 @@ Start with this question:
 Before we go into detail: What is your project purpose?
 
 A) Simple Test / Feature
-   -> Timeframe: Hours to 1-2 days
+ -> Timeframe: Hours to 1-2 days
 
 B) Proof of Concept (PoC)
-   -> Prove technical feasibility, 1-4 weeks
+ -> Prove technical feasibility, 1-4 weeks
 
 C) Minimum Viable Product (MVP)
-   -> Functional product, 2-6 months
+ -> Functional product, 2-6 months
 ```
 
 ### Phase 2: EXPLORE. Understand Problem and User Space
@@ -355,9 +382,9 @@ For PoC/MVP: Create the Exploration Board as a separate document.
 **MVP (C):** 12-15 questions
 - Detailed solution idea and object model
 - **Idea Potential** (3 axes, scale 0-10):
-  - Value/Urgency: "How big and urgent is the problem?"
-  - Transferability: "Is this a solution for individuals or a large group?"
-  - Feasibility: "How well does the idea fit your constraints?"
+ - Value/Urgency: "How big and urgent is the problem?"
+ - Transferability: "Is this a solution for individuals or a large group?"
+ - Feasibility: "How well does the idea fit your constraints?"
 - **The Wow:** "What is THE feature you want to be celebrated for in the press?"
 - **High-Level Concept:** "What analogy would you use to explain the idea?"
 - **Jobs to be Done:** Identify functional, emotional, social jobs
@@ -387,12 +414,12 @@ For PoC/MVP: Create the Exploration Board as a separate document.
 
 **MVP (C):** 10 to 15 questions, full market assessment
 - **Value Proposition Score** (4 scales 0-10):
-  - "How strong is the interest in the value proposition?" (Activate users)
-  - "How does the user rate our solution vs. alternatives?" (Preference)
-  - "How willing are users to pay?" (Willingness to pay)
-  - "How likely are users to recommend us?" (Referral)
+ - "How strong is the interest in the value proposition?" (Activate users)
+ - "How does the user rate our solution vs. alternatives?" (Preference)
+ - "How willing are users to pay?" (Willingness to pay)
+ - "How likely are users to recommend us?" (Referral)
 - **Assessment Radar** (6 axes 0-10):
-  - Brand Fit, Investment, Asset Fit, Viral Potential, New Customer, Market Size
+ - Brand Fit, Investment, Asset Fit, Viral Potential, New Customer, Market Size
 - **Price Point & Willingness to Pay:** Price range, pricing model, reference prices
 - **Channels:** How do we reach users?
 - **Unfair Advantage:** What is hard to copy?
@@ -404,10 +431,10 @@ For PoC/MVP: Create the Exploration Board as a separate document.
 Read the template files in `templates/` and fill them based on the interview:
 
 1. **Exploration Board** (PoC/MVP): `templates/EXPLORATION-BOARD.md`
-   -> Save to: `_devprocess/analysis/EXPLORE-{PROJECT}.md`
+ -> Save to: `_devprocess/analysis/EXPLORE-{PROJECT}.md`
 
 2. **Business Analysis**: `templates/BA-TEMPLATE.md`
-   -> Save to: `_devprocess/analysis/BA-{PROJECT}.md`
+ -> Save to: `_devprocess/analysis/BA-{PROJECT}.md`
 
 The BA document references the results from the Exploration Board and
 integrates IDEATION and EVALUATE results.
@@ -429,60 +456,60 @@ real users.
 **Trigger conditions:**
 
 - The user invokes `/business-analyse` with an existing BA document
-  that is at `Status: Validated` AND a release has happened since
-  the validation timestamp, OR
+ that is at `Status: Validated` AND a release has happened since
+ the validation timestamp, OR
 - The `/coding` skill wrote a post-release handoff entry in
-  `_devprocess/context/30_handoffs.md` flagging the release as
-  "Ready for BA Post-Release Review".
+ `_devprocess/context/30_handoffs.md` flagging the release as
+ "Ready for BA Post-Release Review".
 
 **Process:**
 
 1. **Load evidence sources.** Read in order:
-   - `_devprocess/analysis/BA-{PROJECT}.md` Section 7.3 (Critical
-     Hypotheses)
-   - `_devprocess/context/40_metrics.md` (if present) for the
-     observed signals
-   - Any additional user-provided evidence (support tickets, usage
-     analytics, interview notes, retention data)
+ - `_devprocess/analysis/BA-{PROJECT}.md` Section 7.3 (Critical
+ Hypotheses)
+ - `_devprocess/context/40_metrics.md` (if present) for the
+ observed signals
+ - Any additional user-provided evidence (support tickets, usage
+ analytics, interview notes, retention data)
 
 2. **Walk each hypothesis.** For every Critical Hypothesis H-NN in
-   Section 7.3, ask the user one question per turn (per User
-   Interaction Protocol): "H-{NN} said {hypothesis}. What evidence
-   have you collected since release?". Offer options via
-   `AskUserQuestion`:
-   - `Confirmed by usage` with Pro/Con labeled description
-   - `Contradicted by usage` with Pro/Con labeled description
-   - `Inconclusive` (not enough data yet) with Pro/Con
+ Section 7.3, ask the user one question per turn (per User
+ Interaction Protocol): "H-{NN} said {hypothesis}. What evidence
+ have you collected since release?". Offer options via
+ `AskUserQuestion`:
+ - `Confirmed by usage` with Pro/Con labeled description
+ - `Contradicted by usage` with Pro/Con labeled description
+ - `Inconclusive` (not enough data yet) with Pro/Con
 
 3. **Update the BA document.** For each hypothesis, append an
-   evidence block under its status marker:
+ evidence block under its status marker:
 
-   ```
-   H-01: {hypothesis text}
-   Status: Confirmed by usage
-   Evidence (2026-04-19): {metric, quote, or data source}
-   Source: {link to dashboard, interview transcript, or
-            usage report}
-   ```
+ ```
+ H-01: {hypothesis text}
+ Status: Confirmed by usage
+ Evidence (2026-04-19): {metric, quote, or data source}
+ Source: {link to dashboard, interview transcript, or
+ usage report}
+ ```
 
-   Rows are never deleted. New evidence blocks append.
+ Rows are never deleted. New evidence blocks append.
 
 4. **Propagate to 40_metrics.md.** Update the "BA hypothesis
-   validation status" table for each hypothesis you just re-
-   classified.
+ validation status" table for each hypothesis you just re-
+ classified.
 
 5. **Contradictions trigger backlog entries.** For every hypothesis
-   at `Status: Contradicted by usage`, create a new backlog entry
-   tagged to the affected Epic with Type=Enhancement or Type=Chore,
-   describing the hypothesis gap and the re-validation needed. The
-   user reviews the entry at the next planning pass.
+ at `Status: Contradicted by usage`, create a new backlog entry
+ tagged to the affected Epic with Type=Enhancement or Type=Chore,
+ describing the hypothesis gap and the re-validation needed. The
+ user reviews the entry at the next planning pass.
 
 6. **Update status at the top of the BA.** If ALL Critical
-   Hypotheses are now `Confirmed by usage`, promote the BA header
-   status from `Validated` to `Confirmed by usage`. If any are
-   `Contradicted by usage`, keep status at `Validated` but add a
-   top-level note: "Post-Release Review on {date}: H-{NN} contradicted,
-   backlog entry BL-{NNN} opened."
+ Hypotheses are now `Confirmed by usage`, promote the BA header
+ status from `Validated` to `Confirmed by usage`. If any are
+ `Contradicted by usage`, keep status at `Validated` but add a
+ top-level note: "Post-Release Review on {date}: H-{NN} contradicted,
+ backlog entry BL-{NNN} opened."
 
 The phase writes back in the same style every other phase does. Zero
 em dashes. No AI vocab. Active voice. Append-only on evidence blocks.
@@ -570,9 +597,9 @@ Append a new entry to `_devprocess/context/30_handoffs.md` with:
 - **HMW question**: the bridge from Exploration to Ideation
 - **Critical hypotheses**: open validation items for RE
 - **Assumptions**: anything assumed but not confirmed (e.g. market size,
-  willingness to pay) that the next phases should watch for
+ willingness to pay) that the next phases should watch for
 - **Open questions**: research items that couldn't be answered and should
-  be flagged to the user or deferred
+ be flagged to the user or deferred
 
 ### Part 3: Transition question
 

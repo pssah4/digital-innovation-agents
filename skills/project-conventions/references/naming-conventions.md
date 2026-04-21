@@ -33,6 +33,20 @@
 | Handoffs | `30_handoffs.md` | Fester Name, append-only |
 | Memory | `MEMORY.md` | Fester Name |
 
+## Fix- und Improvement-Artefakte
+
+| Typ | Muster | Beispiele |
+|-----|--------|-----------|
+| Fix | `docs/context/fixes/FIX-{NNN}-{slug}.md` | `FIX-001-auth-token-leak.md` |
+| Improvement | `docs/context/improvements/IMP-{NNN}-{slug}.md` | `IMP-001-reindex-perf.md`, `IMP-007-doc-drift.md` |
+
+- `FIX` und `IMP` sind 3-stellig fortlaufend, projekt-global (nicht
+  epic-lokal).
+- Frontmatter-Pflicht: `feature:` und `epic:` (Bindung an existierendes
+  Feature/Epic). Ohne diese Bindung ist das Artefakt ein Orphan und wird
+  von `/consistency-check` geflaggt.
+- FIX-Eintraege zusaetzlich im Bug Log `20_bugs.md` verlinken.
+
 ## Regeln fuer Nummern
 
 - Epics und ADRs immer 3-stellig: `001`, `042`, `103`

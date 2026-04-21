@@ -169,10 +169,28 @@ into the placeholders is written in the same style.
 |---------|----------|
 | Conversation with user | User's language (agent adapts automatically) |
 | Commit messages | English, conventional prefixes (feat/fix/chore/docs/refactor) |
-| Private documentation (`_devprocess/`) | Match user's language (agent decides) |
+| Private documentation (`_devprocess/`) | **Match the user's chat language** |
 | Public documentation (`docs/`, `README`) | English |
 | Code, identifiers, variables | English |
 | Skill files (`SKILL.md`) | English (user language adapts in dialog) |
+
+**Artefakt-Sprache (verbindlich):** Jeder Skill erzeugt die in
+`_devprocess/` produzierten Artefakte (BA, EPIC, FEATURE, ADR, arc42,
+plan-context, architect-handoff, backlog rows, bug-log entries,
+handoff-log entries, AUDIT-Reports, release notes, FIX/IMP-Dateien) in
+**genau der Sprache, in der der User im Chat kommuniziert**. Sprachwechsel
+des Users im Chat zieht die Sprache neuer Artefakte nach; bestehende
+Artefakte werden nicht automatisch uebersetzt. Bei **Unklarheit** (z. B.
+gemischt DE/EN im Prompt, erster User-Turn sehr kurz) stellt der Skill
+**eine praegnante Frage** vor dem ersten Artefakt:
+
+> "In welcher Sprache soll ich die Artefakte schreiben -- Deutsch oder
+> Englisch?"
+
+Ausgenommen bleiben die oben tabellarisch fixierten Kontexte: Code,
+Identifier, Commit-Messages, `docs/`, `README`, Skill-Dateien sowie
+englische Feldnamen (Frontmatter-Keys, Template-Platzhalter, technische
+Begriffe wie `phase`, `status`, `Epic`, `Feature`, `ADR`).
 
 **Note:** Skills are written in English so they are portable across
 languages, but when a skill runs and talks to the user, the agent switches

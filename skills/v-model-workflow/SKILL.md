@@ -1,21 +1,48 @@
 ---
 name: v-model-workflow
 description: >
-  Orchestrates the COMPLETE V-Model development cycle end-to-end (Business
-  Analysis -> Requirements Engineering -> Architecture -> Coding -> Testing
-  -> Security Audit -> Release Closure). TRIGGER ONLY when the user
-  explicitly requests the full orchestrator or end-to-end cycle: "V-Model",
-  "full V-Model cycle", "orchestrate the full workflow", "set up new
-  project end-to-end", "from analysis to release", "which phase do I start
-  in", "ich weiss nicht wo ich starten soll". DO NOT trigger for
-  individual phase work (use the specific phase skill instead:
-  business-analyse, requirements-engineering, architecture, coding,
-  testing, security-audit, release), generic mentions of "workflow",
-  "process", or "next step", or when a phase skill is already running.
+ Orchestrates the COMPLETE V-Model development cycle end-to-end (Business
+ Analysis -> Requirements Engineering -> Architecture -> Coding -> Testing
+ -> Security Audit -> Release Closure). TRIGGER ONLY when the user
+ explicitly requests the full orchestrator or end-to-end cycle: "V-Model",
+ "full V-Model cycle", "orchestrate the full workflow", "set up new
+ project end-to-end", "from analysis to release", "which phase do I start
+ in", "ich weiss nicht wo ich starten soll". DO NOT trigger for
+ individual phase work (use the specific phase skill instead:
+ business-analyse, requirements-engineering, architecture, coding,
+ testing, security-audit, release), generic mentions of "workflow",
+ "process", or "next step", or when a phase skill is already running.
 disable-model-invocation: false
 ---
 
 # V-Model Workflow Orchestrator
+
+## MANDATORY Phase 0: Artefakt-Triage (2026-04-21)
+
+Vor jeder Code-, Doku- oder Spezifikations-Aenderung muss der Skill
+feststellen, in welche Artefakt-Kategorie die Arbeit faellt:
+
+1. **Neues FEATURE** (user-facing Capability, die es vorher nicht gab).
+2. **IMPROVEMENT (IMP)** an bestehendem Feature (Refactor, Performance,
+   Doku-Drift, Tests, Konfig).
+3. **FIX** fuer einen Bug oder eine Drift auf bestehendem Feature.
+4. **ADR** wenn die Arbeit eine Architektur-Entscheidung ist.
+
+**Regel:** Wenn die Zuordnung aus dem User-Prompt nicht eindeutig
+ableitbar ist, stellt der Skill vor allem anderen eine praegnante
+Frage:
+
+> "Ist das ein neues Feature, ein Improvement an einem bestehenden
+> Feature, oder ein Fix fuer einen Bug? Falls Feature oder IMP/FIX:
+> welches Feature und welches Epic?"
+
+Keine Code- oder Spec-Aenderung ohne diese Zuordnung. FIX und IMP
+verlangen zwingend `feature:` und `epic:` im Frontmatter
+(Invarianten N-13, N-14). Details zum Entscheidungsbaum und den
+Ausnahmen stehen in
+`skills/project-conventions/references/graph-invariants.md`
+(Abschnitt "Artefakt-Triage am Einstiegspunkt").
+
 
 This skill guides you through the V-Model development cycle. Each phase
 builds on the previous one and produces artifacts as input for the next
@@ -24,49 +51,49 @@ phase. All phases follow the conventions from `/project-conventions`.
 ## Workflow Overview
 
 ```
-Phase 0 (brownfield only): /reverse-engineering    REVERSE WALK
-  Input:  existing codebase + documentation          (backwards
-  Output: plan-context.md, ADRs (Inferred),           up the V)
-          arc42 (Snapshot), FEATURE-*.md (Observed),
-          BA-{PROJECT}.md (Draft), backlog seed
-    |
-    v (forward walk starts here)
-Phase 1: /business-analyse                         DESIGN
-  Output: _devprocess/analysis/BA-{PROJECT}.md       (left side
-    |                                                 of the V)
-    v
+Phase 0 (brownfield only): /reverse-engineering REVERSE WALK
+ Input: existing codebase + documentation (backwards
+ Output: plan-context.md, ADRs (Inferred), up the V)
+ arc42 (Snapshot), FEATURE-*.md (Observed),
+ BA-{PROJECT}.md (Draft), backlog seed
+ |
+ v (forward walk starts here)
+Phase 1: /business-analyse DESIGN
+ Output: _devprocess/analysis/BA-{PROJECT}.md (left side
+ | of the V)
+ v
 Phase 2: /requirements-engineering
-  Input:  BA document
-  Output: Epics, Features, architect-handoff.md
-    |
-    v
+ Input: BA document
+ Output: Epics, Features, architect-handoff.md
+ |
+ v
 Phase 3: /architecture
-  Input:  Features, ASRs, NFRs
-  Output: ADRs, arc42, plan-context.md
-    |
-    v
-Phase 4: /coding                                   IMPLEMENTATION
-  Input:  plan-context.md + ADRs + Features          (bottom of the V)
-  Action: Load context, critical review,
-          brief the Default agent (task breakdown,
-          optional TDD, debugging protocol,
-          verification gate), write artifacts back
-    |
-    v
-Phase 5: /testing                                  VERIFICATION
-  Input:  Implemented codebase + Features            (right side
-  Output: Unit + integration tests, fix-loop          of the V)
-    |
-    v
+ Input: Features, ASRs, NFRs
+ Output: ADRs, arc42, plan-context.md
+ |
+ v
+Phase 4: /coding IMPLEMENTATION
+ Input: plan-context.md + ADRs + Features (bottom of the V)
+ Action: Load context, critical review,
+ brief the Default agent (task breakdown,
+ optional TDD, debugging protocol,
+ verification gate), write artifacts back
+ |
+ v
+Phase 5: /testing VERIFICATION
+ Input: Implemented codebase + Features (right side
+ Output: Unit + integration tests, fix-loop of the V)
+ |
+ v
 Phase 6: /security-audit
-  Input:  Implemented codebase
-  Output: Security report + remediation, fix-loop
-    |
-    v
-Phase 7: Release Closure                           CLOSING
-  Input:  All artifacts + test + security results
-  Output: Finalized artifacts, release notes,
-          CHANGELOG update, clean backlog
+ Input: Implemented codebase
+ Output: Security report + remediation, fix-loop
+ |
+ v
+Phase 7: Release Closure CLOSING
+ Input: All artifacts + test + security results
+ Output: Finalized artifacts, release notes,
+ CHANGELOG update, clean backlog
 ```
 
 ## Orchestrated Phase Transitions
@@ -78,7 +105,7 @@ the respective skill (see each skill for details). The orchestrator then:
 1. Reads the phase-skill's artifact report and handoff context
 2. Asks the user the transition question from the phase-skill
 3. On agreement: launches the next phase-skill, passing the handoff context
-   from `_devprocess/context/30_handoffs.md` as input
+ from `_devprocess/context/30_handoffs.md` as input
 4. On rejection: pauses, reports the current state, waits for user instruction
 5. Repeats until all phases complete, ending at Phase 7
 
@@ -91,6 +118,36 @@ resume later by re-invoking `/v-model-workflow`.
 The Handoff Ritual still runs, and the handoff context is still written
 to `_devprocess/context/30_handoffs.md`. The user can then manually start
 the next skill, which will pick up the handoff entry.
+
+### Handoff entry format (verbindlich)
+
+Jeder neue Handoff-Eintrag in `_devprocess/context/30_handoffs.md` beginnt
+mit einem kurzen Kopfblock, der die **Artefakt-Triage** aus Phase 0
+mittransportiert. Damit muss ein nachfolgender Skill die Triage-Frage
+nicht erneut stellen.
+
+```
+## {skill-from}-to-{skill-to} {YYYY-MM-DD}
+
+triage: FEATURE-001-003         # oder IMP-007 / FIX-012 / ADR-004
+triage_kind: feature             # einer von: feature | improvement | fix | adr
+epic: EPIC-001                   # Pflicht bei IMP/FIX; empfohlen sonst
+feature: FEATURE-001-003         # Pflicht bei IMP/FIX
+
+... (phase-spezifische Felder, z. B. NFR summary, open questions, ...)
+```
+
+**Regel:** Ein Skill, der einen Handoff-Eintrag liest und darin eine
+`triage`-ID findet, nutzt diese als gesetzte Phase-0-Zuordnung und
+stellt die Triage-Frage nicht mehr. Fehlt das Feld, faellt der Skill
+auf die normale Phase-0-Logik zurueck (aus Prompt ableiten, notfalls
+eine Frage).
+
+Ausnahme: Der allererste Handoff-Eintrag in einem Greenfield-Projekt
+(z. B. `/business-analyse` -> `/requirements-engineering` ohne
+existierendes Feature) kann `triage: new-feature-pending` tragen.
+Die konkrete FEATURE-ID wird dann von `/requirements-engineering`
+vergeben und in den naechsten Handoff-Eintrag geschrieben.
 
 ## Ensure project structure exists
 
@@ -120,21 +177,21 @@ override.
 
 1. Detect the project root convention (`_devprocess/` or `docs/`).
 2. Run `/consistency-check` in Mode A (syntactic). The result is the
-   current Graph-Health snapshot.
+ current Graph-Health snapshot.
 3. Infer the likely entry point from the snapshot:
 
-| Observation                                                   | Recommended entry                          |
+| Observation | Recommended entry |
 | ------------------------------------------------------------- | ------------------------------------------ |
-| No V-Model artifacts at all, empty repo or pure greenfield    | `/business-analyse`                        |
-| Code exists, no `docs/analysis/BA-*.md`, no FEATUREs          | `/reverse-engineering`                     |
-| BA exists as Draft, not yet validated                         | `/business-analyse` Validation Mode        |
-| BA validated, no Epics or Features                            | `/requirements-engineering`                |
-| Features exist, no ADRs or plan-context.md                    | `/architecture`                            |
-| plan-context.md exists, no recent code changes                | `/coding`                                  |
-| Coding done, no test coverage / failing tests                 | `/testing`                                 |
-| Tests green, no security audit                                | `/security-audit`                          |
-| Everything closed, release pending                            | Phase 7 Release Closure                    |
-| Graph-Health shows many orphans or dead links                 | `/consistency-check` + Cleanup first       |
+| No V-Model artifacts at all, empty repo or pure greenfield | `/business-analyse` |
+| Code exists, no `docs/analysis/BA-*.md`, no FEATUREs | `/reverse-engineering` |
+| BA exists as Draft, not yet validated | `/business-analyse` Validation Mode |
+| BA validated, no Epics or Features | `/requirements-engineering` |
+| Features exist, no ADRs or plan-context.md | `/architecture` |
+| plan-context.md exists, no recent code changes | `/coding` |
+| Coding done, no test coverage / failing tests | `/testing` |
+| Tests green, no security audit | `/security-audit` |
+| Everything closed, release pending | Phase 7 Release Closure |
+| Graph-Health shows many orphans or dead links | `/consistency-check` + Cleanup first |
 
 ### Step 2: Present recommendation + alternatives
 
@@ -144,21 +201,21 @@ first option and the manual list as alternatives:
 ```
 Graph-State (letzter Check {date}):
 - Epics {n}, Features {n} (Released {a}, Building {b}, Planned {c}, Candidates {d}),
-  ADRs {n}, BL-Items {n}, offene Luecken {n}.
+ ADRs {n}, FIX/IMPs {n}, offene Luecken {n}.
 
 Empfehlung basierend auf dem Graph-State: {recommended entry}
 
 Oder du waehlst manuell aus:
 A0 /reverse-engineering (brownfield)
-A  /business-analyse (BA von Beginn)
-B  /requirements-engineering
-C  /architecture
-D  /coding
-E  /testing
-F  /security-audit
-G  Phase 7 Release Closure
-H  /consistency-check (nur Graph-Pflege)
-I  Orientierungs-Interview (helfe beim Entscheiden)
+A /business-analyse (BA von Beginn)
+B /requirements-engineering
+C /architecture
+D /coding
+E /testing
+F /security-audit
+G Phase 7 Release Closure
+H /consistency-check (nur Graph-Pflege)
+I Orientierungs-Interview (helfe beim Entscheiden)
 ```
 
 If the user picks the recommended option or says "ok/go/next", start
@@ -235,14 +292,14 @@ Input: _devprocess/requirements/handoff/plan-context.md
 1. Load plan-context.md + all ADRs + Features
 2. Accept/modify ADR proposals (critical codebase review)
 3. Persist an implementation plan as
-   _devprocess/implementation/plans/PLAN-{NNN}-{slug}.md
-   (template: skills/coding/templates/PLAN-TEMPLATE.md)
+ _devprocess/implementation/plans/PLAN-{NNN}-{slug}.md
+ (template: skills/coding/templates/PLAN-TEMPLATE.md)
 4. Hand off to the Default agent with the persisted plan as
-   source of truth; mid-course deviations append to the plan's
-   Change Log, never rewrite past entries
+ source of truth; mid-course deviations append to the plan's
+ Change Log, never rewrite past entries
 5. Apply the verification gate before every completion claim
 6. Close the plan (Status: Implemented, task commit SHAs) and
-   write Feature specs, ADRs, and backlog back to artifacts
+ write Feature specs, ADRs, and backlog back to artifacts
 ```
 
 ### After Coding -> Testing
@@ -313,7 +370,7 @@ Check and update every artifact so it reflects the actual state:
 - All open bugs from `20_bugs.md` referenced in `10_backlog.md`
 - Deferred security findings in backlog
 - New ideas from implementation (out of scope) documented as
-  future-considerations
+ future-considerations
 - Completed items archived
 
 ### Step 5: Closing report to the user
@@ -338,7 +395,7 @@ Next iteration:
 - {recommendation based on backlog}
 
 Tip: For a new cycle, start again with /business-analyse or
-     /requirements-engineering (depending on how deep the change is).
+ /requirements-engineering (depending on how deep the change is).
 ```
 
 ### Step 6: Queue Post-Release BA Review
@@ -359,7 +416,7 @@ Signals source: _devprocess/context/40_metrics.md (or user-provided)
 
 Ready for BA Post-Release Review: yes
 Recommended timing: {after N days of real usage, per scope:
-  Simple Test: 1-3 days; PoC: 7-14 days; MVP: 14-30 days}
+ Simple Test: 1-3 days; PoC: 7-14 days; MVP: 14-30 days}
 
 Hypotheses to re-validate:
 - H-01: {text}
@@ -379,50 +436,50 @@ does not happen.
 
 ```
 _devprocess/
-  analysis/
-    BA-{PROJECT}.md                    <- Phase 1: Business Analysis
-    EXPLORE-{PROJECT}.md               <- Phase 1 (PoC/MVP)
-    security/
-      AUDIT-{PROJECT}-{DATE}.md        <- Phase 6: Security Audit
-  requirements/
-    epics/
-      EPIC-{NNN}-{slug}.md             <- Phase 2: Requirements
-    features/
-      FEATURE-{EPIC}-{NNN}-{slug}.md   <- Phase 2: Requirements (epic-local)
-    handoff/
-      architect-handoff.md             <- Phase 2 -> 3 handoff
-      plan-context.md                  <- Phase 3 -> 4 handoff
-  architecture/
-    ADR-{NNN}-{slug}.md                <- Phase 3: Architecture
-    arc42.md                           <- Phase 3: Architecture
-  implementation/
-    plans/
-      PLAN-{NNN}-{slug}.md             <- Phase 4: persisted implementation plan
-  context/
-    10_backlog.md                      <- living backlog (per BACKLOG-TEMPLATE.md)
-    20_bugs.md                         <- FIX-NN bug log (Phase 4)
-    30_handoffs.md                     <- append-only handoffs log
-    40_metrics.md                      <- signal layer (per METRICS-TEMPLATE.md)
+ analysis/
+ BA-{PROJECT}.md <- Phase 1: Business Analysis
+ EXPLORE-{PROJECT}.md <- Phase 1 (PoC/MVP)
+ security/
+ AUDIT-{PROJECT}-{DATE}.md <- Phase 6: Security Audit
+ requirements/
+ epics/
+ EPIC-{NNN}-{slug}.md <- Phase 2: Requirements
+ features/
+ FEATURE-{EPIC}-{NNN}-{slug}.md <- Phase 2: Requirements (epic-local)
+ handoff/
+ architect-handoff.md <- Phase 2 -> 3 handoff
+ plan-context.md <- Phase 3 -> 4 handoff
+ architecture/
+ ADR-{NNN}-{slug}.md <- Phase 3: Architecture
+ arc42.md <- Phase 3: Architecture
+ implementation/
+ plans/
+ PLAN-{NNN}-{slug}.md <- Phase 4: persisted implementation plan
+ context/
+ 10_backlog.md <- living backlog (per BACKLOG-TEMPLATE.md)
+ 20_bugs.md <- FIX-NN bug log (Phase 4)
+ 30_handoffs.md <- append-only handoffs log
+ 40_metrics.md <- signal layer (per METRICS-TEMPLATE.md)
 ```
 
 ## Traceability Chain
 
 ```
 BA document (Why?)
-  -> Epic (What, strategic?)
-    -> Feature (What, concrete?)
-      -> ASR (What is architecture-relevant?)
-        -> ADR (How do we solve it?)
-          -> plan-context.md (Context bridge)
-            -> Critical Review (Does it fit the codebase?)
-              -> PLAN-NNN (Which tasks, in what order, with TDD gates?)
-                -> Code (Implementation, commits cite PLAN-NNN)
-                  -> Tests (Does it work?)
-                    -> Fix-loop until green
-                      -> Security Audit (Is it safe?)
-                        -> Fix-loop until resolved
-                          -> Backlog (What's still open?)
-                            -> Phase 7 Release Closure (Close the cycle)
+ -> Epic (What, strategic?)
+ -> Feature (What, concrete?)
+ -> ASR (What is architecture-relevant?)
+ -> ADR (How do we solve it?)
+ -> plan-context.md (Context bridge)
+ -> Critical Review (Does it fit the codebase?)
+ -> PLAN-NNN (Which tasks, in what order, with TDD gates?)
+ -> Code (Implementation, commits cite PLAN-NNN)
+ -> Tests (Does it work?)
+ -> Fix-loop until green
+ -> Security Audit (Is it safe?)
+ -> Fix-loop until resolved
+ -> Backlog (What's still open?)
+ -> Phase 7 Release Closure (Close the cycle)
 ```
 
 Backchannel: changes in every phase flow back into the source artifacts
@@ -448,23 +505,23 @@ continuing.
 The three cross-phase feedback triggers:
 
 1. **Mid-course bug discovery** (in `/coding`). A new bug surfaces
-   during implementation that is not in the feature specs, ADRs, or
-   FIX-list. The coding flow pauses, routes through BUG-NNN triage,
-   writes a root-cause analysis, adds the backlog entry, and only
-   then writes the fix. Commit references both items.
+ during implementation that is not in the feature specs, ADRs, or
+ FIX-list. The coding flow pauses, routes through BUG-NNN triage,
+ writes a root-cause analysis, adds the backlog entry, and only
+ then writes the fix. Commit references both items.
 2. **Mid-course design discovery** (in `/coding`). The implementation
-   reveals that an architectural choice does not match reality. The
-   coding flow pauses, amends or supersedes the affected ADR, updates
-   arc42 and plan-context.md, and only then continues the feature.
+ reveals that an architectural choice does not match reality. The
+ coding flow pauses, amends or supersedes the affected ADR, updates
+ arc42 and plan-context.md, and only then continues the feature.
 3. **Mid-course requirements discovery** (in `/architecture` or
-   `/coding`). The tech design or the implementation reveals that a
-   FEATURE spec has a gap, ambiguity, or impossible constraint.
-   Architecture pauses, routes the issue back to
-   `/requirements-engineering` as a FEATURE-spec update, waits for
-   the updated handoff, and only then proceeds with ADRs. Coding
-   amends the FEATURE in place (per the Mid-course requirements
-   trigger in `/coding`), re-runs the Plan Coverage Gate against the
-   amended spec, and only then continues implementation.
+ `/coding`). The tech design or the implementation reveals that a
+ FEATURE spec has a gap, ambiguity, or impossible constraint.
+ Architecture pauses, routes the issue back to
+ `/requirements-engineering` as a FEATURE-spec update, waits for
+ the updated handoff, and only then proceeds with ADRs. Coding
+ amends the FEATURE in place (per the Mid-course requirements
+ trigger in `/coding`), re-runs the Plan Coverage Gate against the
+ amended spec, and only then continues implementation.
 
 Each trigger follows the same 6-step pattern: STOP, triage, write a
 minimal root-cause analysis, add a backlog entry BEFORE any code or
@@ -494,21 +551,21 @@ memory) and human pauses.
 **Binding rules:**
 
 - **Not a blocker.** Pending dialog entries never stop unrelated work.
-  Only the specific ADR, FEATURE, or code change that depends on a
-  pending question waits. Everything else continues.
+ Only the specific ADR, FEATURE, or code change that depends on a
+ pending question waits. Everything else continues.
 - **Try to self-answer first.** When a phase-skill starts a new
-  session and sees pending dialog entries addressed to its side, it
-  attempts to answer each from existing artifacts (codebase, ADRs,
-  FEATURE specs, BA doc) BEFORE asking the user.
+ session and sees pending dialog entries addressed to its side, it
+ attempts to answer each from existing artifacts (codebase, ADRs,
+ FEATURE specs, BA doc) BEFORE asking the user.
 - **One question per session to the user.** If self-answering fails,
-  the skill surfaces ALL unresolved entries in a single
-  `AskUserQuestion` at session start: "N questions from {sender}
-  could not be self-answered. Address now, defer to end of session,
-  or record as open issues?" Per the User Interaction Protocol, one
-  question per turn.
+ the skill surfaces ALL unresolved entries in a single
+ `AskUserQuestion` at session start: "N questions from {sender}
+ could not be self-answered. Address now, defer to end of session,
+ or record as open issues?" Per the User Interaction Protocol, one
+ question per turn.
 - **Append-only.** Entries and answers are never deleted. Answered
-  questions have `Status: Resolved`. Questions that outlive multiple
-  sessions without resolution become candidates for a backlog entry.
+ questions have `Status: Resolved`. Questions that outlive multiple
+ sessions without resolution become candidates for a backlog entry.
 
 **Agent-agent and agent-human paths.** The self-answer step is the
 agent-agent path. Two agent sessions (across time) negotiate via the
@@ -541,33 +598,33 @@ the row is free to be picked up.
 **Claim protocol:**
 
 1. **Claim on phase start.** When a phase-skill starts work on a
-   backlog row (reading FEATURE spec, writing ADR, implementing),
-   it sets the Claim column to its own `pair-id` and today's date
-   BEFORE any other write. The write is atomic: set Claim, then
-   work.
+ backlog row (reading FEATURE spec, writing ADR, implementing),
+ it sets the Claim column to its own `pair-id` and today's date
+ BEFORE any other write. The write is atomic: set Claim, then
+ work.
 2. **Release on phase end or `Status: Done`.** When the phase
-   finishes (Handoff Ritual runs) or the item reaches Status=Done,
-   the Claim column gets cleared. Rows at Status=Done do not need
-   a Claim.
+ finishes (Handoff Ritual runs) or the item reaches Status=Done,
+ the Claim column gets cleared. Rows at Status=Done do not need
+ a Claim.
 3. **Claim conflict.** If a pair wants to claim a row that already
-   has a non-empty Claim, it does NOT overwrite. It surfaces the
-   conflict to the user via `AskUserQuestion`:
-   "BL-{NNN} is already claimed by {other-pair} since {date}.
-   Options: (a) Ask the other pair to release; (b) Take over with
-   acknowledgement; (c) Work on a different item; (d) Split the row
-   into two related entries." The user decides. If "Take over" is
-   chosen, the new pair appends a note to the Claim history (see
-   rule 5).
+ has a non-empty Claim, it does NOT overwrite. It surfaces the
+ conflict to the user via `AskUserQuestion`:
+ "BL-{NNN} is already claimed by {other-pair} since {date}.
+ Options: (a) Ask the other pair to release; (b) Take over with
+ acknowledgement; (c) Work on a different item; (d) Split the row
+ into two related entries." The user decides. If "Take over" is
+ chosen, the new pair appends a note to the Claim history (see
+ rule 5).
 4. **Stale claims.** Claims older than the phase-expected duration
-   (e.g. a Feature stuck at Active for >14 days with an active
-   Claim) get flagged in the next Handoff Ritual as stale. The
-   orchestrator proposes to ask the claiming pair for status or to
-   release.
+ (e.g. a Feature stuck at Active for >14 days with an active
+ Claim) get flagged in the next Handoff Ritual as stale. The
+ orchestrator proposes to ask the claiming pair for status or to
+ release.
 5. **Claim history is append-additive.** The Claim cell always holds
-   the CURRENT claim. Previous claims live in the `Notizen` column
-   as a dated note: `Notizen: Claim handover 2026-04-19:
-   sebastian-opus-4.7 -> anna-sonnet-4.6 (context: ADR-012
-   rework)`.
+ the CURRENT claim. Previous claims live in the `Notizen` column
+ as a dated note: `Notizen: Claim handover 2026-04-19:
+ sebastian-opus-4.7 -> anna-sonnet-4.6 (context: ADR-012
+ rework)`.
 
 **Pair-id convention:** `{human-handle}-{model}`. Use a model slug that
 distinguishes sessions (e.g. `opus-4.7`, `sonnet-4.6`). No spaces. If
@@ -599,16 +656,16 @@ Signals and who writes them:
 
 **Rules:**
 - The metrics file is **append-additive**. Rows are never deleted.
-  Stale cells get superseded by a new row with the same key
-  (FEATURE ID, date, or trigger type).
+ Stale cells get superseded by a new row with the same key
+ (FEATURE ID, date, or trigger type).
 - Writes happen **inside existing phase actions** (Handoff Ritual,
-  codebase reconciliation, mid-course triggers). No separate
-  metrics-collection step, no new ceremony.
+ codebase reconciliation, mid-course triggers). No separate
+ metrics-collection step, no new ceremony.
 - If the file does not yet exist when a skill wants to write, the
-  skill copies `METRICS-TEMPLATE.md` first, then adds its row.
+ skill copies `METRICS-TEMPLATE.md` first, then adds its row.
 - Consumers read the file to decide whether to trigger a
-  reconciliation run, a post-release review, or a conversation
-  about workflow adherence.
+ reconciliation run, a post-release review, or a conversation
+ about workflow adherence.
 
 ## User Interaction Protocol (binding for all phase-skills)
 
@@ -619,29 +676,29 @@ They bind whether the skill is invoked via `/v-model-workflow` or
 standalone.
 
 1. **One question per turn.** Never batch multiple open decisions into one
-   message. Finish Q1 (ask, wait, receive answer) before asking Q2.
+ message. Finish Q1 (ask, wait, receive answer) before asking Q2.
 2. **Use `AskUserQuestion`.** Plain markdown lists force the user to type
-   back; the tool gives them clickable options plus a free-text "Other"
-   slot.
+ back; the tool gives them clickable options plus a free-text "Other"
+ slot.
 3. **Every option must state BOTH a Pro and a Con, explicitly labelled.**
-   Format the `description` field so the trade-off is scannable:
-   ```
-   + Pro: one short sentence stating the main upside.
-   - Con: one short sentence stating the main downside or cost.
-   ```
-   Descriptions that list only advantages (or only risks) are a bug.
-   The user decides by comparing, so both sides must be visible.
+ Format the `description` field so the trade-off is scannable:
+ ```
+ + Pro: one short sentence stating the main upside.
+ - Con: one short sentence stating the main downside or cost.
+ ```
+ Descriptions that list only advantages (or only risks) are a bug.
+ The user decides by comparing, so both sides must be visible.
 4. **Mark the recommended option as the first entry** with
-   "(Recommended)" in its label. If the rationale is not obvious from the
-   Pros/Cons alone, add a one-line "Empfehlung: ... weil ..." sentence in
-   the turn text BEFORE the `AskUserQuestion` call.
+ "(Recommended)" in its label. If the rationale is not obvious from the
+ Pros/Cons alone, add a one-line "Empfehlung: ... weil ..." sentence in
+ the turn text BEFORE the `AskUserQuestion` call.
 5. **No bundled questions under time pressure.** If three decisions block
-   progress, ask the first, wait for the answer, then ask the next.
-   Sequencing beats efficiency here. Users get to reason about one thing
-   at a time.
+ progress, ask the first, wait for the answer, then ask the next.
+ Sequencing beats efficiency here. Users get to reason about one thing
+ at a time.
 6. **Exceptions:** quick factual confirmations ("Proceed with the
-   well-known Y/N step?") may stay as plain prompts. The rule targets
-   *decisions between alternatives*, not acknowledgements.
+ well-known Y/N step?") may stay as plain prompts. The rule targets
+ *decisions between alternatives*, not acknowledgements.
 
 ## Keywords
 V-Model, workflow, full cycle, new project, development cycle,
