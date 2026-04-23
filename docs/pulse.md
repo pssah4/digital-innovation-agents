@@ -326,7 +326,7 @@ The forward walk is the default, iteration is a first-class option.
 
 ### "Architecture decisions get made implicitly"
 
-Mark Zimmermann (Head of CoE Mobile, a downstream project):
+A mobile engineering lead asked:
 
 > ADRs record decisions, but architecture emerges the moment the
 > first code lands in the repo, before any decision is named. With

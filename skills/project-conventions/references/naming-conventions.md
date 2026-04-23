@@ -4,9 +4,9 @@
 
 | Typ | Muster | Beispiele |
 |-----|--------|-----------|
-| Business Analysis | `BA-{PROJECT}.md` | `BA-obsilo.md`, `BA-downstream-portal.md` |
+| Business Analysis | `BA-{PROJECT}.md` | `BA-myapp.md`, `BA-intranet-portal.md` |
 | Constitution | `constitution-draft.md` | Fester Name, ein pro Projekt |
-| Security Audit | `AUDIT-{PROJECT}-{YYYY-MM-DD}.md` | `AUDIT-obsilo-2026-03-22.md` |
+| Security Audit | `AUDIT-{PROJECT}-{YYYY-MM-DD}.md` | `AUDIT-myapp-2026-03-22.md` |
 
 ## Requirements-Dokumente
 
@@ -78,7 +78,7 @@
 ## Regeln fuer Projekt-Namen in Dateinamen
 
 - Lowercase, keine Sonderzeichen
-- Kurzform des Projektnamens: `obsilo`, `downstream-portal`, `af-gateway`
+- Kurzform des Projektnamens: `myapp`, `intranet-portal`, `af-gateway`
 - Konsistent innerhalb eines Projekts
 
 ## Anti-Patterns
@@ -90,5 +90,5 @@
 | `ADR-001-Backend Framework.md` | `ADR-001-backend-framework.md` | Keine Leerzeichen |
 | `FEATURE-042-search.md` | `FEATURE-001-001-search.md` | Epic-lokal, `{EPIC}-{NNN}` |
 | `FEATURE-1-1-Suche.md` | `FEATURE-001-001-search.md` | 3-stellig, Englisch, kebab |
-| `BA_obsilo.md` | `BA-obsilo.md` | Bindestrich, nicht Unterstrich |
-| `audit-obsilo.md` | `AUDIT-obsilo-2026-03-22.md` | Prefix uppercase, Datum |
+| `BA_myapp.md` | `BA-myapp.md` | Bindestrich, nicht Unterstrich |
+| `audit-myapp.md` | `AUDIT-myapp-2026-03-22.md` | Prefix uppercase, Datum |

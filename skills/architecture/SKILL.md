@@ -115,12 +115,12 @@ Prosa-Absatz.
 
 **Alt (Template-Rest, nicht mehr erlaubt):**
 
-> FOR **Software-Teams bei a downstream project (P1)**
+> FOR **Enterprise-Entwicklungsteams (P1)**
 > WHO **mit driftenden Artefakten arbeiten** ...
 
 **Neu (deutscher Satz):**
 
-> Fuer Software-Teams bei a downstream project, die mit driftenden Artefakten
+> Fuer Enterprise-Entwicklungsteams, die mit driftenden Artefakten
 > zwischen Code, Wiki, Backlog und Roadmap arbeiten, liefert dieses
 > Epic ein Capability-Bundle aus Cross-Artifact-Lesen, Rollen-
 > Uebersetzung, Content-Creation und Forward-Inferenz. Es unterscheidet

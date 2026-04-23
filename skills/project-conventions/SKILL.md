@@ -58,12 +58,12 @@ Read `references/naming-conventions.md` for the full reference.
 
 | Artifact | Pattern | Example |
 |----------|---------|---------|
-| Business Analysis | `BA-{PROJECT}.md` | `BA-obsilo.md` |
-| Exploration Board | `EXPLORE-{PROJECT}.md` | `EXPLORE-obsilo.md` |
+| Business Analysis | `BA-{PROJECT}.md` | `BA-myapp.md` |
+| Exploration Board | `EXPLORE-{PROJECT}.md` | `EXPLORE-myapp.md` |
 | Epic | `EPIC-{NNN}-{slug}.md` | `EPIC-001-ai-agent-core.md` |
 | Feature | `FEATURE-{EPIC}-{NNN}-{slug}.md` | `FEATURE-001-001-semantic-search.md` |
 | ADR | `ADR-{NNN}-{slug}.md` | `ADR-003-embedding-provider.md` |
-| Security Audit | `AUDIT-{PROJECT}-{YYYY-MM-DD}.md` | `AUDIT-obsilo-2026-03-22.md` |
+| Security Audit | `AUDIT-{PROJECT}-{YYYY-MM-DD}.md` | `AUDIT-myapp-2026-03-22.md` |
 | Handoff (RE->Arch) | `architect-handoff.md` | Fixed name |
 | Handoff (Arch->Code) | `plan-context.md` | Fixed name |
 | Backlog | `10_backlog.md` | Fixed name |

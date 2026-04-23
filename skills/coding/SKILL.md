@@ -121,12 +121,12 @@ Prosa-Absatz.
 
 **Alt (Template-Rest, nicht mehr erlaubt):**
 
-> FOR **Software-Teams bei a downstream project (P1)**
+> FOR **Enterprise-Entwicklungsteams (P1)**
 > WHO **mit driftenden Artefakten arbeiten** ...
 
 **Neu (deutscher Satz):**
 
-> Fuer Software-Teams bei a downstream project, die mit driftenden Artefakten
+> Fuer Enterprise-Entwicklungsteams, die mit driftenden Artefakten
 > zwischen Code, Wiki, Backlog und Roadmap arbeiten, liefert dieses
 > Epic ein Capability-Bundle aus Cross-Artifact-Lesen, Rollen-
 > Uebersetzung, Content-Creation und Forward-Inferenz. Es unterscheidet
@@ -674,11 +674,10 @@ Mid-course handling, do NOT fix the bug silently:
  below, marking the new BUG-NNN as resolved
 ```
 
-Why this matters: BUG-017 (tool_use pairing) and BUG-018 (plugin
-routing) were found during Obsilo v2.5.0 beta testing. Without
-this trigger they got fixed in code first and documented only
-after release, the backlog then drifted from the code state for
-days.
+Why this matters: bugs surfaced during beta testing of a real
+downstream project got fixed in code first and documented only
+after release, so the backlog drifted from the code state for
+days. This trigger closes that gap.
 
 ### Mid-course design discovery (binding trigger)
 

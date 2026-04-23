@@ -125,12 +125,12 @@ Prosa-Absatz.
 
 **Alt (Template-Rest, nicht mehr erlaubt):**
 
-> FOR **Software-Teams bei a downstream project (P1)**
+> FOR **Enterprise-Entwicklungsteams (P1)**
 > WHO **mit driftenden Artefakten arbeiten** ...
 
 **Neu (deutscher Satz):**
 
-> Fuer Software-Teams bei a downstream project, die mit driftenden Artefakten
+> Fuer Enterprise-Entwicklungsteams, die mit driftenden Artefakten
 > zwischen Code, Wiki, Backlog und Roadmap arbeiten, liefert dieses
 > Epic ein Capability-Bundle aus Cross-Artifact-Lesen, Rollen-
 > Uebersetzung, Content-Creation und Forward-Inferenz. Es unterscheidet
@@ -252,7 +252,7 @@ produces one or more artifacts before you move up to the next.
 
 ### Phase -1: Pre-check for existing workflow artifacts (binding)
 
-**Added 2026-04-20 after a real run on a downstream project revealed that two
+**Added 2026-04-20 after a real project run revealed that two
 parallel workflows (Superpowers and V-Model reverse-engineering) had
 produced overlapping artifacts in the same project.** Before any
 scan, probe the project for existing workflow residues. Greenfield
