@@ -19,20 +19,24 @@ disable-model-invocation: false
 
 ## MANDATORY Pre-Phase 0: Branch protection
 
-Before the first artefact write, verify the user is not on a
-protected branch (`main`, `master`, `dev`). If the current branch is
-protected, ask via `AskUserQuestion` (one question, Pro/Con per
-option):
+Before the first artefact write, verify the current branch is right
+for THIS work. The check fires once per skill invocation, regardless
+of branch type, then stays silent for the rest of the run (state in
+`.git/dia-active-skill`).
 
-- A) Create feature branch `feature/reverse-engineer-{repo-name}`
-     and switch (recommended)
-- B) Stay on `{current_branch}` (only for read-only inventory runs)
-- C) Custom branch name
+- If on `main` / `master` / `dev`: refuse, ask via `AskUserQuestion`
+  to create `feature/reverse-engineer-{repo-name}`.
+- If on a `feature/*` / `fix/*` / `chore/*` branch: ask via
+  `AskUserQuestion` whether the branch fits the new work, showing
+  the last 3 commit subjects so the user can decide. Options:
+  continue / new branch / switch to existing / custom.
 
-Recommendation: A. Reverse-engineering writes 10+ artefact files;
-those need a feature branch.
+Recommendation logic (continue when branch slug overlaps the topic;
+new branch when slugs diverge or last commit is >7 days old) and
+override mechanisms: `skills/project-conventions/references/branch-protection.md`.
 
-Full rules and slug heuristics: `skills/project-conventions/references/branch-protection.md`.
+Suggested slug for reverse-engineering:
+`feature/reverse-engineer-{repo-name}`.
 
 ## MANDATORY Phase 0: Artifact triage
 

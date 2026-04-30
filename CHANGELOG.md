@@ -9,22 +9,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added: branch protection (2026-04-30)
 
-The pre-commit hook now refuses commits on protected branches
+Two-layer defense against committing new work on the wrong branch.
+
+**Layer 1: pre-commit hook.** Refuses commits on protected branches
 (default: `main`, `master`, `dev`) and offers to create a feature
 branch interactively. Configurable per project via
-`git config dia.protected-branches "<space-separated-list>"`.
+`git config dia.protected-branches "<space-separated-list>"`. This
+covers the obvious case (commit on dev/main).
 
-Every entry skill (reverse-engineering, business-analysis,
-requirements-engineering, architecture, coding, testing,
-security-audit) now starts with a "MANDATORY Pre-Phase 0: Branch
-protection" check that asks the user via `AskUserQuestion` whether
-to create a feature branch before any artefact write. The shared
-contract lives in
-`skills/project-conventions/references/branch-protection.md`,
-including slug heuristics per skill and override mechanisms.
+**Layer 2: skill-side check.** Every entry skill (reverse-engineering,
+business-analysis, requirements-engineering, architecture, coding,
+testing, security-audit) now starts with a "MANDATORY Pre-Phase 0:
+Branch protection" check that fires ONCE per skill invocation,
+regardless of branch type. The check is broader than "are you on
+main/dev" -- it also catches the case where the user is on
+`feature/yesterday-thing` and starts a different topic, which would
+otherwise mix concerns into one PR.
 
-This is defense in depth: skill-side check asks the user up-front,
-hook-side check blocks accidental commits if the skill is bypassed.
+Behaviour:
+
+- On `main` / `master` / `dev`: always refuse, ask via
+  `AskUserQuestion` to create a feature branch.
+- On a `feature/*` / `fix/*` / `chore/*` branch: ask whether the
+  branch fits THIS work, with options continue / new branch / switch
+  to existing / custom. Recommendation derives from slug overlap and
+  recency of last commit on the branch.
+
+The check stays silent for the rest of the skill invocation
+(state in `.git/dia-active-skill`).
+
+Shared contract: `skills/project-conventions/references/branch-protection.md`
+documents slug heuristics per skill, recommendation logic, the
+once-per-session contract, and override mechanisms.
 
 ### Changed: tools/migration/ replaces skills/dia-migration/tools/ (2026-04-30)
 

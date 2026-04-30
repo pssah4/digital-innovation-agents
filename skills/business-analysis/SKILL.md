@@ -18,17 +18,21 @@ disable-model-invocation: false
 
 ## MANDATORY Pre-Phase 0: Branch protection
 
-Before any BA artefact write, verify the user is not on a protected
-branch (`main`, `master`, `dev`). If protected, ask via `AskUserQuestion`:
+Before the first BA artefact write, verify the current branch is
+right for THIS BA topic. The check fires once per skill invocation,
+regardless of branch type (state in `.git/dia-active-skill`).
 
-- A) Create feature branch `feature/ba-{topic-slug}` and switch (recommended)
-- B) Stay on `{current_branch}` (only for read-only validation runs)
-- C) Custom branch name
-
-Recommendation: A. BA produces a multi-section document plus backlog
-edits; those need a feature branch.
+- If on `main` / `master` / `dev`: refuse, ask via `AskUserQuestion`
+  to create `feature/ba-{topic-slug}`.
+- If on a `feature/*` / `fix/*` / `chore/*` branch: ask whether the
+  branch matches the BA topic. If the branch slug overlaps the topic,
+  recommend continue; otherwise recommend a new branch so the BA
+  lands as a separate PR. Options: continue / new branch / switch /
+  custom.
 
 Full rules: `skills/project-conventions/references/branch-protection.md`.
+
+Suggested slug for BA: `feature/ba-{topic-slug}`.
 
 ## MANDATORY Phase 0: Artifact triage
 

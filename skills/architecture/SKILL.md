@@ -16,18 +16,20 @@ disable-model-invocation: false
 
 ## MANDATORY Pre-Phase 0: Branch protection
 
-Before any ADR / arc42 / plan-context write, verify the user is not
-on a protected branch (`main`, `master`, `dev`). If protected, ask
-via `AskUserQuestion`:
+Before any ADR / arc42 / plan-context write, verify the current
+branch is right for THIS architecture work. The check fires once
+per skill invocation, regardless of branch type.
 
-- A) Create feature branch `feature/arch-{adr-or-feature-slug}` (recommended)
-- B) Stay on `{current_branch}` (only when amending an existing ADR)
-- C) Custom branch name
-
-Recommendation: A. Architecture work touches multiple files (ADRs,
-arc42, ARCHITECTURE.map); those need a feature branch.
+- If on `main` / `master` / `dev`: refuse, ask via `AskUserQuestion`
+  to create `feature/arch-{adr-or-feature-slug}`.
+- If on another `feature/*` branch: ask whether it matches the
+  architecture topic, with options continue / new branch / switch /
+  custom. Recommend new branch when the existing branch is for a
+  different ADR or feature.
 
 Full rules: `skills/project-conventions/references/branch-protection.md`.
+
+Suggested slug for architecture: `feature/arch-{adr-or-feature-slug}`.
 
 ## MANDATORY Phase 0: Artifact triage
 

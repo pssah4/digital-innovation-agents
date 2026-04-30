@@ -14,17 +14,20 @@ disable-model-invocation: false
 
 ## MANDATORY Pre-Phase 0: Branch protection
 
-Before any FEATURE / EPIC / FIX / IMP write, verify the user is not
-on a protected branch (`main`, `master`, `dev`). If protected, ask
-via `AskUserQuestion`:
+Before any FEATURE / EPIC / FIX / IMP write, verify the current
+branch is right for THIS work. The check fires once per skill
+invocation, regardless of branch type.
 
-- A) Create feature branch `feature/re-{feature-or-epic-slug}` (recommended)
-- B) Stay on `{current_branch}` (only for trivial single-line edits)
-- C) Custom branch name
-
-Recommendation: A. RE writes new artefacts; those need a feature branch.
+- If on `main` / `master` / `dev`: refuse, ask via `AskUserQuestion`
+  to create `feature/re-{feature-or-epic-slug}`.
+- If on another `feature/*` branch: ask whether it matches the
+  requirements topic, with options continue / new branch / switch /
+  custom. Recommend new branch when the existing branch slug does
+  not overlap the requirements topic.
 
 Full rules: `skills/project-conventions/references/branch-protection.md`.
+
+Suggested slug for RE: `feature/re-{feature-or-epic-slug}`.
 
 ## MANDATORY Phase 0: Artifact triage
 

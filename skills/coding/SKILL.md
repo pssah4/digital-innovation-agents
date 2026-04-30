@@ -16,19 +16,21 @@ disable-model-invocation: false
 
 ## MANDATORY Pre-Phase 0: Branch protection
 
-Before any code or artefact edit, verify the user is not on a
-protected branch (`main`, `master`, `dev`). If protected, ask via
-`AskUserQuestion`:
+Before any code or artefact edit, verify the current branch is
+right for THIS feature. The check fires once per skill invocation,
+regardless of branch type.
 
-- A) Create feature branch `feature/{feature-slug}` (recommended,
-     mirrors the FEATURE ID)
-- B) Stay on `{current_branch}` (only for emergency hot-fixes)
-- C) Custom branch name
-
-Recommendation: A. Coding produces commits that should land as a
-single PR; those need a feature branch.
+- If on `main` / `master` / `dev`: refuse, ask via `AskUserQuestion`
+  to create `feature/{feature-slug}` (mirrors the FEATURE ID).
+- If on another `feature/*` branch: ask whether it matches the
+  feature being implemented. Recommend continue when the branch
+  slug matches the FEATURE ID; recommend new branch when it does
+  not. Options: continue / new branch / switch / custom.
 
 Full rules: `skills/project-conventions/references/branch-protection.md`.
+
+Suggested slug for coding: `feature/{feature-slug}` mirroring the
+FEATURE ID being implemented.
 
 ## MANDATORY Phase 0: Artifact triage
 

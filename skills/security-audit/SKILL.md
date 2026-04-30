@@ -30,18 +30,18 @@ with a concrete remediation plan.
 ## MANDATORY Pre-Phase 0: Branch protection
 
 Before writing the audit report or any FIX/IMP follow-ups, verify
-the user is not on a protected branch (`main`, `master`, `dev`).
-If protected, ask via `AskUserQuestion`:
+the current branch is right for THIS audit. The check fires once
+per skill invocation, regardless of branch type.
 
-- A) Create feature branch `feature/audit-{YYYY-MM-DD}` (recommended)
-- B) Stay on `{current_branch}` (only when reading-only without writing)
-- C) Custom branch name
-
-Recommendation: A. Audits write a multi-section AUDIT report and
-typically queue several FIX/IMP follow-ups; those need a feature
-branch.
+- If on `main` / `master` / `dev`: refuse, ask via `AskUserQuestion`
+  to create `feature/audit-{YYYY-MM-DD}`.
+- If on another `feature/*` branch: audits are almost always a
+  separate PR; recommend new branch unless the user explicitly
+  confirms the branch is for THIS audit.
 
 Full rules: `skills/project-conventions/references/branch-protection.md`.
+
+Suggested slug for security-audit: `feature/audit-{YYYY-MM-DD}`.
 
 ## What you do
 

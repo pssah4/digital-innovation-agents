@@ -17,17 +17,21 @@ framework, patterns, and conventions automatically from the project.
 
 ## MANDATORY Pre-Phase 0: Branch protection
 
-Before any test write, verify the user is not on a protected branch
-(`main`, `master`, `dev`). If protected, ask via `AskUserQuestion`:
+Before any test write, verify the current branch is right for THIS
+test work. The check fires once per skill invocation, regardless of
+branch type.
 
-- A) Create feature branch `feature/test-{feature-or-area-slug}` (recommended)
-- B) Stay on `{current_branch}` (only for trivial single-test fixes)
-- C) Custom branch name
-
-Recommendation: A. Test additions usually come with implementation
-edits; those need a feature branch.
+- If on `main` / `master` / `dev`: refuse, ask via `AskUserQuestion`
+  to create `feature/test-{feature-or-area-slug}`.
+- If on another `feature/*` branch: ask whether it matches the test
+  area. When tests directly accompany a feature being coded, the
+  same branch is usually correct (recommend continue); when tests
+  are a standalone backfill, recommend a new branch.
 
 Full rules: `skills/project-conventions/references/branch-protection.md`.
+
+Suggested slug for testing: `feature/test-{feature-or-area-slug}`,
+or `feature/{feature-slug}` when tests accompany feature code.
 
 ## MANDATORY Phase 0: Artifact triage
 
