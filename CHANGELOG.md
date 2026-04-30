@@ -7,15 +7,218 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added: tools/ directory with project-agnostic Mode A driver and pre-commit hook (2026-04-30)
+
+New `tools/` directory containing the syntactic consistency-check
+driver and a pre-commit hook template that any DIA-conformant project
+can install. The script auto-detects the repo root via `git`,
+expects the standard DIA artefact layout, and accepts an optional
+`dia.config.json` for project-specific overrides.
+
+- `tools/consistency-check.py` -- Mode A driver. Checks: dead links,
+  ADR abstraction violations (no code paths in core sections), and
+  backlog completeness. Auto-fixes Status/Phase frontmatter and body
+  duplicates. Writes findings to `.git/consistency-check.last-run.json`.
+- `tools/git-hooks/pre-commit` -- pre-commit hook. Runs Mode A with
+  `--fix`. On remaining findings prompts the user (y/N) whether to
+  launch the interactive Mode C fix-loop in Claude Code. Bypassable
+  via `git commit --no-verify`.
+- `tools/install-git-hooks.sh` -- installer. Run from the target
+  project's repo root: `bash <DIA-checkout>/tools/install-git-hooks.sh`.
+  Copies the script to `.git/hooks-data/` and the hook to
+  `.git/hooks/pre-commit`.
+
+This codifies the "drift safeguards" architecture: structure is the
+specification (BACKLOG.md as single source for status, ARCHITECTURE.map
+for code paths), and the syntactic check enforces it on every commit.
+
+### Added: Mode C interactive fix-loop in consistency-check skill (2026-04-30)
+
+The consistency-check skill now defines a third mode for guided fix
+workflows. Triggered by `/consistency-check --fix-interactive` or
+when the pre-commit hook leaves non-auto-fixable findings, Mode C
+walks each finding with the user via `AskUserQuestion`, presenting:
+
+- Two to four concrete fix options with one-line `Pro:`/`Con:` blocks.
+- A `Skip` option that defers without losing the finding.
+- A `Custom` option for free-text override.
+- A clear recommendation per finding, derived from project state.
+
+A Trust-Mode batch option ("mach wie du denkst, ich akzeptiere alle
+fixes") delegates all decisions to the agent, with audit-log output
+at the end. Escalations happen when fixes touch shared infrastructure
+or would delete substance.
+
+The loop is resumable: findings persist in
+`.git/consistency-check.last-run.json` across Claude Code sessions.
+
+### Changed: BACKLOG.md / HANDOFFS.md / METRICS.md (BREAKING)
+
+The three context meta-files in `_devprocess/context/` are renamed
+from numeric prefixes to capital sentinel filenames:
+
+- `10_backlog.md` -> `BACKLOG.md`
+- `30_handoffs.md` -> `HANDOFFS.md`
+- `40_metrics.md` -> `METRICS.md`
+
+Capitalization signals "meta-file, not artefact". Numeric prefixes
+imposed an ordering that has no semantic meaning (the three files
+play distinct roles, none of them sequential).
+
+Migration: the `dia-migration` skill v2 will perform the rename
+automatically. Manual migration: `git mv` the three files, then
+`grep`-and-replace references across the repo.
+
+### Added: /dia-migration skill (2026-04-30)
+
+New skill `/dia-migration` that brings legacy DIA v1 projects, older
+V-Model variants, or brownfield repos up to current DIA v2
+conventions. Idempotent and branch-safe; refuses to run on
+`main`/`master`/`dev`. Source code under `src/` is not auto-edited
+(only `src/ARCHITECTURE.map` and module READMEs are added).
+
+Seven phases, each committed separately:
+
+1. Detection and plan
+2. Foundation (`_devprocess/rules/`, `src/ARCHITECTURE.map`,
+   directory layout, `20_bugs.md` removal)
+3. Bulk status cleanup (frontmatter `status:`/`phase:`/`last_updated:`
+   plus body `**Status:**` headers)
+4. Filename migration (`FEATURE-NNNN` -> `FEAT-NN-NN`, `EPIC-NNN` ->
+   `EPIC-NN`, `ADR-NNN` -> `ADR-NN`, `FIX-EEFF-NN` -> `FIX-NN-NN-NN`,
+   etc.)
+5. Analysis flattening to four prefixes (BA, EXPLORE, RESEARCH, AUDIT)
+6. Backlog regeneration as single source of truth (previous backlog
+   preserved as `BACKLOG.md.preMigration`)
+7. Skill name updates (`/business-analyse` -> `/business-analysis`,
+   `/v-model-workflow` -> `/dia-orchestrator`)
+8. Consistency check (`/consistency-check` mode A with auto-fix)
+
+Ships seven executable Python scripts under
+`skills/dia-migration/tools/`: `detect_state.py`,
+`strip_frontmatter_status.py`, `strip_body_status.py`,
+`migrate_naming.py`, `flatten_analysis.py`, `build_backlog.py`,
+`migrate_skill_names.py`. All idempotent.
+
+Cross-references added in `README.md` (skill table plus quick-start
+entry-points), `AGENTS.md` (orientation block), `.codex/INSTALL.md`,
+`.opencode/INSTALL.md`, `scripts/install-skills.sh` (skill array
+plus usage block), `docs/.vitepress/config.mts` (sidebar Migration
+section), and a new doc page at `docs/guides/dia-migration.md`.
+
+### Added (drift-resistance refactor, 2026-04-30)
+
+Drift-resistance refactor based on a 2026-04-29 audit of one V-Model
+project (24% drift across 110 sampled claims, concentrated on status
+fields, key-files lists, and quantitative claims). The refactor
+introduces three orthogonal mechanics that extend the V-Model without
+replacing it.
+
+#### New three-layer documentation model
+
+Documented in `skills/project-conventions/SKILL.md` under
+"Three-layer documentation model":
+
+- **Wayfinder layer**: `src/ARCHITECTURE.map` plus JSDoc headers in
+  entry-point files plus optional module READMEs. The only place
+  current code paths live.
+- **Rule sets**: `_devprocess/rules/technical.md` (max 150 lines),
+  `design.md` (max 100 lines, optional), `domain.md` (max 100 lines).
+  Stable truths only, hard cap 500 lines total.
+- **Backlog as single source of truth**:
+  `_devprocess/context/BACKLOG.md` carries status, phase, claim,
+  and the relation graph for every artifact. Status fields move out
+  of artifact frontmatter entirely.
+- **Detail artifacts**: BA, Epics, Features, Plans, Fixes, ADR
+  detail. Audit trail of the engineering process. Substance only,
+  no current code paths in core sections.
+
+#### New templates
+
+- `skills/architecture/templates/ARCHITECTURE-MAP-TEMPLATE.md`
+  (wayfinder lookup table)
+- `skills/architecture/templates/JSDOC-HEADER-TEMPLATE.md`
+  (5-line entry-point header)
+- `skills/architecture/templates/MODULE-README-TEMPLATE.md`
+  (module-level wayfinder)
+- `skills/architecture/templates/RULES-TECHNICAL-TEMPLATE.md`
+- `skills/architecture/templates/RULES-DESIGN-TEMPLATE.md`
+- `skills/architecture/templates/RULES-DOMAIN-TEMPLATE.md`
+- `skills/coding/templates/FIX-TEMPLATE.md`
+- `skills/coding/templates/IMP-TEMPLATE.md`
+
+#### Updated templates (status field removed from frontmatter)
+
+- `skills/architecture/templates/ADR-TEMPLATE.md`: ADR abstraction
+  rule introduced (no code paths in core sections), optional
+  `## Implementation Notes` appendix allowed to go stale.
+- `skills/requirements-engineering/templates/FEATURE-TEMPLATE.md`:
+  status field removed from frontmatter; `## How It Works` and
+  `## Key Files` sections removed; optional `## Code Pointer`
+  appendix references ARCHITECTURE.map concept names instead of file
+  paths.
+- `skills/coding/templates/PLAN-TEMPLATE.md`: explicit Coverage Gate
+  table; status moved to backlog row.
+- `skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`:
+  Refs column carries the relation graph; row format extended with
+  Phase, Last change, Refs columns; vocabulary section unified.
+
+#### Updated skills (English-only instructions, backlog-first writeback)
+
+All MANDATORY blocks converted from German to English in
+`/business-analysis`, `/requirements-engineering`, `/architecture`,
+`/coding`, `/testing`, `/consistency-check`, `/dia-orchestrator`,
+`/reverse-engineering`. Skill instructions are now English; artifact
+output continues to follow the user's working language.
+
+- **`/architecture`**: ADR abstraction rule (no code paths in core
+  sections), ADR consolidation duty (cap at ~30 thematic ADRs),
+  rule-set maintenance, wayfinder generation as mandatory output.
+- **`/coding`**: backlog-first writeback (backlog row updated BEFORE
+  artifact body), wayfinder maintenance (ARCHITECTURE.map + JSDoc
+  headers + module READMEs land in the same commit as the code),
+  status synchronization on Done, FIX/IMP at canonical
+  `_devprocess/context/{fixes,improvements}/` paths.
+- **`/testing`**: hard verify-gate language ("0 failures, 0 errors,
+  coverage not regressed"), backlog-first artifact updates.
+- **`/consistency-check`**: 8 quick-check items including new
+  invariants (backlog completeness E-12, backlog-as-single-source
+  N-15, ADR abstraction A-1, wayfinder paths E-13). 6 deep-check
+  items including spec-code coherence, rule-set drift, orphan
+  artifacts, ADR duplication, map completeness, backlog graph
+  render. Auto-fix mode now removes duplicate `status:`/`phase:`
+  fields from artifact frontmatter.
+- **`/dia-orchestrator`**: plan-gate at /architecture-to-/coding
+  transition is binding; consistency-check at phase boundaries is
+  binding. Project structure setup includes `_devprocess/rules/`
+  and `src/ARCHITECTURE.map`.
+- **`/reverse-engineering`**: wayfinder generation
+  (ARCHITECTURE.map plus JSDoc headers plus module READMEs) is
+  mandatory primary output. Rules layer seeded from observed code
+  patterns.
+
+#### Path standardization
+
+All references to `docs/context/...` paths corrected to
+`_devprocess/context/...` across skills and reference files.
+
+#### Migration notes
+
+Projects on the previous convention (status in frontmatter) keep
+working; the new auto-fix mode of `/consistency-check` migrates
+them on the next run. Existing artifacts carrying both
+frontmatter and backlog status get their frontmatter cleaned and
+the backlog row preserved as the source of truth.
+
 ## [2.4.0] - 2026-04-20
 
 Minor release. Adds `/consistency-check` as a first-class graph-health
 skill and rolls a mandatory Phase/Status frontmatter convention across
-five V-Model skills. `/business-analyse` gets a three-level BA
+five V-Model skills. `/business-analysis` gets a three-level BA
 hierarchy (Project-BA / Epic-BA / Feature-BA) with inheritance rules
 that keep downstream artifacts compact. `/coding` and
 `/reverse-engineering` grow binding mid-course triggers that prevent
-drift between code and spec. `/v-model-workflow` replaces the static
+drift between code and spec. `/dia-orchestrator` replaces the static
 entry-point question with a hybrid detection that scans the project,
 runs a graph-health check, and recommends the next phase.
 
@@ -30,20 +233,20 @@ runs a graph-health check, and recommends the next phase.
   orchestrator to diagnose the next entry point.
 - **Phase/Status frontmatter convention** across `architecture`,
   `coding`, `requirements-engineering`, `reverse-engineering`, and
-  `v-model-workflow`. Every Feature, Epic, and ADR carries `phase:`
+  `dia-orchestrator`. Every Feature, Epic, and ADR carries `phase:`
   and `status:` in frontmatter; the backlog row stays in sync on
   every change. Enum values and sync chain live in
   `skills/project-conventions/references/graph-invariants.md`
   (new reference file).
-- **BA hierarchy** in `/business-analyse`. Project-BA
+- **BA hierarchy** in `/business-analysis`. Project-BA
   (`_devprocess/analysis/BA-{project}.md`) is the single source of
   truth for personas, value dimensions, strategic KPIs, and product-
-  wide risk. Epic-BA (`requirements/epics/EPIC-NNN-ba.md`, max 80
+  wide risk. Epic-BA (`requirements/epics/EPIC-{nn}-ba.md`, max 80
   lines) references Project-BA IDs; Epic-KPIs must map to a
   Project-BA KPI via frontmatter `project-kpi-ref:`. Feature-BA is
   rare, only when a feature activates a new persona or owns its own
   hypotheses. New template
-  `skills/business-analyse/templates/EPIC-BA-TEMPLATE.md`.
+  `skills/business-analysis/templates/EPIC-BA-TEMPLATE.md`.
 - **Mid-course capability discovery trigger** in `/coding`. New user-
   facing capability (route, handler, command, Sidebar entry, settings
   tab, CLI flag, public API endpoint) pauses the coding flow, runs a
@@ -62,7 +265,7 @@ runs a graph-health check, and recommends the next phase.
   code has no deterministic target. Replaces the previous pure
   placeholder pattern so the consistency-check can anchor every
   Feature.
-- **Hybrid entry-point detection** in `/v-model-workflow`. The
+- **Hybrid entry-point detection** in `/dia-orchestrator`. The
   orchestrator scans the project, runs `/consistency-check` Mode A,
   and recommends the likely entry phase from the Graph-Health
   snapshot. The user sees the recommendation plus manual
@@ -71,7 +274,7 @@ runs a graph-health check, and recommends the next phase.
 
 ### Added (tools)
 
-- **Graph visualisation** under `skills/v-model-workflow/tools/`:
+- **Graph visualisation** under `skills/dia-orchestrator/tools/`:
   `graph-viewer.html` (browser-side viewer for the artifact graph),
   `parse-graph.py` (scans the project and emits graph data), and
   `open-graph.sh` (one-shot runner).
@@ -87,12 +290,12 @@ runs a graph-health check, and recommends the next phase.
 
 Minor release. Promotes plan persistence to a first-class artifact of
 the `/coding` phase. Every non-trivial implementation run now leaves a
-`PLAN-NNN-{slug}.md` file behind in `_devprocess/implementation/plans/`,
+`PLAN-{nn}-{slug}.md` file behind in `_devprocess/implementation/plans/`,
 protected by a Plan Coverage Gate that checks Success Criterion
 coverage, ADR alignment, codebase anchoring, and verification gates
 before any code is written. The plan body stays free-form so the
 skill inherits improvements in the coding agent's native planning mode
-instead of freezing a fixed schema. `/v-model-workflow` updated to
+instead of freezing a fixed schema. `/dia-orchestrator` updated to
 route implementation through the persisted plan and to surface
 mid-course requirements discovery from `/coding` as well as
 `/architecture`.
@@ -109,22 +312,22 @@ mid-course requirements discovery from `/coding` as well as
 ### Changed (skills)
 
 - `skills/coding/SKILL.md`: new Phase 3a "Plan persistence" describing
-  the PLAN-NNN file flow, a four-item Plan Coverage Gate (SC coverage,
+  the PLAN-{nn} file flow, a four-item Plan Coverage Gate (SC coverage,
   ADR alignment, codebase anchoring, verification gates), and a
   writeback loop that re-runs the gate whenever a source artifact
   changes while a plan is Active. Adds source-artifact reading
   instruction for prior and active plans. Explicit guidance for
   Mid-course requirements discovery during coding (amend the FEATURE
   in place, re-run the Coverage Gate).
-- `skills/v-model-workflow/SKILL.md`: implementation step now persists
-  a PLAN-NNN file and hands off to the Default agent with the plan as
+- `skills/dia-orchestrator/SKILL.md`: implementation step now persists
+  a PLAN-{nn} file and hands off to the Default agent with the plan as
   source of truth; mid-course deviations append to the plan's Change
   Log. Cycle diagram updated to include the PLAN step. `_devprocess`
   scaffold includes `implementation/plans/`.
 
 ### Not in this release
 
-- Docs guides (`docs/guides/coding.md`, `docs/guides/v-model-workflow.md`)
+- Docs guides (`docs/guides/coding.md`, `docs/guides/dia-orchestrator.md`)
   do not yet describe plan persistence or the Coverage Gate. Deferred
   to a follow-up patch release once the skill behaviour is validated
   in real projects.
@@ -133,7 +336,7 @@ mid-course requirements discovery from `/coding` as well as
 
 Patch release. Documentation update for v2.2.0 features and a new
 standalone PULSE page that frames the team operating model on top of
-the V-Model workflow. Two skills (`v-model-workflow`, `security-audit`)
+the V-Model workflow. Two skills (`dia-orchestrator`, `security-audit`)
 flipped from `disable-model-invocation: true` to `false` with sharper
 descriptions so the slash menu surfaces them and auto-invocation only
 fires on explicit triggers.
@@ -152,27 +355,27 @@ fires on explicit triggers.
 
 ### Changed (docs)
 
-- `docs/reference/artifacts.md`: `40_metrics.md` added to the directory
+- `docs/reference/artifacts.md`: `METRICS.md` added to the directory
   tree, "three context files" expanded to "four context files" with the
   signal-layer description and the Claim column on backlog rows. Project
   initialisation snippet copies `METRICS-TEMPLATE.md` too.
-- `docs/reference/conventions.md`: `40_metrics.md` added to the file-name
+- `docs/reference/conventions.md`: `METRICS.md` added to the file-name
   table, new "Pair IDs (concurrent agent coordination)" section with the
   `{human-handle}-{model}` format and Claim cell convention.
 - `docs/concepts/handoff-rituals.md`: new section "Dialog handoffs, not
   blockers" describing the Questions/Answers tables in `architect-handoff.md`
   and `plan-context.md`, the agent-agent self-answer path, and the
   `AskUserQuestion` fallback for the residue.
-- `docs/concepts/living-documents.md`: `40_metrics.md` added to the
+- `docs/concepts/living-documents.md`: `METRICS.md` added to the
   writeback table.
-- `docs/guides/business-analyse.md`: new "Phase 8: Post-Release Review"
+- `docs/guides/business-analysis.md`: new "Phase 8: Post-Release Review"
   section describing how Critical Hypotheses get classified against
   real usage evidence and how the phase is queued via the `release-to-ba`
   handoff entry.
 
 ### Changed (skills)
 
-- `skills/v-model-workflow/SKILL.md` and `skills/security-audit/SKILL.md`:
+- `skills/dia-orchestrator/SKILL.md` and `skills/security-audit/SKILL.md`:
   `disable-model-invocation` flipped to `false` so both skills appear in
   the `/` slash menu. Descriptions tightened with explicit TRIGGER ONLY
   / DO NOT trigger lists so auto-invocation does not fire on generic
@@ -190,18 +393,18 @@ supply-chain hardening.
 
 ### Added (workflow)
 
-- **Signal layer** (FEATURE-001-001). New artifact
-  `_devprocess/context/40_metrics.md`, seeded from
-  `skills/v-model-workflow/templates/METRICS-TEMPLATE.md`. Five
+- **Signal layer** (FEAT-01-01). New artifact
+  `_devprocess/context/METRICS.md`, seeded from
+  `skills/dia-orchestrator/templates/METRICS-TEMPLATE.md`. Five
   tables: cycle time per FEATURE, drift count (plan-context.md vs.
   real code), BA hypothesis validation status, phase transition
   counts, cross-phase trigger counts. Append-additive, no rows ever
   deleted. Writes happen inside existing phase actions: `/coding`
   Phase 2d (drift count during codebase reconciliation), `/coding`
   Final synchronization step 5 (cycle time, transitions, triggers),
-  `/business-analyse` Phase 8 (hypothesis status). No separate
+  `/business-analysis` Phase 8 (hypothesis status). No separate
   metrics-collection ceremony.
-- **Dialog handoffs, not blockers** (FEATURE-001-002). Both handoff
+- **Dialog handoffs, not blockers** (FEAT-01-02). Both handoff
   documents (`architect-handoff.md` and `plan-context.md`) carry a
   `## Dialog` section with Questions and Answers tables. Receiving
   skills scan for pending entries on session start, attempt to
@@ -210,7 +413,7 @@ supply-chain hardening.
   `AskUserQuestion` (agent-human path). Pending entries never block
   unrelated work. New template
   `skills/requirements-engineering/templates/ARCHITECT-HANDOFF-TEMPLATE.md`.
-- **Cross-phase feedback triggers** (FEATURE-001-003). Two new
+- **Cross-phase feedback triggers** (FEAT-01-03). Two new
   binding triggers that complete the decision-graph pattern
   alongside the existing mid-course bug trigger. Mid-course design
   discovery in `/coding` amends or supersedes an ADR when the code
@@ -219,29 +422,29 @@ supply-chain hardening.
   `/requirements-engineering` with local blocking (only the
   affected ADR waits, others continue with `blocked-by` dependency
   cite).
-- **BA as living document after release** (FEATURE-001-004). New
-  `/business-analyse` Phase 8: Post-Release Review. Walks each
+- **BA as living document after release** (FEAT-01-004). New
+  `/business-analysis` Phase 8: Post-Release Review. Walks each
   Critical Hypothesis, classifies per real usage evidence as
   `Confirmed by usage`, `Contradicted by usage`, or `Inconclusive`.
   Contradictions trigger backlog entries. Queued automatically by
-  `/v-model-workflow` Phase 7 Step 6 via a `release-to-ba` handoff
+  `/dia-orchestrator` Phase 7 Step 6 via a `release-to-ba` handoff
   entry.
-- **Concurrent-agent coordination** (FEATURE-001-005). Backlog rows
+- **Concurrent-agent coordination** (FEAT-01-005). Backlog rows
   gain a `Claim` column with format `{pair-id} @ {YYYY-MM-DD}`.
   Phase skills claim on start and release on phase end or
   `Status: Done`. Claim conflict surfaces via `AskUserQuestion`
   with four options (ask release, take over, different item,
   split). No central lock service, the backlog itself is the lock.
   Pair-id convention: `{human-handle}-{model}`.
-- **V-Model as decision graph** (FEATURE-001-006). New section in
-  `skills/v-model-workflow/SKILL.md` and in `docs/concepts/v-model.md`
+- **V-Model as decision graph** (FEAT-01-006). New section in
+  `skills/dia-orchestrator/SKILL.md` and in `docs/concepts/v-model.md`
   that names the three cross-phase triggers and explicitly says the
   forward walk is the default, not the only path. Closes the PULSE
   comment #6 critique that the V looks like waterfall.
 
 ### Added (security)
 
-- **SHA-pinned GitHub Actions** (FEATURE-002-001, Issue #9 Gap 1).
+- **SHA-pinned GitHub Actions** (FEAT-02-01, Issue #9 Gap 1).
   Every third-party action in `.github/workflows/deploy-docs.yml`
   pinned to a 40-char commit SHA with the human-readable version as
   trailing comment. New `.github/dependabot.yml` enables weekly
@@ -259,8 +462,8 @@ supply-chain hardening.
 
 - `project-conventions/SKILL.md` Feature Lifecycle extended with
   CLAIM and RELEASE CLAIM steps. Directory structure reference
-  includes `40_metrics.md`.
-- `v-model-workflow/SKILL.md` Phase 7 Release Closure Step 6 writes
+  includes `METRICS.md`.
+- `dia-orchestrator/SKILL.md` Phase 7 Release Closure Step 6 writes
   the `release-to-ba` handoff entry that queues the BA review.
 - `coding/SKILL.md` Phase 1 scans plan-context.md for pending
   Dialog entries. Phase 2d (new) writes the drift-count row.
@@ -270,7 +473,7 @@ supply-chain hardening.
   for pending Dialog entries and tries to self-answer.
 - `requirements-engineering/SKILL.md` references the new
   ARCHITECT-HANDOFF-TEMPLATE.
-- `business-analyse/SKILL.md` adds Phase 8 (Post-Release Review).
+- `business-analysis/SKILL.md` adds Phase 8 (Post-Release Review).
 
 ### Not in this release
 
@@ -297,31 +500,31 @@ VitePress landing-page overhaul with a handcrafted V-Model SVG.
   with strict anti-hallucination rules: every claim carries a
   `Source:` reference, placeholders replace guesses, personas are
   never invented from code structure.
-- `/business-analyse` Phase 0 (Existing BA Detection) preflight. When
+- `/business-analysis` Phase 0 (Existing BA Detection) preflight. When
   a draft BA exists, the skill enters Validation Mode and walks
   section by section, confirming evidence-backed claims and filling
   `[NEEDS USER INPUT]` placeholders via the normal interview. On
   success it promotes the BA from `Status: Draft` to `Status: Validated`.
-- `/v-model-workflow` entry option A0 for brownfield projects, plus a
+- `/dia-orchestrator` entry option A0 for brownfield projects, plus a
   new "Reverse Engineering -> Business Analysis" transition that
-  always routes through `/business-analyse` to validate the WHY
+  always routes through `/business-analysis` to validate the WHY
   before the forward walk resumes.
-- Explicit method-proposal protocol in `/business-analyse` and
+- Explicit method-proposal protocol in `/business-analysis` and
   `/requirements-engineering`: when user answers go generic or
   sections lack evidence, the skill stops the interview and proposes
-  the matching method from `skills/business-analyse/references/innovation-methods.md`,
+  the matching method from `skills/business-analysis/references/innovation-methods.md`,
   always linked to its user-facing docs card.
 - Mid-course bug discovery trigger in `/coding`: when a new bug
   surfaces during implementation, the flow pauses, routes through
-  BUG-NNN / FEATURE-NNNN / ADR-amendment triage, writes a root-cause
+  BUG-NNN / FEAT-NN-NN / ADR-amendment triage, writes a root-cause
   analysis, adds a backlog entry BEFORE the fix, and cites both items
-  in the commit message (`Refs: FEATURE-0507, BUG-018`).
+  in the commit message (`Refs: FEAT-05-07, BUG-018`).
 - Per-commit backlog writeback gate in `/coding`: the backlog MUST
   reflect the post-implementation state before every commit that
-  references a FEATURE-NNNN or BUG-NNN. Stricter than end-of-phase
+  references a FEAT-NN-NN or BUG-NNN. Stricter than end-of-phase
   writeback to prevent drift across long phases.
 - Binding User Interaction Protocol in `/using-digital-innovation-agents`
-  and `/v-model-workflow`: one question per turn, use
+  and `/dia-orchestrator`: one question per turn, use
   `AskUserQuestion`, every option carries a labelled Pro and Con, the
   recommended option is the first entry with "(Recommended)", no
   dealer's choice framing.
@@ -377,7 +580,7 @@ site, full English translation.
 - Landing page (`docs/index.md`) with hero section and feature tiles
 - Tutorials: installation (all 7 platforms), first-business-analysis,
   full-v-model-run
-- Guides: one per skill. v-model-workflow, business-analyse, and
+- Guides: one per skill. dia-orchestrator, business-analysis, and
   coding as full guides; the other 5 as structured intros linking
   back to `skills/*/SKILL.md` as source of truth
 - Reference: commands, artifacts (`_devprocess/` layout), conventions,
@@ -405,17 +608,17 @@ site, full English translation.
   Integration tests are the primary focus, unit-test gaps secondary, and
   coverage check tertiary. Fallback mode remains for runs where TDD was
   not active.
-- **`/v-model-workflow` skill**: new "Orchestrated Phase Transitions"
+- **`/dia-orchestrator` skill**: new "Orchestrated Phase Transitions"
   section driving phase handoffs actively, and a new **Phase 7: Release
   Closure** that finalizes artifacts, generates release notes, updates
   CHANGELOG, and cleans the backlog.
-- **All 6 phase skills** (business-analyse, requirements-engineering,
+- **All 6 phase skills** (business-analysis, requirements-engineering,
   architecture, coding, testing, security-audit): mandatory 3-part
   Handoff Ritual at end of phase -- Artifact report, Handoff context
-  (appended to `30_handoffs.md`), Explicit transition question.
+  (appended to `HANDOFFS.md`), Explicit transition question.
 - **`_devprocess/context/20_bugs.md`**: new file convention for the
-  FIX-NN bug log, maintained by `/coding` Phase 3c.
-- **`_devprocess/context/30_handoffs.md`**: new file convention for the
+  FIX-NN-NN-NN bug log, maintained by `/coding` Phase 3c.
+- **`_devprocess/context/HANDOFFS.md`**: new file convention for the
   append-only phase handoffs log, written by each phase skill.
 - **`using-digital-innovation-agents`**: new "Language in dialog" section
   -- skill content is English, user-facing dialog adapts to user's
@@ -425,11 +628,11 @@ site, full English translation.
 
 - All 6 German skill files translated to English for portability and
   consistency with `plugin.json`, README, CHANGELOG: `coding`, `testing`,
-  `architecture`, `security-audit`, `v-model-workflow`, `project-conventions`.
+  `architecture`, `security-audit`, `dia-orchestrator`, `project-conventions`.
 - `project-conventions/SKILL.md`: filename table extended with
-  `20_bugs.md` and `30_handoffs.md` entries; new "The `_devprocess/context/`
+  `20_bugs.md` and `HANDOFFS.md` entries; new "The `_devprocess/context/`
   files" section explains the three living logs.
-- `business-analyse/SKILL.md` and `requirements-engineering/SKILL.md`
+- `business-analysis/SKILL.md` and `requirements-engineering/SKILL.md`
   (already English): existing "Handoff" section replaced by the new
   3-part Handoff Ritual.
 
@@ -477,9 +680,9 @@ reference point before the v2 restructuring begins.
 ### Features
 
 - 8 Claude Code skills covering the full V-Model cycle:
-  `project-conventions`, `business-analyse`, `requirements-engineering`,
-  `architecture`, `coding`, `testing`, `security-audit`, `v-model-workflow`
-- 3 innovation phases in `business-analyse`: Exploration, Ideation, Validation
+  `project-conventions`, `business-analysis`, `requirements-engineering`,
+  `architecture`, `coding`, `testing`, `security-audit`, `dia-orchestrator`
+- 3 innovation phases in `business-analysis`: Exploration, Ideation, Validation
 - 20+ innovation methods with probing techniques (5-Why, Future Projection,
   Perspective Shift, Emotional Level, Analogy Trigger)
 - Tech-agnostic success criteria enforcement in `requirements-engineering`

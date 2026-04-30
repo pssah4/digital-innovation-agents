@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# DIA pre-commit hook: runs consistency-check Mode A with auto-fix.
+# Non-fixable findings prompt the user to launch the interactive
+# fix-loop (Mode C) in Claude Code. Bypass with --no-verify.
+#
+# Install: bash <DIA-repo>/tools/install-git-hooks.sh
+# (run from the target project's repo root)
+
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel)
+
+# Locate the consistency-check script in either the target project's
+# .git/hooks-data/ (installed copy) or via DIA_HOME env (source layout).
+SCRIPT="$ROOT/.git/hooks-data/consistency-check.py"
+if [ ! -x "$SCRIPT" ] && [ -n "${DIA_HOME:-}" ]; then
+    SCRIPT="$DIA_HOME/tools/consistency-check.py"
+fi
+if [ ! -x "$SCRIPT" ]; then
+    echo "[pre-commit] consistency-check.py not found. Re-install via:"
+    echo "    bash <DIA-repo>/tools/install-git-hooks.sh"
+    exit 0
+fi
+
+if ! python3 "$SCRIPT" --fix; then
+    echo
+    echo "Commit blocked by consistency-check findings."
+    echo
+
+    # Non-interactive (CI, IDE silent commit): just print resume command.
+    if [ ! -t 0 ] || [ ! -t 1 ]; then
+        echo "Non-interactive shell -- run manually:"
+        echo "    claude /consistency-check --fix-interactive"
+        echo "Or bypass: git commit --no-verify"
+        exit 1
+    fi
+
+    # 3C: ask before launching Claude.
+    read -r -p "Launch interactive fix loop in Claude Code now? [y/N] " answer
+    answer=${answer:-N}
+    case "$answer" in
+        [yY]|[yY][eE][sS])
+            if command -v claude >/dev/null 2>&1; then
+                echo "Launching: claude /consistency-check --fix-interactive"
+                exec claude /consistency-check --fix-interactive
+            else
+                echo "claude binary not found in PATH."
+                echo "Install Claude Code or run the loop manually:"
+                echo "    claude /consistency-check --fix-interactive"
+                exit 1
+            fi
+            ;;
+        *)
+            echo
+            echo "Findings file: .git/consistency-check.last-run.json"
+            echo "Resume later: claude /consistency-check --fix-interactive"
+            echo "Bypass commit-check: git commit --no-verify"
+            exit 1
+            ;;
+    esac
+fi
+
+exit 0
