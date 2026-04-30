@@ -1,13 +1,68 @@
 #!/usr/bin/env bash
-# DIA pre-commit hook: runs consistency-check Mode A with auto-fix.
-# Non-fixable findings prompt the user to launch the interactive
-# fix-loop (Mode C) in Claude Code. Bypass with --no-verify.
+# DIA pre-commit hook. Two checks before every commit:
+#   1. Branch protection: refuse commits on protected branches
+#      (main, master, dev) so feature work always lands on a
+#      dedicated branch. Configurable via git config dia.protected-branches
+#      (space-separated list).
+#   2. Consistency check Mode A with auto-fix: enforces the
+#      DIA artefact-graph invariants. Non-fixable findings
+#      prompt the user to launch the interactive Mode C fix-loop
+#      in Claude Code.
+#
+# Bypass any single commit with --no-verify.
 #
 # Install: bash <DIA-repo>/tools/install-git-hooks.sh
 # (run from the target project's repo root)
 
 set -euo pipefail
 ROOT=$(git rev-parse --show-toplevel)
+
+# ---- Branch protection ------------------------------------------------
+
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+PROTECTED=$(git config --get dia.protected-branches 2>/dev/null || echo "main master dev")
+
+is_protected() {
+    local b="$1"
+    for p in $PROTECTED; do
+        [ "$b" = "$p" ] && return 0
+    done
+    return 1
+}
+
+if is_protected "$CURRENT_BRANCH"; then
+    echo "Commit blocked: you are on a protected branch ($CURRENT_BRANCH)."
+    echo
+    echo "Feature work must land on a dedicated branch so it stays"
+    echo "reviewable and revertable as a single PR."
+    echo
+    if [ ! -t 0 ] || [ ! -t 1 ]; then
+        echo "Non-interactive shell. Create a feature branch manually:"
+        echo "    git checkout -b feature/<short-slug>"
+        echo "Then re-run the commit."
+        echo "Bypass: git commit --no-verify (not recommended)"
+        exit 1
+    fi
+    read -r -p "Create a feature branch now? Type a slug (or empty to abort): " slug
+    if [ -z "$slug" ]; then
+        echo "Aborted. Bypass with: git commit --no-verify"
+        exit 1
+    fi
+    # Sanitize slug to feature/ prefix + safe chars
+    slug=$(echo "$slug" | tr ' ' '-' | tr -cd 'A-Za-z0-9_/-')
+    if [[ "$slug" != feature/* && "$slug" != fix/* && "$slug" != chore/* ]]; then
+        slug="feature/$slug"
+    fi
+    if git rev-parse --verify "$slug" >/dev/null 2>&1; then
+        echo "Branch '$slug' already exists. Switch into it manually:"
+        echo "    git checkout $slug"
+        exit 1
+    fi
+    git checkout -b "$slug"
+    echo "[pre-commit] switched to $slug. Re-running the commit on the new branch."
+fi
+
+# ---- Consistency check Mode A -----------------------------------------
 
 # Locate the consistency-check script in either the target project's
 # .git/hooks-data/ (installed copy) or via DIA_HOME env (source layout).

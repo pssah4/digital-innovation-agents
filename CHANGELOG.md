@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added: branch protection (2026-04-30)
+
+The pre-commit hook now refuses commits on protected branches
+(default: `main`, `master`, `dev`) and offers to create a feature
+branch interactively. Configurable per project via
+`git config dia.protected-branches "<space-separated-list>"`.
+
+Every entry skill (reverse-engineering, business-analysis,
+requirements-engineering, architecture, coding, testing,
+security-audit) now starts with a "MANDATORY Pre-Phase 0: Branch
+protection" check that asks the user via `AskUserQuestion` whether
+to create a feature branch before any artefact write. The shared
+contract lives in
+`skills/project-conventions/references/branch-protection.md`,
+including slug heuristics per skill and override mechanisms.
+
+This is defense in depth: skill-side check asks the user up-front,
+hook-side check blocks accidental commits if the skill is bypassed.
+
+### Changed: tools/migration/ replaces skills/dia-migration/tools/ (2026-04-30)
+
+The migration scripts move to the top-level `tools/migration/`
+directory so both `/dia-migration` and `/reverse-engineering` can
+share them. Previously the scripts lived under
+`skills/dia-migration/tools/` and only that one skill could call
+them.
+
+`/reverse-engineering` now has a Phase -1.5 (between Phase -1
+detection and Phase 0 scope) that runs the migration scripts when
+DIA-style artefacts are detected in the brownfield repo. This
+makes brownfield onboarding into DIA a single-skill operation: the
+user runs `/reverse-engineering`, and any pre-existing partial
+artefacts get normalised before the code-walk fills the gaps.
+
+`/dia-migration` is now positioned as a convenience wrapper for
+existing DIA users upgrading between DIA versions, not a brownfield
+onboarding skill. The description and body make this boundary
+explicit. For brownfield, the answer is `/reverse-engineering`.
+
 ### Added: tools/ directory with project-agnostic Mode A driver and pre-commit hook (2026-04-30)
 
 New `tools/` directory containing the syntactic consistency-check

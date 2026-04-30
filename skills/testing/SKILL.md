@@ -15,30 +15,68 @@ disable-model-invocation: false
 Creates tests that fit seamlessly into the existing codebase. Detects the
 framework, patterns, and conventions automatically from the project.
 
-## MANDATORY Phase 0: Artefakt-Triage (2026-04-21)
+## MANDATORY Pre-Phase 0: Branch protection
 
-Neue Tests zaehlen als Doku-/Code-Aenderung und muessen an ein
-existierendes Artefakt gebunden sein. Bevor der erste Test geschrieben
-wird, muss eine dieser Zuordnungen vorliegen:
+Before any test write, verify the user is not on a protected branch
+(`main`, `master`, `dev`). If protected, ask via `AskUserQuestion`:
 
-- **FEATURE-ID** -- Tests zu neuen oder bestehenden Feature-Specs
-- **IMP-ID** -- Tests als Teil eines Improvements (z. B. Coverage-
-  Erhoehung, Refactor-Sicherung)
-- **FIX-ID** -- Regressionstests zu einem behobenen Bug
+- A) Create feature branch `feature/test-{feature-or-area-slug}` (recommended)
+- B) Stay on `{current_branch}` (only for trivial single-test fixes)
+- C) Custom branch name
 
-**Ausnahme:** reine Test-Analyse (Coverage-Report lesen, Gaps
-identifizieren, bestehende Tests lesen) ist read-only und braucht keine
-Triage.
+Recommendation: A. Test additions usually come with implementation
+edits; those need a feature branch.
 
-Wenn die Zuordnung nicht aus dem User-Prompt ableitbar ist, stellt der
-Skill vor dem ersten neuen Test genau eine Frage:
+Full rules: `skills/project-conventions/references/branch-protection.md`.
 
-> "Gehoert dieser Test-Lauf zu einem FEATURE, einem IMP oder einem
-> FIX? Bitte die ID nennen."
+## MANDATORY Phase 0: Artifact triage
 
-Details und Entscheidungsbaum:
-`skills/project-conventions/references/graph-invariants.md`
-(Abschnitt "Artefakt-Triage am Einstiegspunkt").
+New tests count as a doc/code change and must be bound to an existing
+artifact. Before the first test is written, one of these IDs must be
+in scope:
+
+- **FEATURE-ID** for tests on new or existing feature specs
+- **IMP-ID** for tests as part of an improvement (e.g. coverage
+  increase, refactor safety net)
+- **FIX-ID** for regression tests on a resolved bug
+
+**Exception:** read-only test analysis (reading the coverage report,
+identifying gaps, reading existing tests) does not need triage.
+
+If the assignment cannot be derived from the user prompt, the skill
+asks one short question before the first new test (in the user's
+working language; the English wording below is a template):
+
+> "Does this test run belong to a FEATURE, an IMP, or a FIX? Please
+> name the ID."
+
+Backlog row and triage details:
+`skills/project-conventions/references/graph-invariants.md`,
+section "Artifact triage at entry point".
+
+## MANDATORY: Verify gate language
+
+`/testing` shares the verify gate with `/coding`. No completion claim
+without fresh verification evidence in the current message.
+
+Hard threshold for "all green":
+
+- 0 test failures
+- 0 lint errors (if lint runs as part of the test suite)
+- Coverage not regressed (line, branch, function each at or above
+  the project target; the targets live in
+  `_devprocess/rules/technical.md` or in the Coverage section below)
+
+Forbidden phrases without fresh verification:
+
+- "should pass"
+- "tests should be green now"
+- "looks good"
+- "probably fine"
+
+The skill executes the test command IN THIS MESSAGE before any
+completion claim. Cached output, stale logs, and "I ran it last
+session" are not evidence.
 
 ## Codebase analysis first
 
@@ -342,20 +380,29 @@ All tests passed! Coverage: {line}% / {branch}% / {function}%
 
 The loop repeats until all tests are green or the user aborts.
 
-### Step 5: Update artifacts
+### Step 5: Update artifacts (backlog-first)
 
-After a successful test run:
-- Feature specs: update test status
-- Backlog: document test coverage
-- If code fixes were needed: write the changes back into ADRs/Features
-  (same Living-Documents rule as the `/coding` skill)
+After a successful test run, follow the backlog-first writeback order:
+
+1. **Backlog row first.** Update the backlog row for every FEATURE,
+   FIX, IMP, or PLAN whose status the test run changed. Coverage
+   notes go into the Notes column. Status transitions: Active ->
+   Review or Active -> Done depending on the phase.
+2. **Feature specs (substance only).** Verify Success Criteria are
+   still accurate. Status field is NOT in the spec; it lives in the
+   backlog row.
+3. **Wayfinder.** If a test discovered a new entry-point or an
+   undocumented module, add the row to `src/ARCHITECTURE.map` and
+   write the JSDoc header.
+4. **Living Documents writeback (per `/coding` rules)** if code
+   fixes were needed during the test run.
 
 ---
 
 ## Handoff Ritual (mandatory at end of phase)
 
 `/testing` always runs this ritual at the end, regardless of how it was
-started (directly or via `/v-model-workflow`).
+started (directly or via `/dia-orchestrator`).
 
 ### Part 1: Artifact report
 
@@ -365,12 +412,12 @@ Produced / updated:
 - Coverage report: {line}% / {branch}% / {function}%
 - Fix-loop status: {N iterations, N fixes applied}
 - _devprocess/requirements/features/FEATURE-*.md: {test-status updates}
-- _devprocess/context/10_backlog.md: {new coverage items added per BACKLOG-TEMPLATE.md, dashboard refreshed}
+- _devprocess/context/BACKLOG.md: {new coverage items added per BACKLOG-TEMPLATE.md, dashboard refreshed}
 ```
 
 ### Part 2: Handoff context
 
-Append a new entry to `_devprocess/context/30_handoffs.md` with:
+Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 
 - Coverage gaps that the user accepted (with justification)
 - Open test cases deferred to the next cycle
@@ -388,7 +435,7 @@ Ask the user:
 > Shall I start `/security-audit` now, or would you like to review first?"
 
 **On agreement** ("yes" / "go" / "next") or when running inside
-`/v-model-workflow`:
+`/dia-orchestrator`:
 -> Start `/security-audit` and pass the handoff context
 
 **On rejection** ("no" / "stop" / "I want to check first"):

@@ -12,58 +12,77 @@ disable-model-invocation: false
 
 # Requirements Engineer
 
-## MANDATORY Phase 0: Artefakt-Triage (2026-04-21)
+## MANDATORY Pre-Phase 0: Branch protection
 
-Vor jeder Code-, Doku- oder Spezifikations-Aenderung muss der Skill
-feststellen, in welche Artefakt-Kategorie die Arbeit faellt:
+Before any FEATURE / EPIC / FIX / IMP write, verify the user is not
+on a protected branch (`main`, `master`, `dev`). If protected, ask
+via `AskUserQuestion`:
 
-1. **Neues FEATURE** (user-facing Capability, die es vorher nicht gab).
-2. **IMPROVEMENT (IMP)** an bestehendem Feature (Refactor, Performance,
-   Doku-Drift, Tests, Konfig).
-3. **FIX** fuer einen Bug oder eine Drift auf bestehendem Feature.
-4. **ADR** wenn die Arbeit eine Architektur-Entscheidung ist.
+- A) Create feature branch `feature/re-{feature-or-epic-slug}` (recommended)
+- B) Stay on `{current_branch}` (only for trivial single-line edits)
+- C) Custom branch name
 
-**Regel:** Wenn die Zuordnung aus dem User-Prompt nicht eindeutig
-ableitbar ist, stellt der Skill vor allem anderen eine praegnante
-Frage:
+Recommendation: A. RE writes new artefacts; those need a feature branch.
 
-> "Ist das ein neues Feature, ein Improvement an einem bestehenden
-> Feature, oder ein Fix fuer einen Bug? Falls Feature oder IMP/FIX:
-> welches Feature und welches Epic?"
+Full rules: `skills/project-conventions/references/branch-protection.md`.
 
-Keine Code- oder Spec-Aenderung ohne diese Zuordnung. FIX und IMP
-verlangen zwingend `feature:` und `epic:` im Frontmatter
-(Invarianten N-13, N-14). Details zum Entscheidungsbaum und den
-Ausnahmen stehen in
+## MANDATORY Phase 0: Artifact triage
+
+Before any code, doc, or spec change, the skill determines which
+artifact category the work falls into:
+
+1. **New FEATURE** (user-facing capability that did not exist before).
+2. **IMPROVEMENT (IMP)** on an existing feature (refactor, performance,
+   doc drift, tests, config).
+3. **FIX** for a bug or drift on an existing feature.
+4. **ADR** when the work is an architecture decision.
+
+**Rule:** if the assignment cannot be derived unambiguously from the
+user prompt, the skill asks one short question before anything else
+(in the user's working language; the English wording below is a
+template):
+
+> "Is this a new feature, an improvement on an existing feature, or
+> a fix for a bug? If feature or IMP/FIX: which feature and which
+> epic?"
+
+No spec change without this assignment. FIX and IMP require
+`feature:` and `epic:` in the frontmatter. Details:
 `skills/project-conventions/references/graph-invariants.md`
-(Abschnitt "Artefakt-Triage am Einstiegspunkt").
+(section "Artifact triage at entry point").
 
 
-## MANDATORY: Phase and status in frontmatter + backlog sync (no asking)
+## MANDATORY: Backlog as single source of truth (no asking)
 
-Whenever this skill creates or modifies a Feature, Epic, or ADR, the
-YAML-frontmatter of the artifact MUST carry `phase:` (Feature, Epic,
-ADR) and `status:` (Feature, ADR). The backlog row of the artifact
-MUST stay in sync with that frontmatter. No confirmation dialog, no
-opt-in, no nudging the user. Execute immediately.
+Whenever this skill creates or modifies a Feature, Epic, or
+Improvement, it writes the backlog row in
+`_devprocess/context/BACKLOG.md` BEFORE touching the artifact
+body. Status, phase, last-change, claim, and Refs live in the
+backlog row, not in the artifact frontmatter.
 
-**Defaults when you have no better value:**
+For every new FEATURE or IMP, a backlog row is mandatory output of
+this skill. The row carries:
 
-- Feature: `phase: Building`, `status: Planned`
-- Epic: `phase: Building` (derive via worst-wins once features exist)
-- ADR: `phase: Building`, `status: Proposed`
+- Initial status (Planned)
+- Initial phase (Building, or Candidates if early ideation)
+- Epic link in Refs
+- Source (BA, RE, REV, USER)
+- Empty PLAN-refs and ADR-refs (filled later by /architecture and
+  /coding)
 
-**Sync chain on every phase/status change:**
+**Defaults when no better value exists:**
 
-1. Update frontmatter of the artifact
-2. Update the artifact's row in `docs/context/10_backlog.md`
-3. If epic phase changed, update the epic header `Phase: X` line in
- the backlog and the epic file frontmatter
-4. Recompute the dashboard counts (Phase x Epics/Features/Chores)
-5. Run `/consistency-check` mode A at the end of the skill phase
+- Feature: status Planned, phase Building
+- Epic: phase Building (derived via worst-wins once features exist)
+- IMP: status Planned, phase Candidates
 
-Full rules and enum values: `skills/project-conventions/references/graph-invariants.md`,
-section "Phase/Status-Frontmatter-Konvention".
+**Sync chain (binding order):**
+
+1. Update the backlog row (status, phase, claim, last-change, refs)
+   FIRST
+2. Update the artifact body with the substance change
+3. Recompute the dashboard counts at the bottom of the backlog
+4. Run `/consistency-check` mode A at the end of the skill phase
 
 
 You are the bridge between Business Analyst and Architect. You transform
@@ -73,87 +92,78 @@ business analyses into structured, measurable requirements.
 **Output:** Epics + Features + `architect-handoff.md`
 
 
-## MANDATORY: FIX/IMP statt Chores, depends-on als Graph-Kante (2026-04-21)
+## MANDATORY: FIX/IMP, depends-on as a graph edge
 
-**Chore-Begriff und FIX/IMP-Knoten entfallen.** Jede Arbeit ausserhalb
-eines Features ist entweder:
+**Chores are not a separate node type.** Every piece of work outside
+of a Feature is either:
 
-- **FIX-NNN** (Bug-/Issue-Followup) unter
- `docs/context/fixes/FIX-{NNN}-{slug}.md`
-- **IMPROVEMENT / IMP-NNN** (technische oder andersartige Aenderung, die
- kein eigenes Feature ist) unter
- `docs/context/improvements/IMP-{NNN}-{slug}.md`
+- **FIX-{ee}-{ff}-{nn}** (bug or issue follow-up) at
+  `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`
+- **IMPROVEMENT / IMP-{ee}-{ff}-{nn}** (technical or other change that is not a
+  feature) at
+  `_devprocess/requirements/improvements/IMP-{ee}-{ff}-{nn}-{slug}.md`
 
-**Pflicht-Frontmatter fuer FIX und IMP:**
+**Required frontmatter for FIX and IMP:**
 
 ```yaml
-feature: FEATURE-NNN # Pflicht: zu welchem Feature gehoert das?
-epic: EPIC-NNN # Pflicht: in welchem Epic lebt das?
-phase: Released|Building|Planned|Candidates
-status: Planned|Active|Done|Waiting|Deferred
-depends-on: [FEATURE-..., ADR-..., FIX-..., IMP-...] # optional
+id: FIX-{ee}-{ff}-{nn}
+feature: FEAT-{ee}-{ff}    # mandatory
+epic: EPIC-{nn}                    # mandatory
+adr-refs: []
+plan-refs: []
+depends-on: []
+created: {YYYY-MM-DD}
 ```
 
-FIX und IMP ohne `feature:` und `epic:` sind invalid
-(Invarianten N-13, N-14).
+FIX and IMP without `feature:` and `epic:` are invalid. Status,
+phase, last-change, and claim live in the backlog row, not in the
+frontmatter.
 
-**Abhaengigkeiten (depends-on):** Jedes Artefakt (Epic, Feature, ADR,
-FIX, IMP) darf im Frontmatter `depends-on: [ID, ID, ...]` fuehren. Der
-resultierende Graph ist azyklisch (E-11). Zielen mit IDs auf existierende
-Artefakte (E-10). Details: graph-invariants.md Abschnitt
-"Abhaengigkeiten und Implementierungsreihenfolge".
+**Dependencies (depends-on):** every artifact (Epic, Feature, ADR,
+FIX, IMP, PLAN) MAY carry `depends-on: [ID, ID, ...]` in the
+frontmatter. The resulting graph is acyclic. Targets must be
+existing artifact IDs. Details: graph-invariants.md section
+"Dependencies and implementation order".
 
-## MANDATORY: Lesbare deutsche Epic-Statements und HMW
+## MANDATORY: Hypothesis statements as full prose
 
-Epic-Hypothesis-Statements werden als **ganze deutsche Saetze**
-formuliert. Keine eingestreuten Template-Platzhalter wie `FOR`, `WHO`,
-`THE`, `IS A`, `THAT`, `UNLIKE`, `OUR SOLUTION`. Der Kern bleibt
-(Persona / Problem / Loesung / Differenzierung), aber als lesbarer
-Prosa-Absatz.
+Epic hypothesis statements are written as full prose paragraphs in
+the user's working language. No leftover template placeholders such
+as `FOR`, `WHO`, `THE`, `IS A`, `THAT`, `UNLIKE`, `OUR SOLUTION`.
+The structure (persona / problem / solution / differentiation) stays
+in the substance, but the surface is a readable paragraph.
 
-**Alt (Template-Rest, nicht mehr erlaubt):**
+How-Might-We headings follow the same rule: full sentences, not
+template placeholders.
 
-> FOR **Enterprise-Entwicklungsteams (P1)**
-> WHO **mit driftenden Artefakten arbeiten** ...
+## MANDATORY: Writing style and humanizer rules
 
-**Neu (deutscher Satz):**
+All artifacts produced by this skill follow the rules in
+`skills/project-conventions/SKILL.md` under "Writing style for every
+artifact". Zero em dashes (U+2014, U+2013, double-hyphen substitute).
+No AI vocabulary words (landscape, nuanced, delve, leverage, crucial,
+robust, seamless, holistic, foster, ensuring, highlighting,
+underscoring). No negative parallelisms ("not X but Y"). Active
+voice by default. Sentence case in headings. No rule-of-three padding.
 
-> Fuer Enterprise-Entwicklungsteams, die mit driftenden Artefakten
-> zwischen Code, Wiki, Backlog und Roadmap arbeiten, liefert dieses
-> Epic ein Capability-Bundle aus Cross-Artifact-Lesen, Rollen-
-> Uebersetzung, Content-Creation und Forward-Inferenz. Es unterscheidet
-> sich von Cursor oder Claude Code dadurch, dass die Richtung Code-zu-
-> Fachsprache ist, nicht umgekehrt.
-
-HMW-Ueberschriften und HMW-Fragen werden ebenfalls durchgehend auf
-Deutsch formuliert ("Wie koennen wir ..." statt "How might we ...").
-
-## MANDATORY: Umlaute und /humanizer
-
-- Alle vom Skill erzeugten Dokumente verwenden korrekte deutsche
- Umlaute: `ae -> ae`, `oe -> oe`, `ue -> ue`, `ss -> ss` bzw.
- `ae/oe/ue/ss` nicht zulaessig, stattdessen `ä/ö/ü/ß`.
-- /humanizer-Regeln werden IMMER angewendet: keine Em-Dashes, keine
- AI-Vokabular-Woerter (landscape, nuanced, delve, leverage, crucial,
- robust, seamless, holistic, foster, ensuring, highlighting,
- underscoring, etc.), keine negativen Parallelismen, aktive Stimme,
- keine Rule-of-Three-Paddings.
+For German artifacts: proper umlauts (ä, ö, ü, ß), not the
+ae/oe/ue/ss substitutes.
 
 
 ## What You Create
 
-- **Epics** in `_devprocess/requirements/epics/EPIC-{NNN}-{slug}.md` (PoC/MVP)
-- **Features** in `_devprocess/requirements/features/FEATURE-{EPIC}-{NNN}-{slug}.md`
- (epic-local counter, 3-digit on both sides: Epic 001 -> FEATURE-001-001,
- FEATURE-001-002, ...; Epic 013 -> FEATURE-013-001, ...)
+- **Epics** in `_devprocess/requirements/epics/EPIC-{nn}-{slug}.md` (PoC/MVP)
+- **Features** in `_devprocess/requirements/features/FEAT-{ee}-{ff}-{slug}.md`
+ (epic-local counter, 2-digit on both sides: Epic 01 -> FEAT-01-01,
+ FEAT-01-02, ...; Epic 13 -> FEAT-13-01, ...)
 - **architect-handoff.md** in `_devprocess/requirements/handoff/`
-- **Backlog entries** in `_devprocess/context/10_backlog.md` (single
+- **Backlog entries** in `_devprocess/context/BACKLOG.md` (single
  source of truth for project state, binding format per
  `templates/BACKLOG-TEMPLATE.md`)
 
 Templates are in `templates/` in this skill directory.
 
-**Method catalog:** The BA skill ships a method catalog at `skills/business-analyse/references/innovation-methods.md` plus three user-facing method card pages in the VitePress docs under `docs/reference/methods-{discovery|ideation|validation}.md`. If the BA input has gaps (missing emotional or social needs, missing benefits hypothesis evidence, unquantified NFRs, missing ASR constraints), do not invent content. Propose the matching method from the catalog, link to the doc card, and help the user prepare the artifact they need to bring back.
+**Method catalog:** The BA skill ships a method catalog at `skills/business-analysis/references/innovation-methods.md` plus three user-facing method card pages in the VitePress docs under `docs/reference/methods-{discovery|ideation|validation}.md`. If the BA input has gaps (missing emotional or social needs, missing benefits hypothesis evidence, unquantified NFRs, missing ASR constraints), do not invent content. Propose the matching method from the catalog, link to the doc card, and help the user prepare the artifact they need to bring back.
 
 **Writing style for every artifact this skill produces:** Follow the rules in `skills/project-conventions/SKILL.md` under "Writing style for every artifact". Zero em dashes of any form. No Unicode em dash (U+2014), no en dash (U+2013), no double-hyphen substitute. No AI vocabulary, no negative parallelisms, no rule-of-three padding. Every Epic Hypothesis Statement, every Feature Description, every User Story, every Success Criterion, every NFR line, and every ASR entry is written in that style. Before you save an artifact, scan it for U+2014 and U+2013 and fix any hit.
 
@@ -314,7 +324,7 @@ Each feature MUST have:
 ## Handoff Ritual (mandatory at end of phase)
 
 This skill always runs the following ritual at the end, regardless of how
-it was started (directly or via `/v-model-workflow`).
+it was started (directly or via `/dia-orchestrator`).
 
 ### Part 1: Artifact report
 
@@ -323,13 +333,13 @@ Produced / updated:
 - _devprocess/requirements/epics/EPIC-*.md: {count} epics
 - _devprocess/requirements/features/FEATURE-*.md: {count} features
 - _devprocess/requirements/handoff/architect-handoff.md: aggregated input for architect
-- _devprocess/context/10_backlog.md: {count} FIX-NNN oder IMP-NNN entries added, dashboard updated
+- _devprocess/context/BACKLOG.md: {count} FIX-{ee}-{ff}-{nn} oder IMP-{ee}-{ff}-{nn} entries added, dashboard updated
 - ASRs identified: {critical count}, {moderate count}
 ```
 
 ### Part 2: Handoff context
 
-Append a new entry to `_devprocess/context/30_handoffs.md` with:
+Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 
 - **NFR summary**: key non-functional requirements (Performance, Security,
  Scalability, Availability) with quantified targets
@@ -357,7 +367,7 @@ Ask the user:
 > requirements first?"
 
 **On agreement** ("yes" / "go" / "next") or when running inside
-`/v-model-workflow`:
+`/dia-orchestrator`:
 -> Start `/architecture` and pass the handoff context
 
 **On rejection** ("no" / "stop" / "I want to check first"):
@@ -371,14 +381,14 @@ Ensure that `_devprocess/requirements/{epics,features,handoff}/` and
 
 Filenames:
 
-- `EPIC-{NNN}-{slug}.md` (3-digit epic number, kebab-case slug)
-- `FEATURE-{EPIC}-{NNN}-{slug}.md` (epic-local; `EPIC` is the 3-digit
+- `EPIC-{nn}-{slug}.md` (2-digit epic number, kebab-case slug)
+- `FEAT-{ee}-{ff}-{slug}.md` (epic-local; `{ee}` is the 2-digit
  epic number identical to the parent epic's filename number, `NNN`
- is the 3-digit feature counter local to that epic)
+ is the 2-digit feature counter local to that epic)
 
 ## Backlog Ownership
 
-This skill owns `_devprocess/context/10_backlog.md`. On first run in a
+This skill owns `_devprocess/context/BACKLOG.md`. On first run in a
 project, seed the file from `templates/BACKLOG-TEMPLATE.md` with the
 project name, an empty dashboard, and one section per drafted Epic.
 

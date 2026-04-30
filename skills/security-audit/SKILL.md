@@ -27,6 +27,22 @@ with a concrete remediation plan.
 
 **Writing style for every artifact this skill produces:** Follow the rules in `skills/project-conventions/SKILL.md` under "Writing style for every artifact". Zero em dashes of any form. No Unicode em dash (U+2014), no en dash (U+2013), no double-hyphen substitute. No AI vocabulary, no negative parallelisms. Every finding description, every causal chain, every remediation step, and every prioritisation rationale is written in that style. Before you save an artifact, scan it for U+2014 and U+2013 and fix any hit.
 
+## MANDATORY Pre-Phase 0: Branch protection
+
+Before writing the audit report or any FIX/IMP follow-ups, verify
+the user is not on a protected branch (`main`, `master`, `dev`).
+If protected, ask via `AskUserQuestion`:
+
+- A) Create feature branch `feature/audit-{YYYY-MM-DD}` (recommended)
+- B) Stay on `{current_branch}` (only when reading-only without writing)
+- C) Custom branch name
+
+Recommendation: A. Audits write a multi-section AUDIT report and
+typically queue several FIX/IMP follow-ups; those need a feature
+branch.
+
+Full rules: `skills/project-conventions/references/branch-protection.md`.
+
 ## What you do
 
 - **SAST** -- Static code analysis (CWE-based)
@@ -210,7 +226,7 @@ The loop repeats until all in-scope findings are resolved or the user aborts.
 Findings not fixed immediately (e.g. P2/P3 on Option B):
 
 1. **Backlog**: each open finding gets a row in
-   `_devprocess/context/10_backlog.md` following the binding format
+   `_devprocess/context/BACKLOG.md` following the binding format
    from `skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`.
    Security findings live in the **Standalone Items** section with:
    - `Typ = Security`
@@ -245,7 +261,7 @@ Report: _devprocess/analysis/security/AUDIT-{PROJECT}-{DATE}.md
 ## Handoff Ritual (mandatory at end of phase)
 
 After the fix-loop is closed, this skill always runs the handoff ritual,
-regardless of how it was started (directly or via `/v-model-workflow`).
+regardless of how it was started (directly or via `/dia-orchestrator`).
 
 ### Part 1: Artifact report
 
@@ -254,12 +270,12 @@ Produced / updated:
 - _devprocess/analysis/security/AUDIT-{PROJECT}-{DATE}.md: full report
 - Findings resolved: {N} (P1: {N}, P2: {N}, P3: {N})
 - Findings deferred: {N} (in backlog)
-- _devprocess/context/10_backlog.md: deferred findings added
+- _devprocess/context/BACKLOG.md: deferred findings added
 ```
 
 ### Part 2: Handoff context
 
-Append a new entry to `_devprocess/context/30_handoffs.md` with:
+Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 
 - **Overall risk verdict**: Critical / High / Medium / Low
 - **Unresolved P0/P1**: any high-severity findings still open and why
@@ -279,19 +295,19 @@ Ask the user:
 > Release readiness: {green/yellow/red}
 >
 > The next step in the V-Model workflow is **Phase 7: Release Closure**
-> (via `/v-model-workflow`), which will:
+> (via `/dia-orchestrator`), which will:
 > 1. Finalize all artifacts (BA, Features, ADRs, arc42)
 > 2. Generate release notes
 > 3. Update CHANGELOG
 > 4. Clean up the backlog
 > 5. Produce a closing report
 >
-> Shall I invoke `/v-model-workflow` to run the Release Closure now, or
+> Shall I invoke `/dia-orchestrator` to run the Release Closure now, or
 > would you like to review the audit first?"
 
 **On agreement** ("yes" / "go" / "next") or when running inside
-`/v-model-workflow`:
--> Hand control back to `/v-model-workflow` for Phase 7
+`/dia-orchestrator`:
+-> Hand control back to `/dia-orchestrator` for Phase 7
 
 **On rejection** ("no" / "stop" / "I want to check first"):
 -> Pause and wait for user instruction

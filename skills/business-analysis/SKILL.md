@@ -1,5 +1,5 @@
 ---
-name: business-analyse
+name: business-analysis
 description: >
  Conducts structured business analyses: problem and stakeholder analysis,
  as-is/to-be gap analysis, user personas, scope definition. Creates BA documents
@@ -16,31 +16,48 @@ disable-model-invocation: false
 
 # Business Analyst
 
-## MANDATORY Phase 0: Artefakt-Triage (2026-04-21)
+## MANDATORY Pre-Phase 0: Branch protection
 
-Vor jeder Code-, Doku- oder Spezifikations-Aenderung muss der Skill
-feststellen, in welche Artefakt-Kategorie die Arbeit faellt:
+Before any BA artefact write, verify the user is not on a protected
+branch (`main`, `master`, `dev`). If protected, ask via `AskUserQuestion`:
 
-1. **Neues FEATURE** (user-facing Capability, die es vorher nicht gab).
-2. **IMPROVEMENT (IMP)** an bestehendem Feature (Refactor, Performance,
-   Doku-Drift, Tests, Konfig).
-3. **FIX** fuer einen Bug oder eine Drift auf bestehendem Feature.
-4. **ADR** wenn die Arbeit eine Architektur-Entscheidung ist.
+- A) Create feature branch `feature/ba-{topic-slug}` and switch (recommended)
+- B) Stay on `{current_branch}` (only for read-only validation runs)
+- C) Custom branch name
 
-**Regel:** Wenn die Zuordnung aus dem User-Prompt nicht eindeutig
-ableitbar ist, stellt der Skill vor allem anderen eine praegnante
-Frage:
+Recommendation: A. BA produces a multi-section document plus backlog
+edits; those need a feature branch.
 
-> "Ist das ein neues Feature, ein Improvement an einem bestehenden
-> Feature, oder ein Fix fuer einen Bug? Falls Feature oder IMP/FIX:
-> welches Feature und welches Epic?"
+Full rules: `skills/project-conventions/references/branch-protection.md`.
 
-Keine Code- oder Spec-Aenderung ohne diese Zuordnung. FIX und IMP
-verlangen zwingend `feature:` und `epic:` im Frontmatter
-(Invarianten N-13, N-14). Details zum Entscheidungsbaum und den
-Ausnahmen stehen in
-`skills/project-conventions/references/graph-invariants.md`
-(Abschnitt "Artefakt-Triage am Einstiegspunkt").
+## MANDATORY Phase 0: Artifact triage
+
+When this skill is invoked from `/coding` or another phase mid-cycle
+(rare), the receiving artifact category must be clear:
+
+1. **New FEATURE** (user-facing capability that did not exist before).
+2. **IMPROVEMENT (IMP)** on an existing feature.
+3. **FIX** for a bug on an existing feature.
+4. **ADR** when the work is an architecture decision.
+
+For greenfield BA sessions (the typical case), the categorization is
+implicit: the BA itself is the input that creates the first features.
+Triage applies when the BA is invoked from a later phase to validate
+or revise hypotheses.
+
+If the assignment cannot be derived from the prompt, the skill asks
+one short question before anything else (in the user's working
+language; the English wording below is a template):
+
+> "Is this a new feature, an improvement on an existing feature, or
+> a fix for a bug? If feature or IMP/FIX: which feature and which
+> epic?"
+
+Backlog rows for new findings are mandatory output. Status, phase,
+last-change, and claim live in the backlog row, not in the artifact
+frontmatter. Details:
+`skills/project-conventions/references/graph-invariants.md`,
+section "Artifact triage at entry point".
 
 
 You conduct a structured interview with the user to understand the business
@@ -77,7 +94,7 @@ artifacts that stay compact.
  sense that it carries *results, not process iterations* (no team-
  review markers, no discarded candidates, no session diaries), but
  it contains the full substance.
-- **Epic-BA** (Mini) at `{docs-root}/requirements/epics/EPIC-NNN-ba.md`,
+- **Epic-BA** (Mini) at `{docs-root}/requirements/epics/EPIC-{nn}-ba.md`,
  one per epic that needs BA depth. Max 80 lines. References the
  Project-BA, never duplicates it.
 - **Feature-BA** (rare) only when a feature activates a new persona,
@@ -279,7 +296,7 @@ Based on what you find, pick the interview mode:
  frontmatter:
  ```yaml
  status: Validated
- validated-by: /business-analyse on {date}
+ validated-by: /business-analysis on {date}
  reverse-engineering-provenance: true
  ```
  Remove `needs-validation: true` and leave `created-by:
@@ -455,11 +472,11 @@ real users.
 
 **Trigger conditions:**
 
-- The user invokes `/business-analyse` with an existing BA document
+- The user invokes `/business-analysis` with an existing BA document
  that is at `Status: Validated` AND a release has happened since
  the validation timestamp, OR
 - The `/coding` skill wrote a post-release handoff entry in
- `_devprocess/context/30_handoffs.md` flagging the release as
+ `_devprocess/context/HANDOFFS.md` flagging the release as
  "Ready for BA Post-Release Review".
 
 **Process:**
@@ -467,7 +484,7 @@ real users.
 1. **Load evidence sources.** Read in order:
  - `_devprocess/analysis/BA-{PROJECT}.md` Section 7.3 (Critical
  Hypotheses)
- - `_devprocess/context/40_metrics.md` (if present) for the
+ - `_devprocess/context/METRICS.md` (if present) for the
  observed signals
  - Any additional user-provided evidence (support tickets, usage
  analytics, interview notes, retention data)
@@ -494,7 +511,7 @@ real users.
 
  Rows are never deleted. New evidence blocks append.
 
-4. **Propagate to 40_metrics.md.** Update the "BA hypothesis
+4. **Propagate to METRICS.md.** Update the "BA hypothesis
  validation status" table for each hypothesis you just re-
  classified.
 
@@ -577,7 +594,7 @@ Before handoff to the Requirements Engineer, these criteria must be met:
 ## Handoff Ritual (mandatory at end of phase)
 
 This skill always runs the following ritual at the end, regardless of how
-it was started (directly or via `/v-model-workflow`).
+it was started (directly or via `/dia-orchestrator`).
 
 ### Part 1: Artifact report
 
@@ -590,7 +607,7 @@ Produced / updated:
 
 ### Part 2: Handoff context
 
-Append a new entry to `_devprocess/context/30_handoffs.md` with:
+Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 
 - **Scope**: Simple Test / PoC / MVP
 - **Personas**: list with primary persona marked
@@ -616,7 +633,7 @@ Ask the user:
 > review the BA first?"
 
 **On agreement** ("yes" / "go" / "next") or when running inside
-`/v-model-workflow`:
+`/dia-orchestrator`:
 -> Start `/requirements-engineering` and pass the handoff context
 
 **On rejection** ("no" / "stop" / "I want to check first"):
