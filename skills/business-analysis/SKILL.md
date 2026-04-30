@@ -16,23 +16,49 @@ disable-model-invocation: false
 
 # Business Analyst
 
-## MANDATORY Pre-Phase 0: Branch protection
+## MANDATORY Pre-Phase 0: Branch and item check
 
-Before the first BA artefact write, verify the current branch is
-right for THIS BA topic. The check fires once per skill invocation,
-regardless of branch type (state in `.git/dia-active-skill`).
+BA work targets a specific backlog item (an Epic or a new Feature).
+Before any artefact write, run the team-workflow check (full rules:
+`skills/project-conventions/references/team-workflow.md`).
 
-- If on `main` / `master` / `dev`: refuse, ask via `AskUserQuestion`
-  to create `feature/ba-{topic-slug}`.
-- If on a `feature/*` / `fix/*` / `chore/*` branch: ask whether the
-  branch matches the BA topic. If the branch slug overlaps the topic,
-  recommend continue; otherwise recommend a new branch so the BA
-  lands as a separate PR. Options: continue / new branch / switch /
-  custom.
+1. Identify the active backlog item.
+   - Parse the user prompt ("work on EPIC-04", "BA for the new
+     onboarding flow").
+   - For genuinely new items, write the BACKLOG row first, then
+     proceed.
+   - If unclear, AskUserQuestion: which item are we working on?
 
-Full rules: `skills/project-conventions/references/branch-protection.md`.
+2. Verify the branch matches the item:
+   - Expected: `feature/<item-id-lower>-<slug>` for FEAT/EPIC,
+     `fix/<item-id-lower>-<slug>` for FIX, `chore/<item-id-lower>-<slug>`
+     for IMP.
+   - On `main` / `master` / `dev`: AskUserQuestion to create the
+     expected branch and switch.
+   - On a different item-branch: AskUserQuestion to switch.
+   - On the expected branch: silent continue.
 
-Suggested slug for BA: `feature/ba-{topic-slug}`.
+3. Skill-triggered GitHub integration (idempotent, local-only mode
+   if `gh` is missing):
+
+   ```
+   python3 tools/github-integration/flow.py create-issue --item <ID>
+   python3 tools/github-integration/flow.py open-draft-pr --item <ID>   # after first commit on the branch
+   ```
+
+4. At the end of the Handoff Ritual, MUST tag the phase:
+
+   ```
+   python3 tools/github-integration/flow.py tag-phase --item <ID> --phase ba
+   ```
+
+5. Write `.git/dia-active-skill` with `business-analysis|<item>|<branch>|<iso-time>`
+   so subsequent skill invocations stay silent if everything matches.
+
+The check fires only once per skill invocation. State is in
+`.git/dia-active-skill`. Override mechanisms (per-commit `--no-verify`,
+per-project `dia.protected-branches`, trunk-based mode) are
+documented in team-workflow.md.
 
 ## MANDATORY Phase 0: Artifact triage
 

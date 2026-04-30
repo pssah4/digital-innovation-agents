@@ -27,21 +27,39 @@ with a concrete remediation plan.
 
 **Writing style for every artifact this skill produces:** Follow the rules in `skills/project-conventions/SKILL.md` under "Writing style for every artifact". Zero em dashes of any form. No Unicode em dash (U+2014), no en dash (U+2013), no double-hyphen substitute. No AI vocabulary, no negative parallelisms. Every finding description, every causal chain, every remediation step, and every prioritisation rationale is written in that style. Before you save an artifact, scan it for U+2014 and U+2013 and fix any hit.
 
-## MANDATORY Pre-Phase 0: Branch protection
+## MANDATORY Pre-Phase 0: Branch and item check
 
-Before writing the audit report or any FIX/IMP follow-ups, verify
-the current branch is right for THIS audit. The check fires once
-per skill invocation, regardless of branch type.
+Security audits run in two modes:
 
-- If on `main` / `master` / `dev`: refuse, ask via `AskUserQuestion`
-  to create `feature/audit-{YYYY-MM-DD}`.
-- If on another `feature/*` branch: audits are almost always a
-  separate PR; recommend new branch unless the user explicitly
-  confirms the branch is for THIS audit.
+- **Per-item audit** (e.g. as part of /coding or before merging a
+  feature): runs on the item's branch, alongside coding and testing.
+  The audit-done tag goes on the same branch.
+- **Periodic full-codebase audit** (no specific feature item): runs
+  on a dedicated branch `feature/audit-<YYYY-MM-DD>` and produces a
+  standalone AUDIT report that queues FIX/IMP follow-ups.
 
-Full rules: `skills/project-conventions/references/branch-protection.md`.
+For per-item audit:
 
-Suggested slug for security-audit: `feature/audit-{YYYY-MM-DD}`.
+1. Identify the active item from the prompt or via AskUserQuestion.
+2. Verify the branch matches the item-branch.
+3. Skill-triggered GitHub integration (idempotent):
+
+   ```
+   python3 tools/github-integration/flow.py create-issue --item <ID>
+   ```
+
+4. At Handoff Ritual end, tag the phase:
+
+   ```
+   python3 tools/github-integration/flow.py tag-phase --item <ID> --phase audit
+   ```
+
+For periodic full-codebase audit: branch is
+`feature/audit-<YYYY-MM-DD>` (no item ID). The AUDIT report acts as
+its own deliverable; FIX/IMP follow-ups land in the BACKLOG, each
+with its own branch later.
+
+Full rules: `skills/project-conventions/references/team-workflow.md`.
 
 ## What you do
 

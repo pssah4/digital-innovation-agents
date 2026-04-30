@@ -12,22 +12,31 @@ disable-model-invocation: false
 
 # Requirements Engineer
 
-## MANDATORY Pre-Phase 0: Branch protection
+## MANDATORY Pre-Phase 0: Branch and item check
 
-Before any FEATURE / EPIC / FIX / IMP write, verify the current
-branch is right for THIS work. The check fires once per skill
-invocation, regardless of branch type.
+RE writes the FEATURE / FIX / IMP spec for a specific backlog item.
+Run the team-workflow check (full rules:
+`skills/project-conventions/references/team-workflow.md`):
 
-- If on `main` / `master` / `dev`: refuse, ask via `AskUserQuestion`
-  to create `feature/re-{feature-or-epic-slug}`.
-- If on another `feature/*` branch: ask whether it matches the
-  requirements topic, with options continue / new branch / switch /
-  custom. Recommend new branch when the existing branch slug does
-  not overlap the requirements topic.
+1. Identify the active item from the prompt or via AskUserQuestion.
+   For new items, write the BACKLOG row first.
+2. Verify the branch matches `feature/<item-id-lower>-<slug>` (or
+   `fix/...` / `chore/...`). On a wrong branch, AskUserQuestion to
+   switch.
+3. Skill-triggered GitHub integration:
 
-Full rules: `skills/project-conventions/references/branch-protection.md`.
+   ```
+   python3 tools/github-integration/flow.py create-issue --item <ID>
+   python3 tools/github-integration/flow.py open-draft-pr --item <ID>
+   ```
 
-Suggested slug for RE: `feature/re-{feature-or-epic-slug}`.
+4. At Handoff Ritual end, tag the phase:
+
+   ```
+   python3 tools/github-integration/flow.py tag-phase --item <ID> --phase re
+   ```
+
+5. Write `.git/dia-active-skill` so subsequent invocations stay silent.
 
 ## MANDATORY Phase 0: Artifact triage
 

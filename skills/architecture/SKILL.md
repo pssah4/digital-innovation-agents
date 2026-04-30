@@ -14,22 +14,29 @@ disable-model-invocation: false
 
 # Architect
 
-## MANDATORY Pre-Phase 0: Branch protection
+## MANDATORY Pre-Phase 0: Branch and item check
 
-Before any ADR / arc42 / plan-context write, verify the current
-branch is right for THIS architecture work. The check fires once
-per skill invocation, regardless of branch type.
+Architecture work writes ADRs, arc42 sections, and plan-context for
+a specific backlog item. Run the team-workflow check (full rules:
+`skills/project-conventions/references/team-workflow.md`):
 
-- If on `main` / `master` / `dev`: refuse, ask via `AskUserQuestion`
-  to create `feature/arch-{adr-or-feature-slug}`.
-- If on another `feature/*` branch: ask whether it matches the
-  architecture topic, with options continue / new branch / switch /
-  custom. Recommend new branch when the existing branch is for a
-  different ADR or feature.
+1. Identify the active item from the prompt or via AskUserQuestion.
+2. Verify the branch matches `feature/<item-id-lower>-<slug>`. On a
+   wrong branch, AskUserQuestion to switch.
+3. Skill-triggered GitHub integration:
 
-Full rules: `skills/project-conventions/references/branch-protection.md`.
+   ```
+   python3 tools/github-integration/flow.py create-issue --item <ID>
+   python3 tools/github-integration/flow.py open-draft-pr --item <ID>
+   ```
 
-Suggested slug for architecture: `feature/arch-{adr-or-feature-slug}`.
+4. At Handoff Ritual end, tag the phase:
+
+   ```
+   python3 tools/github-integration/flow.py tag-phase --item <ID> --phase arch
+   ```
+
+5. Write `.git/dia-active-skill` so subsequent invocations stay silent.
 
 ## MANDATORY Phase 0: Artifact triage
 

@@ -17,26 +17,34 @@ disable-model-invocation: false
 
 # Reverse Engineering
 
-## MANDATORY Pre-Phase 0: Branch protection
+## MANDATORY Pre-Phase 0: Branch check (multi-item exception)
 
-Before the first artefact write, verify the current branch is right
-for THIS work. The check fires once per skill invocation, regardless
-of branch type, then stays silent for the rest of the run (state in
-`.git/dia-active-skill`).
+Reverse-engineering bootstraps the entire backlog at once: 20+
+artefacts can land in a single run. Branching per-item would force
+the user to juggle 20 branches before any work is done. Therefore
+RE is the exception to the per-item branching rule:
 
-- If on `main` / `master` / `dev`: refuse, ask via `AskUserQuestion`
-  to create `feature/reverse-engineer-{repo-name}`.
-- If on a `feature/*` / `fix/*` / `chore/*` branch: ask via
-  `AskUserQuestion` whether the branch fits the new work, showing
-  the last 3 commit subjects so the user can decide. Options:
-  continue / new branch / switch to existing / custom.
+- All reverse-engineered artefacts land on
+  `feature/reverse-engineer-<repo-name>`.
+- Per-item branches kick in AFTER RE merges, when downstream skills
+  (`/coding`, etc.) work on individual items.
 
-Recommendation logic (continue when branch slug overlaps the topic;
-new branch when slugs diverge or last commit is >7 days old) and
-override mechanisms: `skills/project-conventions/references/branch-protection.md`.
+Branch check at start:
 
-Suggested slug for reverse-engineering:
-`feature/reverse-engineer-{repo-name}`.
+- If on `main` / `master` / `dev`: refuse, AskUserQuestion to create
+  `feature/reverse-engineer-<repo-name>` and switch.
+- If on the expected branch: silent continue.
+- If on another branch: AskUserQuestion -- switch to expected, or
+  rename the current branch to the expected name.
+
+GitHub integration: RE does not create per-item issues during
+Phase 0-7. The `/dia-orchestrator` post-RE handoff is responsible
+for that, after the user has triaged which reverse-engineered
+items are real backlog candidates.
+
+State stored in `.git/dia-active-skill`. Full rules:
+`skills/project-conventions/references/team-workflow.md`,
+`skills/project-conventions/references/branch-protection.md`.
 
 ## MANDATORY Phase 0: Artifact triage
 

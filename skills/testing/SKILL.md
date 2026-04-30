@@ -15,23 +15,31 @@ disable-model-invocation: false
 Creates tests that fit seamlessly into the existing codebase. Detects the
 framework, patterns, and conventions automatically from the project.
 
-## MANDATORY Pre-Phase 0: Branch protection
+## MANDATORY Pre-Phase 0: Branch and item check
 
-Before any test write, verify the current branch is right for THIS
-test work. The check fires once per skill invocation, regardless of
-branch type.
+Testing writes tests for a specific backlog item. Run the
+team-workflow check (full rules:
+`skills/project-conventions/references/team-workflow.md`):
 
-- If on `main` / `master` / `dev`: refuse, ask via `AskUserQuestion`
-  to create `feature/test-{feature-or-area-slug}`.
-- If on another `feature/*` branch: ask whether it matches the test
-  area. When tests directly accompany a feature being coded, the
-  same branch is usually correct (recommend continue); when tests
-  are a standalone backfill, recommend a new branch.
+1. Identify the active item from the prompt or via AskUserQuestion.
+   Tests usually accompany a FEAT, FIX, or IMP that just got coded;
+   continue on the same item branch.
+2. Verify the branch matches `feature/<item-id-lower>-<slug>`. On a
+   wrong branch, AskUserQuestion to switch.
+3. Skill-triggered GitHub integration (idempotent):
 
-Full rules: `skills/project-conventions/references/branch-protection.md`.
+   ```
+   python3 tools/github-integration/flow.py create-issue --item <ID>
+   python3 tools/github-integration/flow.py open-draft-pr --item <ID>
+   ```
 
-Suggested slug for testing: `feature/test-{feature-or-area-slug}`,
-or `feature/{feature-slug}` when tests accompany feature code.
+4. At Handoff Ritual end, tag the phase:
+
+   ```
+   python3 tools/github-integration/flow.py tag-phase --item <ID> --phase test
+   ```
+
+5. Write `.git/dia-active-skill` so subsequent invocations stay silent.
 
 ## MANDATORY Phase 0: Artifact triage
 

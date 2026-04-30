@@ -7,6 +7,76 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added: team workflow -- branch=item, phase tags, GitHub integration (2026-04-30)
+
+Codifies how a backlog item flows through Git + GitHub when teams
+collaborate. Replaces the earlier "branch per skill" idea with a
+team-friendlier "branch per backlog item" model.
+
+**Core invariant: branch = backlog item.** One branch lives for the
+entire lifecycle of one backlog item (FEAT, FIX, IMP, EPIC). All
+V-Model phases for that item write into the same branch. The branch
+ends when its PR merges to `dev`.
+
+Branch naming derived from item id:
+- FEAT: `feature/feat-ee-ff-<slug>`
+- EPIC: `feature/epic-nn-<slug>`
+- FIX:  `fix/fix-ee-ff-nn-<slug>`
+- IMP:  `chore/imp-ee-ff-nn-<slug>`
+
+**Phase tags as GitHub-readable progress markers.** Every V-Model
+phase ends with the skill setting an annotated git tag
+`<item-id-lower>/<phase>-done` (ba-done, re-done, arch-done,
+code-done, test-done, audit-done, ready-for-review). Tags are
+agent-set so the user does not need to remember the schema; tags are
+GitHub-readable so a Project board or Action can move cards.
+
+**Skill-triggered GitHub integration.** New driver
+`tools/github-integration/flow.py` with subcommands:
+- `create-issue` -- one issue per backlog item, written by the first
+  skill that touches the item. Issue body has a phase checklist; the
+  agent ticks it as tags are set.
+- `tag-phase` -- creates the annotated tag, updates the issue
+  checklist, updates the `phase:*` label.
+- `open-draft-pr` -- opens a draft PR for the item branch after the
+  first commit.
+- `ready-for-review` -- verifies required phase tags exist, tags
+  `<id>/ready-for-review`, flips the draft PR to ready.
+- `status` -- machine-readable summary of where an item stands
+  (orchestrator uses this for the post-phase check).
+
+The backlog truth stays in `BACKLOG.md`. GitHub is the team-
+collaboration view on top. If `gh` is missing or no GitHub remote is
+configured, the script enters local-only mode -- only git tags get
+set, the rest is no-op.
+
+**Orchestrator role expanded.** `/dia-orchestrator` now runs a
+post-phase consistency check after every entry-skill ends:
+1. Branch check (current branch is an item-branch)
+2. Tag check (just-finished phase tagged correctly)
+3. Backlog check (status reflects phase progress)
+4. Issue check (GitHub issue exists, label correct, checklist ticked)
+5. Next-phase suggestion via AskUserQuestion
+
+Plus a feature-complete handoff before `/release`: verifies all
+required `<id>/*-done` tags, asks via AskUserQuestion whether to
+mark the PR ready for review, calls `flow.py ready-for-review`, then
+hands off to `/release`.
+
+**Reverse-engineering exception.** RE bootstraps the entire backlog
+at once and runs on a single branch
+`feature/reverse-engineer-<repo-name>`. Per-item branches start AFTER
+RE merges, when downstream skills (`/coding`, etc.) work on
+individual items.
+
+Updated:
+- `skills/project-conventions/references/team-workflow.md` (new, canonical)
+- `skills/project-conventions/references/branch-protection.md` (rewritten to reference team-workflow.md)
+- `tools/github-integration/flow.py` (new, ~360 LOC)
+- `tools/github-integration/README.md` (new)
+- All 7 entry skills' Pre-Phase 0 sections rewritten for the new model
+- `skills/dia-orchestrator/SKILL.md` -- post-phase consistency check + feature-complete handoff
+
 ### Added: branch protection (2026-04-30)
 
 Two-layer defense against committing new work on the wrong branch.

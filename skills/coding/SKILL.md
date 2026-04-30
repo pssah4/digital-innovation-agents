@@ -14,23 +14,31 @@ disable-model-invocation: false
 
 # Coding -- Review, Handoff & Living Documents
 
-## MANDATORY Pre-Phase 0: Branch protection
+## MANDATORY Pre-Phase 0: Branch and item check
 
-Before any code or artefact edit, verify the current branch is
-right for THIS feature. The check fires once per skill invocation,
-regardless of branch type.
+Coding implements a specific FEAT / FIX / IMP from the backlog.
+Run the team-workflow check (full rules:
+`skills/project-conventions/references/team-workflow.md`):
 
-- If on `main` / `master` / `dev`: refuse, ask via `AskUserQuestion`
-  to create `feature/{feature-slug}` (mirrors the FEATURE ID).
-- If on another `feature/*` branch: ask whether it matches the
-  feature being implemented. Recommend continue when the branch
-  slug matches the FEATURE ID; recommend new branch when it does
-  not. Options: continue / new branch / switch / custom.
+1. Identify the active item. For mid-cycle FIX or IMP discovered
+   during coding, write the BACKLOG row first.
+2. Verify the branch matches `feature/<item-id-lower>-<slug>` (or
+   `fix/...` / `chore/...`). On a wrong branch, AskUserQuestion to
+   switch.
+3. Skill-triggered GitHub integration:
 
-Full rules: `skills/project-conventions/references/branch-protection.md`.
+   ```
+   python3 tools/github-integration/flow.py create-issue --item <ID>
+   python3 tools/github-integration/flow.py open-draft-pr --item <ID>
+   ```
 
-Suggested slug for coding: `feature/{feature-slug}` mirroring the
-FEATURE ID being implemented.
+4. At Handoff Ritual end, tag the phase:
+
+   ```
+   python3 tools/github-integration/flow.py tag-phase --item <ID> --phase code
+   ```
+
+5. Write `.git/dia-active-skill` so subsequent invocations stay silent.
 
 ## MANDATORY Phase 0: Artifact triage
 
