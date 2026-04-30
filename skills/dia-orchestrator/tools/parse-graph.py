@@ -219,7 +219,7 @@ class GraphBuilder:
 
     # ---- Backlog -----
     def parse_backlog(self) -> None:
-        bl_file = self.root / "context" / "10_backlog.md"
+        bl_file = self.root / "context" / "BACKLOG.md"
         if not bl_file.is_file():
             return
         txt = read_text(bl_file)
@@ -320,7 +320,7 @@ class GraphBuilder:
             "edges": self.edges,
             "meta": {
                 "root": str(self.root),
-                "generated_by": "v-model-workflow/tools/parse-graph.py",
+                "generated_by": "dia-orchestrator/tools/parse-graph.py",
             },
         }
 

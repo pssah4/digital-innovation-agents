@@ -5,7 +5,7 @@ description: Method cards for user research, observation, and insight work. The 
 
 # Discovery methods
 
-The real work of understanding users happens between humans. Nobody learns what a person actually struggles with by chatting to an AI. You learn it in interviews, field visits, observations, and immersions. What the [Business Analysis skill](../guides/business-analyse) can do is notice when your understanding has a gap and suggest the method that will close it fastest.
+The real work of understanding users happens between humans. Nobody learns what a person actually struggles with by chatting to an AI. You learn it in interviews, field visits, observations, and immersions. What the [Business Analysis skill](../guides/business-analysis) can do is notice when your understanding has a gap and suggest the method that will close it fastest.
 
 Every card on this page is a method the BA agent will bring up during your session. You take the method into the field, run it with real users, and come back with findings the agent can turn into an Exploration board entry.
 
@@ -406,6 +406,6 @@ A stage-by-stage map of what the user thinks, does, feels, and touches throughou
 
 ## Next steps
 
-- The BA agent will pick up these artifacts in the [Business Analysis dialog](../guides/business-analyse) and slot them into the Exploration board.
+- The BA agent will pick up these artifacts in the [Business Analysis dialog](../guides/business-analysis) and slot them into the Exploration board.
 - When ideation begins, continue with [Ideation methods](./methods-ideation).
 - To test the resulting ideas, see [Validation methods](./methods-validation).

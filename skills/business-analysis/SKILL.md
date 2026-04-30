@@ -223,9 +223,11 @@ Epic-BAs reference these IDs.
 
 If the Project-BA has grown beyond the One-Pager budget (for example
 from a reverse-engineering ingest of a legacy project), move the full
-document to `{docs-root}/analysis/archive/BA-{PROJECT}-v1-full.md` and
-compose a compact Project-BA that references the archive per section.
-The archive stays readable as the evidence trail.
+document to `_devprocess/analysis/BA-{PROJECT}-v{N}-full.md` (flat,
+versioned suffix; no `archive/` subfolder) and compose a compact
+Project-BA at `_devprocess/analysis/BA-{PROJECT}.md` that references
+the archive per section. The versioned file stays readable as the
+evidence trail.
 
 ## Process Overview
 
@@ -648,7 +650,35 @@ Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 - **Open questions**: research items that couldn't be answered and should
  be flagged to the user or deferred
 
-### Part 3: Transition question
+### Part 3: Phase-end commit
+
+Run the phase-end commit per `skills/project-conventions/references/team-workflow.md`
+section "Phase-end commit (binding)". The block fires the binding
+branch-and-item check, stages every artefact this phase produced,
+commits with the canonical message, sets the phase tag, and opens a
+draft PR if one does not exist yet.
+
+Canonical commit message for BA:
+
+```
+chore(ba): <ITEM-ID> BA complete
+
+<one-line summary of HMW + scope>
+
+Refs: <ITEM-ID>
+```
+
+After the commit lands, run:
+
+```
+python3 tools/github-integration/flow.py tag-phase --item <ID> --phase ba
+```
+
+Skip the commit silently if the working tree has no changes; the
+orchestrator's post-phase consistency check will surface the empty
+phase.
+
+### Part 4: Transition question
 
 Ask the user:
 

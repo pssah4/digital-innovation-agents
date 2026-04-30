@@ -17,17 +17,17 @@ description: Naming rules, language conventions, commit style, and git workflow.
 | Security Audit | `AUDIT-{PROJECT}-{YYYY-MM-DD}.md` | `AUDIT-myapp-2026-03-22.md` |
 | Handoff (RE -> Arch) | `architect-handoff.md` | Fixed name |
 | Handoff (Arch -> Code) | `plan-context.md` | Fixed name |
-| Backlog | `10_backlog.md` | Fixed name |
+| Backlog | `BACKLOG.md` | Fixed name |
 | Bug log | `20_bugs.md` | Fixed name (FIX-NN entries) |
-| Handoffs log | `30_handoffs.md` | Fixed name (append-only) |
-| Signal layer | `40_metrics.md` | Fixed name (per METRICS-TEMPLATE.md) |
+| Handoffs log | `HANDOFFS.md` | Fixed name (append-only) |
+| Signal layer | `METRICS.md` | Fixed name (per METRICS-TEMPLATE.md) |
 
 **Rules:**
 
 - 3-digit numbers with leading zeros for Epics and ADRs
   (`001`, `042`, not `1`, `42`)
 - Features are epic-scoped: `FEATURE-{EPIC}-{NNN}-{slug}.md`, where
-  `EPIC` is the 3-digit parent epic number (identical to the epic's
+  `{ee}` is the 2-digit parent epic number (identical to the epic's
   filename number) and `NNN` is the 3-digit feature counter local to
   that epic. Example: EPIC-001 gets FEATURE-001-001, FEATURE-001-002,
   ...; EPIC-013 gets FEATURE-013-001, ... The 3-digit-on-both-sides
@@ -67,7 +67,7 @@ the error).
 
 When multiple human-agent pairs work the same backlog, each pair
 identifies itself with a pair-id in the `Claim` column of
-`10_backlog.md`:
+`BACKLOG.md`:
 
 - Format: `{human-handle}-{model}`
 - Examples: `seb-opus-4-7`, `marie-sonnet-4-6`, `tom-codex`

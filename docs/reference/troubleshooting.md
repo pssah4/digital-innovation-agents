@@ -67,7 +67,7 @@ description: Common installation issues and their solutions per platform.
 ### The agent doesn't follow the workflow
 
 This is by design. The workflow is advisory, not enforcing. If
-you want the agent to follow it, explicitly invoke `/v-model-workflow`
+you want the agent to follow it, explicitly invoke `/dia-orchestrator`
 or a specific phase skill. If you do not want the workflow, you can
 opt out at any point:
 
@@ -86,9 +86,9 @@ Initialize manually:
 
 ```bash
 mkdir -p _devprocess/{analysis/security,requirements/{epics,features,handoff},architecture,context}
-touch _devprocess/context/20_bugs.md _devprocess/context/30_handoffs.md
+touch _devprocess/context/20_bugs.md _devprocess/context/HANDOFFS.md
 cp skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md \
-   _devprocess/context/10_backlog.md
+   _devprocess/context/BACKLOG.md
 ```
 
 ## Version mismatch

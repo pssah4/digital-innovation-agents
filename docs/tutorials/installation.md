@@ -108,8 +108,8 @@ To pin v1.0.0 (the Classic, frozen release):
 Start a new session on your platform and try one of these:
 
 ```
-/v-model-workflow          Orchestrator for the full cycle
-/business-analyse          Problem exploration, ideation, validation
+/dia-orchestrator          Orchestrator for the full cycle
+/business-analysis          Problem exploration, ideation, validation
 ```
 
 Or ask a natural-language question like "help me analyze this
@@ -119,8 +119,8 @@ invoke the relevant skill.
 ## What's next
 
 - [Run your first Business Analysis](./first-business-analysis): a
-  concrete walkthrough of `/business-analyse`
+  concrete walkthrough of `/business-analysis`
 - [A full V-Model run](./full-v-model-run): the whole cycle end to end,
   from raw idea to release closure
-- [V-Model workflow guide](../guides/v-model-workflow): how the
+- [V-Model workflow guide](../guides/dia-orchestrator): how the
   orchestrator treats phase transitions

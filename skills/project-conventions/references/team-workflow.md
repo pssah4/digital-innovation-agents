@@ -152,6 +152,110 @@ consistent: the user does not need to remember tag names. The skill
 prompts the user for confirmation before tagging if the Handoff
 Ritual ends with a non-trivial decision.
 
+## Phase-end commit (binding)
+
+Every phase ends with a commit before the phase tag is set. Without a
+commit, the tag has nothing to point at and the next phase starts on
+top of an unrecorded working tree. Earlier versions of this contract
+left the commit implicit; the result observed in the field was multi-
+phase work landing in a single end-of-cycle commit (BA, RE, and code
+all in one), which made phase tags meaningless and broke the per-phase
+rollback path.
+
+### When the commit fires
+
+The Handoff Ritual of every phase skill (`/business-analysis`,
+`/requirements-engineering`, `/architecture`, `/coding`, `/testing`,
+`/security-audit`, `/reverse-engineering`) runs the commit between
+Part 2 (Handoff context) and the phase-tag step.
+
+Triggers:
+
+1. **End of phase** -- the skill's Handoff Ritual hits the commit step.
+2. **Mid-phase user request** -- the user says "commit jetzt" / "commit
+   now". The skill runs the same commit block, scoped to whatever is
+   currently in the working tree, and continues the phase afterwards.
+
+### What gets committed
+
+The skill stages every artefact it produced or modified during the
+phase. If the working tree is empty (no changes), the commit step is
+skipped silently and the phase ends without a tag. The orchestrator's
+post-phase consistency check then surfaces "phase {x} produced no
+artefacts" so the user can decide whether the phase actually ran.
+
+### Branch check at the commit boundary
+
+The commit boundary is the authoritative trigger for the branch / item
+mapping. The Pre-Phase 0 check at skill start is advisory; the commit
+step is binding:
+
+```
+0. If there is no prior commit on the current branch for this item
+   (i.e. this is the first phase-end commit), or the current branch
+   is `main` / `master` / `dev`:
+   - AskUserQuestion: create `<expected-branch>` and switch, or pick a
+     custom name. On `main` / `master` / `dev` the question blocks; the
+     pre-commit hook would refuse the commit anyway.
+1. Stage the artefacts produced this phase.
+2. Run `git commit` with the canonical message (see below).
+3. Run `flow.py tag-phase --item <ID> --phase <phase>`.
+4. If no draft PR exists yet, run `flow.py open-draft-pr --item <ID>`.
+5. Push the branch (and tag) when a remote is configured. Skip silently
+   in solo mode.
+```
+
+The skill does NOT bypass the branch question via the
+`.git/dia-active-skill` marker: the marker proves the skill-start
+check ran, but the commit step asks again if the branch is wrong for
+the item, because users edit branches mid-flow more often than mid-
+skill.
+
+### Commit message
+
+```
+<conventional-prefix>(<phase>): <ITEM-ID> <phase> complete
+
+<one-line summary of what the phase delivered>
+
+Refs: <ITEM-ID>[, <other ids touched>]
+```
+
+Conventional prefixes per phase: `chore` (BA, RE, ARCH, AUDIT, RE-ENG),
+`feat` or `fix` (CODING, depending on the artefact category from
+triage), `test` (TESTING). Examples:
+
+- `chore(ba): BL-001 BA complete`
+- `chore(re): EPIC-04 RE complete`
+- `chore(arch): FEAT-04-09 ARCH complete`
+- `feat(code): FEAT-04-09 coding complete`
+- `test: FEAT-04-09 testing complete`
+- `chore(audit): AUDIT-MDM-MAKE-2026-04-30 audit complete`
+
+The `Refs:` line is mandatory. Multiple IDs are comma-separated. This
+is what `git log --grep="FEAT-04-09"` keys off later.
+
+### Mid-phase commits
+
+Long phases (RE producing many features, coding spanning days) MAY
+produce multiple intermediate commits. Each intermediate commit
+follows the same message template but uses a sub-phase noun, e.g.
+
+```
+chore(re): EPIC-04 features 04-01 to 04-04 drafted
+
+Refs: EPIC-04, FEAT-04-01, FEAT-04-02, FEAT-04-03, FEAT-04-04
+```
+
+The phase tag `<id>/<phase>-done` is set ONLY by the final phase-end
+commit, not by intermediate commits.
+
+### Solo mode
+
+When `gh` or the GitHub remote is missing, the commit and the local
+tag still run. `flow.py open-draft-pr` is a no-op in solo mode. The
+phase still ends with a real commit on the right branch.
+
 ## Draft PR per item
 
 Opened by `/business-analysis` (for new features) or
@@ -203,9 +307,14 @@ between Git tags, BACKLOG.md, GitHub issues, and project cards.
 Skills focus on producing artefacts; the orchestrator ensures the
 state across systems matches.
 
-## Pre-Phase 0 in entry skills: branch-and-issue check
+## Pre-Phase 0 in entry skills: advisory branch-and-issue check
 
-Every entry skill starts with this check:
+Every entry skill starts with this check. It is advisory: it surfaces
+a mismatch early so the user can fix it before the skill produces
+artefacts, but it does NOT block the skill if the user wants to draft
+artefacts on the current branch first. The binding gate is the phase-
+end commit (see "Phase-end commit (binding)" above), which re-asks
+the branch question and refuses to commit on a wrong branch.
 
 ```
 1. Identify the active backlog item.
@@ -218,25 +327,36 @@ Every entry skill starts with this check:
 
 3. Compare to current branch:
    - Match -> silent continue.
-   - Current branch is main/master/dev -> AskUserQuestion: create
-     `<expected-branch>` and switch.
-   - Current branch is a different item-branch -> AskUserQuestion:
-     switch to the right item-branch (or create it).
+   - Current branch is main/master/dev -> AskUserQuestion (advisory):
+     create `<expected-branch>` and switch now, or draft on the
+     current branch and decide at the phase-end commit. On
+     `main`/`master`/`dev` strongly recommend switching now because
+     the pre-commit hook will refuse the commit later anyway.
+   - Current branch is a different item-branch -> AskUserQuestion
+     (advisory): switch to the right item-branch (or create it), or
+     draft here and resolve at the phase-end commit.
    - Current branch matches loosely (typo, slug variation) ->
      AskUserQuestion: continue here or rename the branch.
 
 4. If GitHub issue does not exist for the item:
    call flow.py create-issue.
 
-5. If draft PR does not exist for the branch:
-   call flow.py open-draft-pr (only after the first commit on the
-   branch; for the very first skill on a brand-new branch, the
-   draft PR is opened at the end of Phase 0).
+5. Draft PR is opened at the FIRST phase-end commit on the branch,
+   not at skill start. The Pre-Phase 0 check therefore does not call
+   flow.py open-draft-pr. The phase-end commit step does.
 
 6. Write `.git/dia-active-skill` with item ID, branch, skill name,
    timestamp. Subsequent skill invocations read this file and stay
    silent if everything matches.
 ```
+
+The advisory framing matters because the commit-time check is the one
+that actually prevents drift. Keeping the skill-start check binding
+caused two failure modes in the field: (a) users answered "weiter
+hier" and the skill kept writing on `main`, then no commit ran, so the
+artefacts ended up tracked on the wrong branch silently; (b) the
+`.git/dia-active-skill` marker stayed valid across phase changes, so
+later phases never re-asked even when the item had moved on.
 
 ## Override and exceptions
 

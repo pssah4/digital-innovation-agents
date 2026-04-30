@@ -25,10 +25,45 @@ Summary: Before any work, read existing code, recognize patterns, understand
 dependencies, check reference implementations. The project's `CLAUDE.md`
 takes PRECEDENCE over generic skill instructions.
 
+## Three-layer documentation model
+
+Every project organizes its V-Model documentation in three layers. Each
+layer has a different update cadence, a different owner, and a
+different audience. Mixing layers is the dominant source of doc-vs-
+code drift, so the boundaries are binding.
+
+| Layer            | Purpose                                                                                                                      | Lives in                                                                                                                                                  | Owner                                                                                          |
+|------------------|------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| Wayfinder        | Concept-to-file lookup, navigational, grep-friendly                                                                          | `src/ARCHITECTURE.map`, JSDoc headers in entry-point files, module READMEs in `src/{module}/README.md`                                                      | Agent in `/coding` (every code edit that creates or renames an entry-point updates this layer) |
+| Rule sets        | Stable truths: stack, conventions, design rules, domain glossary. Hard cap 500 lines total.                                  | `_devprocess/rules/technical.md`, `_devprocess/rules/design.md` (only if UI), `_devprocess/rules/domain.md`                                                  | `/architecture`, `/coding`                                                                     |
+| Backlog          | Single source of truth for implementation status of every artifact, plus the relation graph (Epic -> Feature -> Plan -> Fix) | `_devprocess/context/BACKLOG.md`                                                                                                                        | Every status-changing skill writes the backlog row BEFORE touching the artifact body            |
+| Detail artifacts | Audit trail of the engineering process: BA, Epics, Features, Plans, Fixes, Improvements, ADR detail                          | `_devprocess/analysis/`, `_devprocess/requirements/{epics,features,fixes,improvements,handoff}/`, `_devprocess/architecture/`, `_devprocess/implementation/plans/` | `/business-analysis`, `/requirements-engineering`, `/architecture`, `/coding`                   |
+
+**Status, phase, last-change, and claim of every artifact live in the
+backlog row, not in the artifact frontmatter.** Artifact frontmatter
+carries identity (`id`, `title`, `created`) and relations (`epic`,
+`adr-refs`, `feature-refs`, etc.) only. The backlog is authoritative
+for state. This is the structural fix for the most common drift
+class (status fields stuck at "Planned" while the code shipped).
+
+**Wayfinder layer rationale.** A model querying "where does X live?"
+gets a single grep-friendly answer from `src/ARCHITECTURE.map` plus
+the JSDoc header of the entry-point. Concrete code paths that age
+fast (file names, line numbers, method signatures) live in the code
+or next to it, never in detail artifacts.
+
+**Detail artifact discipline.** Detail artifacts hold the substance
+that does not age fast (problem, decision, rejected alternatives,
+success criteria, reasoning). They do NOT list current code paths in
+core sections. ADRs are allowed an optional `## Implementation Notes`
+appendix that may go stale. FEATUREs are allowed an optional
+`## Code Pointer` appendix that references an ARCHITECTURE.map
+concept name, not a file path.
+
 ## Directory Structure
 
 Every project has this base structure. Not all directories are created
-upfront -- they emerge during the V-Model workflow.
+upfront, they emerge during the V-Model workflow.
 
 Read `references/directory-structure.md` for the full reference.
 
@@ -37,11 +72,15 @@ Read `references/directory-structure.md` for the full reference.
 ```
 {project}/
   _devprocess/                    -- Internal knowledge archive (not public)
-    analysis/                     -- Business Analysis & Security Audits
+    analysis/                     -- Flache Ablage: BA-, EXPLORE-, AUDIT-, RESEARCH- (sources/ ist Ausnahme fuer User-Quellen)
     requirements/                 -- Epics, Features, handoff documents
     architecture/                 -- ADRs, arc42
-    context/                      -- Backlog, bugs, handoffs, status docs
+    rules/                        -- Stable rule sets (technical/design/domain), max 500 lines total
+    implementation/plans/         -- PLAN-{nn} files
+    context/                      -- Backlog, handoffs, metrics
   src/                            -- Source code
+    ARCHITECTURE.map              -- Wayfinder: concept | entry-point | adr | how-to-extend
+    {module}/README.md            -- Module wayfinder (one per module that owns substance)
   docs/                           -- Public documentation (English)
   scripts/                        -- Build/Deploy/Utility scripts
   memory/                         -- MEMORY.md + reference files
@@ -58,29 +97,32 @@ Read `references/naming-conventions.md` for the full reference.
 
 | Artifact | Pattern | Example |
 |----------|---------|---------|
-| Business Analysis | `BA-{PROJECT}.md` | `BA-myapp.md` |
-| Exploration Board | `EXPLORE-{PROJECT}.md` | `EXPLORE-myapp.md` |
-| Epic | `EPIC-{NNN}-{slug}.md` | `EPIC-001-ai-agent-core.md` |
-| Feature | `FEATURE-{EPIC}-{NNN}-{slug}.md` | `FEATURE-001-001-semantic-search.md` |
-| ADR | `ADR-{NNN}-{slug}.md` | `ADR-003-embedding-provider.md` |
-| Security Audit | `AUDIT-{PROJECT}-{YYYY-MM-DD}.md` | `AUDIT-myapp-2026-03-22.md` |
+| Business Analysis | `BA-{PROJECT}.md` | `BA-myapp.md` (in `analysis/`) |
+| Exploration Board | `EXPLORE-{PROJECT}.md` | `EXPLORE-myapp.md` (in `analysis/`) |
+| Research note | `RESEARCH-{TOPIC}.md` | `RESEARCH-pricing.md` (in `analysis/`) |
+| User source | `SOURCE-{name}.{ext}` | `SOURCE-Anforderungen.json` (in `analysis/sources/`) |
+| Epic | `EPIC-{nn}-{slug}.md` | `EPIC-01-ai-agent-core.md` |
+| Feature | `FEAT-{ee}-{ff}-{slug}.md` | `FEAT-01-01-semantic-search.md` |
+| ADR | `ADR-{nn}-{slug}.md` | `ADR-03-embedding-provider.md` |
+| Security Audit | `AUDIT-{PROJECT}-{YYYY-MM-DD}.md` | `AUDIT-myapp-2026-03-22.md` (in `analysis/`) |
 | Handoff (RE->Arch) | `architect-handoff.md` | Fixed name |
 | Handoff (Arch->Code) | `plan-context.md` | Fixed name |
-| Backlog | `10_backlog.md` | Fixed name |
-| Bug log | `20_bugs.md` | Fixed name (FIX-NN entries) |
-| Handoffs log | `30_handoffs.md` | Fixed name (append-only) |
+| Backlog | `BACKLOG.md` | Fixed name |
+| Fix detail file | `FIX-{ee}-{ff}-{nn}-{slug}.md` | Lives in `_devprocess/requirements/fixes/` |
+| Improvement detail file | `IMP-{ee}-{ff}-{nn}-{slug}.md` | Lives in `_devprocess/requirements/improvements/` |
+| Handoffs log | `HANDOFFS.md` | Fixed name (append-only) |
 
-Rules: 3-digit numbers, kebab-case slugs, no spaces, no umlauts in file names.
+Rules: 2-digit numbers (counters), kebab-case slugs, no spaces, no umlauts in file names.
 
 **Epic-scoped feature numbering:** Features are numbered within their
-epic, not globally. The format is `FEATURE-{EPIC}-{NNN}-{slug}.md`
-where `EPIC` is the 3-digit epic number (identical to the number in
-the epic's filename) and `NNN` is the 3-digit feature counter local
+epic, not globally. The format is `FEAT-{ee}-{ff}-{slug}.md`
+where `EPIC` is the 2-digit epic number (identical to the number in
+the epic's filename) and `NNN` is the 2-digit feature counter local
 to that epic. Examples:
 
-- EPIC-001 -> FEATURE-001-001, FEATURE-001-002, FEATURE-001-003, ...
-- EPIC-002 -> FEATURE-002-001, FEATURE-002-002, ...
-- EPIC-013 -> FEATURE-013-001, FEATURE-013-002, ...
+- EPIC-01 -> FEAT-01-01, FEAT-01-02, FEAT-01-03, ...
+- EPIC-02 -> FEAT-02-01, FEAT-02-02, ...
+- EPIC-13 -> FEAT-13-01, FEAT-13-02, ...
 
 This keeps epic and feature traceable via the filename alone, makes
 parallel epic work conflict-free (two epics can each start at
@@ -88,27 +130,54 @@ FEATURE-{EPIC}-001), and keeps alphabetical sort order stable.
 
 ### The `_devprocess/context/` files
 
-Three living documents live side-by-side under `_devprocess/context/`:
+Living documents under `_devprocess/context/`:
 
-- **`10_backlog.md`** -- the project backlog and **single source of
-  truth for the project state**. Follows the binding template at
+- **`BACKLOG.md`** -- the project backlog and **single source of
+  truth for project state and the artifact relation graph**. Follows
+  the binding template at
   `skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`.
-  Entries for features, chores, security findings, and deferred items,
-  grouped by Epic with a dashboard on top. MUST be updated after every
-  status-changing action (new entry, status transition, priority or
-  epic change, implementation done). Every agent that touches the
-  project state also touches this file.
-- **`20_bugs.md`** -- the bug log. Populated by the `/coding` skill's
-  debugging protocol (see `skills/coding/SKILL.md` Phase 3c). Each entry
-  uses a `FIX-NN` ID with priority (P0/P1/P2), causal chain, and (after
-  resolution) commit SHA and regression-test status.
-- **`30_handoffs.md`** -- the phase handoffs log. Append-only. Each phase
+  One row per artifact (Feature, ADR, Plan, Fix, Improvement, Epic,
+  BL-Item) with status, phase, claim, refs, and commit SHA. Bug
+  entries live as FIX-{ee}-{ff}-{nn} rows directly in this file; the
+  detail file at `_devprocess/requirements/fixes/FIX-*.md` carries
+  the substance. There is NO separate bug-log aggregation file.
+  Status-changing actions update the backlog row BEFORE the artifact
+  body. Every skill that touches project state also touches this file.
+- **`HANDOFFS.md`** -- the phase handoffs log. Append-only. Each phase
   skill writes one entry at the end of its run with: artifacts produced,
   handoff context (open questions, assumptions, risks), and next phase.
   Used by the next skill to pick up context without re-reading all artifacts.
+- **`METRICS.md`** -- signal layer (cycle time, drift count, hypothesis
+  validation, phase transitions, mid-course trigger counts). Populated
+  by `/coding`, `/business-analysis`, `/dia-orchestrator`. See
+  `skills/dia-orchestrator/templates/METRICS-TEMPLATE.md`.
 
-The numbering (`10_`, `20_`, `30_`) leaves room for future additions
-without renumbering.
+FIX and IMP detail files live under
+`_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md` and
+`_devprocess/requirements/improvements/IMP-{ee}-{ff}-{nn}-{slug}.md`
+(parallel to `epics/` and `features/`). Status, phase, claim, and
+commit SHA live in the backlog row, not in the file's frontmatter.
+
+### `_devprocess/analysis/` layout rule
+
+Flat layout. Every artefact carries a type prefix in its filename and
+sits at the analysis/ root. No subfolders per artefact type.
+
+- `BA-{PROJECT}.md`             -- Business Analysis (one per project)
+- `EXPLORE-{PROJECT}.md`        -- Exploration Board (optional, one per project)
+- `AUDIT-{PROJECT}-{DATE}.md`   -- Security Audit Report (n per project)
+- `RESEARCH-{TOPIC}.md`         -- Research note (n per project, optional)
+- `ADR-{nn}-review.md`          -- Root-cause review for an ADR amendment
+
+The single exception is `analysis/sources/`, a subfolder for user-
+provided source documents (specifications, glossaries, RFP drafts,
+PDFs the user wants to keep as project context). Files in
+`sources/` use a `SOURCE-{name}.{ext}` prefix and are read-only from
+the skill's perspective. Skills never write into `sources/`; only
+the user copies files there.
+
+This layout is the post-flatten target of `dia-migration` Phase 4
+and supersedes the earlier `analysis/security/` subfolder.
 
 ## Writing style for every artifact
 
@@ -174,45 +243,52 @@ into the placeholders is written in the same style.
 | Code, identifiers, variables | English |
 | Skill files (`SKILL.md`) | English (user language adapts in dialog) |
 
-**Artefakt-Sprache (verbindlich):** Jeder Skill erzeugt die in
-`_devprocess/` produzierten Artefakte (BA, EPIC, FEATURE, ADR, arc42,
-plan-context, architect-handoff, backlog rows, bug-log entries,
-handoff-log entries, AUDIT-Reports, release notes, FIX/IMP-Dateien) in
-**genau der Sprache, in der der User im Chat kommuniziert**. Sprachwechsel
-des Users im Chat zieht die Sprache neuer Artefakte nach; bestehende
-Artefakte werden nicht automatisch uebersetzt. Bei **Unklarheit** (z. B.
-gemischt DE/EN im Prompt, erster User-Turn sehr kurz) stellt der Skill
-**eine praegnante Frage** vor dem ersten Artefakt:
+**Artifact language (binding):** every skill produces the documents
+under `_devprocess/` (BA, EPIC, FEATURE, ADR, arc42, plan-context,
+architect-handoff, backlog rows, bug-log entries, handoff-log entries,
+audit reports, release notes, FIX, IMP) in the language the user
+uses in chat. A language switch by the user pulls subsequent
+artifacts; existing artifacts are not auto-translated. On ambiguity
+(mixed DE/EN, very short first turn), the skill asks one short
+question before the first artifact:
 
-> "In welcher Sprache soll ich die Artefakte schreiben -- Deutsch oder
-> Englisch?"
+> "Which language should the artifacts use, German or English?"
 
-Ausgenommen bleiben die oben tabellarisch fixierten Kontexte: Code,
-Identifier, Commit-Messages, `docs/`, `README`, Skill-Dateien sowie
-englische Feldnamen (Frontmatter-Keys, Template-Platzhalter, technische
-Begriffe wie `phase`, `status`, `Epic`, `Feature`, `ADR`).
+Excluded from this rule: code, identifiers, commit messages, `docs/`,
+`README`, skill files, and English keyword fields (frontmatter keys,
+template placeholders, technical terms such as `status`, `phase`,
+`Epic`, `Feature`, `ADR`, `Refs`).
 
 **Note:** Skills are written in English so they are portable across
-languages, but when a skill runs and talks to the user, the agent switches
-to the user's language. See `skills/using-digital-innovation-agents/SKILL.md`.
+languages, but when a skill runs and talks to the user, the agent
+switches to the user's language. See
+`skills/using-digital-innovation-agents/SKILL.md`.
 
 ## Feature Lifecycle
 
 Every feature goes through:
 
 ```
-1. BACKLOG          -- Entry in _devprocess/context/10_backlog.md
+1. BACKLOG ROW      -- Create row in _devprocess/context/BACKLOG.md
+                       FIRST. Status=Planned, Phase=Building, Refs={Epic}.
 2. CLAIM            -- Set Claim column to {pair-id} @ {date}
-3. FEATURE-SPEC     -- Write spec BEFORE implementation
-4. PLAN             -- Plan-Mode: create implementation plan
-5. IMPLEMENTATION   -- Code, build+deploy after each step
-6. SPEC UPDATE      -- Feature-spec becomes reference doc
-7. BACKLOG UPDATE   -- Immediately after implementation
-8. RELEASE CLAIM    -- Clear Claim column when phase ends
+3. FEATURE-SPEC     -- Write the substance (description, SC, NFRs)
+                       AFTER the row exists. No status field in
+                       frontmatter.
+4. PLAN             -- Persist agent's plan as PLAN-{nn}, append PLAN-{nn}
+                       to the feature's Refs column in backlog
+5. IMPLEMENTATION   -- Code, build, test after each step. Backlog row
+                       reflects status (Active -> Review).
+6. SPEC UPDATE      -- Feature spec stays the substance reference
+                       (success criteria verified, NFRs honored). Code
+                       paths NEVER added to the spec.
+7. WAYFINDER UPDATE -- New entry-point landed: update
+                       src/ARCHITECTURE.map and write the JSDoc header
+8. BACKLOG UPDATE   -- Status=Done, commit SHA, claim cleared
 ```
 
 See the Concurrent-agent coordination section in
-`skills/v-model-workflow/SKILL.md` for the Claim protocol and
+`skills/dia-orchestrator/SKILL.md` for the Claim protocol and
 conflict-resolution rules when multiple pairs work in parallel.
 
 ## Plan Structure
@@ -242,11 +318,17 @@ Root Cause: [why it happens]
 Chain: step 1 -> step 2 -> ... -> error
 ```
 
-Bug IDs: `FIX-NN` (P0 = immediate, P1 = short-term, P2 = medium-term).
-Security findings: `H-N` / `M-N` / `L-N` (High/Medium/Low).
+Bug IDs: `FIX-{ee}-{ff}-{nn}` (P0 = immediate, P1 = short-term, P2 =
+medium-term, where `{ee}` = parent epic, `{ff}` = parent feature,
+`{nn}` = bug counter local to that feature). Security findings:
+`H-N` / `M-N` / `L-N` (High/Medium/Low).
 
-All bugs discovered during `/coding` land in `_devprocess/context/20_bugs.md`
-with the full causal chain and priority.
+All bugs discovered during `/coding` (or surfaced by the user
+mid-flow) land as a FIX-{ee}-{ff}-{nn} row in
+`_devprocess/context/BACKLOG.md` with priority, plus a detail file at
+`_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`
+carrying symptom, root cause (causal chain), fix, and regression
+test. There is no separate bug-log file.
 
 ## Memory Conventions
 
@@ -262,16 +344,25 @@ with the full causal chain and priority.
 When setting up a new project, create this base structure:
 
 ```bash
-mkdir -p _devprocess/{analysis/security,requirements/{epics,features,handoff},architecture,context}
+mkdir -p _devprocess/{analysis/sources,requirements/{epics,features,fixes,improvements,handoff},architecture,rules,implementation/plans,context}
 mkdir -p src docs scripts memory
 ```
 
 And create the initial files:
-- `_devprocess/context/10_backlog.md` -- seeded from
+- `_devprocess/context/BACKLOG.md` -- seeded from
   `skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`
   with the project name filled in and empty dashboard counts
-- `_devprocess/context/20_bugs.md` (empty bug log)
-- `_devprocess/context/30_handoffs.md` (empty handoffs log)
+- `_devprocess/context/HANDOFFS.md` (empty handoffs log)
+- `_devprocess/rules/technical.md` -- seeded from
+  `skills/architecture/templates/RULES-TECHNICAL-TEMPLATE.md`
+- `_devprocess/rules/design.md` (only if the project has UI surface) --
+  seeded from `skills/architecture/templates/RULES-DESIGN-TEMPLATE.md`
+- `_devprocess/rules/domain.md` -- seeded from
+  `skills/architecture/templates/RULES-DOMAIN-TEMPLATE.md`
+- `src/ARCHITECTURE.map` -- seeded from
+  `skills/architecture/templates/ARCHITECTURE-MAP-TEMPLATE.md`. Empty
+  rows initially; `/coding` and `/architecture` populate it as
+  entry-points appear.
 - `CLAUDE.md` (project context template)
 - `memory/MEMORY.md` (empty memory template)
 

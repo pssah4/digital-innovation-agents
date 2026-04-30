@@ -363,7 +363,39 @@ Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 - **Forbidden-terms check**: confirmation that no tech terms leaked into
  Success Criteria (OAuth, REST, PostgreSQL, etc.)
 
-### Part 3: Transition question
+### Part 3: Phase-end commit
+
+Run the phase-end commit per `skills/project-conventions/references/team-workflow.md`
+section "Phase-end commit (binding)". The block fires the binding
+branch-and-item check, stages every artefact this phase produced
+(epics, features, architect-handoff, BACKLOG row updates), commits
+with the canonical message, sets the phase tag, and opens a draft PR
+if one does not exist yet.
+
+Canonical commit message for RE:
+
+```
+chore(re): <ITEM-ID> RE complete
+
+<one-line summary: N epics, M features, K success criteria>
+
+Refs: <ITEM-ID>[, additional epic/feature IDs touched]
+```
+
+After the commit lands, run:
+
+```
+python3 tools/github-integration/flow.py tag-phase --item <ID> --phase re
+```
+
+For long RE phases that span days and produce many features,
+intermediate commits per cluster of features are encouraged. Each
+intermediate commit follows the same template; only the final
+phase-end commit gets the `<id>/re-done` tag.
+
+Skip the commit silently if the working tree has no changes.
+
+### Part 4: Transition question
 
 Ask the user:
 

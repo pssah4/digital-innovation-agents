@@ -27,7 +27,7 @@ of what was done.
 
 ### Part 2: Handoff context
 
-The skill appends a new entry to `_devprocess/context/30_handoffs.md`
+The skill appends a new entry to `_devprocess/context/HANDOFFS.md`
 with content that is not obvious from the artifacts alone:
 
 - Open decisions that were deferred
@@ -35,10 +35,10 @@ with content that is not obvious from the artifacts alone:
 - Risks or concerns worth flagging
 - Dependencies on other phases or external systems
 
-Example entry in `30_handoffs.md`:
+Example entry in `HANDOFFS.md`:
 
 ```markdown
-## 2026-04-14 14:30, business-analyse -> requirements-engineering
+## 2026-04-14 14:30, business-analysis -> requirements-engineering
 
 **Scope:** PoC
 
@@ -68,7 +68,7 @@ The skill asks the user an explicit question:
 > review the BA first?"
 
 **On agreement** ("yes", "go", "next") or when running inside
-`/v-model-workflow`: the orchestrator launches the next skill and
+`/dia-orchestrator`: the orchestrator launches the next skill and
 passes the handoff context.
 
 **On rejection** ("no", "stop", "I want to check first"): the skill
@@ -79,7 +79,7 @@ so the user can resume later.
 
 A gate is a pass/fail mechanism that blocks progress. Gates sound
 good in theory but duplicate the quality checks already inside each
-skill. For example, `/business-analyse` already runs quality gates on
+skill. For example, `/business-analysis` already runs quality gates on
 its Exploration Board before handoff. An extra outer gate adds
 bureaucracy without adding rigor.
 
@@ -114,9 +114,9 @@ the conversation transcript, and the next session reads it on start.
 The seed format for both documents lives in
 [`skills/requirements-engineering/templates/ARCHITECT-HANDOFF-TEMPLATE.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/requirements-engineering/templates/ARCHITECT-HANDOFF-TEMPLATE.md).
 
-## The `30_handoffs.md` log
+## The `HANDOFFS.md` log
 
-`_devprocess/context/30_handoffs.md` is an append-only log of every
+`_devprocess/context/HANDOFFS.md` is an append-only log of every
 phase transition in the project. Each entry has:
 
 - Timestamp and phase transition (for example, `architecture -> coding`)
@@ -129,17 +129,17 @@ audit and "how did we get here?" investigations.
 
 ## Integration with the orchestrator
 
-When `/v-model-workflow` runs, the orchestrator reads the handoff
+When `/dia-orchestrator` runs, the orchestrator reads the handoff
 context after each ritual and uses it as input for the next phase.
 When a skill runs directly (without the orchestrator), the ritual
-still runs, and the next skill finds the context in `30_handoffs.md`
+still runs, and the next skill finds the context in `HANDOFFS.md`
 when it is eventually invoked.
 
 Both paths end up with the same artifacts and the same traceability.
 
 ## Rules for skills
 
-Every phase skill (`/business-analyse`, `/requirements-engineering`,
+Every phase skill (`/business-analysis`, `/requirements-engineering`,
 `/architecture`, `/coding`, `/testing`, `/security-audit`) implements
 this ritual at the end. The ritual is mandatory. The skill does not
 consider itself complete until the ritual has run.
@@ -149,6 +149,6 @@ This is documented in `skills/<skill>/SKILL.md` under a section titled
 
 ## See also
 
-- [V-Model workflow guide](../guides/v-model-workflow): the orchestrator
-- [Artifacts reference](../reference/artifacts): including `30_handoffs.md`
+- [V-Model workflow guide](../guides/dia-orchestrator): the orchestrator
+- [Artifacts reference](../reference/artifacts): including `HANDOFFS.md`
 - [V-Model concept](./v-model): the cycle the rituals serve

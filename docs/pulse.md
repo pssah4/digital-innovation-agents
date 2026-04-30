@@ -101,9 +101,9 @@ the backlog. Spontaneous ideas go to the Ideas channel, not directly
 into code.
 
 The pair runs the V-Model walk inside this layer. Specifically, the
-pair invokes [`/v-model-workflow`](/guides/v-model-workflow) for
+pair invokes [`/dia-orchestrator`](/guides/dia-orchestrator) for
 end-to-end runs or the individual phase skills
-([`/business-analyse`](/guides/business-analyse),
+([`/business-analysis`](/guides/business-analysis),
 [`/requirements-engineering`](/guides/requirements-engineering),
 [`/architecture`](/guides/architecture),
 [`/coding`](/guides/coding),
@@ -152,8 +152,8 @@ The [V-Model workflow](/concepts/v-model) defines the structure that
 PULSE relies on. Every pair reads from and writes to the same files
 in `_devprocess/`:
 
-- [`BA-{PROJECT}.md`](/guides/business-analyse): the product north star.
-  Lives across releases through [Post-Release Review](/guides/business-analyse#phase-8-post-release-review-ba-as-living-document).
+- [`BA-{PROJECT}.md`](/guides/business-analysis): the product north star.
+  Lives across releases through [Post-Release Review](/guides/business-analysis#phase-8-post-release-review-ba-as-living-document).
 - [`EPIC-*.md` and `FEATURE-*.md`](/guides/requirements-engineering):
   the unit of work, written tech-agnostic so anyone (or any pair) can
   pick them up.
@@ -163,11 +163,11 @@ in `_devprocess/`:
 - `architect-handoff.md` and `plan-context.md`: the connective tissue
   between phases, with [Dialog sections](/concepts/handoff-rituals#dialog-handoffs-not-blockers)
   for questions a pair cannot answer alone.
-- `10_backlog.md`: the source of truth for project state, with the
+- `BACKLOG.md`: the source of truth for project state, with the
   [Claim column](/reference/conventions#pair-ids-concurrent-agent-coordination)
   that lets pairs work concurrently without a central lock service.
-- `30_handoffs.md`: append-only log of every phase transition.
-- `40_metrics.md`: the [signal layer](/reference/artifacts#the-four-context-files).
+- `HANDOFFS.md`: append-only log of every phase transition.
+- `METRICS.md`: the [signal layer](/reference/artifacts#the-four-context-files).
   Cycle time, drift count, hypothesis status, phase transitions,
   cross-phase trigger counts. Append-additive, no rituals.
 - `CLAUDE.md` and `memory/MEMORY.md`: institutional memory loaded by
@@ -252,8 +252,8 @@ with three cross-phase triggers (mid-course bug, mid-course design,
 mid-course requirements) that close the iteration loop.
 
 The team layer (PULSE) consumes the artifacts the pair layer
-produces. The Direction Session reads `40_metrics.md`. The Sync Call
-reads `30_handoffs.md` and pending Dialog entries. The conscious
+produces. The Direction Session reads `METRICS.md`. The Sync Call
+reads `HANDOFFS.md` and pending Dialog entries. The conscious
 filter reads against the BA. Nothing in PULSE asks pairs to produce
 extra artifacts. Every artifact PULSE relies on is already produced
 by the V-Model.
@@ -281,7 +281,7 @@ PULSE is built around the V-Model artifact set. To run it you need:
    [`/project-conventions`](/guides/project-conventions))
 3. A backlog with the binding format (BL-NNN rows, dashboard, Claim
    column)
-4. A `40_metrics.md` seeded from the template
+4. A `METRICS.md` seeded from the template
 
 Once the artifacts exist, the rituals layer on top. Start with the
 async status and the sync call. Add the Direction Session at the
@@ -362,9 +362,9 @@ Mark Zimmermann (second comment):
 
 Reply. Not yet. The constraint is real. The V-Model is built so the
 agents read the artifacts in full and the humans can read summaries.
-Specifically: every Sync Call reads only `30_handoffs.md` (the latest
+Specifically: every Sync Call reads only `HANDOFFS.md` (the latest
 entries) and pending Dialog entries, not the full FEATURE specs.
-Direction Sessions read `40_metrics.md` for the trend, not the
+Direction Sessions read `METRICS.md` for the trend, not the
 underlying detail.
 
 A dedicated narrator skill that summarises the latest Sprint of
@@ -405,7 +405,7 @@ Reply. This was the most actionable critique and shaped v2.2.0
 directly.
 
 What changed: the new
-[`40_metrics.md` signal layer](/reference/artifacts#the-four-context-files)
+[`METRICS.md` signal layer](/reference/artifacts#the-four-context-files)
 records cycle time per FEATURE, drift count
 (`plan-context.md` vs. real code), BA hypothesis validation status,
 phase transition counts, and cross-phase trigger counts. Writes
@@ -460,7 +460,7 @@ commit SHA back to the source feature. The
 any line of code traces back through the chain to a business
 motivation in the BA.
 
-The new `40_metrics.md` signal layer extends this to the trend level:
+The new `METRICS.md` signal layer extends this to the trend level:
 hypothesis status over time, drift count over releases, trigger
 counts as a signal of where the workflow is straining.
 

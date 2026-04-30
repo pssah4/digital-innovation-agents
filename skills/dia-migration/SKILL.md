@@ -250,10 +250,11 @@ The append-only `_devprocess/context/HANDOFFS.md` is exempt from
 the body sweep. Historical entries keep their original IDs as
 audit-trail records.
 
-### Phase 4: analysis/ flattening to four prefixes
+### Phase 4: analysis/ flattening to four prefixes plus sources/
 
-Reduces the analysis/ directory to four prefixes: `BA-`, `EXPLORE-`,
-`RESEARCH-`, `AUDIT-`.
+Reduces the analysis/ directory to four flat prefixes (`BA-`,
+`EXPLORE-`, `RESEARCH-`, `AUDIT-`) at the root, plus a single
+`sources/` subfolder for user-provided source documents.
 
 - `CODEBASE-NNN`, `DESIGN-NNN`, `SECURITY-NNN`, `SPIKE-NNN`,
   `FINDING-`, `ROOT-CAUSE-`, `GAP-ANALYSE-`, `SOLUTION-PROPOSAL-`,
@@ -264,6 +265,10 @@ Reduces the analysis/ directory to four prefixes: `BA-`, `EXPLORE-`,
   (flat).
 - `analysis/security/` and `analysis/archive/` directories deleted
   (archive content has typically been replaced by the backlog).
+- `analysis/SOURCE-*` (any extension) -> moved to `analysis/sources/SOURCE-*`.
+  This is the only subfolder that survives the flatten because
+  user-provided sources are not engineered artefacts and benefit
+  from a clean separation.
 - External content (blog posts, reddit posts) -> moved to
   `_devprocess/articles/` if present.
 

@@ -38,12 +38,12 @@ codebase and produces a prioritized remediation plan.
 
 Identical to `/testing`: 4 user options (fix all, fix only P1, approve
 one-by-one, report only). Deferred findings land in
-`_devprocess/context/10_backlog.md` with full traceability.
+`_devprocess/context/BACKLOG.md` with full traceability.
 
 ## Handoff
 
 Ends with the 3-part Handoff Ritual. Next phase: Phase 7 Release
-Closure via `/v-model-workflow`. The handoff context includes the
+Closure via `/dia-orchestrator`. The handoff context includes the
 release readiness verdict (green, yellow, or red).
 
 ## Read the skill file

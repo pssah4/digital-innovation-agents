@@ -1,18 +1,38 @@
 ---
 name: coding
 description: >
- Handoff skill: loads plan-context.md and all design artifacts, performs a
- critical review against the real codebase, and ensures continuous writeback
- to the artifacts during and after implementation. Use this skill when the
- user mentions "implement", "code", "realize plan-context", "build feature",
- or similar and a plan-context.md or FEATURE specs exist. This skill does
- NOT take over the coding workflow -- the Default Claude Code agent remains
- responsible for the actual implementation. This skill ensures the context
- is critically reviewed, cleanly handed off, and artifacts stay up to date.
+ Handoff skill and bug-capture entry point: loads plan-context.md and all
+ design artifacts, performs a critical review against the real codebase, and
+ ensures continuous writeback to the artifacts during and after
+ implementation. Also the entry point when a bug is reported outside of an
+ active implementation run -- captures the FIX artefact (BACKLOG row + FIX
+ detail file + branch) without forcing an immediate fix. Use this skill when
+ the user mentions "implement", "code", "realize plan-context", "build
+ feature", "Bug gefunden", "es gibt einen Fehler", "Fix erfassen", or similar,
+ and either a plan-context.md / FEATURE spec exists OR a bug surfaced.
+ This skill does NOT take over the coding workflow -- the Default Claude
+ Code agent remains responsible for the actual implementation. This skill
+ ensures the context is critically reviewed, cleanly handed off, and
+ artifacts stay up to date.
 disable-model-invocation: false
 ---
 
 # Coding -- Review, Handoff & Living Documents
+
+This skill has two entry conditions:
+
+1. **Implementation entry** (the typical case): a FEATURE / IMP / ADR /
+   FIX is ready to be built. The full review-implement-writeback flow
+   below applies.
+2. **Bug-capture entry** (no implementation required): the user
+   reports a bug outside of an active implementation run. The skill
+   captures the FIX artefact (BACKLOG row + FIX detail file + branch)
+   and lets the user decide whether to implement now or later. See
+   "Bug-capture entry point" in MANDATORY Phase 0 below.
+
+The triggers in the description ("implement", "code", "build feature")
+cover case 1. Phrases like "Bug X", "Fix gefunden", "es gibt einen
+Fehler in FEAT-..." cover case 2.
 
 ## MANDATORY Pre-Phase 0: Branch and item check
 
@@ -65,6 +85,37 @@ No code or spec change without this assignment. FIX and IMP require
 tree and exceptions live in
 `skills/project-conventions/references/graph-invariants.md`
 (section "Artifact triage at entry point").
+
+### Bug-capture entry point (no implementation required)
+
+`/coding` is also the entry point when the user reports a bug
+**outside** of an active implementation run ("ich habe einen Bug in
+Feature X gefunden", "Login bricht ab"). The skill MUST be able to
+capture the bug without forcing the user into an immediate fix. Flow:
+
+1. Run the same Phase 0 triage. The user's prompt usually maps to FIX.
+2. Identify the affected `FEAT-{ee}-{ff}` (ask if unclear).
+3. Write the BACKLOG row first (status `Planned`, phase `Building`,
+   priority from the user, Source `BUG`).
+4. Create the detail file at
+   `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md` from
+   `templates/FIX-TEMPLATE.md`. Fill Symptom and what is currently
+   known about the cause; leave Fix and Regression test empty.
+5. Run the phase-end commit (per `team-workflow.md`) with message
+   `chore(fix): FIX-{ee}-{ff}-{nn} bug captured`. The commit creates
+   the `fix/<id-lower>-<slug>` branch via the commit-boundary check.
+6. Ask the user: "Bug erfasst. Soll ich jetzt den Fix implementieren
+   (`/coding` Phase 1+ auf diesem Branch), oder reicht die Erfassung
+   fuer jetzt?"
+
+If the user picks "nur erfassen", the skill ends after the commit
+and the bug waits in the backlog as a regular FIX item. The next
+`/coding` invocation on that FIX-ID resumes from Phase 1.
+
+The capture path is identical to the in-flight Mid-course bug
+discovery trigger (Phase 4b later in this file), only the entry
+condition differs. Both converge on the same artefact shape: BACKLOG
+row + FIX detail file + branch.
 
 
 ## MANDATORY: Backlog as single source of truth (no asking)
@@ -240,8 +291,8 @@ OPTIONAL (if present):
 5. _devprocess/architecture/arc42.md (overall architecture)
 6. _devprocess/requirements/epics/EPIC-*.md (strategic context)
 7. _devprocess/implementation/plans/PLAN-*.md (prior and active plans; Status=Active carries in-flight work)
-8. _devprocess/context/BACKLOG.md (open items)
-9. _devprocess/context/20_bugs.md (known bugs, FIX-NN-NN-NN entries)
+8. _devprocess/context/BACKLOG.md (open items, including FIX-{ee}-{ff}-{nn} rows)
+9. _devprocess/requirements/fixes/FIX-*.md (open and resolved bug specs)
 10. _devprocess/context/HANDOFFS.md (last handoff entry from /architecture)
 11. memory/MEMORY.md (architecture key facts)
 ```
@@ -573,8 +624,14 @@ protocol to the Default agent:
 1. Write a failing test that reproduces the bug
 2. Apply exactly one fix that addresses the root cause
 3. Verify: test passes, no regressions elsewhere
-4. Document the bug in `_devprocess/context/20_bugs.md` with a FIX-NN-NN-NN ID,
- the causal chain (step 1 -> step 2 -> ... -> error), and priority (P0/P1/P2)
+4. Document the bug as a FIX artefact:
+   - Add a row to `_devprocess/context/BACKLOG.md` under the affected
+     Epic with ID `FIX-{ee}-{ff}-{nn}`, status, phase, priority
+     (P0/P1/P2), and the commit SHA once the fix lands.
+   - Create the detail file at
+     `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`
+     using `templates/FIX-TEMPLATE.md`. The file carries Symptom,
+     Root cause (causal chain), Fix, Regression test.
 
 **Phase D.5: Architecture alarm (after 3+ failed fix attempts)**
 
@@ -589,9 +646,12 @@ Then STOP. No fourth attempt. Instead:
 - Discuss with the user before any more fixes
 - This is not a failed hypothesis -- it's a wrong architecture
 
-**Writeback:** Every bug found, even if the fix is trivial, gets an entry
-in `_devprocess/context/20_bugs.md` with: symptom, root cause, causal chain,
-fix commit SHA, FIX-NN-NN-NN ID, and priority.
+**Writeback:** Every bug found, even if the fix is trivial, gets a
+BACKLOG row (`FIX-{ee}-{ff}-{nn}`) plus a detail file at
+`_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`
+carrying symptom, root cause, causal chain, fix description,
+priority. The BACKLOG row carries status, phase, claim, last-change,
+and commit SHA; the FIX file carries the substance.
 
 ### Continuous writeback during implementation
 
@@ -689,8 +749,10 @@ actually catches the regression:
 Only when all three runs return the expected result is the bug marked as
 resolved and the regression test marked as valid.
 
-**Documentation:** The entry in `_devprocess/context/20_bugs.md` gets a
-note: "Regression test verified via red-green cycle on {date}".
+**Documentation:** The FIX detail file at
+`_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md` gets a
+note in its `## Regression test` section: "Regression test verified
+via red-green cycle on {date}".
 
 ### Mid-course bug discovery (binding trigger)
 
@@ -981,10 +1043,14 @@ bodies are touched:
  - The Change Log keeps every mid-course entry appended during the
  run. Never rewrite past entries.
 
-6. Bug log:
- - All FIX-NN-NN-NN entries in _devprocess/context/20_bugs.md updated
- (status resolved in the backlog row, commit SHA, regression test
- verified)
+6. FIX artefacts:
+ - Every FIX-{ee}-{ff}-{nn} touched this session has its BACKLOG row
+ updated (status resolved, commit SHA, claim cleared)
+ - Every FIX detail file at
+ `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md` has
+ its `## Fix` and `## Regression test` sections filled
+ - No bug-log aggregation file. The BACKLOG is the index, the FIX
+ file is the substance.
 
 7. Metrics (signal layer):
  - Append a row to _devprocess/context/METRICS.md under the
@@ -1017,7 +1083,7 @@ Artifact status:
 - {N} Features updated (Status: Implemented)
 - {N} ADRs finalized ({N} accepted, {N} modified, {N} deprecated)
 - {N} artifacts written back during implementation
-- {N} bugs in 20_bugs.md (resolved: {N}, open: {N})
+- {N} FIX entries (resolved: {N}, open: {N}; backlog rows + FIX detail files)
 - Backlog updated
 
 Deviations from the original design:
@@ -1042,8 +1108,8 @@ Produced / updated:
 - _devprocess/requirements/features/FEATURE-*.md: {status updates}
 - _devprocess/architecture/ADR-*.md: {status and implementation notes}
 - _devprocess/requirements/handoff/plan-context.md: {tech stack updates if any}
-- _devprocess/context/20_bugs.md: {FIX-NN-NN-NN entries}
-- _devprocess/context/BACKLOG.md: {new/resolved items}
+- _devprocess/requirements/fixes/FIX-*.md: {new or updated FIX specs, FIX-{ee}-{ff}-{nn}}
+- _devprocess/context/BACKLOG.md: {new/resolved items, including FIX rows}
 ```
 
 ### Part 2: Handoff context
@@ -1052,11 +1118,43 @@ Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 
 - Summary of what was implemented
 - Deviations from plan (with references to the updated ADRs/Features)
-- Bugs found and their FIX-NN-NN-NN IDs (resolved and open)
+- Bugs found and their FIX-{ee}-{ff}-{nn} IDs (resolved and open)
 - Open concerns for testing or security phase
 - Assumptions that were made and should be verified
 
-### Part 3: Transition question
+### Part 3: Phase-end commit
+
+Run the phase-end commit per `skills/project-conventions/references/team-workflow.md`
+section "Phase-end commit (binding)". The block fires the binding
+branch-and-item check, stages every artefact this phase produced
+(source code, ARCHITECTURE.map updates, JSDoc headers, module
+READMEs, PLAN, FIX specs, FEATURE/ADR writeback, BACKLOG row
+updates), commits with the canonical message, sets the phase tag,
+and opens a draft PR if one does not exist yet.
+
+Canonical commit message for CODING:
+
+```
+<feat|fix>(code): <ITEM-ID> coding complete
+
+<one-line summary of what shipped>
+
+Refs: <ITEM-ID>[, ADR-NN, PLAN-NN, FIX-...]
+```
+
+Use `feat` for new FEATURE work, `fix` for FIX work, `chore` for IMP
+work. Long coding phases produce multiple intermediate commits per
+task; only the final phase-end commit gets the `<id>/code-done` tag.
+
+After the commit lands, run:
+
+```
+python3 tools/github-integration/flow.py tag-phase --item <ID> --phase code
+```
+
+Skip the commit silently if the working tree has no changes.
+
+### Part 4: Transition question
 
 Ask the user:
 

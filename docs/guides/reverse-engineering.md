@@ -35,7 +35,7 @@ Use `/reverse-engineering` when:
 - Architecture decisions exist in the code but not as ADRs.
 - Nobody on the team can answer "why did we choose X?" with confidence.
 
-If the problem space is unclear and no code exists yet, start with [`/business-analyse`](./business-analyse) instead. Reverse engineering is a brownfield tool.
+If the problem space is unclear and no code exists yet, start with [`/business-analysis`](./business-analysis) instead. Reverse engineering is a brownfield tool.
 
 ## The anti-hallucination contract
 
@@ -64,7 +64,7 @@ The skill walks up the V in six phases. Each phase produces its own artifact bef
 
 ### Phase 0: Scope and codebase scan (5 to 10 min)
 
-Pick the depth, same three tiers as `/business-analyse`.
+Pick the depth, same three tiers as `/business-analysis`.
 
 | Scope | Depth | Typical duration |
 |---|---|---|
@@ -135,7 +135,7 @@ A feature is anything the system lets a user (or an API consumer) do. Sources:
 - Public exports if the project is a library.
 - Test descriptions (`describe('user can ...')`, `it('admin should ...')`).
 
-For each, write a `FEATURE-XXX-slug.md` with `Status: Observed (not validated)`. The Feature Description comes from the code. Benefits Hypothesis, User Stories, and Success Criteria stay as `[NEEDS USER INPUT]`. Those come from the forward walk through `/business-analyse` and `/requirements-engineering`.
+For each, write a `FEATURE-XXX-slug.md` with `Status: Observed (not validated)`. The Feature Description comes from the code. Benefits Hypothesis, User Stories, and Success Criteria stay as `[NEEDS USER INPUT]`. Those come from the forward walk through `/business-analysis` and `/requirements-engineering`.
 
 ### Phase 4: Business reverse engineering to BA draft
 
@@ -168,9 +168,9 @@ When you finish, count two numbers:
 - `filled-from-sources`: how many sections are evidence-backed.
 - `needs-user-input`: how many sections are placeholders.
 
-Both counts go into the BA header so `/business-analyse` can enter Validation Mode and knows exactly how much work remains.
+Both counts go into the BA header so `/business-analysis` can enter Validation Mode and knows exactly how much work remains.
 
-### Phase 5: Backlog extraction to 10_backlog.md
+### Phase 5: Backlog extraction to BACKLOG.md
 
 Scan for:
 
@@ -183,18 +183,18 @@ Scan for:
 
 Append each finding as a `BL-NNN` entry with priority `P2` by default and a `Source:` line pointing at the evidence. The team will reprioritise during BA and RE.
 
-### Phase 6: Handoff to `/business-analyse`
+### Phase 6: Handoff to `/business-analysis`
 
 The handoff follows the standard three-part [Handoff Ritual](../concepts/handoff-rituals).
 
 1. Artifact report with counts (plan-context, ADRs, features, arc42 sections, backlog entries) plus the BA coverage ratio (filled over total).
-2. Handoff context entry in `_devprocess/context/30_handoffs.md` with scope, risks, gaps, and recommended next phase (always `/business-analyse`).
-3. Transition question. "Shall I start `/business-analyse` now in Validation Mode, or do you want to review the draft first?"
+2. Handoff context entry in `_devprocess/context/HANDOFFS.md` with scope, risks, gaps, and recommended next phase (always `/business-analysis`).
+3. Transition question. "Shall I start `/business-analysis` now in Validation Mode, or do you want to review the draft first?"
 
-On agreement, `/business-analyse` detects the reverse-engineered BA draft automatically and walks through every `[NEEDS USER INPUT]` marker with the user, one section at a time. Evidence-backed claims get confirmed. Placeholders get filled. Each validated section gets its status promoted from `Draft` to `Validated`.
+On agreement, `/business-analysis` detects the reverse-engineered BA draft automatically and walks through every `[NEEDS USER INPUT]` marker with the user, one section at a time. Evidence-backed claims get confirmed. Placeholders get filled. Each validated section gets its status promoted from `Draft` to `Validated`.
 
 ::: info One skill, two entry points
-The forward and backward walks converge here. Whether the project started with `/business-analyse` or `/reverse-engineering`, the BA document is the same file at the same path, and every phase downstream (`/requirements-engineering`, `/architecture`, `/coding`) treats it identically. Reverse engineering is not a side track. It is a seed for the forward walk.
+The forward and backward walks converge here. Whether the project started with `/business-analysis` or `/reverse-engineering`, the BA document is the same file at the same path, and every phase downstream (`/requirements-engineering`, `/architecture`, `/coding`) treats it identically. Reverse engineering is not a side track. It is a seed for the forward walk.
 :::
 
 ## Quality gates
@@ -216,7 +216,7 @@ Want to see the exact instructions the agent follows? [`skills/reverse-engineeri
 
 ## Further reading
 
-- [Business Analysis guide](./business-analyse). The forward walk takes over here, starting in Validation Mode.
+- [Business Analysis guide](./business-analysis). The forward walk takes over here, starting in Validation Mode.
 - [Architecture guide](./architecture). The ADR and arc42 structure the skill uses.
 - [Living Documents concept](../concepts/living-documents). Why the reverse-engineered artifacts are meant to evolve.
 - [V-Model concept](../concepts/v-model). How both entry points feed into the same workflow.

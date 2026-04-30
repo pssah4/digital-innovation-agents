@@ -467,7 +467,34 @@ Append a new entry to `_devprocess/context/HANDOFFS.md` with:
  depend on the real codebase state
 - **Consistency check**: confirmation that plan-context.md matches all ADRs
 
-### Part 3: Transition question
+### Part 3: Phase-end commit
+
+Run the phase-end commit per `skills/project-conventions/references/team-workflow.md`
+section "Phase-end commit (binding)". The block fires the binding
+branch-and-item check, stages every artefact this phase produced
+(ADRs, arc42, plan-context.md, BACKLOG row updates), commits with the
+canonical message, sets the phase tag, and opens a draft PR if one
+does not exist yet.
+
+Canonical commit message for ARCH:
+
+```
+chore(arch): <ITEM-ID> ARCH complete
+
+<one-line summary: N ADRs, arc42 sections X.Y, plan-context tech-stack>
+
+Refs: <ITEM-ID>[, ADR-NN, ADR-NN]
+```
+
+After the commit lands, run:
+
+```
+python3 tools/github-integration/flow.py tag-phase --item <ID> --phase arch
+```
+
+Skip the commit silently if the working tree has no changes.
+
+### Part 4: Transition question
 
 Ask the user:
 

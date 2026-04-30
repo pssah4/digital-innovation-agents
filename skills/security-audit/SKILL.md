@@ -23,7 +23,7 @@ through to code review. Your output is a prioritized security report
 with a concrete remediation plan.
 
 **Input:** Codebase (`src/`), dependencies (`package.json`/`pyproject.toml`), configuration
-**Output:** Security Audit Report in `_devprocess/analysis/security/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`
+**Output:** Security Audit Report in `_devprocess/analysis/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`
 
 **Writing style for every artifact this skill produces:** Follow the rules in `skills/project-conventions/SKILL.md` under "Writing style for every artifact". Zero em dashes of any form. No Unicode em dash (U+2014), no en dash (U+2013), no double-hyphen substitute. No AI vocabulary, no negative parallelisms. Every finding description, every causal chain, every remediation step, and every prioritisation rationale is written in that style. Before you save an artifact, scan it for U+2014 and U+2013 and fix any hit.
 
@@ -137,7 +137,7 @@ Management, Race Conditions, Hardcoded Credentials, Debug code in production.
 
 Read `templates/AUDIT-TEMPLATE.md` and create the full report.
 
-Save to: `_devprocess/analysis/security/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`
+Save to: `_devprocess/analysis/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`
 
 ## Severity schema
 
@@ -275,7 +275,7 @@ Security Audit complete!
 
 Resolved: {N} findings fixed
 Deferred: {N} findings in backlog
-Report: _devprocess/analysis/security/AUDIT-{PROJECT}-{DATE}.md
+Report: _devprocess/analysis/AUDIT-{PROJECT}-{DATE}.md
 ```
 
 ---
@@ -289,7 +289,7 @@ regardless of how it was started (directly or via `/dia-orchestrator`).
 
 ```
 Produced / updated:
-- _devprocess/analysis/security/AUDIT-{PROJECT}-{DATE}.md: full report
+- _devprocess/analysis/AUDIT-{PROJECT}-{DATE}.md: full report
 - Findings resolved: {N} (P1: {N}, P2: {N}, P3: {N})
 - Findings deferred: {N} (in backlog)
 - _devprocess/context/BACKLOG.md: deferred findings added
@@ -307,12 +307,39 @@ Append a new entry to `_devprocess/context/HANDOFFS.md` with:
   require redesign, not patching)
 - **Release recommendation**: green / yellow / red for moving to Phase 7
 
-### Part 3: Transition question
+### Part 3: Phase-end commit
+
+Run the phase-end commit per `skills/project-conventions/references/team-workflow.md`
+section "Phase-end commit (binding)". The block fires the binding
+branch-and-item check, stages every artefact this phase produced
+(audit report, BACKLOG rows for deferred findings, any FIX rows
+created from H/M findings), commits with the canonical message,
+sets the phase tag, and opens a draft PR if one does not exist yet.
+
+Canonical commit message for AUDIT:
+
+```
+chore(audit): <ITEM-ID> audit complete
+
+<one-line summary: risk verdict, N findings (P1/P2/P3), release recommendation>
+
+Refs: <ITEM-ID>[, FIX-..., FIX-...]
+```
+
+After the commit lands, run:
+
+```
+python3 tools/github-integration/flow.py tag-phase --item <ID> --phase audit
+```
+
+Skip the commit silently if the working tree has no changes.
+
+### Part 4: Transition question
 
 Ask the user:
 
 > "Security audit complete. Report saved to:
-> - `_devprocess/analysis/security/AUDIT-{PROJECT}-{DATE}.md`
+> - `_devprocess/analysis/AUDIT-{PROJECT}-{DATE}.md`
 >
 > Release readiness: {green/yellow/red}
 >

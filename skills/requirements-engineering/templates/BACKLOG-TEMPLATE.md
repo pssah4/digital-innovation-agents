@@ -1,164 +1,226 @@
+<!--
+Instructions for the agent: produce this file as
+`_devprocess/context/BACKLOG.md`. Write the prose in the user's
+working language. Keep status, phase, claim, and refs vocabulary in
+English so it greps consistently across projects.
+
+This file is the SINGLE SOURCE OF TRUTH for:
+
+1. Implementation status of every artifact (Feature, ADR, Plan, Fix,
+   Improvement, Epic). Status fields in artifact frontmatter are
+   removed from the convention; the backlog row carries them.
+2. The relation graph between artifacts. The Refs column lists
+   parent and child IDs, which forms the directed graph used by
+   /consistency-check for orphan detection, cycle detection, and the
+   graph render.
+
+Every status-changing action goes through this file FIRST. The
+artifact files (FEATURE, ADR, PLAN, FIX, IMP) follow the backlog
+row, never lead it.
+-->
+
 # Backlog for {PROJECT}
 
-> Single Source of Truth fuer den Projektstand. Lebendes zentrales
-> PM-Artefakt des V-Model-Workflows. Wird nach JEDER Status-aendernden
-> Aktion vom ausfuehrenden Agent (oder User) aktualisiert.
+> Single source of truth for project state and the artifact relation
+> graph. Updated by every skill on every status-changing action,
+> BEFORE the artifact body is touched.
 >
-> Pflegende Skills: `/business-analyse`, `/requirements-engineering`,
-> `/reverse-engineering`, `/security-audit`, `/coding`, `/testing`.
+> Maintaining skills: `/business-analysis`, `/requirements-engineering`,
+> `/reverse-engineering`, `/security-audit`, `/architecture`,
+> `/coding`, `/testing`, `/release`, `/consistency-check`.
 >
-> Querverweise: Bugs leben in `20_bugs.md` (FIX-NN) und werden hier nur
-> referenziert. Handoffs in `30_handoffs.md`.
+> Cross-references: Bug rows (FIX-{ee}-{ff}-{nn}) live directly in this
+> file under the affected Epic; the substance lives in
+> `_devprocess/requirements/fixes/FIX-*.md`. Handoffs in `HANDOFFS.md`.
+> Metrics in `METRICS.md`.
 
-Letztes Update: {YYYY-MM-DD} durch {skill oder user}
+Last update: {YYYY-MM-DD} by {skill-or-user}
 
 ---
 
 ## Dashboard
 
-| Status   | Count | | Prioritaet | Count |
+| Status   | Count | | Phase      | Count |
 |----------|-------|-|------------|-------|
-| Planned  | 0     | | P0         | 0     |
-| Active   | 0     | | P1         | 0     |
-| Review   | 0     | | P2         | 0     |
-| Done     | 0     | | P3         | 0     |
+| Planned  | 0     | | Released   | 0     |
+| Active   | 0     | | Building   | 0     |
+| Review   | 0     | | Planned    | 0     |
+| Done     | 0     | | Candidates | 0     |
 | Waiting  | 0     | |            |       |
 | Deferred | 0     | |            |       |
 
-Counts werden bei jedem Backlog-Write vom schreibenden Agent aktualisiert.
+| Priority | Count |
+|----------|-------|
+| P0       | 0     |
+| P1       | 0     |
+| P2       | 0     |
+| P3       | 0     |
+
+Counts are recomputed on every backlog write by the writing skill.
 
 ---
 
-## Legende
+## Vocabulary
 
-**Status:**
+### Status (artifact lifecycle)
 
-- `Planned`: eingetragen, noch nicht gestartet
-- `Active`: in Bearbeitung (Spec-, Plan- und Impl-Phase zusammengefasst)
-- `Review`: Arbeit abgeschlossen, in Review
-- `Done`: fertig, Eintrag bleibt beim zugehoerigen Epic
-- `Waiting`: blockiert, wartet auf Entscheidung oder Abhaengigkeit
-- `Deferred`: bewusst zurueckgestellt, nicht committed
+- `Planned`: created, not yet started
+- `Active`: in progress (spec, plan, and implementation rolled up)
+- `Review`: work complete, in review
+- `Done`: finished. Row stays under its Epic.
+- `Waiting`: blocked, waiting for decision or dependency
+- `Deferred`: deliberately postponed, not committed
 
-**Prioritaet:**
+### Phase (epic-level temporal stage)
 
-- `P0`: Blocker, sofort
-- `P1`: kurzfristig
-- `P2`: mittelfristig
-- `P3`: Idee, nicht committed
+- `Released`: shipped to users
+- `Building`: under active development
+- `Planned`: scheduled for the next iteration
+- `Candidates`: idea stage, needs refinement before commitment
 
-**Typ:** `Feature` | `Enhancement` | `Chore` | `Security` | `Bug-Followup`
+### Type
 
-**Source:** `BA` | `RE` | `REV` (Reverse-Engineering) | `SEC` | `USER` | `BUG`
+- `Feature`, `Epic`, `Improvement`, `Fix`, `Plan`, `ADR`,
+  `Security`, `Bug-Followup`
 
-**ID-Schema:** `BL-NNN` fortlaufend, monoton, nie wiederverwendet.
+### Source
 
-**Claim:** `{pair-id} @ {YYYY-MM-DD}` markiert, welches
-Mensch-Agent-Paar den Eintrag aktiv bearbeitet. Leeres Feld = frei.
-Beispiel: `sebastian-opus-4.7 @ 2026-04-19`. Claim wird beim
-Phasen-Start gesetzt und beim Phasen-Ende oder bei Status `Done`
-entfernt.
+- `BA`, `RE`, `REV` (reverse-engineering), `SEC`, `USER`, `BUG`,
+  `CONSISTENCY-CHECK`
+
+### Priority
+
+- `P0`: blocker, immediate
+- `P1`: short-term
+- `P2`: mid-term
+- `P3`: idea, not committed
+
+### ID schema
+
+- `FEAT-{ee}-{ff}`, `EPIC-{nn}`, `ADR-{nn}`, `PLAN-{nn}`,
+  `FIX-{ee}-{ff}-{nn}`, `IMP-{ee}-{ff}-{nn}`, `BL-{NNN}` (backlog-only items, not
+  matching another artifact type)
+- IDs are monotonic and never reused.
+
+### Claim
+
+- Format: `{pair-id} @ {YYYY-MM-DD}`
+- Empty cell means free.
+- Example: `sebastian-opus-4.7 @ 2026-04-19`
+
+### Refs
+
+- Comma-separated list of related artifact IDs forming the relation
+  graph. Examples: `EPIC-01, ADR-03, PLAN-09, FIX-013`. Edges in
+  the graph derive from this column.
 
 ---
 
-## Aktive Epics
+## Active Epics
 
-### EPIC-001: {Epic-Titel}
+### EPIC-01: {Epic title}
 
-Link: `_devprocess/requirements/epics/EPIC-001-{slug}.md`
-Status: In Arbeit | Zielzeitraum: {Q2 2026}
+Source: `_devprocess/requirements/epics/EPIC-01-{slug}.md`
+Phase: Building | Target: {Q2 2026}
 
-| ID     | Titel        | Typ     | Prio | Status  | Feature-Spec    | ADR     | Source | Commit    | Claim                    | Notizen    |
-|--------|--------------|---------|------|---------|-----------------|---------|--------|-----------|--------------------------|------------|
-| BL-001 | Kurzer Titel | Feature | P1   | Active  | FEATURE-001-001 | ADR-003 | BA     |           | sebastian-opus-4.7 @ 2026-04-19 | kurze Note |
-| BL-002 | Kurzer Titel | Chore   | P2   | Planned |                 |         | REV    |           |                          |            |
-| BL-003 | Kurzer Titel | Feature | P1   | Done    | FEATURE-001-002 | ADR-002 | BA     | `a1b2c3d` |                          | 2026-04-10 |
+| ID                | Type    | Title          | Status   | Phase    | Prio | Refs                              | Source | Commit    | Claim                          | Last change | Notes |
+|-------------------|---------|----------------|----------|----------|------|------------------------------------|--------|-----------|--------------------------------|-------------|-------|
+| FEAT-01-01   | Feature | {short title}  | Active   | Building | P1   | EPIC-01, ADR-03, PLAN-01        | BA     |           | sebastian-opus-4.7 @ 2026-04-19 | 2026-04-19  | {note} |
+| FEAT-01-02   | Feature | {short title}  | Done     | Released | P1   | EPIC-01, ADR-02, PLAN-02        | BA     | `a1b2c3d` |                                | 2026-04-10  |       |
+| ADR-03           | ADR     | {short title}  | Accepted | Released | P1   | FEAT-01-01                    | RE     |           |                                | 2026-04-15  |       |
+| PLAN-01          | Plan    | {short title}  | Active   | Building | P1   | FEAT-01-01                    | RE     |           | sebastian-opus-4.7 @ 2026-04-19 | 2026-04-19  |       |
+| FIX-013           | Fix     | {short title}  | Done     | Released | P0   | FEAT-01-02, PLAN-02          | BUG    | `e4f5g6h` |                                | 2026-04-17  | BUG-013 |
 
 ---
 
-### EPIC-002: {Epic-Titel}
+### EPIC-02: {Epic title}
 
 {...}
 
 ---
 
-## Standalone Items (ohne Epic)
+## Standalone Items (no Epic)
 
-Eintraege ohne Epic-Zuordnung: Reverse-Engineering-Funde,
-Security-Findings, direkte Stakeholder-Requests, technische Schuld.
+Items without an Epic mapping: reverse-engineering findings, security
+findings, direct stakeholder requests, technical debt.
 
-| ID     | Titel                    | Typ      | Prio | Status  | Evidence              | Source | Commit | Claim                    | Notizen |
-|--------|--------------------------|----------|------|---------|-----------------------|--------|--------|--------------------------|---------|
-| BL-050 | CSRF-Token fehlt         | Security | P1   | Planned | `src/api/login.ts:88` | SEC    |        |                          | H-2     |
-| BL-051 | Veraltete lodash-Version | Chore    | P3   | Planned | `package.json`        | REV    |        | anna-sonnet-4.6 @ 2026-04-19 |         |
-
----
-
-## Offene Bugs (Referenz)
-
-Details in `_devprocess/context/20_bugs.md`. Hier nur Kurzliste fuer den
-PM-Ueberblick. Diese Zeilen werden von `/coding` synchronisiert.
-
-| FIX-ID | Titel              | Prio | Status | Bezug                      |
-|--------|--------------------|------|--------|----------------------------|
-| FIX-01 | Login-Race bei SSO | P0   | Open   | EPIC-001 / FEATURE-001-001 |
+| ID     | Type     | Title              | Status  | Phase    | Prio | Refs              | Source | Commit | Claim | Last change | Notes |
+|--------|----------|--------------------|---------|----------|------|-------------------|--------|--------|-------|-------------|-------|
+| BL-050 | Security | CSRF token missing | Planned | Building | P1   |                   | SEC    |        |       | 2026-04-19  | H-2   |
+| BL-051 | Improvement | lodash outdated | Planned | Candidates | P3 |                   | REV    |        |       | 2026-04-19  |       |
 
 ---
 
-## Deferred / Ideen
+## Open Bugs (index)
 
-Bewusst zurueckgestellte Items. Keine SLA, keine Zusage. Werden bei Bedarf
-in "Aktive Epics" oder "Standalone Items" hochgezogen.
+FIX rows live as regular rows under their parent Epic above. The
+substance (symptom, root cause, fix, regression test) lives in
+`_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`. This
+section is a flat index for PM overview, regenerated from the Epic
+sections by `/coding` and `/consistency-check`.
 
-| ID     | Titel | Grund                       | Wiedervorlage |
-|--------|-------|-----------------------------|---------------|
-| BL-099 | {...} | Wartet auf ADR-Entscheidung | Q3 2026       |
-
----
-
-## Traceability-Konvention
-
-Jeder Eintrag MUSS, sofern vorhanden, folgende Verweise fuehren. Damit
-bildet das Backlog die Kette `Backlog -> FEATURE -> ADR -> Commit` als
-zentrales Einstiegsartefakt ab.
-
-- `Feature-Spec`: `_devprocess/requirements/features/FEATURE-{EPIC}-{NNN}-{slug}.md`
-  (EPIC = 3-stellige Epic-Nummer, NNN = 3-stellige Feature-Nummer lokal
-  zum Epic. Epic 001 ergibt FEATURE-001-001, FEATURE-001-002, ...;
-  Epic 013 ergibt FEATURE-013-001, ...)
-- `Epic`: `_devprocess/requirements/epics/EPIC-{NNN}-{slug}.md`
-- `ADR`: `_devprocess/architecture/ADR-{NNN}-{slug}.md` (mehrere kommasepariert)
-- `Commit`: Short-SHA nach Abschluss
-- `Evidence`: `path/file.ts:LineNN` bei Code-Referenzen
+| FIX-ID         | Title             | Prio | Status | Linked to                  |
+|----------------|-------------------|------|--------|----------------------------|
+| FIX-01-01-01   | Login race on SSO | P0   | Open   | EPIC-01 / FEAT-01-01 / PLAN-01 |
 
 ---
 
-## Schreibregeln fuer Agents (verbindlich)
+## Deferred / Ideas
 
-Dieses Template ist **Single Source of Truth fuer den Projektstand**. Nach
-jeder Status-aendernden Aktion MUSS der ausfuehrende Agent das Backlog
-aktualisieren, bevor die Phase oder der Schritt als abgeschlossen gilt.
+Deliberately postponed items. No SLA, no commitment.
 
-**Was zaehlt als Status-aendernde Aktion:**
+| ID     | Title          | Reason                       | Revisit       |
+|--------|----------------|------------------------------|---------------|
+| BL-099 | {short title}  | Waits on ADR decision        | Q3 2026       |
 
-- Neuer Eintrag angelegt (Feature, Chore, Finding, Idee)
-- Status-Uebergang (`Planned -> Active`, `Active -> Review`, ...)
-- Prioritaet oder Epic-Zuordnung geaendert
-- Implementierung abgeschlossen (Status `Done` + Commit-SHA)
-- Item deferred, blockiert, abgebrochen oder wieder aktiviert
-- Bug als Backlog-Item verlinkt oder geschlossen
+---
 
-**Ablauf pro Write:**
+## Refs and the relation graph
 
-1. Zeile in der passenden Sektion aktualisieren oder anhaengen
-2. Dashboard-Counts neu zaehlen und beide Tabellen updaten
-3. Kopfzeile "Letztes Update" auf heutiges Datum und eigene Kennung setzen
-4. Bei `Status = Done`: Commit-SHA eintragen, Eintrag bleibt beim Epic
-5. IDs sind monoton, werden nie wiederverwendet
+Each row carries the related artifact IDs in its `Refs` column. The
+graph is implicit in those columns; no separate file is needed.
 
-**Verboten:**
+`/consistency-check` builds the graph from the Refs columns and
+checks:
 
-- Bug-Eintraege volltextlich ins Backlog schreiben (nur Referenz-Zeile)
-- Items beim Done-Uebergang loeschen oder verschieben (bleiben beim Epic)
-- Backlog-Write ohne Dashboard-Count-Update
-- Mehrere Agents schreiben gleichzeitig ohne Rebase auf aktuellen Stand
+- Every reference resolves to an existing row.
+- Every artifact file has exactly one row, no orphans on either side.
+- The graph is acyclic (Epic -> Feature -> Plan -> Fix forms a DAG).
+- Status combinations make sense (e.g. PLAN Done implies the parent
+  FEATURE is Done or in Review).
+
+The `--view` flag of `/consistency-check` renders the graph as
+mermaid or JSON for visualization.
+
+---
+
+## Writing rules for agents (binding)
+
+This file is the single source of truth for project state. Every
+status-changing action MUST update the backlog row BEFORE the
+corresponding artifact body is touched. Skills that touch a feature,
+ADR, plan, fix, or improvement run this sequence:
+
+1. Update the backlog row (status, phase, claim, last-change, refs)
+2. Then update the artifact body with the substance change
+3. Update commit SHA in the backlog row after the commit lands
+4. Recompute the dashboard counts at the bottom of the write
+5. Run `/consistency-check` mode A at the end of the skill phase
+
+**What counts as a status-changing action:**
+
+- New entry created (Feature, ADR, Plan, Fix, Improvement, BL-Item)
+- Status transition (Planned -> Active -> Review -> Done, etc.)
+- Phase transition (Candidates -> Planned -> Building -> Released)
+- Priority or Epic mapping changed
+- Implementation complete (status Done with commit SHA)
+- Item deferred, blocked, abandoned, or reactivated
+- Bug linked or closed
+
+**Forbidden:**
+
+- Bug entries written in full text into the backlog (reference row only)
+- Deleting Done items (they stay under their Epic for traceability)
+- Writing a row without recomputing dashboard counts
+- Two pairs writing simultaneously without rebasing on the latest version
+- Status fields duplicated into artifact frontmatter

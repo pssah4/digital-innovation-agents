@@ -5,7 +5,7 @@ description: Method cards for testing, prototyping, and validating ideas with re
 
 # Validation methods
 
-Once you have ideas, the next question is which ones actually work when a real person touches them. Validation is the part where assumptions meet users, and where ideas that sound brilliant in a workshop quietly collapse. The [Business Analysis skill](../guides/business-analyse) will propose the validation method that matches the riskiest assumption, not the easiest one.
+Once you have ideas, the next question is which ones actually work when a real person touches them. Validation is the part where assumptions meet users, and where ideas that sound brilliant in a workshop quietly collapse. The [Business Analysis skill](../guides/business-analysis) will propose the validation method that matches the riskiest assumption, not the easiest one.
 
 Testing happens between humans. You put a prototype in front of a user, watch what they do, and come back with observations the agent can turn into validated or invalidated hypotheses.
 

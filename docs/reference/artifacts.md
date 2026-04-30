@@ -30,11 +30,11 @@ _devprocess/
     ADR-{NNN}-{slug}.md                Phase 3: Architecture Decision Record
     arc42.md                           Phase 3: arc42 documentation
   context/
-    10_backlog.md                      Single source of truth for project state
+    BACKLOG.md                      Single source of truth for project state
                                        (per BACKLOG-TEMPLATE.md)
     20_bugs.md                         FIX-NN bug log (/coding Phase 3c)
-    30_handoffs.md                     Append-only phase handoffs log (all phases)
-    40_metrics.md                      Signal layer (per METRICS-TEMPLATE.md)
+    HANDOFFS.md                     Append-only phase handoffs log (all phases)
+    METRICS.md                      Signal layer (per METRICS-TEMPLATE.md)
                                        cycle time, drift count, hypothesis status,
                                        phase transitions, cross-phase triggers
 ```
@@ -54,10 +54,10 @@ the change. See [Living Documents](../concepts/living-documents).
 
 ## The four context files
 
-`10_backlog.md`, `20_bugs.md`, `30_handoffs.md`, and `40_metrics.md`
+`BACKLOG.md`, `20_bugs.md`, `HANDOFFS.md`, and `METRICS.md`
 serve different purposes:
 
-- **`10_backlog.md`**: living backlog and **single source of truth
+- **`BACKLOG.md`**: living backlog and **single source of truth
   for the project state**. Follows the binding format in
   [`skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md):
   dashboard on top, entries grouped by Epic (BL-NNN rows with status,
@@ -73,14 +73,14 @@ serve different purposes:
   Phase 3c (Debugging Protocol) gets an entry with causal chain and
   priority. Resolved bugs carry the commit SHA and regression-test
   verification status.
-- **`30_handoffs.md`**: append-only phase handoffs log. Each phase
+- **`HANDOFFS.md`**: append-only phase handoffs log. Each phase
   skill appends one entry at the end of its run with artifacts produced,
   handoff context (open questions, assumptions, risks), and the next
   phase. Phase 7 Release Closure also appends a `release-to-ba` entry
   that queues the BA Post-Release Review.
-- **`40_metrics.md`**: signal layer. Five append-additive tables seeded
+- **`METRICS.md`**: signal layer. Five append-additive tables seeded
   from
-  [`skills/v-model-workflow/templates/METRICS-TEMPLATE.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/v-model-workflow/templates/METRICS-TEMPLATE.md):
+  [`skills/dia-orchestrator/templates/METRICS-TEMPLATE.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/dia-orchestrator/templates/METRICS-TEMPLATE.md):
   cycle time per FEATURE, drift count (`plan-context.md` vs. real
   code), BA hypothesis validation status, phase transition counts,
   cross-phase trigger counts. Writes happen inside existing phase
@@ -115,14 +115,14 @@ When starting a new project, initialize the structure:
 
 ```bash
 mkdir -p _devprocess/{analysis/security,requirements/{epics,features,handoff},architecture,context}
-touch _devprocess/context/20_bugs.md _devprocess/context/30_handoffs.md
+touch _devprocess/context/20_bugs.md _devprocess/context/HANDOFFS.md
 cp skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md \
-   _devprocess/context/10_backlog.md
-cp skills/v-model-workflow/templates/METRICS-TEMPLATE.md \
-   _devprocess/context/40_metrics.md
+   _devprocess/context/BACKLOG.md
+cp skills/dia-orchestrator/templates/METRICS-TEMPLATE.md \
+   _devprocess/context/METRICS.md
 ```
 
-`10_backlog.md` is seeded from the template (not created empty) so
+`BACKLOG.md` is seeded from the template (not created empty) so
 the first write already follows the binding format. Replace
 `{PROJECT}` in the header with the actual project name.
 

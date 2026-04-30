@@ -296,9 +296,9 @@ Before a phase starts, check whether the directory structure exists.
 If not, initialize it per `/project-conventions`:
 
 ```bash
-mkdir -p _devprocess/{analysis/security,requirements/{epics,features,handoff},architecture,rules,implementation/plans,context/{fixes,improvements}}
+mkdir -p _devprocess/{analysis/sources,requirements/{epics,features,fixes,improvements,handoff},architecture,rules,implementation/plans,context}
 mkdir -p src docs scripts memory
-touch _devprocess/context/20_bugs.md _devprocess/context/HANDOFFS.md
+touch _devprocess/context/HANDOFFS.md
 ```
 
 For `_devprocess/context/BACKLOG.md`, do not `touch` an empty file.
@@ -506,8 +506,9 @@ Check and update every artifact so it reflects the actual state:
 ### Step 2: Generate release notes
 
 - List implemented features
-- Fixed bugs from `_devprocess/context/20_bugs.md` (Status=resolved)
-- Open bugs moved to backlog
+- Fixed bugs from BACKLOG.md FIX-rows with status=Done (link to the
+  matching `_devprocess/requirements/fixes/FIX-*.md`)
+- Open bugs (FIX-rows in BACKLOG with status not yet Done)
 - Security findings (resolved + deferred)
 - Breaking changes if any
 
@@ -519,7 +520,7 @@ Check and update every artifact so it reflects the actual state:
 
 ### Step 4: Backlog cleanup
 
-- All open bugs from `20_bugs.md` referenced in `BACKLOG.md`
+- All open bugs are FIX-rows in `BACKLOG.md` (no separate bug log)
 - Deferred security findings in backlog
 - New ideas from implementation (out of scope) documented as
  future-considerations
@@ -612,10 +613,10 @@ _devprocess/
     plans/
       PLAN-{nn}-{slug}.md          <- Phase 4: persisted implementation plan
   context/
-    BACKLOG.md                   <- Single source of truth for state and graph
-    20_bugs.md                      <- FIX-NN-NN-NN bug log
+    BACKLOG.md                   <- Single source of truth for state and graph (incl. FIX rows)
     HANDOFFS.md                  <- append-only handoffs log
     METRICS.md                   <- signal layer
+  requirements/
     fixes/
       FIX-{ee}-{ff}-{nn}-{slug}.md           <- Substance of bug fixes
     improvements/

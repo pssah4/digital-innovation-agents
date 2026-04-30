@@ -5,7 +5,7 @@ description: Turn a validated Business Analysis into Epics, Features, and tech-a
 
 # Requirements Engineering
 
-`/requirements-engineering` is the bridge between [Business Analysis](./business-analyse) (the Why) and [Architecture](./architecture) (the How). It transforms the validated business analysis into structured, measurable, tech-agnostic requirements that a human or AI architect can actually design against.
+`/requirements-engineering` is the bridge between [Business Analysis](./business-analysis) (the Why) and [Architecture](./architecture) (the How). It transforms the validated business analysis into structured, measurable, tech-agnostic requirements that a human or AI architect can actually design against.
 
 **Input:** `_devprocess/analysis/BA-{PROJECT}.md` (validated BA)
 **Output:** Epics, Features, `architect-handoff.md`
@@ -22,7 +22,7 @@ Requirements Engineering exists to catch both, systematically, before they conta
 
 ## The translation chain
 
-Every output of RE descends from something in the BA. The skill enforces traceability. If a user story has no BA source, the skill flags it and sends you back to `/business-analyse` rather than inventing new requirements on the fly.
+Every output of RE descends from something in the BA. The skill enforces traceability. If a user story has no BA source, the skill flags it and sends you back to `/business-analysis` rather than inventing new requirements on the fly.
 
 ```
 BA element                    →  RE element

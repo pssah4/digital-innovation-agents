@@ -5,7 +5,7 @@ description: The first phase of the V-Model. Understand the problem before you d
 
 # Business Analysis
 
-`/business-analyse` is the first phase of the V-Model. It exists to stop the single most common failure mode of AI-assisted software projects: jumping straight to code before the problem is understood. A modern AI coding agent will happily build the wrong thing, fast, if nobody slowed it down to ask who the user is and what they actually struggle with.
+`/business-analysis` is the first phase of the V-Model. It exists to stop the single most common failure mode of AI-assisted software projects: jumping straight to code before the problem is understood. A modern AI coding agent will happily build the wrong thing, fast, if nobody slowed it down to ask who the user is and what they actually struggle with.
 
 This skill is the slowdown. It runs an innovation interview with you, spots the gaps in your understanding of the user and the problem, and tells you which research method will close each gap fastest. The actual field work stays with you. No agent can replace a real conversation with a real user.
 
@@ -156,10 +156,10 @@ If a gate fails, the skill returns to the relevant section instead of handing of
 
 ## Handoff
 
-`/business-analyse` ends with the mandatory three-part [Handoff Ritual](../concepts/handoff-rituals).
+`/business-analysis` ends with the mandatory three-part [Handoff Ritual](../concepts/handoff-rituals).
 
 1. Artifact report. Which sections filled, which deferred, which hypotheses still open.
-2. Handoff context entry in `_devprocess/context/30_handoffs.md`.
+2. Handoff context entry in `_devprocess/context/HANDOFFS.md`.
 3. Transition question. "Shall I start `/requirements-engineering` now?"
 
 ## Phase 8: Post-Release Review (BA as living document)
@@ -180,12 +180,12 @@ real-world evidence:
   Stays open, gets re-reviewed at the next release.
 
 The hypothesis status is also written to
-`_devprocess/context/40_metrics.md` so the signal layer accumulates a
+`_devprocess/context/METRICS.md` so the signal layer accumulates a
 trace of what the team predicted versus what actually happened.
 
-Phase 8 is queued automatically. `/v-model-workflow` Phase 7 (Release
-Closure) appends a `release-to-ba` entry to `30_handoffs.md`. The
-next time `/business-analyse` runs, it picks up that handoff and runs
+Phase 8 is queued automatically. `/dia-orchestrator` Phase 7 (Release
+Closure) appends a `release-to-ba` entry to `HANDOFFS.md`. The
+next time `/business-analysis` runs, it picks up that handoff and runs
 Phase 8 before any new exploration work.
 
 This closes the BA-to-release loop. The BA file ages with the product
@@ -193,13 +193,13 @@ instead of becoming a stale document from the first sprint.
 
 ## Validation Mode for brownfield projects
 
-When `/business-analyse` detects a BA draft created by [`/reverse-engineering`](./reverse-engineering), it enters Validation Mode. Instead of starting a new interview from scratch, it walks through each section of the existing draft, confirms the evidence-backed claims with you, and fills the `[NEEDS USER INPUT]` placeholders through the normal interview cycle. Each section gets promoted from `Draft` to `Validated` as you confirm it.
+When `/business-analysis` detects a BA draft created by [`/reverse-engineering`](./reverse-engineering), it enters Validation Mode. Instead of starting a new interview from scratch, it walks through each section of the existing draft, confirms the evidence-backed claims with you, and fills the `[NEEDS USER INPUT]` placeholders through the normal interview cycle. Each section gets promoted from `Draft` to `Validated` as you confirm it.
 
 This is how the backward walk through the V joins the forward walk. Same file, same path, same downstream phases.
 
 ## Read the skill file
 
-Want to see the exact instructions the agent follows? [`skills/business-analyse/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/business-analyse/SKILL.md) on GitHub. The method catalog the agent draws from lives at [`skills/business-analyse/references/innovation-methods.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/business-analyse/references/innovation-methods.md).
+Want to see the exact instructions the agent follows? [`skills/business-analysis/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/business-analysis/SKILL.md) on GitHub. The method catalog the agent draws from lives at [`skills/business-analysis/references/innovation-methods.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/business-analysis/references/innovation-methods.md).
 
 ## Further reading
 

@@ -5,13 +5,13 @@ description: The orchestrator that guides projects through all 7 V-Model phases,
 
 # V-Model workflow
 
-`/v-model-workflow` is the orchestrator. It drives projects through
+`/dia-orchestrator` is the orchestrator. It drives projects through
 all 7 V-Model phases, manages the handoffs between phase skills, and
 ends with Phase 7 Release Closure.
 
 ## When to use the orchestrator
 
-Use `/v-model-workflow` when:
+Use `/dia-orchestrator` when:
 
 - You are starting a new project and do not know which phase to begin with
 - You want the full cycle without manually invoking each phase skill
@@ -32,7 +32,7 @@ friction by handling transitions for you.
 ## The 7 phases
 
 ```
-Phase 1: /business-analyse          Problem exploration, ideation, validation
+Phase 1: /business-analysis          Problem exploration, ideation, validation
 Phase 2: /requirements-engineering  Epics, Features, Success Criteria
 Phase 3: /architecture              ADRs, arc42, plan-context.md
 Phase 4: /coding                    Critical review, implementation, writeback
@@ -50,11 +50,11 @@ Phase 5 and 6 (verification), and ends with Phase 7 (release closure).
 Every phase skill ends with a mandatory Handoff Ritual in 3 parts:
 
 1. **Artifact report**: what was produced, with file paths
-2. **Handoff context**: appended to `_devprocess/context/30_handoffs.md`
+2. **Handoff context**: appended to `_devprocess/context/HANDOFFS.md`
    with open questions, assumptions, and next-phase inputs
 3. **Transition question**: "Start `/<next-skill>` now, or review first?"
 
-When running inside `/v-model-workflow`, the orchestrator reads the
+When running inside `/dia-orchestrator`, the orchestrator reads the
 handoff context and launches the next skill automatically. Every
 transition needs either an implicit "yes" (you say "go", "next",
 "continue") or an explicit approval. You can always opt out: "stop",
@@ -63,15 +63,15 @@ pauses the workflow.
 
 No endless loops. The orchestrator respects user control at every step.
 
-## When to invoke `/v-model-workflow` directly
+## When to invoke `/dia-orchestrator` directly
 
-Type `/v-model-workflow` when you want to enter the workflow at a
+Type `/dia-orchestrator` when you want to enter the workflow at a
 specific phase. The orchestrator asks:
 
 ```
 V-Model Workflow: where are you?
 
-A) Starting from scratch             -> /business-analyse
+A) Starting from scratch             -> /business-analysis
 B) Problem clear, need requirements  -> /requirements-engineering
 C) Requirements exist, need arch     -> /architecture
 D) Architecture ready                -> /coding
@@ -98,7 +98,7 @@ The workflow is advisory, not enforcing. You can:
   removes the SessionStart hook entirely.
 
 The workflow state is preserved in `_devprocess/`. You can resume
-later by re-invoking `/v-model-workflow`.
+later by re-invoking `/dia-orchestrator`.
 
 ## Phase 7: Release Closure
 
@@ -120,12 +120,12 @@ the code.
 ## Read the skill file
 
 Want to see the exact instructions the agent follows?
-[`skills/v-model-workflow/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/v-model-workflow/SKILL.md)
+[`skills/dia-orchestrator/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/dia-orchestrator/SKILL.md)
 on GitHub.
 
 ## What's next
 
-- [Business Analysis guide](./business-analyse): Phase 1 detail
+- [Business Analysis guide](./business-analysis): Phase 1 detail
 - [Coding guide](./coding): Phase 4 detail, the heart of the system
 - [V-Model concept](../concepts/v-model): why this shape?
 - [Handoff Rituals concept](../concepts/handoff-rituals): how transitions work

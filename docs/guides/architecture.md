@@ -12,7 +12,7 @@ description: Transform tech-agnostic requirements into Architecture Decision Rec
 
 ## The role of Architecture in the V-Model
 
-Architecture sits at the bottom of the left side of the V. It is the last phase before code and the first phase where technology is allowed to enter the vocabulary. Everything upstream ([BA](./business-analyse) and [RE](./requirements-engineering)) was tech-agnostic on purpose. Here, the lid comes off.
+Architecture sits at the bottom of the left side of the V. It is the last phase before code and the first phase where technology is allowed to enter the vocabulary. Everything upstream ([BA](./business-analysis) and [RE](./requirements-engineering)) was tech-agnostic on purpose. Here, the lid comes off.
 
 Three things happen in this phase.
 
@@ -197,7 +197,7 @@ Gate failures are never suppressed. The skill reopens the failing section instea
 
 ## Handoff
 
-`/architecture` ends with the standard three-part [Handoff Ritual](../concepts/handoff-rituals). The handoff context entry in `_devprocess/context/30_handoffs.md` is particularly rich because it captures decisions the next phase must not re-litigate:
+`/architecture` ends with the standard three-part [Handoff Ritual](../concepts/handoff-rituals). The handoff context entry in `_devprocess/context/HANDOFFS.md` is particularly rich because it captures decisions the next phase must not re-litigate:
 
 - Tech-stack justification, which helps `/coding` understand why without re-reading all ADRs.
 - Rejected alternatives with reasons.

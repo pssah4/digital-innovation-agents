@@ -832,7 +832,8 @@ explizit darauf hin, bevor `/business-analysis` startet.
 
 ### Phase 6: Handoff Ritual
 
-The handoff follows the standard 3-part pattern.
+The handoff follows the standard 4-part pattern (artifact report,
+handoff context, phase-end commit, transition question).
 
 **Part 1: Artifact report**
 
@@ -866,7 +867,39 @@ Append:
 - **Risks / gaps**: explicit list of placeholders the team must fill
 - **Recommended next phase**: always `/business-analysis`
 
-**Part 3: Transition question**
+**Part 3: Phase-end commit**
+
+Run the phase-end commit per `skills/project-conventions/references/team-workflow.md`
+section "Phase-end commit (binding)". The block fires the binding
+branch-and-item check, stages every artefact this phase produced
+(plan-context, ADRs, arc42, FEATURE specs, BA draft, BACKLOG
+seed), commits with the canonical message, sets the phase tag, and
+opens a draft PR if one does not exist yet.
+
+Reverse-engineering uses a single feature branch
+`feature/reverse-engineer-<repo-name>` (per the RE exception in
+team-workflow.md), so the commit-boundary check expects that branch
+rather than a per-item branch.
+
+Canonical commit message for RE-engineering:
+
+```
+chore(reverse): <repo-name> reverse-engineering complete
+
+<one-line summary: N FEATUREs, M ADRs, BA draft, K backlog entries>
+
+Refs: <repo-name>
+```
+
+After the commit lands, run:
+
+```
+python3 tools/github-integration/flow.py tag-phase --item <repo-name> --phase reverse
+```
+
+Skip the commit silently if the working tree has no changes.
+
+**Part 4: Transition question**
 
 Ask the user exactly this:
 

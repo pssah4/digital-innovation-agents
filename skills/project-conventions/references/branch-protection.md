@@ -1,10 +1,26 @@
 # Branch protection -- shared check for entry skills
 
-This document describes the per-skill pre-write check for branch
-correctness. The full team-workflow contract (branch = backlog
-item, phase tags, GitHub issue, draft PR, project cards) lives in
+This document describes two checks for branch correctness:
+
+1. **Skill-start check (advisory)** -- runs at Pre-Phase 0, surfaces
+   a mismatch early so the user can switch before producing artefacts.
+   Not blocking.
+2. **Commit-boundary check (binding)** -- runs at every phase-end
+   commit (and every mid-phase commit). Refuses to commit on a wrong
+   branch. This is the authoritative gate for the branch / item
+   mapping.
+
+The split exists because field experience showed the skill-start
+check alone cannot prevent drift: users answer "weiter hier", the
+skill keeps writing, and no commit runs until much later, so the
+artefacts end up tracked on the wrong branch silently. The commit
+boundary is the natural enforcement point because it cannot be
+deferred without losing work.
+
+The full team-workflow contract (branch = backlog item, phase tags,
+GitHub issue, draft PR, phase-end commit, project cards) lives in
 `team-workflow.md`. Read that first; this file is the operational
-detail of one specific check skills run at start.
+detail of the two checks.
 
 ## Core rule (from team-workflow.md)
 
@@ -39,7 +55,7 @@ the item walks through the V-Model phases.
 The check fires once per skill invocation (state in
 `.git/dia-active-skill`).
 
-## The check
+## Skill-start check (advisory)
 
 Pseudo-flow at skill start:
 
@@ -57,10 +73,11 @@ case current_branch:
     main | master | dev:
         AskUserQuestion (Pro/Con per option):
             "You are on protected branch '{current}'. New work for
-             {work_item} needs a dedicated branch."
-            A) Create '{expected_branch}' and switch (recommended)
-            B) Custom branch name
-            C) Abort
+             {work_item} needs a dedicated branch. The phase-end
+             commit will refuse to land on '{current}' anyway."
+            A) Create '{expected_branch}' and switch now (recommended)
+            B) Draft here, decide at phase-end commit
+            C) Custom branch name
 
     other feature/*, fix/*, chore/*:
         AskUserQuestion (Pro/Con per option):
@@ -68,17 +85,65 @@ case current_branch:
              Switch to its branch?"
             A) Switch to '{expected_branch}' (creates it if missing,
                recommended)
-            B) Continue here (only if you are extending an unrelated
-               item that is closely connected)
+            B) Draft here and resolve at the phase-end commit
             C) Custom branch name
 
     case loose match (typo, slug variation):
         AskUserQuestion: continue here, or rename to canonical name.
 ```
 
+The skill-start check is advisory: choosing option B does not block
+the skill. The phase-end commit will re-ask before any artefact is
+recorded in git history.
+
+## Commit-boundary check (binding)
+
+Pseudo-flow at every commit step (phase-end commit and any mid-phase
+commit):
+
+```
+work_item       = the active backlog item carried by the skill
+                  (read from .git/dia-active-skill).
+expected_branch = derive_branch_name(work_item)
+current_branch  = git rev-parse --abbrev-ref HEAD
+prior_commits   = git rev-list --count HEAD ^merge-base-with-trunk
+
+case current_branch:
+    expected_branch:
+        proceed with commit.
+
+    main | master | dev:
+        BLOCK. AskUserQuestion (no Continue option):
+            "Cannot commit phase artefacts on protected branch
+             '{current}'. New work for {work_item} needs a dedicated
+             branch."
+            A) Create '{expected_branch}' from current HEAD and
+               switch (carries the working tree along)
+            B) Custom branch name
+            C) Abort the commit step (skill ends without a tag)
+
+    other feature/*, fix/*, chore/*:
+        AskUserQuestion:
+            "About to record {work_item} artefacts on '{current}',
+             which is the branch for a different item. Switch to
+             '{expected_branch}' before committing?"
+            A) Switch to '{expected_branch}', carry the working
+               tree, then commit (recommended)
+            B) Commit here and re-tag the BACKLOG row's branch
+               (only when the user knows the items belong together,
+               e.g. nested epic work)
+            C) Abort the commit step
+```
+
+The commit-boundary check ignores the `.git/dia-active-skill` marker
+for branch correctness. The marker proves the skill-start check ran
+once; it does not prove the user stayed on the right branch since.
+Users edit branches mid-flow more often than mid-skill, so the
+marker is unreliable as the sole gate.
+
 The recommendation always derives from the item-to-branch mapping,
 not from heuristics about the current branch's age or topic
-overlap. The new model is deterministic: one item, one branch name,
+overlap. The model is deterministic: one item, one branch name,
 one PR.
 
 ## Once-per-session contract

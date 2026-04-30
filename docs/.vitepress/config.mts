@@ -16,7 +16,7 @@ const guidesSidebar = [
   {
     text: 'Orchestrator',
     items: [
-      { text: 'V-Model workflow', link: '/guides/v-model-workflow' },
+      { text: 'V-Model workflow', link: '/guides/dia-orchestrator' },
     ],
   },
   {
@@ -26,9 +26,15 @@ const guidesSidebar = [
     ],
   },
   {
+    text: 'Migration',
+    items: [
+      { text: 'DIA Migration', link: '/guides/dia-migration' },
+    ],
+  },
+  {
     text: 'Design phases (left side of V)',
     items: [
-      { text: 'Business Analysis', link: '/guides/business-analyse' },
+      { text: 'Business Analysis', link: '/guides/business-analysis' },
       { text: 'Requirements Engineering', link: '/guides/requirements-engineering' },
       { text: 'Architecture', link: '/guides/architecture' },
     ],
@@ -112,7 +118,7 @@ export default withMermaid(
       siteTitle: 'Digital Innovation Agents',
       nav: [
         { text: 'Tutorials', link: '/tutorials/installation', activeMatch: '/tutorials/' },
-        { text: 'Guides', link: '/guides/v-model-workflow', activeMatch: '/guides/' },
+        { text: 'Guides', link: '/guides/dia-orchestrator', activeMatch: '/guides/' },
         { text: 'Reference', link: '/reference/commands', activeMatch: '/reference/' },
         { text: 'Concepts', link: '/concepts/v-model', activeMatch: '/concepts/' },
         { text: 'PULSE', link: '/pulse' },

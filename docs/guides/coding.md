@@ -141,7 +141,7 @@ never frozen after Phase 3. They evolve with the code. See
 ## Handoff
 
 `/coding` ends with the 3-part Handoff Ritual (Artifact report, Handoff
-context in `30_handoffs.md` with references to FIX-NN bugs, Transition
+context in `HANDOFFS.md` with references to FIX-NN bugs, Transition
 question for `/testing`).
 
 ## Read the skill file

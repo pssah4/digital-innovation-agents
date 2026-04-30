@@ -18,13 +18,13 @@ Timeframe to follow along: about 30-45 minutes of reading, plus another
 Start with a plain project directory and invoke the orchestrator:
 
 ```
-/v-model-workflow
+/dia-orchestrator
 
 I want to build X. Help me go through the full cycle.
 ```
 
 The orchestrator asks where you are in the V-Model. For a new project,
-pick **A) Starting from scratch**. It launches `/business-analyse`.
+pick **A) Starting from scratch**. It launches `/business-analysis`.
 
 ## Phase 1: Business Analysis
 
@@ -185,7 +185,7 @@ Handoff: "Start Phase 7 Release Closure now?" -> yes.
 
 ## Phase 7: Release Closure
 
-The final phase. `/v-model-workflow` runs 5 steps:
+The final phase. `/dia-orchestrator` runs 5 steps:
 
 1. **Final artifact synchronization** (cross-phase): BA, Features, ADRs,
    arc42, plan-context all reflect the actual implemented state
@@ -211,9 +211,9 @@ _devprocess/
     ADR-001-*.md, ADR-002-*.md, ...
     arc42.md
   context/
-    10_backlog.md
+    BACKLOG.md
     20_bugs.md
-    30_handoffs.md   (full audit trail of phase transitions)
+    HANDOFFS.md   (full audit trail of phase transitions)
 ```
 
 Plus the actual source code under `src/` and tests under `tests/`.
@@ -223,11 +223,11 @@ Plus the actual source code under `src/` and tests under `tests/`.
 At any handoff, if you do not want the orchestrator to proceed, just say
 "stop" or "I want to check first" or ask an unrelated question. The
 workflow pauses immediately. You can resume later by re-invoking
-`/v-model-workflow`.
+`/dia-orchestrator`.
 
 ## What's next
 
-- [V-Model workflow guide](../guides/v-model-workflow): details on the
+- [V-Model workflow guide](../guides/dia-orchestrator): details on the
   orchestrator and phase transitions
 - [The V-Model concept](../concepts/v-model): why this shape?
 - [Living Documents pattern](../concepts/living-documents): how artifacts

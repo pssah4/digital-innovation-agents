@@ -43,7 +43,7 @@ hero:
     </marker>
   </defs>
 
-  <a href="/digital-innovation-agents/guides/business-analyse">
+  <a href="/digital-innovation-agents/guides/business-analysis">
     <rect x="30" y="15" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="110" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Users · Needs · Market</text>
     <rect x="30" y="45" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>

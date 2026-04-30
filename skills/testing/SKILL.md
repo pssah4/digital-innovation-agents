@@ -437,7 +437,34 @@ Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 - Any security-adjacent concerns (e.g. input validation holes noticed while
   writing tests) for the security-audit phase
 
-### Part 3: Transition question
+### Part 3: Phase-end commit
+
+Run the phase-end commit per `skills/project-conventions/references/team-workflow.md`
+section "Phase-end commit (binding)". The block fires the binding
+branch-and-item check, stages every artefact this phase produced
+(test files, coverage configuration, FEATURE spec test-status
+updates, BACKLOG row updates), commits with the canonical message,
+sets the phase tag, and opens a draft PR if one does not exist yet.
+
+Canonical commit message for TESTING:
+
+```
+test: <ITEM-ID> testing complete
+
+<one-line summary: N tests added, coverage L%/B%/F%>
+
+Refs: <ITEM-ID>
+```
+
+After the commit lands, run:
+
+```
+python3 tools/github-integration/flow.py tag-phase --item <ID> --phase test
+```
+
+Skip the commit silently if the working tree has no changes.
+
+### Part 4: Transition question
 
 Ask the user:
 

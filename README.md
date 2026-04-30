@@ -23,21 +23,25 @@ and **GitHub Copilot**.
 
 ## What this is
 
-The project ships ten specialised skills that run inside your AI coding
+The project ships eleven specialised skills that run inside your AI coding
 assistant. Each skill owns one phase of the V-Model, has its own quality
 gates, and hands off a structured artifact to the next phase. The result
 is a workflow where every decision is traceable from a real user problem
 through requirements, architecture, code, tests, and a security audit.
 
-Two entry points cover greenfield and brownfield projects:
+Three entry points cover greenfield, brownfield, and migration projects:
 
-- **Greenfield:** `/business-analyse` starts with structured discovery
+- **Greenfield:** `/business-analysis` starts with structured discovery
   (users, needs, insights, critical hypotheses) and walks forward
   through the V-Model.
 - **Brownfield:** `/reverse-engineering` walks the V backwards over an
   existing codebase and produces plan-context, ADRs, an arc42 snapshot,
   a FEATURE inventory, a backlog seed, and an evidence-based BA draft.
   Every claim is sourced to a file path or doc section. Nothing invented.
+- **Migration:** `/dia-migration` brings an older DIA project (v1) or a
+  pre-existing V-Model variant up to current conventions: cleans
+  status drift, normalises ID schemas, flattens analysis/, regenerates
+  the backlog as single source of truth.
 
 ## Innovation methodology, not just automation
 
@@ -58,7 +62,7 @@ work.
 
 ## Quick start
 
-Pick your platform. Each installer drops the same ten skills with the
+Pick your platform. Each installer drops the same eleven skills with the
 same templates and quality gates into your tool of choice.
 
 ### Claude Code (recommended)
@@ -152,8 +156,8 @@ cd digital-innovation-agents
 Start a session in your chosen platform and try one of these:
 
 ```
-/v-model-workflow          Full guided cycle from idea to security audit
-/business-analyse          Start a structured business analysis
+/dia-orchestrator          Full guided cycle from idea to security audit
+/business-analysis          Start a structured business analysis
 /reverse-engineering       Brownfield entry for an existing codebase
 ```
 
@@ -173,14 +177,15 @@ Troubleshooting:
 | Phase | What it does | Claude Code | Copilot |
 |---|---|---|---|
 | **Reverse Engineering** | Brownfield entry. Walks the V backwards over an existing codebase and produces plan-context, ADRs, arc42, FEATURE inventory, backlog seed, and an evidence-based BA draft with every claim sourced. | `/reverse-engineering` | `@reverse-engineer` |
-| **Business Analysis** | Exploration, Ideation, and Validation cycle with structured interviews, probing techniques, and the method catalog. | `/business-analyse` | `@business-analyst` |
+| **Business Analysis** | Exploration, Ideation, and Validation cycle with structured interviews, probing techniques, and the method catalog. | `/business-analysis` | `@business-analyst` |
 | **Requirements Engineering** | Epics, features, tech-agnostic success criteria, user stories across functional / emotional / social levels, critical hypotheses. | `/requirements-engineering` | `@requirements-engineer` |
 | **Architecture** | ADRs in MADR format, arc42 snapshot, plan-context bridge to implementation. | `/architecture` | `@architect` |
 | **Coding** | Context handoff, critical review against the real codebase, artifact writeback during implementation. | `/coding` | `@developer` |
 | **Testing** | Unit and integration tests with a fix-loop until green. | `/testing` | built-in |
 | **Security Audit** | OWASP Top 10, LLM Top 10, SAST, SCA, Zero Trust review with a fix-loop. | `/security-audit` | `@security-auditor` |
 | **Debugging** | Root-cause analysis, systematic error resolution, causal chain documentation. | default agent | `@debugger` |
-| **V-Model Workflow** | Orchestrator that guides through every phase step by step. | `/v-model-workflow` | built-in |
+| **V-Model Workflow** | Orchestrator that guides through every phase step by step. | `/dia-orchestrator` | built-in |
+| **DIA Migration** | Migrates a v1 project, an older V-Model variant, or a brownfield repo to current DIA conventions. Idempotent, branch-safe, no source-code edits. | `/dia-migration` | built-in |
 | **Project Conventions** | Directory structure, naming standards, writing-style rules for every artifact. | `/project-conventions` | built-in |
 
 ## Scope levels
@@ -211,7 +216,7 @@ page in the docs for the full ruleset.
 ADRs, features, architecture docs, and the backlog update continuously
 during implementation. At release time, documentation reflects what was
 actually built, not what was originally planned. The
-`_devprocess/context/10_backlog.md` file is the single source of truth
+`_devprocess/context/BACKLOG.md` file is the single source of truth
 for project state, and every phase skill touches it in the same edit
 pass as the code it affects.
 

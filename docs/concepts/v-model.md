@@ -108,8 +108,8 @@ documentation in sync with reality.
 ## Phase transitions
 
 Every phase ends with a mandatory 3-part [Handoff Ritual](./handoff-rituals)
-and an explicit transition question. The [V-Model workflow orchestrator](../guides/v-model-workflow)
-drives transitions when you run `/v-model-workflow`. Individual phase
+and an explicit transition question. The [V-Model workflow orchestrator](../guides/dia-orchestrator)
+drives transitions when you run `/dia-orchestrator`. Individual phase
 skills run the ritual too when invoked directly.
 
 ## The V is iterative, not linear
@@ -154,7 +154,7 @@ The phases are the same. The depth adapts.
 
 ## See also
 
-- [V-Model workflow guide](../guides/v-model-workflow): the orchestrator
+- [V-Model workflow guide](../guides/dia-orchestrator): the orchestrator
 - [A full V-Model run tutorial](../tutorials/full-v-model-run): end-to-end walkthrough
 - [Living Documents](./living-documents): the writeback pattern
 - [Handoff Rituals](./handoff-rituals): phase transitions

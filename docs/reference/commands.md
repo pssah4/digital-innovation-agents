@@ -13,15 +13,15 @@ to see autocomplete suggestions.
 
 | Command | When to use |
 |---|---|
-| `/v-model-workflow` | Starting a new project, running the full cycle, or resuming an interrupted workflow. The orchestrator drives phase transitions and ends with Phase 7 Release Closure. |
+| `/dia-orchestrator` | Starting a new project, running the full cycle, or resuming an interrupted workflow. The orchestrator drives phase transitions and ends with Phase 7 Release Closure. |
 
-See [V-Model workflow guide](../guides/v-model-workflow).
+See [V-Model workflow guide](../guides/dia-orchestrator).
 
 ## Phase skills (in V-Model order)
 
 | Phase | Command | Purpose |
 |---|---|---|
-| 1 | `/business-analyse` | Exploration, Ideation, Validation. Produces `BA-{PROJECT}.md` and the HMW question. |
+| 1 | `/business-analysis` | Exploration, Ideation, Validation. Produces `BA-{PROJECT}.md` and the HMW question. |
 | 2 | `/requirements-engineering` | Transforms BA into Epics, Features, tech-agnostic Success Criteria. |
 | 3 | `/architecture` | Creates ADRs (MADR), arc42, `plan-context.md`. |
 | 4 | `/coding` | Critical review, implementation briefing with 5 sub-phase patterns, writeback to artifacts. |
@@ -29,7 +29,7 @@ See [V-Model workflow guide](../guides/v-model-workflow).
 | 6 | `/security-audit` | OWASP Top 10 + LLM Top 10 + SAST + SCA + Zero Trust. |
 
 Each phase skill ends with a **3-part Handoff Ritual** (artifact report,
-handoff context appended to `30_handoffs.md`, transition question).
+handoff context appended to `HANDOFFS.md`, transition question).
 
 ## Foundation skill
 

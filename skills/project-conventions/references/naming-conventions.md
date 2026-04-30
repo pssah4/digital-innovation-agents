@@ -1,19 +1,26 @@
 # Dateinamen-Konventionen -- Vollstaendige Referenz
 
-## Analyse-Dokumente
+## Analyse-Dokumente (`_devprocess/analysis/`)
+
+Flache Ablage. Prefix pro Artefakttyp. Keine Unterordner pro Typ.
+Einzige Ausnahme: `sources/` fuer User-bereitgestellte Quellen.
 
 | Typ | Muster | Beispiele |
 |-----|--------|-----------|
 | Business Analysis | `BA-{PROJECT}.md` | `BA-myapp.md`, `BA-intranet-portal.md` |
-| Constitution | `constitution-draft.md` | Fester Name, ein pro Projekt |
+| Exploration Board | `EXPLORE-{PROJECT}.md` | `EXPLORE-myapp.md` |
 | Security Audit | `AUDIT-{PROJECT}-{YYYY-MM-DD}.md` | `AUDIT-myapp-2026-03-22.md` |
+| Research-Notiz | `RESEARCH-{TOPIC}.md` | `RESEARCH-pricing.md` (optional, n pro Projekt) |
+| ADR-Review | `ADR-{nn}-review.md` | Mid-course Root-Cause-Notiz fuer ADR-Aenderung |
+| Constitution | `constitution-draft.md` | Fester Name, ein pro Projekt |
+| User-Quelle | `SOURCE-{name}.{ext}` | Liegt in `analysis/sources/`, nicht im Wurzelordner |
 
 ## Requirements-Dokumente
 
 | Typ | Muster | Beispiele |
 |-----|--------|-----------|
-| Epic | `EPIC-{NNN}-{slug}.md` | `EPIC-001-ai-agent-core.md` |
-| Feature | `FEATURE-{EPIC}-{NNN}-{slug}.md` | `FEATURE-001-001-semantic-search.md`, `FEATURE-013-002-reindex-job.md` |
+| Epic | `EPIC-{nn}-{slug}.md` | `EPIC-01-ai-agent-core.md` |
+| Feature | `FEAT-{ee}-{ff}-{slug}.md` | `FEAT-01-01-semantic-search.md`, `FEAT-13-02-reindex-job.md` |
 | Architect Handoff | `architect-handoff.md` | Fester Name |
 | Plan Context | `plan-context.md` | Fester Name |
 
@@ -21,46 +28,48 @@
 
 | Typ | Muster | Beispiele |
 |-----|--------|-----------|
-| ADR | `ADR-{NNN}-{slug}.md` | `ADR-003-embedding-provider.md` |
+| ADR | `ADR-{nn}-{slug}.md` | `ADR-03-embedding-provider.md` |
 | arc42 | `arc42.md` | Fester Name, ein pro Projekt |
 
 ## Backlog & Context
 
 | Typ | Muster | Beispiele |
 |-----|--------|-----------|
-| Backlog | `10_backlog.md` | Fester Name, Struktur per `BACKLOG-TEMPLATE.md` |
-| Bug Log | `20_bugs.md` | Fester Name, FIX-NN Eintraege |
-| Handoffs | `30_handoffs.md` | Fester Name, append-only |
+| Backlog | `BACKLOG.md` | Fester Name, Struktur per `BACKLOG-TEMPLATE.md`, FIX-Rows leben hier |
+| Handoffs | `HANDOFFS.md` | Fester Name, append-only |
 | Memory | `MEMORY.md` | Fester Name |
 
 ## Fix- und Improvement-Artefakte
 
 | Typ | Muster | Beispiele |
 |-----|--------|-----------|
-| Fix | `docs/context/fixes/FIX-{NNN}-{slug}.md` | `FIX-001-auth-token-leak.md` |
-| Improvement | `docs/context/improvements/IMP-{NNN}-{slug}.md` | `IMP-001-reindex-perf.md`, `IMP-007-doc-drift.md` |
+| Fix | `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md` | `FIX-001-auth-token-leak.md` |
+| Improvement | `_devprocess/requirements/improvements/IMP-{ee}-{ff}-{nn}-{slug}.md` | `IMP-001-reindex-perf.md`, `IMP-007-doc-drift.md` |
 
-- `FIX` und `IMP` sind 3-stellig fortlaufend, projekt-global (nicht
-  epic-lokal).
+- `FIX` und `IMP` sind feature-lokal nummeriert: `FIX-{ee}-{ff}-{nn}`
+  bzw. `IMP-{ee}-{ff}-{nn}`. `{ee}` Epic, `{ff}` Feature, `{nn}` Counter
+  lokal zum Feature.
 - Frontmatter-Pflicht: `feature:` und `epic:` (Bindung an existierendes
   Feature/Epic). Ohne diese Bindung ist das Artefakt ein Orphan und wird
   von `/consistency-check` geflaggt.
-- FIX-Eintraege zusaetzlich im Bug Log `20_bugs.md` verlinken.
+- FIX-Eintraege erscheinen als Row im `BACKLOG.md` und als Detail-Datei
+  in `_devprocess/requirements/fixes/`. Es gibt keine separate Bug-Log-
+  Aggregationsdatei.
 
 ## Regeln fuer Nummern
 
 - Epics und ADRs immer 3-stellig: `001`, `042`, `103`
-- Features epic-lokal im Muster `{EPIC}-{NNN}`:
+- Features epic-lokal im Muster `FEAT-{ee}-{ff}`:
   - `EPIC` = 3-stellige Epic-Nummer (identisch zur Nummer im
     Epic-Dateinamen)
   - `NNN` = 3-stellige Feature-Nummer lokal zum Epic
-  - Epic 001 -> FEATURE-001-001, FEATURE-001-002, ...
-  - Epic 013 -> FEATURE-013-001, FEATURE-013-002, ...
+  - Epic 01 -> FEAT-01-01, FEAT-01-02, ...
+  - Epic 13 -> FEAT-13-01, FEAT-13-02, ...
 - Fortlaufend innerhalb des jeweiligen Scopes
 - Keine Luecken erzwingen (042 nach 041, nicht nach 040)
 - Nummern werden NICHT wiederverwendet
 - 3-stellig auf beiden Seiten der Feature-ID haelt alphabetische
-  Sortierung stabil (FEATURE-002-001 vor FEATURE-010-001)
+  Sortierung stabil (FEAT-02-01 vor FEAT-10-01)
 
 ## Regeln fuer Slugs
 
@@ -85,10 +94,10 @@
 
 | Falsch | Richtig | Grund |
 |--------|---------|-------|
-| `ADR-1-framework.md` | `ADR-001-framework.md` | 3-stellig |
-| `adr-001-framework.md` | `ADR-001-framework.md` | Prefix uppercase |
-| `ADR-001-Backend Framework.md` | `ADR-001-backend-framework.md` | Keine Leerzeichen |
-| `FEATURE-042-search.md` | `FEATURE-001-001-search.md` | Epic-lokal, `{EPIC}-{NNN}` |
-| `FEATURE-1-1-Suche.md` | `FEATURE-001-001-search.md` | 3-stellig, Englisch, kebab |
+| `ADR-1-framework.md` | `ADR-01-framework.md` | 3-stellig |
+| `adr-001-framework.md` | `ADR-01-framework.md` | Prefix uppercase |
+| `ADR-01-Backend Framework.md` | `ADR-01-backend-framework.md` | Keine Leerzeichen |
+| `FEAT-NN-42-search.md` | `FEAT-01-01-search.md` | Epic-lokal, `FEAT-{ee}-{ff}` |
+| `FEATURE-1-1-Suche.md` | `FEAT-01-01-search.md` | 3-stellig, Englisch, kebab |
 | `BA_myapp.md` | `BA-myapp.md` | Bindestrich, nicht Unterstrich |
 | `audit-myapp.md` | `AUDIT-myapp-2026-03-22.md` | Prefix uppercase, Datum |

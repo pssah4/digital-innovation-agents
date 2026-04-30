@@ -1,6 +1,6 @@
 ---
 type: epic-ba
-epic: EPIC-NNN
+epic: EPIC-{nn}
 project-ba: ../../analysis/BA-{PROJECT}.md
 personas: [P1, P3a]
 value-dimensions: [1, 3]
