@@ -46,6 +46,7 @@ For per-item audit:
 
    ```
    python3 tools/github-integration/flow.py create-issue --item <ID>
+   python3 tools/github-integration/flow.py open-draft-pr --item <ID>
    ```
 
 4. At Handoff Ritual end, tag the phase:
@@ -57,7 +58,10 @@ For per-item audit:
 For periodic full-codebase audit: branch is
 `feature/audit-<YYYY-MM-DD>` (no item ID). The AUDIT report acts as
 its own deliverable; FIX/IMP follow-ups land in the BACKLOG, each
-with its own branch later.
+with its own branch later. No draft PR is opened for the audit
+branch itself; the audit report is a deliverable, the FIX/IMP
+follow-ups are the actionable work and they get their own branches
+later via `/coding`.
 
 Full rules: `skills/project-conventions/references/team-workflow.md`.
 
@@ -312,8 +316,8 @@ Ask the user:
 >
 > Release readiness: {green/yellow/red}
 >
-> The next step in the V-Model workflow is **Phase 7: Release Closure**
-> (via `/dia-orchestrator`), which will:
+> Recommended next: `/dia-orchestrator` (Phase 7: Release Closure) --
+> which will:
 > 1. Finalize all artifacts (BA, Features, ADRs, arc42)
 > 2. Generate release notes
 > 3. Update CHANGELOG

@@ -656,8 +656,8 @@ Ask the user:
 > - `_devprocess/analysis/BA-{PROJECT}.md`
 > - `_devprocess/analysis/EXPLORE-{PROJECT}.md` (if PoC/MVP)
 >
-> The next step in the V-Model is `/requirements-engineering`, which will
-> transform the BA into Epics, Features, and Success Criteria.
+> Recommended next: `/requirements-engineering` -- transforms the BA
+> into Epics, Features, and Success Criteria.
 >
 > Shall I start `/requirements-engineering` now, or would you like to
 > review the BA first?"

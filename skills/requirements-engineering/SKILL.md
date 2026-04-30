@@ -372,8 +372,8 @@ Ask the user:
 > - Features: `_devprocess/requirements/features/`
 > - Handoff: `_devprocess/requirements/handoff/architect-handoff.md`
 >
-> The next step in the V-Model is `/architecture`, which will create
-> ADR proposals, arc42 documentation, and plan-context.md.
+> Recommended next: `/architecture` -- creates ADR proposals,
+> arc42 documentation, and plan-context.md.
 >
 > Shall I start `/architecture` now, or would you like to review the
 > requirements first?"

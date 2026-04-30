@@ -74,6 +74,34 @@ phase would consume, missing backlog rows, ADR abstraction violations).
 Mode B (semantic) runs before /release closure and on explicit user
 request.
 
+## MANDATORY: Post-reverse-engineering item promotion
+
+After `/reverse-engineering` completes its 8-phase run on a
+single `feature/reverse-engineer-<repo-name>` branch, the
+orchestrator does the per-item promotion that RE itself does
+not do (because RE produced a backlog seed, not validated
+items).
+
+Steps:
+
+1. Read the BACKLOG.md and identify items written by RE
+   (typically `Status: Anticipated`, `Source: REV`).
+2. Ask the user via `AskUserQuestion` which items should be
+   promoted now (vs. left as anticipated for later triage).
+3. For each promoted item:
+   ```
+   python3 tools/github-integration/flow.py create-issue --item <ID>
+   git tag -a <id-lower>/reverse-engineered -m "Item promoted from /reverse-engineering"
+   ```
+4. Update BACKLOG row: Status -> Planned (or as appropriate).
+5. Suggest the next skill via AskUserQuestion: typically
+   `/business-analysis` to validate the BA draft, or `/coding`
+   for items that are already implemented and just need the
+   inventory recorded.
+
+This bridges the RE multi-item exception with the per-item
+team workflow.
+
 ## MANDATORY: Post-phase consistency check (orchestrator role)
 
 After every entry-skill finishes a phase, the orchestrator runs a
@@ -97,7 +125,19 @@ Checks:
 4. **Issue check.** Does the GitHub issue exist and have the right
    phase label and ticked checklist? If not, run
    `flow.py update-issue` (or `create-issue` if missing).
-5. **Next-phase suggestion.** Surface as `AskUserQuestion`:
+5. **METRICS append.** Write a one-line entry to
+   `_devprocess/context/METRICS.md` under the "Phase cycle times"
+   section: `<YYYY-MM-DD> | <item-id> | <phase> | <minutes>` (where
+   `minutes` is derived from the phase-tag's commit timestamp minus
+   the previous phase tag's timestamp; for the first phase, from
+   the branch creation timestamp). This centralises METRICS
+   writeback so individual phase skills do not need to maintain
+   their own metrics-write logic. When the orchestrator is bypassed
+   (a phase skill runs standalone), the phase skill MUST append the
+   line itself in its Handoff Ritual; the orchestrator detects
+   double-writes via the (date, item, phase) primary key and ignores
+   them.
+6. **Next-phase suggestion.** Surface as `AskUserQuestion`:
 
    ```
    Phase '<X>' complete for '<ID>'.

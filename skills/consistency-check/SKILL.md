@@ -43,7 +43,7 @@ project convention uses ASCII.
   custom-message options. Triggered by `--fix-interactive` or after
   a pre-commit hook block.
 
-## Two modes
+## Mode reference
 
 ### Mode A: Syntactic check (default, fast, no LLM)
 

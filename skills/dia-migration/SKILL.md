@@ -44,6 +44,40 @@ artefact-bootstrap from code.
 The skill is **idempotent**. Running it on an already-current repo
 performs the consistency check and exits without changes.
 
+## MANDATORY Pre-Phase 0: Branch check (cross-cutting operation)
+
+Migration is a cross-cutting maintenance operation, not a V-Model
+phase. It does not target a backlog item; it touches many artefacts
+across the repo. Therefore migration runs on a dedicated branch and
+does not set V-Model phase tags.
+
+Branch convention: `chore/dia-migration-<YYYY-MM-DD>`.
+
+Check at start (full rules:
+`skills/project-conventions/references/team-workflow.md`):
+
+1. If on `main` / `master` / `dev`: refuse, AskUserQuestion to
+   create `chore/dia-migration-<YYYY-MM-DD>` and switch.
+2. If on the expected migration branch (or any other `chore/*` /
+   `feature/*` branch the user explicitly confirms): silent continue.
+3. If on a different branch: AskUserQuestion to switch to the
+   migration branch (recommended) or stay (only when consciously
+   bundling migration with other work, which is discouraged).
+
+GitHub integration: migration does NOT create a per-item issue or
+draft PR. The migration commits go in as a single chore PR
+(`chore/dia-migration-<date>` -> `dev`). The user opens that PR
+manually after Phase 7 completes.
+
+Phase tags: migration does NOT set V-Model phase tags
+(`<id>/ba-done` etc. are reserved for backlog items). It does
+write progress markers via per-phase commits with the message
+prefix `chore(dia-migration): phase <N> -- <summary>` so the
+history is reviewable.
+
+State stored in `.git/dia-active-skill` so subsequent invocations
+of the migration loop stay silent if everything matches.
+
 ## Shared tooling
 
 This skill orchestrates the scripts under `tools/migration/` in the

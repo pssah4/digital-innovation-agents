@@ -476,7 +476,7 @@ Ask the user:
 > - arc42: `_devprocess/architecture/arc42.md`
 > - plan-context.md: `_devprocess/requirements/handoff/plan-context.md`
 >
-> The next step in the V-Model is `/coding`, which will:
+> Recommended next: `/coding` -- which will:
 > 1. Load plan-context.md + all ADRs + Features
 > 2. Critically review against the real codebase
 > 3. Write changes back to artifacts

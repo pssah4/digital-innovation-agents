@@ -150,10 +150,12 @@ below) so the agent's work is structured, verified, and documented.
 of a Feature is either:
 
 - **FIX-{ee}-{ff}-{nn}** (bug or issue follow-up) at
-  `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`
+  `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`,
+  seeded from `templates/FIX-TEMPLATE.md`.
 - **IMPROVEMENT / IMP-{ee}-{ff}-{nn}** (technical or other change that is not a
   feature) at
-  `_devprocess/requirements/improvements/IMP-{ee}-{ff}-{nn}-{slug}.md`
+  `_devprocess/requirements/improvements/IMP-{ee}-{ff}-{nn}-{slug}.md`,
+  seeded from `templates/IMP-TEMPLATE.md`.
 
 **Required frontmatter for FIX and IMP:**
 
@@ -1058,8 +1060,8 @@ Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 
 Ask the user:
 
-> "Implementation is complete. The next step in the V-Model is `/testing`
-> with input from the new code plus the updated FEATURE specs.
+> "Implementation is complete. Recommended next: `/testing` -- input
+> from the new code plus the updated FEATURE specs.
 >
 > Shall I start `/testing` now, or would you like to review first?"
 

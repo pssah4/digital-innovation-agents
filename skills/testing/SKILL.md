@@ -442,7 +442,7 @@ Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 Ask the user:
 
 > "Tests are complete and all green. Coverage: {line}% / {branch}% /
-> {function}%. The next step in the V-Model is `/security-audit`.
+> {function}%. Recommended next: `/security-audit`.
 >
 > Shall I start `/security-audit` now, or would you like to review first?"
 
