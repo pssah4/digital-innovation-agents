@@ -1,6 +1,6 @@
 ---
 title: The V-Model
-description: Why the V-Model shape, the seven phases, and how Digital Innovation Agents adapts it for AI-augmented development.
+description: "Why the V-Model shape, the six phases plus the closing handoff, and how Digital Innovation Agents adapts it for AI-augmented development."
 ---
 
 # The V-Model
@@ -36,7 +36,7 @@ Every phase produces artifacts that the next phase reads. Nothing is
 ad-hoc, nothing is only in the agent's head. Everything lives in
 `_devprocess/` so you can review, audit, and reproduce.
 
-## The seven phases
+## The six phases plus closing handoff
 
 ![V-Model workflow for Claude Code](/v-model-overview.svg)
 

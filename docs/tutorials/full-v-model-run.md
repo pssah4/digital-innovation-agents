@@ -1,14 +1,15 @@
 ---
 title: A full V-Model run
-description: End-to-end walkthrough of the V-Model workflow from raw idea to release closure, showing all phases and handoffs.
+description: End-to-end walkthrough of the V-Model workflow from raw idea to closing handoff, showing every phase and every handoff.
 ---
 
 # A full V-Model run
 
-This tutorial takes a rough idea through all 7 phases of the V-Model
-workflow, from first conversation to final release closure. You see
-every phase, every handoff, and every artifact. Think of it as the
-reference trip. Once you have done this, you understand the whole system.
+This tutorial takes a rough idea through the six V-Model phases plus
+the closing handoff, from first conversation to release-ready state.
+You see every phase, every handoff, and every artifact. Think of it
+as the reference trip. Once you have done this, you understand the
+whole system.
 
 Timeframe to follow along: about 30-45 minutes of reading, plus another
 1-2 hours if you actually run it for a PoC project.
