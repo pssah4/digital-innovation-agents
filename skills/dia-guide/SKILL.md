@@ -20,141 +20,107 @@ disable-model-invocation: false
 
 # V-Model Workflow Guide
 
-## MANDATORY Phase 0: Artifact triage
+## What this skill does (and does not do)
 
-Before any code, doc, or spec change, the guide (or the
-phase-skill it dispatches) determines which artifact category the
-work falls into:
+`/dia-guide` is the read-only orientation layer of DIA. It:
 
-1. **New FEATURE** (user-facing capability that did not exist before).
-2. **IMPROVEMENT (IMP)** on an existing feature (refactor, performance,
-   doc drift, tests, config).
-3. **FIX** for a bug or drift on an existing feature.
-4. **ADR** when the work is an architecture decision.
+- Reads `BACKLOG.md`, the latest `HANDOFFS.md` entry, and git
+  state when the user invokes it
+- Recommends the next phase skill in plain text
+- Audits whether the last handoff carries the binding fields
+  (`triage:`, `triage_kind:`, `epic:`, `feature:`)
+- Runs the Closing Handoff after a green `/security-audit`
+- Does the post-`/reverse-engineering` item promotion (the only
+  CRUD moment the guide owns, because it is a multi-item user
+  interaction at a workflow boundary that no single phase skill
+  covers)
 
-**Rule:** if the assignment cannot be derived unambiguously from the
-user prompt, the guide asks one short question before anything
-else (in the user's working language; the English wording below is a
-template):
+What the guide does NOT do:
 
-> "Is this a new feature, an improvement on an existing feature, or
-> a fix for a bug? If feature or IMP/FIX: which feature and which
-> epic?"
+- It does not perform artifact triage. Triage lives in every phase
+  skill's MANDATORY Phase 0 block. See
+  `skills/project-conventions/references/graph-invariants.md`,
+  section "Artifact triage at entry point".
+- It does not enforce the plan gate. The plan gate lives in
+  `/coding` Phase 3a as the "Plan Coverage Gate (binding, runs
+  before Status flips to Active)". `/coding` runs the gate;
+  the guide only reads the result.
+- It does not run `/consistency-check` mode A at phase boundaries.
+  Each phase skill runs mode A in its own handoff ritual. Mode B
+  fires from the Closing Handoff, see below.
+- It does not call other skills. It recommends; the user invokes.
 
-No code or spec change without this assignment. FIX and IMP require
-`feature:` and `epic:` in the frontmatter. Details on the decision
-tree and exceptions live in
-`skills/project-conventions/references/graph-invariants.md`
-(section "Artifact triage at entry point").
+## Post-reverse-engineering item promotion (the only CRUD moment)
 
-## MANDATORY: Plan-gate transition between /architecture and /coding
+`/reverse-engineering` finishes with a backlog seed: 20+ items at
+`Status: Anticipated, Source: REV` on a single
+`feature/reverse-engineer-<repo-name>` branch. Per-item branches
+and per-item GitHub issues kick in only after a user-driven triage:
+which seed items become real backlog candidates? `/reverse-engineering`
+explicitly defers this step to the guide (see RE's Pre-Phase 0).
 
-When the guide hands off from /architecture to /coding, the
-plan-gate runs as a binding precondition. /coding does not proceed
-to implementation until all four items are green for the active PLAN:
-
-1. SC coverage: every Success Criterion of every referenced FEATURE
-   maps to a concrete task in the PLAN, or is explicitly marked
-   "Deferred: {reason}"
-2. ADR alignment: every ADR in `adr-refs` has at least one task that
-   operationalizes its Decision section
-3. Codebase anchoring: every task names at least one concrete file
-   path
-4. Verify commands: at least one build command and one test command
-   are defined in the PLAN body
-
-If any item is open, the guide loops: amend the artifact, then
-re-run the gate. No code is written while an item is open.
-
-## MANDATORY: /consistency-check at phase boundaries
-
-`/consistency-check` mode A runs at the end of every phase-skill, BEFORE
-the Handoff Ritual. The Handoff Ritual reports the consistency-check
-result. The next phase does NOT start while the syntactic check shows
-errors that block the next phase (dead links to artifacts the next
-phase would consume, missing backlog rows, ADR abstraction violations).
-
-Mode B (semantic) runs as part of the Closing Handoff (after a
-green or yellow `/security-audit`) and on explicit user request.
-
-## MANDATORY: Post-reverse-engineering item promotion
-
-After `/reverse-engineering` completes its 8-phase run on a
-single `feature/reverse-engineer-<repo-name>` branch, the
-guide does the per-item promotion that RE itself does
-not do (because RE produced a backlog seed, not validated
-items).
+This is the only place where the guide writes. It is a multi-item
+user interaction at a workflow boundary that no single phase skill
+covers. The user drives the triage; the guide executes the per-item
+operations.
 
 Steps:
 
-1. Read the BACKLOG.md and identify items written by RE
-   (typically `Status: Anticipated`, `Source: REV`).
-2. Ask the user via `AskUserQuestion` which items should be
-   promoted now (vs. left as anticipated for later triage).
+1. Read `BACKLOG.md`, list items with `Status: Anticipated, Source: REV`.
+2. AskUserQuestion: which items should be promoted now (vs. left as
+   anticipated for later)?
 3. For each promoted item:
    ```
    python3 tools/github-integration/flow.py create-issue --item <ID>
    git tag -a <id-lower>/reverse-engineered -m "Item promoted from /reverse-engineering"
    ```
-4. Update BACKLOG row: Status -> Planned (or as appropriate).
-5. Suggest the next skill via AskUserQuestion: typically
-   `/business-analysis` to validate the BA draft, or `/coding`
-   for items that are already implemented and just need the
-   inventory recorded.
+4. Update BACKLOG row: `Status` -> `Planned` (or as appropriate).
+5. Recommend the next skill: typically `/business-analysis` to
+   validate the BA draft, or `/coding` for items that already
+   ship and just need the inventory recorded.
 
-This bridges the RE multi-item exception with the per-item
-team workflow.
+## Handoff state audit (read-only, on user invocation)
 
-## MANDATORY: Post-phase consistency check (guide role)
+When the user invokes `/dia-guide` after a phase skill has finished,
+the guide reads the team-workflow surface and reports any drift
+between artifact state and collaboration state. It does NOT write,
+fix, or tag. It surfaces, the user decides.
 
-After every entry-skill finishes a phase, the guide runs a
-short consistency check on the team-workflow surface (BACKLOG.md,
-git tags, GitHub issue, draft PR, project card). This is the
-glue layer that prevents drift between artefact state and
-collaboration state. Full reference:
-`skills/project-conventions/references/team-workflow.md`.
+Audited surfaces (full reference:
+`skills/project-conventions/references/team-workflow.md`):
 
-Checks:
-
-1. **Branch check.** Is the current branch on an item-branch (per
+1. **Branch.** Is the current branch on an item-branch (per
    `team-workflow.md` schema)? If not, surface a warning.
-2. **Tag check.** Did the just-finished phase set its
+2. **Phase tag.** Did the just-finished phase set its
    `<item-id>/<phase>-done` tag via
-   `tools/github-integration/flow.py tag-phase`? If missing, set it
-   now.
-3. **Backlog check.** Does the BACKLOG row's status reflect the
-   phase progress (Building during BA -> RE -> Coding, Released
-   only after merge)?
-4. **Issue check.** Does the GitHub issue exist and have the right
-   phase label and ticked checklist? If not, run
-   `flow.py update-issue` (or `create-issue` if missing).
-5. **METRICS append.** Write a one-line entry to
-   `_devprocess/context/METRICS.md` under the "Phase cycle times"
-   section: `<YYYY-MM-DD> | <item-id> | <phase> | <minutes>` (where
-   `minutes` is derived from the phase-tag's commit timestamp minus
-   the previous phase tag's timestamp; for the first phase, from
-   the branch creation timestamp). This centralises METRICS
-   writeback so individual phase skills do not need to maintain
-   their own metrics-write logic. When the guide is bypassed
-   (a phase skill runs standalone), the phase skill MUST append the
-   line itself in its Handoff Ritual; the guide detects
-   double-writes via the (date, item, phase) primary key and ignores
-   them.
-6. **Next-phase suggestion.** Surface as `AskUserQuestion`:
+   `tools/github-integration/flow.py tag-phase`? Each phase skill is
+   responsible for setting its own tag during its handoff ritual.
+   If missing, the guide names the phase skill that should re-run
+   its handoff ritual.
+3. **Backlog row.** Does the BACKLOG row's status reflect the phase
+   progress (Building during BA -> RE -> Coding, Released only
+   after merge)? Discrepancies indicate the phase skill's handoff
+   ritual did not write the row before the phase-end commit.
+4. **GitHub issue.** Does the issue exist and carry the right phase
+   label and ticked checklist? Each phase skill calls
+   `flow.py update-issue` in its handoff ritual; the guide reads
+   `flow.py status --item <ID>` and reports the snapshot.
+5. **HANDOFFS entry.** Does the latest entry have `triage:`,
+   `triage_kind:`, and (for IMP/FIX) `epic:` + `feature:`? Missing
+   fields are flagged with the responsible phase skill named.
 
-   ```
-   Phase '<X>' complete for '<ID>'.
-   Recommended next: '/<skill>'.
-   Continue now, pause, switch to a different item, or finalise?
-   ```
+The guide reports findings in plain text and recommends the next
+step. It does not auto-fix, does not append to METRICS, does not
+tag, and does not call other skills. METRICS is written by phase
+skills directly; the guide only reads it.
 
-The guide runs `flow.py status --item <ID>` for the
-machine-readable summary that backs this question.
+## Feature-complete read (before release)
 
-## MANDATORY: Feature-complete handoff before release
+When the user asks "is this item ready for release?", the guide
+reads the phase tags and reports. No tagging, no PR transition,
+no skill invocation.
 
-Before `/release` is invoked, the guide gates the transition
-"Building -> ready-for-merge" with this handoff:
+Audit:
 
 1. Verify all required phase tags exist for the active item:
    - `<id>/code-done` (always)
@@ -163,36 +129,26 @@ Before `/release` is invoked, the guide gates the transition
 
 2. Run `flow.py status --item <ID>` and show the user the result.
 
-3. AskUserQuestion (Pro/Con):
-
+3. Report in plain text:
    ```
-   Item '<ID>' is feature-complete. All required phases (coding,
-   testing{, audit}) have done-tags. Mark the PR ready for review
-   and proceed to /release?
+   Item '<ID>' phase status:
+   - code-done: yes/no
+   - test-done: yes/no
+   - audit-done: yes/no/n-a
+
+   Verdict: feature-complete | missing tags: <list>
    ```
 
-   Options:
-   - A) Mark PR ready, proceed to /release (recommended)
-        Pro: standard path; review starts; /release handles the merge
-        Con: locks the work into the review queue
-   - B) Add another phase first (re-coding, more tests, audit-rerun)
-        Pro: catches issues before review
-        Con: delays delivery
-   - C) Pause here (PR stays draft)
-        Pro: hand off to async reviewer at user's pace
-        Con: nothing moves until user comes back
+If a tag is missing, the guide names the responsible phase skill so
+the user can re-run it. If feature-complete, the user can mark the
+PR ready (`flow.py ready-for-review --item <ID>`) and invoke their
+private release skill themselves. The guide does neither.
 
-4. On A: run
-   `python3 tools/github-integration/flow.py ready-for-review --item <ID>`
-   then `/release`.
+---
 
-5. On B or C: guide stays available; re-checks state on next
-   skill-end via the post-phase consistency check.
-
-
-This skill guides you through the V-Model development cycle. Each phase
-builds on the previous one and produces artifacts as input for the next
-phase. All phases follow the conventions from `/project-conventions`.
+This skill is the navigation layer. Each phase builds on the previous
+one and produces artifacts as input for the next phase. All phases
+follow the conventions from `/project-conventions`.
 
 ## Workflow Overview
 
@@ -386,7 +342,11 @@ relevant sind. Beispiel: vor `/architecture`-Start "Du hast 3
 Features ohne Epic-Parent, das sollten wir vorher klaeren, willst
 du `/consistency-check` auto-fixes laufen lassen?"
 
-## Phase Transitions
+## Recommended next step per phase
+
+These are the standard recommendations the guide surfaces when a
+phase is complete. The guide does not invoke the next skill; it
+prints the recommendation and the user types the slash command.
 
 ### After Reverse Engineering -> Business Analysis (brownfield only)
 
@@ -397,10 +357,10 @@ validated: it contains only what could be cited from existing
 documentation, with `[NEEDS USER INPUT]` placeholders everywhere
 else.
 
-The guide **always** hands off to `/business-analysis` next,
-even if the draft looks complete. Code is a good technical foundation
-but does not prove the product solves the right problem. The user
-must validate each section.
+The guide **always** recommends `/business-analysis` next, even if
+the draft looks complete. Code is a good technical foundation but
+does not prove the product solves the right problem. The user must
+validate each section.
 
 ```
 Reverse engineering complete! Next step:
