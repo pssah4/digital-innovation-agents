@@ -250,7 +250,7 @@ the skill pauses and you can review the BA before moving on.
 
 - The BA document is the input for [`/requirements-engineering`](../guides/requirements-engineering),
   which turns it into Epics, Features, and tech-agnostic Success Criteria.
-- Or run the entire cycle in one go with [`/dia-orchestrator`](../guides/dia-orchestrator).
+- Or run the entire cycle in one go with [`/dia-guide`](../guides/dia-guide).
   See the next tutorial: [A full V-Model run](./full-v-model-run).
 - The full set of method cards lives under
   [Discovery methods](../reference/methods-discovery),

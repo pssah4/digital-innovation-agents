@@ -11,8 +11,8 @@
     {
       "name": "digital-innovation-agents",
       "source": {
-        "source": "url",
-        "url": "https://github.com/pssah4/digital-innovation-agents.git"
+        "source": "github",
+        "repo": "pssah4/digital-innovation-agents"
       },
       "description": "V-Model workflow: skills for AI-augmented innovation and development",
       "version": "3.0.0",

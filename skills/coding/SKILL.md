@@ -320,7 +320,7 @@ If no `plan-context.md` exists:
 No plan-context.md found. Options:
 
 A) I have FEATURE-*.md files -- work directly with them
-B) I want to run the V-Model workflow -> /dia-orchestrator
+B) I want to run the V-Model workflow -> /dia-guide
 C) I have an informal description -- work with it
 ```
 
@@ -413,7 +413,7 @@ Append a row to `_devprocess/context/METRICS.md` under the
  wanted to discuss first)
 
 If `METRICS.md` does not yet exist, copy
-`skills/dia-orchestrator/templates/METRICS-TEMPLATE.md` into the
+`skills/dia-guide/templates/METRICS-TEMPLATE.md` into the
 file first, then append. A rising drift count over multiple
 reconciliation runs signals that the ADRs or plan-context are losing
 touch with reality.
@@ -1095,7 +1095,7 @@ Deviations from the original design:
 ## Handoff Ritual (mandatory at end of phase)
 
 `/coding` always runs this ritual at the end, regardless of how it was
-started (directly or via `/dia-orchestrator`).
+started (directly or via `/dia-guide`).
 
 ### Part 1: Artifact report
 
@@ -1164,7 +1164,7 @@ Ask the user:
 > Shall I start `/testing` now, or would you like to review first?"
 
 **On agreement** ("yes" / "go" / "next") or when running inside
-`/dia-orchestrator`:
+`/dia-guide`:
 -> Start `/testing` and pass the handoff context
 
 **On rejection** ("no" / "stop" / "I want to check first"):

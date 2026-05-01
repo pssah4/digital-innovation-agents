@@ -268,6 +268,13 @@ Findings not fixed immediately (e.g. P2/P3 on Option B):
 - ADRs: when security fixes affect architecture decisions
 - Backlog: open findings documented
 
+### Step 7: Run `/consistency-check` mode A at the end of the skill phase
+
+Catches deferred findings without backlog rows, FIX rows missing
+`feature:` / `epic:` frontmatter, dashboard counts that drifted from
+the new findings, and dead links between audit report and backlog.
+The Handoff Ritual reports the result.
+
 ### Closing
 
 ```
@@ -283,7 +290,7 @@ Report: _devprocess/analysis/AUDIT-{PROJECT}-{DATE}.md
 ## Handoff Ritual (mandatory at end of phase)
 
 After the fix-loop is closed, this skill always runs the handoff ritual,
-regardless of how it was started (directly or via `/dia-orchestrator`).
+regardless of how it was started (directly or via `/dia-guide`).
 
 ### Part 1: Artifact report
 
@@ -305,7 +312,8 @@ Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 - **Architectural security concerns**: patterns that should be revisited
   in a future `/architecture` cycle (e.g. trust-boundary issues that
   require redesign, not patching)
-- **Release recommendation**: green / yellow / red for moving to Phase 7
+- **Release recommendation**: green / yellow / red verdict that gates
+  the Closing Handoff (`/consistency-check` mode B + optional release)
 
 ### Part 3: Phase-end commit
 
@@ -343,20 +351,19 @@ Ask the user:
 >
 > Release readiness: {green/yellow/red}
 >
-> Recommended next: `/dia-orchestrator` (Phase 7: Release Closure) --
-> which will:
-> 1. Finalize all artifacts (BA, Features, ADRs, arc42)
-> 2. Generate release notes
-> 3. Update CHANGELOG
-> 4. Clean up the backlog
-> 5. Produce a closing report
+> Recommended next: `/consistency-check` mode B (semantic) -- finalises
+> the artifact graph (BA Validation, Feature/ADR statuses, arc42,
+> plan-context) and returns a Release-Ready verdict. After Release-
+> Ready: yes, the cycle is closed; you can run your private release
+> skill if one is configured.
 >
-> Shall I invoke `/dia-orchestrator` to run the Release Closure now, or
-> would you like to review the audit first?"
+> Shall I invoke `/consistency-check` mode B now, or would you like to
+> review the audit first?"
 
 **On agreement** ("yes" / "go" / "next") or when running inside
-`/dia-orchestrator`:
--> Hand control back to `/dia-orchestrator` for Phase 7
+`/dia-guide`:
+-> Run `/consistency-check` mode B; on Release-Ready: yes the
+   `/dia-guide` Closing Handoff fires
 
 **On rejection** ("no" / "stop" / "I want to check first"):
 -> Pause and wait for user instruction

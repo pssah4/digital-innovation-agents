@@ -85,7 +85,7 @@ Auto-applied per item type and priority:
 - Phase: `phase:planned`, `phase:ba`, `phase:re`, `phase:arch`,
   `phase:coding`, `phase:testing`, `phase:audit`, `phase:review`
 
-The phase label is updated by the orchestrator when phase tags are
+The phase label is updated by the guide when phase tags are
 set (see below). Only one phase label at a time.
 
 ### GitHub Projects board
@@ -132,7 +132,7 @@ the next push.
 | `feat-04-09/code-done`           | `/coding`                      | Implementation committed, build green |
 | `feat-04-09/test-done`           | `/testing`                     | Tests added, coverage check passed |
 | `feat-04-09/audit-done`          | `/security-audit`              | Audit report written, findings filed |
-| `feat-04-09/ready-for-review`    | `/dia-orchestrator`            | All required phases complete, draft PR -> ready |
+| `feat-04-09/ready-for-review`    | `/dia-guide`            | All required phases complete, draft PR -> ready |
 
 ### Setting tags
 
@@ -180,7 +180,7 @@ Triggers:
 
 The skill stages every artefact it produced or modified during the
 phase. If the working tree is empty (no changes), the commit step is
-skipped silently and the phase ends without a tag. The orchestrator's
+skipped silently and the phase ends without a tag. The guide's
 post-phase consistency check then surfaces "phase {x} produced no
 artefacts" so the user can decide whether the phase actually ran.
 
@@ -271,7 +271,7 @@ even before review starts.
 
 After `/coding`, `/testing`, and (if required by the item type)
 `/security-audit` have all set their `<id>/*-done` tags, the
-orchestrator runs the feature-complete handoff:
+guide runs the feature-complete handoff:
 
 1. Verifies all required phase tags exist.
 2. Asks the user via `AskUserQuestion`:
@@ -283,10 +283,10 @@ orchestrator runs the feature-complete handoff:
    - Posts a final comment summarising the deliverables.
    - Suggests next step (request review, plan release, etc.).
 
-## Orchestrator: post-phase consistency check
+## Guide: post-phase consistency check
 
-`/dia-orchestrator` is the conductor. After every entry-skill
-finishes a phase, the orchestrator gets invoked (silently or
+`/dia-guide` is the conductor. After every entry-skill
+finishes a phase, the guide gets invoked (silently or
 explicitly) and runs:
 
 1. **Branch check:** is the current branch on an item-branch (per
@@ -302,9 +302,9 @@ explicitly) and runs:
    "Phase `<X>` complete for `<ID>`. Recommended next: `/{skill}`.
     Continue now, pause, or pick a different next step?"
 
-The orchestrator is the consistency layer that prevents drift
+The guide is the consistency layer that prevents drift
 between Git tags, BACKLOG.md, GitHub issues, and project cards.
-Skills focus on producing artefacts; the orchestrator ensures the
+Skills focus on producing artefacts; the guide ensures the
 state across systems matches.
 
 ## Pre-Phase 0 in entry skills: advisory branch-and-issue check
@@ -367,7 +367,7 @@ later phases never re-asked even when the item had moved on.
 
 - **Hot-fix on dev (rare):** the user can override the branch check
   with explicit confirmation. The pre-commit hook still asks; only
-  `--no-verify` skips it. The orchestrator will flag the unusual
+  `--no-verify` skips it. The guide will flag the unusual
   state and remind the user that the hot-fix needs follow-up
   documentation.
 

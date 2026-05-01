@@ -201,7 +201,7 @@ durch `/consistency-check` und den Graph-Viewer gemappt):
  ADR).
 - `/coding`: fuehrt Mid-Course Feature-Capture-Dialog wenn neue
  user-facing Capabilities hinzukommen (N-1, N-4, BA-Anker).
-- `/dia-orchestrator`: ruft `/consistency-check` beim Start (Mode A)
+- `/dia-guide`: ruft `/consistency-check` beim Start (Mode A)
  und bei Release-Closure (Mode A+B).
 - `/consistency-check`: liest alle Invarianten aus dieser Datei und
  prueft sie. Ergebnisse landen in der Graph-Health-Sektion des
@@ -297,7 +297,7 @@ ueber mehrere Entscheidungen.
 
 **Wo der Einstieg triagiert wird:**
 
-- `/dia-orchestrator`: in der Hybrid-Entry-Detection direkt nach der
+- `/dia-guide`: in der Hybrid-Entry-Detection direkt nach der
   Projektstand-Erkennung.
 - `/business-analysis`: vor Phase 1, wenn der User direkt mit einer
   Feature-Idee kommt statt mit Problem/Persona.
@@ -315,7 +315,7 @@ ueber mehrere Entscheidungen.
 
 Die Triage-Zuordnung wird im ersten Handoff-Eintrag verankert und
 danach von allen nachfolgenden Skills als gesetzt uebernommen. Format
-und Regel: siehe `skills/dia-orchestrator/SKILL.md` Abschnitt
+und Regel: siehe `skills/dia-guide/SKILL.md` Abschnitt
 "Handoff entry format". Pflichtfelder im Kopfblock: `triage:`,
 `triage_kind:`; bei IMP und FIX zusaetzlich `feature:` und `epic:`.
 

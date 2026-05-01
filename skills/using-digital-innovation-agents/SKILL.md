@@ -12,7 +12,7 @@ testing, and security audit.
 
 ## Entry points
 
-- `/dia-orchestrator` -- Guided cycle through all phases (recommended for
+- `/dia-guide` -- Guided cycle through all phases (recommended for
   new projects or when unsure where to start)
 - `/reverse-engineering` -- Brownfield entry point: walk the V backwards
   over an existing codebase to produce plan-context, ADRs, arc42
@@ -50,7 +50,7 @@ All project artifacts live under `_devprocess/`:
 ## When to invoke which skill
 
 - If the user is starting something new and the problem space is unclear
-  -> suggest `/dia-orchestrator` to orchestrate the full cycle
+  -> suggest `/dia-guide` to orchestrate the full cycle
 - If the user has an existing codebase but no V-Model artifacts
   -> `/reverse-engineering` to walk the V backwards, then
   `/business-analysis` to validate the WHY
@@ -65,7 +65,7 @@ These are **suggestions**, not rules. The user is in charge.
 The Digital Innovation Agents skill set is **advisory**. The user can leave
 the workflow at any time, and you should respect that immediately.
 
-### Leaving the `/dia-orchestrator` loop
+### Leaving the `/dia-guide` loop
 
 If the user is mid-workflow (for example, between phases) and says something
 like "stop", "exit", "I want to do something else", "let's pause this",
@@ -75,7 +75,7 @@ or simply asks an unrelated question:
 - Answer whatever the user is asking next directly, without invoking any
   V-Model skill.
 - The workflow state is preserved in `_devprocess/` -- the user can resume
-  later by re-invoking `/dia-orchestrator`.
+  later by re-invoking `/dia-guide`.
 
 ### Temporarily disabling the skills
 
@@ -109,8 +109,8 @@ hook entirely. Mention this only if the user asks how to disable permanently.
 
 ## User Interaction Protocol (binding across every V-Model skill)
 
-When any phase-skill or the orchestrator needs a decision from the user,
-the following rules are mandatory. They apply inside `/dia-orchestrator`
+When any phase-skill or the guide needs a decision from the user,
+the following rules are mandatory. They apply inside `/dia-guide`
 and when any phase-skill is invoked standalone.
 
 1. **One question per turn.** Never batch multiple open decisions into a

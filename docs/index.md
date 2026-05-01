@@ -20,13 +20,18 @@ hero:
 <div class="landing-features">
   <a class="tile" href="/digital-innovation-agents/tutorials/first-business-analysis">
     <h3>Starting from a raw idea?</h3>
-    <p>Walk the AI through structured discovery: personas, Jobs to be Done, How-Might-We questions. Twenty proven innovation methods before a single line of code.</p>
+    <p>Walk the AI through structured discovery: personas, Jobs to be Done, How-Might-We questions. Thirty-two proven innovation methods before a single line of code.</p>
     <span class="arrow">Run your first Business Analysis →</span>
   </a>
   <a class="tile" href="/digital-innovation-agents/guides/reverse-engineering">
     <h3>Starting with an existing project?</h3>
-    <p>Walk the V backwards. Reverse-engineer ADRs, an arc42 snapshot, a FEATURE inventory, and an evidence-based BA draft from your code. Every claim sourced, nothing invented.</p>
+    <p>Walk the V backwards. Reverse-engineer a wayfinder, ADRs, an arc42 snapshot, a FEAT inventory, and an evidence-based BA draft from your code. Every claim sourced, nothing invented.</p>
     <span class="arrow">Run Reverse Engineering →</span>
+  </a>
+  <a class="tile" href="/digital-innovation-agents/guides/dia-migration">
+    <h3>Upgrading an older DIA project?</h3>
+    <p>Bring a v1 or v2 project up to v3 conventions: rename FEATURE-NNNN to FEAT-EE-FF, flatten analysis, regenerate the backlog, and run a graph-health check. Idempotent, branch-safe, no source-code edits.</p>
+    <span class="arrow">Run DIA Migration →</span>
   </a>
 </div>
 
@@ -96,13 +101,13 @@ hero:
     <rect x="642" y="45" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="722" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">TDD · Debugging</text>
     <rect x="642" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="722" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Verification gate</text>
+    <text x="722" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">PLAN-NN coverage gate</text>
     <rect x="632" y="115" width="180" height="120" rx="16" fill="#7e22ce" stroke="#d8b4fe" stroke-width="2.5"/>
     <text x="722" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#faf5ff">Coding</text>
     <text x="722" y="205" text-anchor="middle" font-size="14" fill="#e9d5ff">Enhanced default agent</text>
     <rect x="642" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="722" y="276" text-anchor="middle" font-size="15" fill="#475569">Source code</text>
-    <text x="722" y="300" text-anchor="middle" font-size="15" fill="#475569">Bug log</text>
+    <text x="722" y="276" text-anchor="middle" font-size="15" fill="#475569">Source + wayfinder</text>
+    <text x="722" y="300" text-anchor="middle" font-size="15" fill="#475569">FIX backlog rows</text>
   </a>
 
   <a href="/digital-innovation-agents/guides/testing">

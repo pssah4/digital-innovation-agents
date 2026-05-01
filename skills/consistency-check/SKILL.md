@@ -288,7 +288,7 @@ Two entry points:
 
 1. **Direct shell:**
    ```bash
-   bash ~/.claude/skills/dia-orchestrator/tools/open-graph.sh <project-root>
+   bash ~/.claude/skills/dia-guide/tools/open-graph.sh <project-root>
    ```
    The parser builds the JSON in memory, passes it as a URL parameter
    to the viewer, and opens the default browser. No file on disk.
@@ -320,11 +320,11 @@ Two entry points:
 
 ## Tool files
 
-- `skills/dia-orchestrator/tools/parse-graph.py` - Markdown to JSON.
+- `skills/dia-guide/tools/parse-graph.py` - Markdown to JSON.
   Stdlib only, no dependencies.
-- `skills/dia-orchestrator/tools/graph-viewer.html` - standalone
+- `skills/dia-guide/tools/graph-viewer.html` - standalone
   viewer with Cytoscape.js (CDN).
-- `skills/dia-orchestrator/tools/open-graph.sh` - wrapper that
+- `skills/dia-guide/tools/open-graph.sh` - wrapper that
   parses and opens the viewer.
 
 ## Output
@@ -505,7 +505,7 @@ Before this skill reports completion:
 - Active refactoring where artifacts are intentionally in flux.
   Wait for the refactor to settle, then run the check.
 - Greenfield projects without V-Model artifacts. Bootstrap via
-  `/dia-orchestrator` or `/reverse-engineering` first.
+  `/dia-guide` or `/reverse-engineering` first.
 
 ## Keywords
 

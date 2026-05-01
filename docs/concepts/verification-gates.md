@@ -70,10 +70,12 @@ cycle.
 5. Restore the fix
 6. **Run 3**: test MUST pass again
 
-Only when all three runs produce the expected result is the bug marked
-as resolved and the regression test marked as valid. The bug log entry
-in `20_bugs.md` gets a note: "Regression test verified via red-green
-cycle on {date}".
+Only when all three runs produce the expected result is the bug
+marked as resolved and the regression test marked as valid. The
+`FIX-{ee}-{ff}-{nn}` row in `BACKLOG.md` records the commit SHA, and
+the FIX detail file under `_devprocess/requirements/fixes/` carries
+a `## Regression test` section: "Regression test verified via
+red-green cycle on {date}".
 
 Without this cycle, a regression test might always pass regardless of
 the fix. You would never know it is not actually catching the bug.
@@ -97,8 +99,8 @@ output has to be read, the verification has to succeed. No shortcuts.
   failing tests now pass, with fresh command output
 - **`/security-audit` fix-loop**: each iteration re-runs the audit
   phase for the affected category, with fresh output
-- **Phase 7 Release Closure**: before release notes are generated,
-  the orchestrator verifies that the final test run and security audit
+- **the Closing Handoff**: before release notes are generated,
+  the guide verifies that the final test run and security audit
   are both green
 
 ## See also

@@ -101,7 +101,7 @@ the backlog. Spontaneous ideas go to the Ideas channel, not directly
 into code.
 
 The pair runs the V-Model walk inside this layer. Specifically, the
-pair invokes [`/dia-orchestrator`](/guides/dia-orchestrator) for
+pair invokes [`/dia-guide`](/guides/dia-guide) for
 end-to-end runs or the individual phase skills
 ([`/business-analysis`](/guides/business-analysis),
 [`/requirements-engineering`](/guides/requirements-engineering),
@@ -245,8 +245,8 @@ Phase layer       Skills      (/guides/*)
 ```
 
 A pair ships a feature by walking the V (Business Analysis ->
-Requirements -> Architecture -> Coding -> Testing -> Security Audit ->
-Release Closure). The walk is not strictly linear. The
+Requirements -> Architecture -> Coding -> Testing -> Security Audit
+-> Closing Handoff). The walk is not strictly linear. The
 [V is a decision graph](/concepts/v-model#the-v-is-iterative-not-linear)
 with three cross-phase triggers (mid-course bug, mid-course design,
 mid-course requirements) that close the iteration loop.
@@ -279,8 +279,8 @@ PULSE is built around the V-Model artifact set. To run it you need:
    the V-Model phases and the artifact templates)
 2. A `_devprocess/` directory in the project (set up by
    [`/project-conventions`](/guides/project-conventions))
-3. A backlog with the binding format (BL-NNN rows, dashboard, Claim
-   column)
+3. A backlog with the binding format (typed rows for FEAT, FIX,
+   IMP, PLAN, ADR, dashboard, Claim column)
 4. A `METRICS.md` seeded from the template
 
 Once the artifacts exist, the rituals layer on top. Start with the

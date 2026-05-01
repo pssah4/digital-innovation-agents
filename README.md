@@ -23,11 +23,17 @@ and **GitHub Copilot**.
 
 ## What this is
 
-The project ships eleven specialised skills that run inside your AI coding
-assistant. Each skill owns one phase of the V-Model, has its own quality
-gates, and hands off a structured artifact to the next phase. The result
-is a workflow where every decision is traceable from a real user problem
-through requirements, architecture, code, tests, and a security audit.
+The project ships thirteen skills that run inside your AI coding
+assistant: ten V-Model phase skills (business analysis, requirements
+engineering, architecture, coding, testing, security audit, reverse
+engineering, the guide, dia-migration, project-conventions),
+plus three foundation skills (`consistency-check` keeps the artifact
+graph intact, `humanizer` enforces the writing rules, and
+`using-digital-innovation-agents` introduces the skill set on session
+start). Each phase skill owns one part of the V-Model, has its own
+quality gates, and hands off a structured artifact to the next phase.
+Every decision stays traceable from a real user problem through
+requirements, architecture, code, tests, and a security audit.
 
 Three entry points cover greenfield, brownfield, and migration projects:
 
@@ -62,19 +68,51 @@ work.
 
 ## Quick start
 
-Pick your platform. Each installer drops the same eleven skills with the
-same templates and quality gates into your tool of choice.
+Pick your platform. Each installer drops the same thirteen skills with
+the same templates and quality gates into your tool of choice.
 
 ### Claude Code (recommended)
 
+`/plugin` lives in the **Claude Code CLI**, not in the VS Code or
+JetBrains extensions. If `claude --version` returns
+`command not found`, install the CLI first:
+
 ```bash
+curl -fsSL https://claude.ai/install.sh | bash    # official installer
+# or: brew install --cask claude-code              # macOS Homebrew
+# or: npm install -g @anthropic-ai/claude-code     # any OS with Node
+```
+
+Reopen your shell (`source ~/.zshrc` or `~/.bashrc`), then install the
+plugin:
+
+```bash
+claude
+```
+
+```
 /plugin marketplace add pssah4/digital-innovation-agents
 /plugin install digital-innovation-agents@pssah4-skills
 ```
 
-Start a new session and type `/` to see the V-Model skills in
-autocomplete. The `using-digital-innovation-agents` skill loads
-automatically at session start as a brief orientation.
+Type `/` in any new session to see the skills in autocomplete. The
+`using-digital-innovation-agents` skill loads automatically at session
+start as a brief orientation.
+
+**VS Code, JetBrains, and Cursor extensions cannot install plugins.**
+Running `/plugin marketplace add ...` inside the VS Code Claude Code
+extension returns `/plugin isn't available in this environment`.
+Install once through the CLI as above. The skills land under
+`~/.claude/skills/` and the IDE extension picks them up from the same
+global directory on the next session start. On Windows without WSL,
+the CLI is experimental; install through WSL or copy the skills
+manually:
+
+```bash
+git clone https://github.com/pssah4/digital-innovation-agents.git /tmp/dia
+mkdir -p ~/.claude/skills
+cp -r /tmp/dia/skills/* ~/.claude/skills/
+```
 
 ### Cursor
 
@@ -85,12 +123,34 @@ automatically at session start as a brief orientation.
 Or search for "digital-innovation-agents" in the Cursor plugin
 marketplace.
 
-### GitHub Copilot CLI
+### GitHub Copilot (CLI and VS Code)
+
+GitHub Copilot has no marketplace command. Install by copying the
+`.github/` directory into your project root:
 
 ```bash
-copilot plugin marketplace add pssah4/digital-innovation-agents
-copilot plugin install digital-innovation-agents@pssah4-skills
+git clone https://github.com/pssah4/digital-innovation-agents.git /tmp/dia
+cp -r /tmp/dia/.github/agents .github/agents
+cp -r /tmp/dia/.github/chatmodes .github/chatmodes
+cp -r /tmp/dia/.github/instructions .github/instructions
+cp -r /tmp/dia/.github/templates .github/templates
+cp /tmp/dia/.github/copilot-instructions.md .github/copilot-instructions.md
 ```
+
+Copilot Chat picks the agents up automatically on the next session. In
+Copilot Chat:
+
+```
+@business-analyst I want to build a tool that helps teams run better retrospectives
+@requirements-engineer Here is my BA document, create epics and features
+@architect Design the architecture based on the requirements handoff
+@developer Implement the first feature
+@debugger Tests are failing, analyze the error log
+```
+
+The Copilot agents run the same Exploration / Ideation / Validation
+cycle, the same templates, and the same quality gates as the Claude
+Code skills.
 
 ### Codex
 
@@ -124,23 +184,6 @@ To update:
 gemini extensions update digital-innovation-agents
 ```
 
-### GitHub Copilot Chat (VS Code)
-
-Copy the `.github/` directory into your project root. Copilot picks the
-agents up automatically. In Copilot Chat:
-
-```
-@business-analyst I want to build a tool that helps teams run better retrospectives
-@requirements-engineer Here is my BA document, create epics and features
-@architect Design the architecture based on the requirements handoff
-@developer Implement the first feature
-@debugger Tests are failing, analyze the error log
-```
-
-The Copilot agents run the same Exploration / Ideation / Validation
-cycle, the same templates, and the same quality gates as the Claude
-Code skills.
-
 ### Legacy shell install
 
 For users without plugin marketplace support:
@@ -156,7 +199,7 @@ cd digital-innovation-agents
 Start a session in your chosen platform and try one of these:
 
 ```
-/dia-orchestrator          Full guided cycle from idea to security audit
+/dia-guide          Full guided cycle from idea to security audit
 /business-analysis          Start a structured business analysis
 /reverse-engineering       Brownfield entry for an existing codebase
 ```
@@ -174,19 +217,34 @@ Troubleshooting:
 
 ## The skills
 
+The thirteen skills split into three groups: V-Model phase skills (the
+ten that own a phase or move you between phases), foundation skills
+(rules and consistency), and the orientation skill (`using-digital-
+innovation-agents` loads on session start to introduce the workflow).
+
+### V-Model phase skills
+
 | Phase | What it does | Claude Code | Copilot |
 |---|---|---|---|
 | **Reverse Engineering** | Brownfield entry. Walks the V backwards over an existing codebase and produces plan-context, ADRs, arc42, FEATURE inventory, backlog seed, and an evidence-based BA draft with every claim sourced. | `/reverse-engineering` | `@reverse-engineer` |
-| **Business Analysis** | Exploration, Ideation, and Validation cycle with structured interviews, probing techniques, and the method catalog. | `/business-analysis` | `@business-analyst` |
-| **Requirements Engineering** | Epics, features, tech-agnostic success criteria, user stories across functional / emotional / social levels, critical hypotheses. | `/requirements-engineering` | `@requirements-engineer` |
-| **Architecture** | ADRs in MADR format, arc42 snapshot, plan-context bridge to implementation. | `/architecture` | `@architect` |
-| **Coding** | Context handoff, critical review against the real codebase, artifact writeback during implementation. | `/coding` | `@developer` |
-| **Testing** | Unit and integration tests with a fix-loop until green. | `/testing` | built-in |
-| **Security Audit** | OWASP Top 10, LLM Top 10, SAST, SCA, Zero Trust review with a fix-loop. | `/security-audit` | `@security-auditor` |
-| **Debugging** | Root-cause analysis, systematic error resolution, causal chain documentation. | default agent | `@debugger` |
-| **V-Model Workflow** | Orchestrator that guides through every phase step by step. | `/dia-orchestrator` | built-in |
 | **DIA Migration** | Migrates a v1 project, an older V-Model variant, or a brownfield repo to current DIA conventions. Idempotent, branch-safe, no source-code edits. | `/dia-migration` | built-in |
-| **Project Conventions** | Directory structure, naming standards, writing-style rules for every artifact. | `/project-conventions` | built-in |
+| **Business Analysis** | Exploration, Ideation, and Validation cycle with structured interviews, probing techniques, and the 32-method discovery catalog. | `/business-analysis` | `@business-analyst` |
+| **Requirements Engineering** | Epics, FEAT-EE-FF features, tech-agnostic success criteria, user stories across functional / emotional / social levels, critical hypotheses. | `/requirements-engineering` | `@requirements-engineer` |
+| **Architecture** | ADRs in MADR format with the abstraction rule (no code paths in core sections), arc42 snapshot, wayfinder maintenance, plan-context bridge to implementation. | `/architecture` | `@architect` |
+| **Coding** | Context handoff, critical review against the real codebase, PLAN-NN persistence with coverage gate, bug-capture entry, artifact writeback during implementation. | `/coding` | `@developer` |
+| **Testing** | Unit and integration tests with the AAA pattern, FIRST principles, coverage targets, and a fix-loop until green. | `/testing` | built-in |
+| **Security Audit** | OWASP Top 10, LLM Top 10, SAST, SCA, Zero Trust review with a fix-loop. Two modes: per-item audit and periodic full-codebase audit. | `/security-audit` | `@security-auditor` |
+| **V-Model Workflow** | Guide that guides through every phase step by step, with mandatory phase-boundary consistency checks and GitHub flow.py integration. | `/dia-guide` | built-in |
+| **Debugging** | Root-cause analysis, systematic error resolution, causal chain documentation. Bugs land as FIX-EE-FF-NN rows in the backlog plus detail files in `_devprocess/requirements/fixes/`. | default agent | `@debugger` |
+
+### Foundation skills
+
+| Skill | What it does | Claude Code |
+|---|---|---|
+| **Project Conventions** | Three-layer documentation model (Wayfinder, Rule sets, Backlog, Detail artifacts), directory structure, naming standards, writing-style rules. | `/project-conventions` |
+| **Consistency Check** | Verifies the V-Model artifact graph: dead links, orphan features, status drift, missing references. Modes A (syntactic), B (semantic), C (full). Mandatory at every phase boundary. | `/consistency-check` |
+| **Humanizer** | Strips AI vocabulary, em dashes, negative parallelisms, and filler from every artifact. Enforces sentence case and active voice. | `/humanizer` |
+| **Using DIA** | Loads automatically on session start. Brief orientation page with skill set, entry points, opt-out behaviour. | `/using-digital-innovation-agents` |
 
 ## Scope levels
 
@@ -250,11 +308,13 @@ Start here:
 
 | Version | Status | Install |
 |---|---|---|
-| **v2** (main) | Active, recommended | See Quick start above |
+| **v3** (main) | Active, recommended. Adds the three-layer documentation model, FEAT-EE-FF IDs, FIX/IMP detail files, PLAN-NN persistence, GitHub flow.py integration. | See Quick start above |
+| **v2.x** | Frozen snapshot (legacy) | `./scripts/install-skills.sh --version v2.4.0` |
 | **v1.0.0** | Frozen snapshot (legacy) | `./scripts/install-skills.sh --version v1.0.0` |
 
-See [CHANGELOG.md](CHANGELOG.md) for details. v1 is installable as a
-historical snapshot and is not actively maintained.
+See [CHANGELOG.md](CHANGELOG.md) for details. Existing v1 or v2 projects
+upgrade through `/dia-migration`. v1 and v2 install as historical
+snapshots and are not actively maintained.
 
 ## License
 

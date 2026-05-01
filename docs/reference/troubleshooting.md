@@ -7,20 +7,78 @@ description: Common installation issues and their solutions per platform.
 
 ## Installation issues
 
+### `/plugin isn't available in this environment` in VS Code or JetBrains
+
+The `/plugin` command lives only in the Claude Code **CLI**, not in
+the IDE extensions. Install the plugin once through the CLI; the
+extension picks the skills up from `~/.claude/skills/` on the next
+session.
+
+```bash
+# install the CLI if not yet present
+curl -fsSL https://claude.ai/install.sh | bash
+# or: brew install --cask claude-code
+# or: npm install -g @anthropic-ai/claude-code
+
+claude
+```
+
+```
+/plugin marketplace add pssah4/digital-innovation-agents
+/plugin install digital-innovation-agents@pssah4-skills
+```
+
+### `claude: command not found`
+
+The Claude Code CLI is not installed or not on PATH. Install it:
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+# or: brew install --cask claude-code
+# or: npm install -g @anthropic-ai/claude-code
+```
+
+Reopen the shell or `source ~/.zshrc` (or `~/.bashrc`), then verify
+with `claude --version`.
+
 ### Claude Code: skills don't appear in autocomplete
 
-1. Verify the plugin is installed: `/plugin list`
-2. Restart the Claude Code session (quit and relaunch the CLI or reload
-   the VS Code extension)
+1. Verify the plugin is installed: `/plugin list` (in the CLI)
+2. Restart the Claude Code session (quit and relaunch the CLI or
+   reload the VS Code extension)
 3. Check that the marketplace was added: `/plugin marketplace list`
-4. If using the legacy script, verify `~/.claude/skills/` contains the
-   9 skill directories (8 phases + `using-digital-innovation-agents`)
+4. If using the manual fallback, verify `~/.claude/skills/` contains
+   all **thirteen** skill directories: `architecture`,
+   `business-analysis`, `coding`, `consistency-check`, `dia-migration`,
+   `dia-guide`, `humanizer`, `project-conventions`,
+   `requirements-engineering`, `reverse-engineering`, `security-audit`,
+   `testing`, `using-digital-innovation-agents`.
 
 ### Cursor: plugin not recognized
 
-1. Check `.cursor-plugin/plugin.json` exists in the repo you installed from
+1. Check `.cursor-plugin/plugin.json` exists in the repo you installed
+   from
 2. Restart Cursor
 3. Search for the plugin name in the Cursor plugin marketplace
+
+### GitHub Copilot: agents not found
+
+GitHub Copilot has no plugin marketplace command. Copy the `.github/`
+directory from the repository into your project root:
+
+```bash
+git clone https://github.com/pssah4/digital-innovation-agents.git /tmp/dia
+cp -r /tmp/dia/.github/agents .github/agents
+cp -r /tmp/dia/.github/chatmodes .github/chatmodes
+cp -r /tmp/dia/.github/instructions .github/instructions
+cp -r /tmp/dia/.github/templates .github/templates
+cp /tmp/dia/.github/copilot-instructions.md .github/copilot-instructions.md
+```
+
+Restart the Copilot session. The `@business-analyst`,
+`@requirements-engineer`, `@architect`, `@developer`,
+`@security-auditor`, `@reverse-engineer`, `@debugger` agents appear
+in Copilot Chat.
 
 ### Codex: skills not discovered
 
@@ -66,14 +124,14 @@ description: Common installation issues and their solutions per platform.
 
 ### The agent doesn't follow the workflow
 
-This is by design. The workflow is advisory, not enforcing. If
-you want the agent to follow it, explicitly invoke `/dia-orchestrator`
-or a specific phase skill. If you do not want the workflow, you can
-opt out at any point:
+This is by design. The workflow is advisory, not enforcing. If you
+want the agent to follow it, explicitly invoke `/dia-guide` or
+a specific phase skill. To opt out at any point:
 
 - "stop" / "exit" / "I want to do something else": leaves the current loop
 - "ignore the V-Model today": disables the skills for the session
 - `/plugin disable digital-innovation-agents`: permanent disable
+  (CLI only)
 
 ### Artifacts aren't written to `_devprocess/`
 
@@ -85,23 +143,46 @@ the workflow.
 Initialize manually:
 
 ```bash
-mkdir -p _devprocess/{analysis/security,requirements/{epics,features,handoff},architecture,context}
-touch _devprocess/context/20_bugs.md _devprocess/context/HANDOFFS.md
+mkdir -p _devprocess/{analysis/sources,requirements/{epics,features,fixes,improvements,handoff},architecture,rules,implementation/plans,context}
+touch _devprocess/context/HANDOFFS.md
 cp skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md \
    _devprocess/context/BACKLOG.md
+cp skills/dia-guide/templates/METRICS-TEMPLATE.md \
+   _devprocess/context/METRICS.md
+touch src/ARCHITECTURE.map
 ```
+
+There is no `analysis/security/` subfolder anymore (audit reports
+live flat under `analysis/`), and there is no `20_bugs.md` (bugs are
+`FIX-{ee}-{ff}-{nn}` rows in `BACKLOG.md` plus detail files under
+`requirements/fixes/`).
+
+### Backlog drift: status says Planned but the code shipped
+
+Run `/consistency-check` Mode A. It compares the backlog row of every
+artifact against the artifact body and flags drift. Mode B adds a
+semantic agent pass that checks reasoning coherence.
+
+Status drift is the most common doc-vs-code drift class. The v3
+three-layer model is the structural fix: status, phase, last-change,
+and claim live in the backlog row only, never in the artifact
+frontmatter.
 
 ## Version mismatch
 
-If you want the frozen v1.0.0 (Classic) release explicitly:
+If you want a frozen historical release explicitly:
 
 ```bash
-./scripts/install-skills.sh --version v1.0.0
+./scripts/install-skills.sh --version v1.0.0   # Classic
+./scripts/install-skills.sh --version v2.4.0   # Pre-drift-resistance
 ```
 
-The v1.0.0 snapshot is not available through the plugin marketplace.
-It remains installable via the legacy script for historical reference
-or to reproduce v1 behavior.
+Frozen snapshots are not available through the plugin marketplace.
+They remain installable via the legacy script for historical
+reference or to reproduce older behaviour.
+
+To upgrade an existing v1 or v2 project to v3 conventions, use
+`/dia-migration`. It is idempotent and branch-safe.
 
 ## Still stuck?
 

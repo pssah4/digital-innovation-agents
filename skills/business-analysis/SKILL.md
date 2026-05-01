@@ -626,7 +626,7 @@ Before handoff to the Requirements Engineer, these criteria must be met:
 ## Handoff Ritual (mandatory at end of phase)
 
 This skill always runs the following ritual at the end, regardless of how
-it was started (directly or via `/dia-orchestrator`).
+it was started (directly or via `/dia-guide`).
 
 ### Part 1: Artifact report
 
@@ -650,7 +650,15 @@ Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 - **Open questions**: research items that couldn't be answered and should
  be flagged to the user or deferred
 
-### Part 3: Phase-end commit
+### Part 3: Run `/consistency-check` mode A
+
+Run `/consistency-check` mode A at the end of the skill phase, BEFORE
+the phase-end commit. Catches missing backlog rows for new Epics or
+Personas, broken `project-kpi-ref` links between Epic-BA and
+Project-BA, dead persona references, and dashboard count drift.
+Surface findings; the user decides whether to fix now or defer.
+
+### Part 4: Phase-end commit
 
 Run the phase-end commit per `skills/project-conventions/references/team-workflow.md`
 section "Phase-end commit (binding)". The block fires the binding
@@ -675,10 +683,10 @@ python3 tools/github-integration/flow.py tag-phase --item <ID> --phase ba
 ```
 
 Skip the commit silently if the working tree has no changes; the
-orchestrator's post-phase consistency check will surface the empty
+guide's post-phase consistency check will surface the empty
 phase.
 
-### Part 4: Transition question
+### Part 5: Transition question
 
 Ask the user:
 
@@ -693,7 +701,7 @@ Ask the user:
 > review the BA first?"
 
 **On agreement** ("yes" / "go" / "next") or when running inside
-`/dia-orchestrator`:
+`/dia-guide`:
 -> Start `/requirements-engineering` and pass the handoff context
 
 **On rejection** ("no" / "stop" / "I want to check first"):

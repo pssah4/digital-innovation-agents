@@ -27,14 +27,20 @@ The skill uses the MADR (Markdown Architecture Decision Records) format. Every C
 ### The MADR structure
 
 ```markdown
-# ADR-NNN: {short title of the decision}
+---
+id: ADR-NN
+title: {short title of the decision}
+created: 2026-04-30
+adr-refs: [ADR-MM]
+feature-refs: [FEAT-EE-FF]
+---
 
-## Status
-Proposed | Accepted | Superseded by ADR-MMM | Inferred from codebase
+# ADR-NN: {short title of the decision}
 
 ## Context
 Triggering ASR: {link to ASR from RE}
 {Why this decision is needed, what forces apply, what constraints bind it.}
+No code paths, file names, line numbers, or method signatures here.
 
 ## Decision Drivers
 - {Driver 1, e.g. p95 latency < 300ms}
@@ -61,7 +67,20 @@ We propose {Option X}, because {justification linking back to drivers}.
 - Positive: ...
 - Negative: ...
 - Risks: ...
+
+## Implementation Notes (optional, may go stale)
+{Concept names from src/ARCHITECTURE.map, hints for the agent that
+will implement the decision. This appendix is the only place inside
+an ADR where code-level hints are tolerated.}
 ```
+
+**Status, phase, last-change.** ADR status (Proposed / Accepted /
+Superseded by ADR-MM) lives in the **backlog row**, not in the ADR
+frontmatter. The `BACKLOG.md` row for `ADR-NN` carries Status,
+phase, last-change, and the commit SHA when it lands.
+
+**ADR ID format.** 2-digit counter with leading zeros (`ADR-03`,
+`ADR-12`, not `ADR-003`).
 
 ### Why ADRs beat architecture diagrams
 
@@ -78,6 +97,64 @@ The MADR format was chosen because it is:
 - Short. One decision per file. You can read an ADR in under five minutes.
 
 Further reading: [adr.github.io](https://adr.github.io), [MADR template](https://adr.github.io/madr/).
+
+### ADR abstraction rule
+
+ADR core sections (Context, Decision Drivers, Considered Options,
+Decision, Consequences) contain **no code paths, file names, line
+numbers, or method signatures**. Code-level hints belong in the
+optional `## Implementation Notes` appendix at the bottom, which is
+allowed to go stale. The wayfinder is the canonical source for
+current paths.
+
+This is the structural fix for the second-most-common drift class:
+ADRs that age at code speed because they list code. An ADR written
+abstractly stays readable years after the decision; an ADR written
+concretely is silently wrong after the next refactor. See the
+[Three-layer documentation model](../concepts/three-layer-documentation).
+
+### Wayfinder maintenance
+
+`/architecture` opens the wayfinder layer for every concept the new
+ADR introduces or renames:
+
+- A new row in `src/ARCHITECTURE.map`:
+  `concept | entry-point | adr | how-to-extend`. The entry-point may
+  be `(planned)` until `/coding` lands the first implementation.
+- The ADR's optional `## Implementation Notes` appendix references
+  the concept by name, not by file path.
+
+`/coding` then fills in the concrete entry-point when the
+implementation lands and adds the JSDoc / docstring header that
+links back to the ADR. The wayfinder is never out of date because
+the agent that edits the code is the same agent that edits the
+wayfinder, in the same edit pass.
+
+### ADR consolidation duty
+
+An exploding ADR count is itself a smell. Thirty thematic ADRs are
+better than ninety per-decision ADRs. `/architecture` consolidates
+when it sees:
+
+- Multiple ADRs that share a concept and disagree on detail. Combine
+  them into one ADR with explicit Considered Options.
+- ADRs that have been Superseded twice. Replace the chain with one
+  current ADR and archive the old ones with `Status: Superseded`.
+- ADRs that exist only to document a library upgrade. Move the
+  rationale to `_devprocess/rules/technical.md` and delete the ADR.
+
+### Rule-set maintenance
+
+Stable truths live in `_devprocess/rules/{technical,design,domain}.md`
+with a hard cap of **500 lines total** across the three files.
+`/architecture` updates the rule sets when:
+
+- The technical stack changes (technical.md)
+- The UI design system changes (design.md, only if UI surface)
+- The domain glossary needs a new term (domain.md)
+
+If you cross the cap, condense or move detail to an ADR. The cap
+forces the rules to stay focused.
 
 ### No ADR without real alternatives
 
@@ -197,13 +274,15 @@ Gate failures are never suppressed. The skill reopens the failing section instea
 
 ## Handoff
 
-`/architecture` ends with the standard three-part [Handoff Ritual](../concepts/handoff-rituals). The handoff context entry in `_devprocess/context/HANDOFFS.md` is particularly rich because it captures decisions the next phase must not re-litigate:
+`/architecture` ends with the standard four-part [Handoff Ritual](../concepts/handoff-rituals): artifact report, handoff context appended to `HANDOFFS.md`, phase-end commit (`chore(arch): {ITEM-ID} ARCH complete`) plus `tag-phase --phase arch`, transition question. The guide runs `/consistency-check` Mode A on the changed artifacts at the boundary.
+
+The handoff context entry in `_devprocess/context/HANDOFFS.md` is particularly rich because it captures decisions the next phase must not re-litigate:
 
 - Tech-stack justification, which helps `/coding` understand why without re-reading all ADRs.
 - Rejected alternatives with reasons.
 - Known risks that `/coding` should watch for during implementation.
 
-The next phase is [`/coding`](./coding), which will critically review plan-context.md against the real codebase and either confirm the proposal, adjust it, or (in the rare case) push back to architecture with new evidence.
+The next phase is [`/coding`](./coding), which will critically review plan-context.md and the wayfinder against the real codebase and either confirm the proposal, adjust it, or (in the rare case) push back to architecture with new evidence. When `/coding` discovers a capability the architecture never planned (a new library, a new infrastructure component), the **mid-course capability discovery** trigger pauses implementation and routes back here for an ADR before the code continues.
 
 ## Read the skill file
 

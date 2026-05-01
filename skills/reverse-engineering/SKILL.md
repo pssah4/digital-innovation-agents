@@ -38,13 +38,13 @@ Branch check at start:
   rename the current branch to the expected name.
 
 GitHub integration: RE does not create per-item issues during
-Phase 0-7. The `/dia-orchestrator` post-RE handoff is responsible
+Phase 0-7. The `/dia-guide` post-RE handoff is responsible
 for that, after the user has triaged which reverse-engineered
 items are real backlog candidates.
 
 Phase tag: RE does NOT set per-item phase tags during its run.
 After RE completes and the user has triaged the backlog seed,
-`/dia-orchestrator` runs a one-shot pass that creates GitHub
+`/dia-guide` runs a one-shot pass that creates GitHub
 issues and tags `<item-id>/reverse-engineered` for every promoted
 item. This signals downstream skills that the item came from RE
 (useful for "go back and validate this with the user" workflows).
@@ -918,7 +918,7 @@ Ask the user exactly this:
 > reverse-engineered artifacts first?"
 
 On agreement (`yes`, `go`, `next`, `weiter`) or when running inside
-`/dia-orchestrator`: start `/business-analysis`. It will detect the
+`/dia-guide`: start `/business-analysis`. It will detect the
 draft BA and enter Validation Mode automatically.
 
 On rejection: pause and wait. The artifacts stay in `_devprocess/`

@@ -408,13 +408,17 @@ After a successful test run, follow the backlog-first writeback order:
    write the JSDoc header.
 4. **Living Documents writeback (per `/coding` rules)** if code
    fixes were needed during the test run.
+5. **Run `/consistency-check` mode A at the end of the skill phase.**
+   Catches orphan tests (no FEATURE/FIX/IMP backlog row), missing
+   coverage entries, dashboard count mismatches, and dead links
+   before the handoff. The Handoff Ritual reports the result.
 
 ---
 
 ## Handoff Ritual (mandatory at end of phase)
 
 `/testing` always runs this ritual at the end, regardless of how it was
-started (directly or via `/dia-orchestrator`).
+started (directly or via `/dia-guide`).
 
 ### Part 1: Artifact report
 
@@ -474,7 +478,7 @@ Ask the user:
 > Shall I start `/security-audit` now, or would you like to review first?"
 
 **On agreement** ("yes" / "go" / "next") or when running inside
-`/dia-orchestrator`:
+`/dia-guide`:
 -> Start `/security-audit` and pass the handoff context
 
 **On rejection** ("no" / "stop" / "I want to check first"):

@@ -443,7 +443,7 @@ plan-context.md MUST be consistent with the ADRs:
 ## Handoff Ritual (mandatory at end of phase)
 
 This skill always runs the following ritual at the end, regardless of how
-it was started (directly or via `/dia-orchestrator`).
+it was started (directly or via `/dia-guide`).
 
 ### Part 1: Artifact report
 
@@ -517,7 +517,7 @@ Ask the user:
 > first?"
 
 **On agreement** ("yes" / "go" / "next") or when running inside
-`/dia-orchestrator`:
+`/dia-guide`:
 -> Start `/coding` and pass the handoff context
 
 **On rejection** ("no" / "stop" / "I want to check first"):

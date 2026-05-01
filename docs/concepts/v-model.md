@@ -68,8 +68,12 @@ fix-loop until all tests are green.
 SCA, Zero Trust. Fix-loop until all critical findings are resolved or
 explicitly deferred.
 
-**Phase 7: Release Closure.** Final artifact synchronization, release
-notes, CHANGELOG update, backlog cleanup, closing report.
+**Closing Handoff (not a phase).** After a green `/security-audit`,
+the guide runs `/consistency-check` mode B, outputs a closing report
+(Feature/bug/security counts, finalised artifacts), and emits the
+`release-to-ba` HANDOFFS template. The actual release act
+(version bump, merge, tag, publish) is delegated to a project-
+specific release skill outside the public DIA plugin.
 
 ## The traceability chain
 
@@ -86,7 +90,7 @@ BA document (Why?)
               -> Code
                 -> Tests (Does it work?)
                   -> Security Audit (Is it safe?)
-                    -> Release Closure (Close the cycle)
+                    -> Closing Handoff (consistency-check mode B + optional release)
 ```
 
 If you open a random line of code, you can walk backwards through this
@@ -97,43 +101,59 @@ orphans, no "we added this because it seemed useful".
 
 Every step in this chain also writes backwards. When `/coding` finds
 that an ADR does not match the real codebase, it updates the ADR
-before implementing. When a bug is fixed, the `FIX-NN` entry in
-`20_bugs.md` gets a commit SHA. When a Feature's Success Criterion
-cannot be met as specified, the Feature file is updated with the
-reason.
+before implementing. When a bug is fixed, the
+`FIX-{ee}-{ff}-{nn}` row in `BACKLOG.md` carries the commit SHA, and
+the detail file under `_devprocess/requirements/fixes/` carries the
+regression test. When a Feature's Success Criterion cannot be met as
+specified, the Feature file is updated with the reason.
 
 This is the [Living Documents pattern](./living-documents). It keeps
-documentation in sync with reality.
+documentation in sync with reality. The
+[Three-layer documentation model](./three-layer-documentation)
+explains why state lives in the backlog row and substance lives in
+the detail artifact, never both.
 
 ## Phase transitions
 
-Every phase ends with a mandatory 3-part [Handoff Ritual](./handoff-rituals)
-and an explicit transition question. The [V-Model workflow orchestrator](../guides/dia-orchestrator)
-drives transitions when you run `/dia-orchestrator`. Individual phase
-skills run the ritual too when invoked directly.
+Every phase ends with a mandatory 4-part [Handoff Ritual](./handoff-rituals)
+(artifact report, handoff context, phase-end commit plus
+`tag-phase`, transition question), followed by `/consistency-check`
+Mode A at the phase boundary. The
+[V-Model workflow guide](../guides/dia-guide) drives
+transitions when you run `/dia-guide`. Individual phase skills
+run the ritual too when invoked directly.
 
 ## The V is iterative, not linear
 
-The diagram above shows a straight walk from Phase 1 to Phase 7. In
+The diagram above shows a straight walk from Phase 1 through the
+Closing Handoff. In
 practice the V is a decision graph. Real projects discover things mid
 flight: a bug surfaces during `/coding` that nobody predicted, an
 architectural choice turns out to be wrong once the code exists, a
-FEATURE spec reveals a gap once you try to design around it.
+FEAT spec reveals a gap once you try to design around it, and
+sometimes coding hits a capability the architecture never anticipated.
 
-Three cross-phase feedback triggers make the iteration explicit:
+Four cross-phase feedback triggers make the iteration explicit:
 
 - **Mid-course bug discovery** in `/coding`. A new bug pauses the
-  implementation. Triage routes the issue to BUG-NNN or FEATURE-NNNN,
-  root-cause analysis lands in `_devprocess/analysis/`, and a backlog
-  entry appears BEFORE any fix gets written.
+  implementation. Triage routes the issue to a fix or a feature, root
+  cause analysis lands in the FIX detail file, and the
+  `FIX-{ee}-{ff}-{nn}` backlog row appears BEFORE any fix gets
+  written.
 - **Mid-course design discovery** in `/coding`. An ADR no longer
   matches reality. The coding flow pauses, amends or supersedes the
-  ADR, updates `arc42.md` and `plan-context.md`, and only then
-  continues the feature.
-- **Mid-course requirements discovery** in `/architecture`. A FEATURE
-  spec has a gap or an impossible constraint. Architecture pauses and
-  routes the issue back to `/requirements-engineering` for a FEATURE
+  ADR, updates `arc42.md`, the wayfinder, and `plan-context.md`, and
+  only then continues the feature.
+- **Mid-course requirements discovery** in `/architecture`. A FEAT
+  spec has a gap or an impossible constraint. Architecture pauses
+  and routes the issue back to `/requirements-engineering` for a FEAT
   update.
+- **Mid-course capability discovery** in `/coding`. The
+  implementation needs something the architecture never planned (a
+  new library, a new infrastructure component, a new pattern). The
+  coding flow pauses, captures the capability gap as an ADR, and
+  routes back through `/architecture` to integrate the decision
+  before the implementation continues.
 
 Each trigger follows the same 6-step pattern (STOP, triage, root
 cause, backlog, change with commit Refs, Final sync). The forward
@@ -154,7 +174,7 @@ The phases are the same. The depth adapts.
 
 ## See also
 
-- [V-Model workflow guide](../guides/dia-orchestrator): the orchestrator
+- [V-Model workflow guide](../guides/dia-guide): the guide
 - [A full V-Model run tutorial](../tutorials/full-v-model-run): end-to-end walkthrough
 - [Living Documents](./living-documents): the writeback pattern
 - [Handoff Rituals](./handoff-rituals): phase transitions

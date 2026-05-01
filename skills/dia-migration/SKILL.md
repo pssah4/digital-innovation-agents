@@ -92,7 +92,7 @@ DIA repo:
 | `tools/migration/flatten_analysis.py`     | 4 | Flatten analysis/ to BA / EXPLORE / RESEARCH / AUDIT.    |
 | `tools/migration/build_backlog.py`        | 5 | Regenerate BACKLOG.md from artefact scan.                |
 | `tools/migration/migrate_skill_names.py`  | 6 | Rewrite `/business-analyse` -> `/business-analysis`,
-   `/v-model-workflow` -> `/dia-orchestrator`. |
+   `/v-model-workflow` -> `/dia-guide`. |
 
 `/reverse-engineering` reuses the same scripts under Phase -1.5.
 Both skills share the canonical implementation; this one wraps it
@@ -116,7 +116,7 @@ User says:
 - "clean up artifact frontmatter"
 - "convert FEATURE-NNNN to FEAT-NN-NN"
 
-Or: another skill (typically `/dia-orchestrator` on first run against
+Or: another skill (typically `/dia-guide` on first run against
 a non-conforming repo) calls `/dia-migration` to bring the structure
 in line before continuing.
 
@@ -305,7 +305,7 @@ through a small YAML config that the user can edit before the run
 
 If the repo references the old skill names (`/business-analyse`,
 `/v-model-workflow`), this phase rewrites them to the current names
-(`/business-analysis`, `/dia-orchestrator`). It also updates skill
+(`/business-analysis`, `/dia-guide`). It also updates skill
 folder references in CLAUDE.md, README, and any inline scripts.
 
 This phase is a no-op for repos that already use v2 skill names.
@@ -413,7 +413,7 @@ Summary:
 Next steps:
 1. Review the migration commits.
 2. Merge the branch when satisfied.
-3. /dia-orchestrator picks up the project state from here.
+3. /dia-guide picks up the project state from here.
 ```
 
 ## Failure modes and rollback

@@ -149,8 +149,8 @@ Living documents under `_devprocess/context/`:
   Used by the next skill to pick up context without re-reading all artifacts.
 - **`METRICS.md`** -- signal layer (cycle time, drift count, hypothesis
   validation, phase transitions, mid-course trigger counts). Populated
-  by `/coding`, `/business-analysis`, `/dia-orchestrator`. See
-  `skills/dia-orchestrator/templates/METRICS-TEMPLATE.md`.
+  by `/coding`, `/business-analysis`, `/dia-guide`. See
+  `skills/dia-guide/templates/METRICS-TEMPLATE.md`.
 
 FIX and IMP detail files live under
 `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md` and
@@ -288,7 +288,7 @@ Every feature goes through:
 ```
 
 See the Concurrent-agent coordination section in
-`skills/dia-orchestrator/SKILL.md` for the Claim protocol and
+`skills/dia-guide/SKILL.md` for the Claim protocol and
 conflict-resolution rules when multiple pairs work in parallel.
 
 ## Plan Structure

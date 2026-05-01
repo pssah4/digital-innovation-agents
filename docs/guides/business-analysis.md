@@ -154,13 +154,45 @@ Before the skill hands off to Requirements Engineering, it checks quality gates 
 
 If a gate fails, the skill returns to the relevant section instead of handing off a half-finished BA. See [Verification Gates](../concepts/verification-gates) for the full mechanic.
 
+## BA hierarchy: Project-BA, Epic-BA, Feature-BA
+
+A real project does not collapse into one Business Analysis. The BA
+itself is a layered document that mirrors the artifact graph.
+
+- **Project-BA** (`BA-{PROJECT}.md`) holds the high-level
+  understanding of the user, the problem space, and the strategic
+  hypothesis for the product as a whole.
+- **Epic-BA** (`EPIC-{nn}-ba.md`, in `_devprocess/analysis/`) holds
+  the BA for a specific epic. Epic-BA inherits from Project-BA and
+  refines the user, problem, and hypothesis to the epic's scope.
+  Section N-8 inheritance and Section N-9 refinements make the
+  inheritance explicit.
+- **Feature-BA** is optional, a short BA stub directly inside the
+  FEAT spec when a single feature carries enough validation work to
+  warrant its own hypothesis tracking.
+
+The hierarchy keeps the project-level BA short and stable while
+allowing each epic to capture its own evidence trail. Persona IDs
+are stable across the hierarchy: a persona created in the
+Project-BA keeps the same id when it appears in an Epic-BA. Long
+research raw material lives in `BA-{PROJECT}-v{N}-full.md` archives,
+not in the active BA.
+
 ## Handoff
 
-`/business-analysis` ends with the mandatory three-part [Handoff Ritual](../concepts/handoff-rituals).
+`/business-analysis` ends with the mandatory four-part
+[Handoff Ritual](../concepts/handoff-rituals):
 
-1. Artifact report. Which sections filled, which deferred, which hypotheses still open.
+1. Artifact report. Which sections filled, which deferred, which
+   hypotheses still open.
 2. Handoff context entry in `_devprocess/context/HANDOFFS.md`.
-3. Transition question. "Shall I start `/requirements-engineering` now?"
+3. Phase-end commit (`chore(ba): {ITEM-ID} BA complete`) plus
+   `tag-phase --phase ba`.
+4. Transition question. "Shall I start `/requirements-engineering`
+   now?"
+
+The guide runs `/consistency-check` Mode A on the changed
+artifacts at the boundary.
 
 ## Phase 8: Post-Release Review (BA as living document)
 
@@ -183,7 +215,7 @@ The hypothesis status is also written to
 `_devprocess/context/METRICS.md` so the signal layer accumulates a
 trace of what the team predicted versus what actually happened.
 
-Phase 8 is queued automatically. `/dia-orchestrator` Phase 7 (Release
+Phase 8 is queued automatically. `/dia-guide` the Closing Handoff (
 Closure) appends a `release-to-ba` entry to `HANDOFFS.md`. The
 next time `/business-analysis` runs, it picks up that handoff and runs
 Phase 8 before any new exploration work.
