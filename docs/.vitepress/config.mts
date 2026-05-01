@@ -119,7 +119,7 @@ export default withMermaid(
       ['meta', { name: 'keywords', content: 'V-Model, innovation, business analysis, requirements engineering, architecture, ADR, arc42, OWASP, Claude Code, Cursor, Codex' }],
     ],
 
-    appearance: false,
+    appearance: { initialValue: 'light' },
     lastUpdated: true,
     cleanUrls: true,
     lang: 'en',
