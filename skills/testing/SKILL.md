@@ -15,30 +15,80 @@ disable-model-invocation: false
 Creates tests that fit seamlessly into the existing codebase. Detects the
 framework, patterns, and conventions automatically from the project.
 
-## MANDATORY Phase 0: Artefakt-Triage (2026-04-21)
+## MANDATORY Pre-Phase 0: Branch and item check
 
-Neue Tests zaehlen als Doku-/Code-Aenderung und muessen an ein
-existierendes Artefakt gebunden sein. Bevor der erste Test geschrieben
-wird, muss eine dieser Zuordnungen vorliegen:
+Testing writes tests for a specific backlog item. Run the
+team-workflow check (full rules:
+`skills/project-conventions/references/team-workflow.md`):
 
-- **FEATURE-ID** -- Tests zu neuen oder bestehenden Feature-Specs
-- **IMP-ID** -- Tests als Teil eines Improvements (z. B. Coverage-
-  Erhoehung, Refactor-Sicherung)
-- **FIX-ID** -- Regressionstests zu einem behobenen Bug
+1. Identify the active item from the prompt or via AskUserQuestion.
+   Tests usually accompany a FEAT, FIX, or IMP that just got coded;
+   continue on the same item branch.
+2. Verify the branch matches `feature/<item-id-lower>-<slug>`. On a
+   wrong branch, AskUserQuestion to switch.
+3. Skill-triggered GitHub integration (idempotent):
 
-**Ausnahme:** reine Test-Analyse (Coverage-Report lesen, Gaps
-identifizieren, bestehende Tests lesen) ist read-only und braucht keine
-Triage.
+   ```
+   python3 tools/github-integration/flow.py create-issue --item <ID>
+   python3 tools/github-integration/flow.py open-draft-pr --item <ID>
+   ```
 
-Wenn die Zuordnung nicht aus dem User-Prompt ableitbar ist, stellt der
-Skill vor dem ersten neuen Test genau eine Frage:
+4. At Handoff Ritual end, tag the phase:
 
-> "Gehoert dieser Test-Lauf zu einem FEATURE, einem IMP oder einem
-> FIX? Bitte die ID nennen."
+   ```
+   python3 tools/github-integration/flow.py tag-phase --item <ID> --phase test
+   ```
 
-Details und Entscheidungsbaum:
-`skills/project-conventions/references/graph-invariants.md`
-(Abschnitt "Artefakt-Triage am Einstiegspunkt").
+5. Write `.git/dia-active-skill` so subsequent invocations stay silent.
+
+## MANDATORY Phase 0: Artifact triage
+
+New tests count as a doc/code change and must be bound to an existing
+artifact. Before the first test is written, one of these IDs must be
+in scope:
+
+- **FEATURE-ID** for tests on new or existing feature specs
+- **IMP-ID** for tests as part of an improvement (e.g. coverage
+  increase, refactor safety net)
+- **FIX-ID** for regression tests on a resolved bug
+
+**Exception:** read-only test analysis (reading the coverage report,
+identifying gaps, reading existing tests) does not need triage.
+
+If the assignment cannot be derived from the user prompt, the skill
+asks one short question before the first new test (in the user's
+working language; the English wording below is a template):
+
+> "Does this test run belong to a FEATURE, an IMP, or a FIX? Please
+> name the ID."
+
+Backlog row and triage details:
+`skills/project-conventions/references/graph-invariants.md`,
+section "Artifact triage at entry point".
+
+## MANDATORY: Verify gate language
+
+`/testing` shares the verify gate with `/coding`. No completion claim
+without fresh verification evidence in the current message.
+
+Hard threshold for "all green":
+
+- 0 test failures
+- 0 lint errors (if lint runs as part of the test suite)
+- Coverage not regressed (line, branch, function each at or above
+  the project target; the targets live in
+  `_devprocess/rules/technical.md` or in the Coverage section below)
+
+Forbidden phrases without fresh verification:
+
+- "should pass"
+- "tests should be green now"
+- "looks good"
+- "probably fine"
+
+The skill executes the test command IN THIS MESSAGE before any
+completion claim. Cached output, stale logs, and "I ran it last
+session" are not evidence.
 
 ## Codebase analysis first
 
@@ -342,20 +392,33 @@ All tests passed! Coverage: {line}% / {branch}% / {function}%
 
 The loop repeats until all tests are green or the user aborts.
 
-### Step 5: Update artifacts
+### Step 5: Update artifacts (backlog-first)
 
-After a successful test run:
-- Feature specs: update test status
-- Backlog: document test coverage
-- If code fixes were needed: write the changes back into ADRs/Features
-  (same Living-Documents rule as the `/coding` skill)
+After a successful test run, follow the backlog-first writeback order:
+
+1. **Backlog row first.** Update the backlog row for every FEATURE,
+   FIX, IMP, or PLAN whose status the test run changed. Coverage
+   notes go into the Notes column. Status transitions: Active ->
+   Review or Active -> Done depending on the phase.
+2. **Feature specs (substance only).** Verify Success Criteria are
+   still accurate. Status field is NOT in the spec; it lives in the
+   backlog row.
+3. **Wayfinder.** If a test discovered a new entry-point or an
+   undocumented module, add the row to `src/ARCHITECTURE.map` and
+   write the JSDoc header.
+4. **Living Documents writeback (per `/coding` rules)** if code
+   fixes were needed during the test run.
+5. **Run `/consistency-check` mode A at the end of the skill phase.**
+   Catches orphan tests (no FEATURE/FIX/IMP backlog row), missing
+   coverage entries, dashboard count mismatches, and dead links
+   before the handoff. The Handoff Ritual reports the result.
 
 ---
 
 ## Handoff Ritual (mandatory at end of phase)
 
 `/testing` always runs this ritual at the end, regardless of how it was
-started (directly or via `/v-model-workflow`).
+started (directly or via `/dia-guide`).
 
 ### Part 1: Artifact report
 
@@ -365,12 +428,12 @@ Produced / updated:
 - Coverage report: {line}% / {branch}% / {function}%
 - Fix-loop status: {N iterations, N fixes applied}
 - _devprocess/requirements/features/FEATURE-*.md: {test-status updates}
-- _devprocess/context/10_backlog.md: {new coverage items added per BACKLOG-TEMPLATE.md, dashboard refreshed}
+- _devprocess/context/BACKLOG.md: {new coverage items added per BACKLOG-TEMPLATE.md, dashboard refreshed}
 ```
 
 ### Part 2: Handoff context
 
-Append a new entry to `_devprocess/context/30_handoffs.md` with:
+Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 
 - Coverage gaps that the user accepted (with justification)
 - Open test cases deferred to the next cycle
@@ -378,17 +441,44 @@ Append a new entry to `_devprocess/context/30_handoffs.md` with:
 - Any security-adjacent concerns (e.g. input validation holes noticed while
   writing tests) for the security-audit phase
 
-### Part 3: Transition question
+### Part 3: Phase-end commit
+
+Run the phase-end commit per `skills/project-conventions/references/team-workflow.md`
+section "Phase-end commit (binding)". The block fires the binding
+branch-and-item check, stages every artefact this phase produced
+(test files, coverage configuration, FEATURE spec test-status
+updates, BACKLOG row updates), commits with the canonical message,
+sets the phase tag, and opens a draft PR if one does not exist yet.
+
+Canonical commit message for TESTING:
+
+```
+test: <ITEM-ID> testing complete
+
+<one-line summary: N tests added, coverage L%/B%/F%>
+
+Refs: <ITEM-ID>
+```
+
+After the commit lands, run:
+
+```
+python3 tools/github-integration/flow.py tag-phase --item <ID> --phase test
+```
+
+Skip the commit silently if the working tree has no changes.
+
+### Part 4: Transition question
 
 Ask the user:
 
 > "Tests are complete and all green. Coverage: {line}% / {branch}% /
-> {function}%. The next step in the V-Model is `/security-audit`.
+> {function}%. Recommended next: `/security-audit`.
 >
 > Shall I start `/security-audit` now, or would you like to review first?"
 
 **On agreement** ("yes" / "go" / "next") or when running inside
-`/v-model-workflow`:
+`/dia-guide`:
 -> Start `/security-audit` and pass the handoff context
 
 **On rejection** ("no" / "stop" / "I want to check first"):

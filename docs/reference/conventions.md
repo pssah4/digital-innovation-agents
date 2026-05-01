@@ -1,43 +1,159 @@
 ---
 title: Conventions
-description: Naming rules, language conventions, commit style, and git workflow.
+description: Naming rules, language conventions, the three-layer documentation model, commit style, and git workflow.
 ---
 
 # Conventions
+
+## Three-layer documentation model
+
+Every project organises its V-Model documentation in three layers.
+Each layer has a different update cadence, a different owner, and a
+different audience. Mixing layers is the dominant source of doc-vs-
+code drift, so the boundaries are binding.
+
+| Layer | Purpose | Lives in | Owner |
+|---|---|---|---|
+| Wayfinder | Concept-to-file lookup, navigational, grep-friendly | `src/ARCHITECTURE.map`, JSDoc headers in entry-point files, module READMEs in `src/{module}/README.md` | `/coding` (every code edit that creates or renames an entry-point updates this layer) |
+| Rule sets | Stable truths: stack, conventions, design rules, domain glossary. Hard cap 500 lines total. | `_devprocess/rules/technical.md`, `_devprocess/rules/design.md` (only if UI), `_devprocess/rules/domain.md` | `/architecture`, `/coding` |
+| Backlog | Single source of truth for implementation status of every artifact, plus the relation graph (Epic -> Feature -> Plan -> Fix). | `_devprocess/context/BACKLOG.md` | Every status-changing skill writes the backlog row BEFORE touching the artifact body |
+| Detail artifacts | Audit trail of the engineering process: BA, Epics, Features, Plans, Fixes, Improvements, ADR detail. | `_devprocess/analysis/`, `_devprocess/requirements/{epics,features,fixes,improvements,handoff}/`, `_devprocess/architecture/`, `_devprocess/implementation/plans/` | `/business-analysis`, `/requirements-engineering`, `/architecture`, `/coding` |
+
+**Status, phase, last-change, and claim of every artifact live in the
+backlog row, not in the artifact frontmatter.** Artifact frontmatter
+carries identity (`id`, `title`, `created`) and relations (`epic`,
+`adr-refs`, `feature-refs`) only.
+
+**ADR abstraction rule.** ADR core sections (Context, Decision Drivers,
+Considered Options, Decision, Consequences) contain no code paths,
+file names, line numbers, or method signatures. Code-level hints
+belong in the optional `## Implementation Notes` appendix at the
+bottom, which is allowed to go stale. The wayfinder is the canonical
+source for current paths.
+
+See the [Three-layer documentation model](../concepts/three-layer-documentation)
+concept page for the full rationale.
 
 ## File naming
 
 | Artifact | Pattern | Example |
 |---|---|---|
-| Business Analysis | `BA-{PROJECT}.md` | `BA-myapp.md` |
-| Exploration Board | `EXPLORE-{PROJECT}.md` | `EXPLORE-myapp.md` |
-| Epic | `EPIC-{NNN}-{slug}.md` | `EPIC-001-ai-agent-core.md` |
-| Feature | `FEATURE-{EPIC}-{NNN}-{slug}.md` | `FEATURE-001-001-semantic-search.md`, `FEATURE-013-002-reindex-job.md` |
-| ADR | `ADR-{NNN}-{slug}.md` | `ADR-003-embedding-provider.md` |
-| Security Audit | `AUDIT-{PROJECT}-{YYYY-MM-DD}.md` | `AUDIT-myapp-2026-03-22.md` |
+| Business Analysis | `BA-{PROJECT}.md` | `BA-myapp.md` (in `analysis/`) |
+| Epic-BA | `EPIC-{nn}-ba.md` | `EPIC-01-ba.md` (in `analysis/`) |
+| Exploration Board | `EXPLORE-{PROJECT}.md` | `EXPLORE-myapp.md` (in `analysis/`) |
+| Research note | `RESEARCH-{TOPIC}.md` | `RESEARCH-pricing.md` (in `analysis/`) |
+| User source | `SOURCE-{name}.{ext}` | `SOURCE-Anforderungen.json` (in `analysis/sources/`) |
+| Epic | `EPIC-{nn}-{slug}.md` | `EPIC-01-ai-agent-core.md` |
+| Feature | `FEAT-{ee}-{ff}-{slug}.md` | `FEAT-01-01-semantic-search.md`, `FEAT-13-02-reindex-job.md` |
+| ADR | `ADR-{nn}-{slug}.md` | `ADR-03-embedding-provider.md` |
+| Plan | `PLAN-{nn}-{slug}.md` | `PLAN-04-semantic-search-mvp.md` (in `implementation/plans/`) |
+| Fix detail | `FIX-{ee}-{ff}-{nn}-{slug}.md` | `FIX-01-02-03-null-pointer.md` (in `requirements/fixes/`) |
+| Improvement detail | `IMP-{ee}-{ff}-{nn}-{slug}.md` | `IMP-01-02-01-cache-warmup.md` (in `requirements/improvements/`) |
+| Security Audit | `AUDIT-{PROJECT}-{YYYY-MM-DD}.md` | `AUDIT-myapp-2026-03-22.md` (in `analysis/`, flat) |
 | Handoff (RE -> Arch) | `architect-handoff.md` | Fixed name |
 | Handoff (Arch -> Code) | `plan-context.md` | Fixed name |
-| Backlog | `10_backlog.md` | Fixed name |
-| Bug log | `20_bugs.md` | Fixed name (FIX-NN entries) |
-| Handoffs log | `30_handoffs.md` | Fixed name (append-only) |
-| Signal layer | `40_metrics.md` | Fixed name (per METRICS-TEMPLATE.md) |
+| Backlog | `BACKLOG.md` | Fixed name |
+| Handoffs log | `HANDOFFS.md` | Fixed name (append-only) |
+| Signal layer | `METRICS.md` | Fixed name (per METRICS-TEMPLATE.md) |
+| Wayfinder root | `src/ARCHITECTURE.map` | Fixed name |
+| Module wayfinder | `src/{module}/README.md` | One per substantive module |
+| Rules (technical) | `_devprocess/rules/technical.md` | Fixed name, hard cap part of 500 lines total |
+| Rules (design) | `_devprocess/rules/design.md` | Only if UI surface |
+| Rules (domain) | `_devprocess/rules/domain.md` | Fixed name |
 
 **Rules:**
 
-- 3-digit numbers with leading zeros for Epics and ADRs
-  (`001`, `042`, not `1`, `42`)
-- Features are epic-scoped: `FEATURE-{EPIC}-{NNN}-{slug}.md`, where
-  `EPIC` is the 3-digit parent epic number (identical to the epic's
-  filename number) and `NNN` is the 3-digit feature counter local to
-  that epic. Example: EPIC-001 gets FEATURE-001-001, FEATURE-001-002,
-  ...; EPIC-013 gets FEATURE-013-001, ... The 3-digit-on-both-sides
-  format keeps alphabetical sort order stable.
-- kebab-case slugs (`ai-agent-core`, not `aiAgentCore`)
-- No spaces, no umlauts in filenames
-- Dates as `YYYY-MM-DD`
-- Backlog follows the binding template at
+- **2-digit counters** with leading zeros (`01`, `42`, not `1`, `42`,
+  not `001`, `042`). Applies to Epic, ADR, Feature epic-prefix and
+  feature-counter, Fix counter, Improvement counter, Plan counter.
+- **Epic-scoped feature numbering.** Features are numbered within
+  their epic, not globally. The format is `FEAT-{ee}-{ff}-{slug}.md`
+  where `{ee}` is the 2-digit parent epic number (identical to the
+  epic's filename number) and `{ff}` is the 2-digit feature counter
+  local to that epic. Example: `EPIC-01` -> `FEAT-01-01`,
+  `FEAT-01-02`, ...; `EPIC-13` -> `FEAT-13-01`, `FEAT-13-02`, ...
+- **Fix and Improvement scope to a feature.** `FIX-{ee}-{ff}-{nn}` and
+  `IMP-{ee}-{ff}-{nn}` reference the parent feature. The `{nn}`
+  counter is local to that feature.
+- **Plans scope to a feature.** `PLAN-{nn}-{slug}.md` files live in
+  `_devprocess/implementation/plans/`. The plan references its
+  feature via the `feature` frontmatter field. The plan id is added
+  to the feature's `Refs` column in the backlog.
+- **kebab-case slugs** (`ai-agent-core`, not `aiAgentCore`)
+- **No spaces, no umlauts** in filenames
+- **Dates as `YYYY-MM-DD`**
+- **Backlog** follows the binding template at
   `skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md` and
-  is the single source of truth for project state
+  is the single source of truth for project state.
+
+## Required frontmatter
+
+Every detail artifact carries identity and relation fields in
+frontmatter. State is read from the backlog row, never from the
+frontmatter.
+
+```yaml
+---
+id: FEAT-01-02
+title: Semantic search across vault notes
+created: 2026-04-30
+epic: EPIC-01
+adr-refs: [ADR-03, ADR-07]
+feature-refs: []
+depends-on: [FEAT-01-01]
+---
+```
+
+Fields:
+
+- `id` (required): the artifact id, matches the filename prefix
+- `title` (required): one-line summary
+- `created` (required): ISO date
+- `epic` (features, fixes, improvements, plans): parent epic id
+- `adr-refs` (features, plans): list of ADRs that apply
+- `feature-refs` (plans, fixes, improvements): list of features that
+  the artifact relates to
+- `depends-on`: graph edges to other artifacts that must be done first
+
+Frontmatter does **not** carry status, phase, last-change, or claim.
+Those live in the backlog row.
+
+## Bug IDs
+
+- `FIX-{ee}-{ff}-{nn}` with priority `P0` (immediate), `P1` (short-term),
+  or `P2` (medium-term)
+- Example: `FIX-01-02-03 (P1)`: empty array causes null pointer in
+  feature parser
+
+Every bug found during `/coding` lands in `_devprocess/context/BACKLOG.md`
+as a `FIX-{ee}-{ff}-{nn}` row plus a detail file at
+`_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`. The
+detail file contains the causal chain (Problem, Root Cause, Chain of
+steps leading to the error, Regression test). Status, commit SHA, and
+phase live in the backlog row.
+
+## Pair IDs (concurrent agent coordination)
+
+When multiple human-agent pairs work the same backlog, each pair
+identifies itself with a pair-id in the `Claim` column of
+`BACKLOG.md`:
+
+- Format: `{human-handle}-{model}`
+- Examples: `seb-opus-4-7`, `marie-sonnet-4-6`, `tom-codex`
+- Claim cell value: `{pair-id} @ {YYYY-MM-DD}`, for example
+  `seb-opus-4-7 @ 2026-04-19`
+- Phase skills claim a row at start, release on phase end or `Status: Done`
+
+The backlog itself is the lock. There is no central lock service.
+
+## Security finding IDs
+
+- `H-N` / `M-N` / `L-N`: High / Medium / Low severity
+- Example: `H-3`: XSS vulnerability in user-controlled HTML rendering
+
+Audit reports live flat under `_devprocess/analysis/` as
+`AUDIT-{PROJECT}-{YYYY-MM-DD}.md`. There is no `analysis/security/`
+subfolder anymore.
 
 ## Language
 
@@ -54,33 +170,21 @@ The skill files are written in English so they are portable across
 language contexts. The agent automatically switches to the user's
 language in dialog.
 
-## Bug IDs
+## Writing style
 
-- `FIX-NN`: bug ID with priority `P0` (immediate), `P1` (short-term), or `P2` (medium-term)
-- Example: `FIX-042 (P1)`: Empty array causes null pointer in feature parser
+- No em dashes (U+2014), no en dashes (U+2013). Use periods, commas,
+  parentheses, "and", or "but" instead.
+- No AI vocabulary: avoid `landscape`, `nuanced`, `delve`, `leverage`,
+  `crucial`, `robust`, `seamless`, `holistic`, `foster`, `ensuring`,
+  `highlighting`, `underscoring`.
+- No negative parallelisms ("not X but Y").
+- Active voice, sentence case in headings.
+- Correct German umlauts when writing in German: ae, oe, ue, ss only
+  if the existing project file is ASCII-only; otherwise proper
+  Unicode. Consistent per file.
 
-Every bug found during `/coding` lands in `_devprocess/context/20_bugs.md`
-with a causal chain (Problem, Root Cause, Chain of steps leading to
-the error).
-
-## Pair IDs (concurrent agent coordination)
-
-When multiple human-agent pairs work the same backlog, each pair
-identifies itself with a pair-id in the `Claim` column of
-`10_backlog.md`:
-
-- Format: `{human-handle}-{model}`
-- Examples: `seb-opus-4-7`, `marie-sonnet-4-6`, `tom-codex`
-- Claim cell value: `{pair-id} @ {YYYY-MM-DD}`, for example
-  `seb-opus-4-7 @ 2026-04-19`
-- Phase skills claim a row at start, release on phase end or `Status: Done`
-
-The backlog itself is the lock. There is no central lock service.
-
-## Security finding IDs
-
-- `H-N` / `M-N` / `L-N`: High / Medium / Low severity
-- Example: `H-3`: XSS vulnerability in user-controlled HTML rendering
+These rules apply to every artifact, every commit message, every
+skill output. The `/humanizer` skill enforces them.
 
 ## Commit style
 
@@ -92,41 +196,78 @@ fix: resolve Y
 chore: prepare Z
 docs: update readme
 refactor: restructure W
+test: cover scenario V
 ```
 
-Example from this repo:
+Phase-end commits follow the canonical pattern:
 
 ```
-feat: v2 skill content - handoff rituals, coding patterns, release closure
+{type}({phase}): {ITEM-ID} {phase} complete
 
-Phase 3 of the v2 rollout. The skill content is upgraded from v1
-classic to v2, introducing mandatory handoff rituals, five task-level
-patterns in /coding, ...
-
-Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
+Refs: FEAT-01-02, ADR-03
 ```
+
+Examples:
+
+- `chore(ba): EPIC-01 BA complete`
+- `feat(re): FEAT-01-02 RE complete`
+- `chore(arch): FEAT-01-02 ARCH complete`
+- `feat(code): FEAT-01-02 implementation complete`
+- `test: FEAT-01-02 testing complete`
+
+After a phase-end commit, run `tools/github-integration/flow.py
+tag-phase --phase {phase}` to attach the `<id>/{phase}-done` tag.
 
 ## Git workflow
 
-- **Dual-remote**: private (origin, all branches) + public (only main)
-- **Branch flow**: `feature/*` -> `dev` -> `main` -> `public/main`
-- **Safe-merge**: merges to `dev` via `scripts/merge-to-dev.sh` (when available)
-- **No interactive git commands**: no `git rebase -i`, no `git add -i`
-- **Never amend published commits** without explicit user consent
+- **Item branches**: `feature/<ITEM-ID>-<short-slug>`,
+  `chore/<ITEM-ID>-<short-slug>`, `feature/audit-<YYYY-MM-DD>`,
+  `feature/reverse-engineer-<repo-name>`. The branch is the item.
+- **Main branches**: `feature/*` -> `dev` -> `main` -> `public/main`.
+- **Safe-merge**: merges to `dev` via `scripts/merge-to-dev.sh` (when
+  available).
+- **No interactive git commands**: no `git rebase -i`, no `git add -i`.
+- **Never amend published commits** without explicit user consent.
 - **Two-stage stripping** for public distribution: dev tooling first,
-  then internal docs
+  then internal docs.
+
+## GitHub integration
+
+Phase skills coordinate with GitHub through
+`tools/github-integration/flow.py`:
+
+- `flow.py create-issue --item <ITEM-ID>`: create a tracking issue
+- `flow.py tag-phase --phase {ba|re|arch|plan|code|test|sec}`: attach
+  a phase-done tag
+- `flow.py ready-for-review`: convert draft PR to ready
+- `flow.py claim --pair {pair-id}`: register the pair claim
+
+The backlog row remains the local source of truth; GitHub mirrors it.
 
 ## Plan structure
 
-Every non-trivial plan follows the same structure:
+Every non-trivial plan follows the same structure and persists as a
+`PLAN-{nn}-{slug}.md` file in `_devprocess/implementation/plans/`:
 
 1. **Context**: diagnostic, not descriptive. Root-cause analysis.
-2. **Changes**: one subsection per file, BEFORE / AFTER code blocks
-3. **File summary**: table (File | Change | Risk)
-4. **Not affected**: explicit list of unchanged files (blast radius)
-5. **Verification**: acceptance criteria, build always step 1
+2. **Changes**: one subsection per file, BEFORE / AFTER code blocks.
+3. **File summary**: table (File | Change | Risk).
+4. **Not affected**: explicit list of unchanged files (blast radius).
+5. **Verification**: acceptance criteria, build always step 1.
+6. **Plan Coverage Gate**: success-criteria coverage map (which SC
+   each step closes), ADR alignment (which ADR each decision honours),
+   codebase anchoring (each file referenced exists or is named as
+   new), verify commands ready to run.
+
+`PLAN-NN` rows in the backlog track Status (Draft / Active / Done),
+last-change, and the change log. The plan id is added to the parent
+feature's `Refs` column.
 
 ## See also
 
-- [Artifacts](./artifacts): directory structure
-- [Project Conventions guide](../guides/project-conventions)
+- [Artifacts](./artifacts): full directory tree and artifact catalog
+- [Project Conventions guide](../guides/project-conventions): the
+  binding skill that owns these rules
+- [Commands](./commands): every slash-command and its purpose
+- [Three-layer documentation model](../concepts/three-layer-documentation):
+  the rationale behind the structural rules above

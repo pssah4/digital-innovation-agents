@@ -24,13 +24,15 @@ Use OpenCode's native `skill` tool:
 
 ```
 use skill tool to list skills
-use skill tool to load digital-innovation-agents/v-model-workflow
+use skill tool to load digital-innovation-agents/dia-guide
 ```
 
 Or start directly with one of the entry points:
 
-- `/v-model-workflow` -- Guided cycle through all phases
-- `/business-analyse` -- Problem exploration, ideation, validation
+- `/dia-guide` -- Guided cycle through all phases
+- `/business-analysis` -- Problem exploration, ideation, validation (greenfield)
+- `/reverse-engineering` -- Brownfield entry over an existing codebase
+- `/dia-migration` -- Migrate legacy DIA project or pre-existing V-Model variant to current conventions
 - `/requirements-engineering`
 - `/architecture`
 - `/coding`

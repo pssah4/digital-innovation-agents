@@ -14,9 +14,15 @@ const tutorialsSidebar = [
 
 const guidesSidebar = [
   {
-    text: 'Orchestrator',
+    text: 'Orientation',
     items: [
-      { text: 'V-Model workflow', link: '/guides/v-model-workflow' },
+      { text: 'Using DIA', link: '/guides/using-digital-innovation-agents' },
+    ],
+  },
+  {
+    text: 'Guide',
+    items: [
+      { text: 'V-Model workflow guide', link: '/guides/dia-guide' },
     ],
   },
   {
@@ -26,9 +32,15 @@ const guidesSidebar = [
     ],
   },
   {
+    text: 'Migration',
+    items: [
+      { text: 'DIA Migration', link: '/guides/dia-migration' },
+    ],
+  },
+  {
     text: 'Design phases (left side of V)',
     items: [
-      { text: 'Business Analysis', link: '/guides/business-analyse' },
+      { text: 'Business Analysis', link: '/guides/business-analysis' },
       { text: 'Requirements Engineering', link: '/guides/requirements-engineering' },
       { text: 'Architecture', link: '/guides/architecture' },
     ],
@@ -50,6 +62,8 @@ const guidesSidebar = [
     text: 'Foundations',
     items: [
       { text: 'Project Conventions', link: '/guides/project-conventions' },
+      { text: 'Consistency Check', link: '/guides/consistency-check' },
+      { text: 'Humanizer', link: '/guides/humanizer' },
     ],
   },
 ]
@@ -79,7 +93,9 @@ const conceptsSidebar = [
     text: 'Foundations',
     items: [
       { text: 'The V-Model', link: '/concepts/v-model' },
+      { text: 'Three-layer documentation model', link: '/concepts/three-layer-documentation' },
       { text: 'Living Documents', link: '/concepts/living-documents' },
+      { text: 'Drift defense', link: '/concepts/drift-defense' },
     ],
   },
   {
@@ -112,7 +128,7 @@ export default withMermaid(
       siteTitle: 'Digital Innovation Agents',
       nav: [
         { text: 'Tutorials', link: '/tutorials/installation', activeMatch: '/tutorials/' },
-        { text: 'Guides', link: '/guides/v-model-workflow', activeMatch: '/guides/' },
+        { text: 'Guides', link: '/guides/dia-guide', activeMatch: '/guides/' },
         { text: 'Reference', link: '/reference/commands', activeMatch: '/reference/' },
         { text: 'Concepts', link: '/concepts/v-model', activeMatch: '/concepts/' },
         { text: 'PULSE', link: '/pulse' },

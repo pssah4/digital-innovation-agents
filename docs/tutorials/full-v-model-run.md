@@ -1,30 +1,31 @@
 ---
 title: A full V-Model run
-description: End-to-end walkthrough of the V-Model workflow from raw idea to release closure, showing all phases and handoffs.
+description: End-to-end walkthrough of the V-Model workflow from raw idea to closing handoff, showing every phase and every handoff.
 ---
 
 # A full V-Model run
 
-This tutorial takes a rough idea through all 7 phases of the V-Model
-workflow, from first conversation to final release closure. You see
-every phase, every handoff, and every artifact. Think of it as the
-reference trip. Once you have done this, you understand the whole system.
+This tutorial takes a rough idea through the six V-Model phases plus
+the closing handoff, from first conversation to release-ready state.
+You see every phase, every handoff, and every artifact. Think of it
+as the reference trip. Once you have done this, you understand the
+whole system.
 
 Timeframe to follow along: about 30-45 minutes of reading, plus another
 1-2 hours if you actually run it for a PoC project.
 
 ## The setup
 
-Start with a plain project directory and invoke the orchestrator:
+Start with a plain project directory and invoke the guide:
 
 ```
-/v-model-workflow
+/dia-guide
 
 I want to build X. Help me go through the full cycle.
 ```
 
-The orchestrator asks where you are in the V-Model. For a new project,
-pick **A) Starting from scratch**. It launches `/business-analyse`.
+The guide asks where you are in the V-Model. For a new project,
+pick **A) Starting from scratch**. It launches `/business-analysis`.
 
 ## Phase 1: Business Analysis
 
@@ -62,18 +63,19 @@ Full catalog under [Discovery methods](../reference/methods-discovery),
 :::
 
 At the end, the skill asks: "Start `/requirements-engineering` now?"
-Say "yes". The orchestrator passes the handoff context automatically.
+Say "yes". The guide passes the handoff context automatically.
 
 ## Phase 2: Requirements Engineering
 
 `/requirements-engineering` reads the BA and produces:
 
-- **Epics** (`EPIC-{NNN}-{slug}.md`) with Hypothesis Statements derived
-  from the HMW question
-- **Features** (`FEATURE-{EPIC}-{NNN}-{slug}.md`, epic-local numbering
-  with 3-digit epic and feature numbers) with tech-agnostic Success
+- **Epics** (`EPIC-{nn}-{slug}.md`, 2-digit counter) with full-prose
+  Hypothesis Statements derived from the HMW question
+- **Features** (`FEAT-{ee}-{ff}-{slug}.md`, epic-local numbering
+  with 2-digit epic and feature numbers) with tech-agnostic Success
   Criteria and Technical NFRs
-- **Architect handoff** (`architect-handoff.md`) aggregating ASRs and NFRs
+- **Architect handoff** (`architect-handoff.md`) aggregating ASRs
+  and NFRs
 
 Key rule: Success Criteria must be technology-neutral. No "OAuth",
 "REST", "PostgreSQL". Those go into Technical NFRs. See
@@ -106,50 +108,67 @@ Handoff ritual ends with: "Start `/architecture` now?" -> yes.
 
 `/architecture` transforms requirements into proposals:
 
-- **ADRs** (`ADR-{NNN}-{slug}.md`) in MADR format, one per Critical ASR
+- **ADRs** (`ADR-{nn}-{slug}.md`, 2-digit counter) in MADR format,
+  one per Critical ASR. ADR core sections carry no code paths
+  (the ADR abstraction rule).
 - **arc42** documentation (scope-dependent section count)
 - **plan-context.md** as the context bridge to implementation
+- **Wayfinder layer** seeded: `src/ARCHITECTURE.map` rows for every
+  new concept, JSDoc / docstring header proposals for entry points
 
 Each ADR must have at least 2 alternatives with pros and cons plus a
-justified recommendation. "We chose React because it's popular" is not
-acceptable.
+justified recommendation. "We chose React because it's popular" is
+not acceptable.
 
 Handoff: "Start `/coding` now?" -> yes.
 
 ## Phase 4: Coding
 
-This is the most involved phase. `/coding` has four steps:
+This is the most involved phase. `/coding` has four phases:
 
-### Step 1: Load context
+### Phase 1: Triage and load context
 
-Reads `plan-context.md`, all ADRs, Features, `CLAUDE.md`, and optionally
-the backlog, bug log, and last handoff entry.
+Confirms the inbound item type (FEAT / IMP / FIX / ADR). Reads
+`plan-context.md`, all ADRs, FEAT specs, `CLAUDE.md`,
+`src/ARCHITECTURE.map`, the relevant module READMEs, and the rule
+sets under `_devprocess/rules/`.
 
-### Step 2: Critical review
+### Phase 2: Critical review
 
 Reviews the design proposals against the real codebase. This is the
-v1 differentiator that Digital Innovation Agents never lost. ADRs that
-conflict with existing patterns are flagged. Changes are written back
-into the source artifacts before implementation begins.
+core differentiator that Digital Innovation Agents has carried since
+v1. ADRs that conflict with existing patterns are flagged. Changes
+are written back into the source artifacts (substance) and the
+backlog rows (state) before implementation begins. The drift count
+goes into `METRICS.md`.
 
-### Step 3: Implementation (delegated to Default agent)
+### Phase 3: Plan persistence and implementation
 
-Hands off to the Default Claude Code agent with a precise briefing:
+- **Phase 3a**: Plan persisted as `PLAN-{nn}-{slug}.md` in
+  `_devprocess/implementation/plans/`, with the Plan Coverage Gate
+  (SC coverage, ADR alignment, codebase anchoring, verify commands)
+- **Phase 3b**: Task-breakdown guidelines (bite-size tasks, no
+  placeholders, every file path anchored in the wayfinder)
+- **Phase 3c**: Optional TDD mode (activate with "enable TDD")
+- **Phase 3d**: Debugging protocol if a bug appears (4-phase
+  root-cause process, "architecture alarm" after 3+ failed fixes).
+  Bugs land as `FIX-{ee}-{ff}-{nn}` rows in `BACKLOG.md` plus
+  detail files in `_devprocess/requirements/fixes/`
+- **Phase 3e**: Mid-course discoveries pause work and route back
+  (design / requirements / capability)
 
-- **Phase 3a**: Task-breakdown guidelines (bite-size tasks, no placeholders)
-- **Phase 3b**: Optional TDD mode (activate with "enable TDD")
-- **Phase 3c**: Debugging protocol if a bug appears (4-phase root-cause
-  process, "architecture alarm" after 3+ failed fixes)
+### Phase 4: Completion and final sync
 
-### Step 4: Completion and final sync
-
-- **Phase 4a**: Verification gate. No completion claims without fresh
-  evidence. "Tests pass" requires actual test command output with 0 failures.
-- **Phase 4b**: Regression test cycle for bug fixes (red-green-red verify)
-- Final synchronization: Feature specs, ADRs, backlog, and bug log updated
-
-Bugs found during implementation land in `_devprocess/context/20_bugs.md`
-with FIX-NN IDs, causal chains, and priority.
+- **Phase 4a**: Verification gate. No completion claims without
+  fresh evidence. "Tests pass" requires actual test command output
+  with 0 failures.
+- **Phase 4b**: Regression test cycle for bug fixes
+  (red-green-red verify). The FIX detail file gets a
+  `## Regression test` section.
+- **Phase 4c**: Final synchronisation. State first (backlog rows),
+  substance second (FEAT, ADR, PLAN, FIX detail files), then the
+  wayfinder, `plan-context.md`, `arc42.md`, `MEMORY.md`, and
+  `METRICS.md`.
 
 Handoff: "Start `/testing` now?" -> yes.
 
@@ -177,58 +196,77 @@ Handoff: "Start `/security-audit` now?" -> yes.
 5. SCA (software composition analysis, dependency vulnerabilities)
 6. Zero Trust & Code Quality
 
-Findings are prioritized (Critical / High / Medium / Low) and a fix-loop
-identical to the testing fix-loop runs. Deferred findings land in the
-backlog with full traceability.
+Findings are prioritised (`H-N` / `M-N` / `L-N`) and a fix-loop
+runs. Deferred findings land in the backlog with full traceability,
+each carrying `Status: Deferred` and a written reason.
 
-Handoff: "Start Phase 7 Release Closure now?" -> yes.
+Handoff: "Start the Closing Handoff now?" -> yes.
 
-## Phase 7: Release Closure
+## Closing Handoff
 
-The final phase. `/v-model-workflow` runs 5 steps:
+The cycle closes with the guide's three-step Closing Handoff:
 
-1. **Final artifact synchronization** (cross-phase): BA, Features, ADRs,
-   arc42, plan-context all reflect the actual implemented state
-2. **Release notes generation**: implemented features, fixed bugs from
-   `20_bugs.md`, security findings, breaking changes
-3. **CHANGELOG update**: `[Unreleased]` -> `[{version}] - {date}`, semver bump
-4. **Backlog cleanup**: open items referenced, future ideas captured
-5. **Closing report** to the user with a full summary
+1. **Suggest `/consistency-check` mode B** (semantic). Mode B
+   confirms BA Validation is filled, all Feature/ADR statuses are
+   final, arc42 reflects the actual decisions, and `plan-context.md`
+   matches the real tech stack. State changes go through the
+   backlog row first. Mode B returns a Release-Ready verdict.
+2. **On Release-Ready: yes**: closing report (Feature / bug /
+   security counts, finalised artifacts) plus the `release-to-ba`
+   HANDOFFS template that queues the BA Post-Release Review for the
+   next BA session.
+3. **On Release-Ready: yes**: optional run of a project-specific
+   release skill (version bump, merge, tag, publish). The public
+   DIA plugin does not own a release mechanism, since release
+   pipelines are project-specific. The cycle is complete with or
+   without the release act.
 
 ## Artifact trail after a full run
 
 ```
+src/
+  ARCHITECTURE.map
+  {module}/README.md
 _devprocess/
   analysis/
     BA-{PROJECT}.md
+    EPIC-01-ba.md
     EXPLORE-{PROJECT}.md
-    security/AUDIT-{PROJECT}-{DATE}.md
+    AUDIT-{PROJECT}-2026-04-30.md       (flat, no analysis/security/)
   requirements/
-    epics/EPIC-001-*.md
-    features/FEATURE-001-001-*.md, FEATURE-001-002-*.md, FEATURE-002-001-*.md, ...
+    epics/EPIC-01-*.md
+    features/FEAT-01-01-*.md, FEAT-01-02-*.md, FEAT-02-01-*.md, ...
+    fixes/FIX-01-02-03-*.md
+    improvements/IMP-01-02-01-*.md
     handoff/architect-handoff.md, plan-context.md
   architecture/
-    ADR-001-*.md, ADR-002-*.md, ...
+    ADR-01-*.md, ADR-02-*.md, ...
     arc42.md
+  rules/
+    technical.md
+    domain.md
+    design.md          (only if UI surface)
+  implementation/plans/
+    PLAN-04-*.md
   context/
-    10_backlog.md
-    20_bugs.md
-    30_handoffs.md   (full audit trail of phase transitions)
+    BACKLOG.md         (single source of truth for state)
+    HANDOFFS.md        (full audit trail of phase transitions)
+    METRICS.md         (signal layer: cycle time, drift, hypothesis status)
 ```
 
 Plus the actual source code under `src/` and tests under `tests/`.
 
 ## Opting out mid-workflow
 
-At any handoff, if you do not want the orchestrator to proceed, just say
+At any handoff, if you do not want the guide to proceed, just say
 "stop" or "I want to check first" or ask an unrelated question. The
 workflow pauses immediately. You can resume later by re-invoking
-`/v-model-workflow`.
+`/dia-guide`.
 
 ## What's next
 
-- [V-Model workflow guide](../guides/v-model-workflow): details on the
-  orchestrator and phase transitions
+- [V-Model workflow guide](../guides/dia-guide): details on the
+  guide and phase transitions
 - [The V-Model concept](../concepts/v-model): why this shape?
 - [Living Documents pattern](../concepts/living-documents): how artifacts
   stay in sync with reality

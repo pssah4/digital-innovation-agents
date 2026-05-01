@@ -5,7 +5,7 @@ description: Turn a validated Business Analysis into Epics, Features, and tech-a
 
 # Requirements Engineering
 
-`/requirements-engineering` is the bridge between [Business Analysis](./business-analyse) (the Why) and [Architecture](./architecture) (the How). It transforms the validated business analysis into structured, measurable, tech-agnostic requirements that a human or AI architect can actually design against.
+`/requirements-engineering` is the bridge between [Business Analysis](./business-analysis) (the Why) and [Architecture](./architecture) (the How). It transforms the validated business analysis into structured, measurable, tech-agnostic requirements that a human or AI architect can actually design against.
 
 **Input:** `_devprocess/analysis/BA-{PROJECT}.md` (validated BA)
 **Output:** Epics, Features, `architect-handoff.md`
@@ -22,7 +22,7 @@ Requirements Engineering exists to catch both, systematically, before they conta
 
 ## The translation chain
 
-Every output of RE descends from something in the BA. The skill enforces traceability. If a user story has no BA source, the skill flags it and sends you back to `/business-analyse` rather than inventing new requirements on the fly.
+Every output of RE descends from something in the BA. The skill enforces traceability. If a user story has no BA source, the skill flags it and sends you back to `/business-analysis` rather than inventing new requirements on the fly.
 
 ```
 BA element                    →  RE element
@@ -42,63 +42,103 @@ RE does not create new requirements out of thin air. It structures what the BA a
 
 ## Epic Hypothesis Statement
 
-The Epic is the strategic container. It is not a "big feature." It is a hypothesis about value, and the skill writes Epics in a canonical format:
+The Epic is the strategic container. It is not a "big feature." It is a hypothesis about value, written as full prose. The skill rejects fill-in-the-blank templates because they reduce a strategic decision to a Mad Libs exercise.
 
 ```markdown
-## Epic: {short name}
+---
+id: EPIC-01
+title: AI agent core
+created: 2026-04-30
+---
 
-### Hypothesis
-For {target user}
-who {problem or need from the BA}
-the {solution concept}
-is a {category or product type}
-that {key value}.
-Unlike {current alternative}
-our solution {unfair advantage}.
+# EPIC-01: AI agent core
+
+## Hypothesis
+
+For solo founders running a B2B SaaS support inbox, who currently
+spend two to four hours each day triaging tickets that mostly say
+"how do I reset my password?", the AI agent core is a context-aware
+ticket triage layer that auto-resolves the top ten password and
+billing scenarios so the founder gets back at least an hour a day.
+Unlike Zendesk macros, which the founder has to author and maintain
+by hand, the agent core learns from the founder's resolution
+history without configuration.
 ```
 
-The format forces six things into one sentence:
+The hypothesis is one paragraph of prose, not a six-line template.
+The skill rejects formats like `For {x} who {y} the {z} is a ...`
+because they hide thin reasoning behind structure. A real
+hypothesis explains the user, the problem, the solution category,
+the primary value, the current alternative, and the unfair
+advantage in actual sentences.
 
-- The user, not "everyone."
-- The problem, not "an opportunity."
-- The solution category, so the team knows what kind of thing they are building.
-- The primary value, in one sentence.
-- The current alternative the user has today, even if that is "a messy spreadsheet."
-- The unfair advantage, the thing that makes this hard to copy.
+**Epic ID format.** 2-digit counter with leading zeros (`EPIC-01`,
+not `EPIC-001`). Filename: `EPIC-{nn}-{slug}.md` in
+`_devprocess/requirements/epics/`. Status, phase, last-change live
+in the **backlog row**, not in the frontmatter.
 
 ## Feature structure
 
-Under each Epic, Features are the units that get implemented. A Feature is what a team can ship in one coherent increment. Every Feature uses the same structure:
+Under each Epic, Features are the units that get implemented. A
+Feature is what a team can ship in one coherent increment. Features
+are **scoped to a single epic** and numbered locally. The format
+is `FEAT-{ee}-{ff}-{slug}.md`, where `{ee}` is the parent epic
+number and `{ff}` is the feature counter inside that epic. Example:
+`EPIC-01` owns `FEAT-01-01`, `FEAT-01-02`, ...; `EPIC-13` owns
+`FEAT-13-01`, ....
 
 ```markdown
-## FEATURE-XXX: {short name}
+---
+id: FEAT-01-02
+title: Auto-resolve password reset tickets
+created: 2026-04-30
+epic: EPIC-01
+adr-refs: []
+feature-refs: []
+depends-on: [FEAT-01-01]
+---
 
-### Feature Description
+# FEAT-01-02: Auto-resolve password reset tickets
+
+## Feature Description
 {2-3 sentences: what the system will let a user do}
 
-### Benefits Hypothesis
+## Benefits Hypothesis
 We believe this feature creates value because {insight from BA}.
 We will know we were right if {measurable signal}.
 
-### User Stories
+## User Stories
 - As a {persona} I want to {action} so that {outcome}
 - ...
 
-### Success Criteria (tech-agnostic)
+## Success Criteria (tech-agnostic)
 - Measurable, tech-free, user-observable
 - ...
 
-### Technical NFRs
+## Technical NFRs
 - Concrete numbers (latency, throughput, retention, uptime)
 - ...
 
-### ASRs (Architecturally Significant Requirements)
+## ASRs (Architecturally Significant Requirements)
 - Critical / Moderate / Low
 - Each Critical ASR becomes an ADR in /architecture
 
-### Definition of Done
+## Definition of Done
 - What must be true for the feature to ship
 ```
+
+**Frontmatter rule.** Status, phase, last-change, claim, and
+commit SHA do **not** live in the frontmatter. They live in the
+**backlog row** for `FEAT-01-02`. The frontmatter carries identity
+(`id`, `title`, `created`) and graph edges (`epic`, `adr-refs`,
+`feature-refs`, `depends-on`) only. See the
+[Three-layer documentation model](../concepts/three-layer-documentation).
+
+**FIX and IMP scope.** Bug fixes are
+`FIX-{ee}-{ff}-{nn}-{slug}.md` files (rows in `BACKLOG.md`, detail
+files in `_devprocess/requirements/fixes/`), with each Fix scoped to
+the parent feature. Improvements use the same scheme as
+`IMP-{ee}-{ff}-{nn}` in `_devprocess/requirements/improvements/`.
 
 ### User stories across three levels of need
 
@@ -202,7 +242,7 @@ See [Verification Gates](../concepts/verification-gates) for the full gate mecha
 
 The final artifact is `architect-handoff.md`, a single document that `/architecture` will consume. It contains the Epic Hypothesis, the Feature summary table with priorities, the full list of Critical ASRs, the Technical NFRs with numbers, the open questions for the architect, and the Critical Hypotheses from the BA that are still unvalidated.
 
-The skill ends with the standard three-part [Handoff Ritual](../concepts/handoff-rituals) and proposes `/architecture` as the next phase.
+The skill ends with the standard four-part [Handoff Ritual](../concepts/handoff-rituals): artifact report, handoff context appended to `HANDOFFS.md`, phase-end commit (`feat(re): {ITEM-ID} RE complete`) plus `tag-phase --phase re`, transition question. The guide runs `/consistency-check` Mode A on the changed artifacts at the boundary. The next phase is `/architecture`.
 
 ## Read the skill file
 

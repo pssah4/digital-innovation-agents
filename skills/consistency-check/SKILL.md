@@ -1,16 +1,16 @@
 ---
 name: consistency-check
 description: >
-  Prueft die Konsistenz des V-Model-Artefakt-Graphen: BA-Sektionen,
-  Epics, Features, Success Criteria, ADRs, arc42-Sektionen, PLANs,
-  Backlog und Code-Referenzen. Liefert zwei Modi: syntaktisch (Links,
-  IDs, Refs) und semantisch (inhaltliche Konsistenz via Agent).
-  Default syntaktisch am Ende jeder Skill-Phase. Semantisch vor
-  Release oder auf explizite Anfrage. Use this skill when the user
-  mentions "consistency check", "graph check", "Konsistenzpruefung",
-  "check references", "dead links", "orphan features", "graph-health",
-  or when another V-Model skill completes a phase and wants to verify
-  the artifact graph before handoff.
+  Verifies the V-Model artifact graph is intact: BA sections, Epics,
+  Features, Success Criteria, ADRs, arc42 sections, PLANs, Backlog,
+  Wayfinder rows, and code references. Two modes: syntactic (links,
+  IDs, Refs) and semantic (content coherence via an agent). Default
+  syntactic at the end of every skill phase. Semantic before release
+  or on explicit request. Use this skill when the user mentions
+  "consistency check", "graph check", "check references", "dead
+  links", "orphan features", "graph-health", or when another V-Model
+  skill completes a phase and wants to verify the artifact graph
+  before handoff.
 disable-model-invocation: false
 ---
 
@@ -32,52 +32,56 @@ rules in `skills/project-conventions/SKILL.md` under "Writing style".
 No em dashes, no AI vocabulary, ASCII for umlauts if the existing
 project convention uses ASCII.
 
-## Two modes
+## Three modes
+
+- **Mode A (syntactic, default):** fast, no LLM, runs on phase-end
+  triggers and pre-commit hooks.
+- **Mode B (semantic, on-demand):** agent-based, runs before release
+  or on explicit `--deep`.
+- **Mode C (interactive fix-loop):** guided fix workflow with
+  per-finding `AskUserQuestion`, Pro/Con suggestions, skip and
+  custom-message options. Triggered by `--fix-interactive` or after
+  a pre-commit hook block.
+
+## Mode reference
 
 ### Mode A: Syntactic check (default, fast, no LLM)
 
 Runs on every Phase-End trigger. Uses Grep + filesystem probes
 only. Costs near zero.
 
-Checks:
+Checks (8 quick-check items):
 
 1. **Dead links.** Every Markdown link to a project-internal path
-   (`docs/...`, `_devprocess/...`, `src/...`) points to an existing
+   (`_devprocess/...`, `src/...`, `docs/...`) points to an existing
    file.
-2. **Missing IDs.** Every Feature references a real Epic ID.
-   Every Backlog row referencing a Feature/ADR/PLAN/BL-Item uses
-   an ID that exists.
-3. **Orphan features.** Every FEATURE has an Epic parent.
-4. **Orphan Epics.** Every Epic has at least one Feature
-   referenced in its MVP-Features table, or is explicitly marked
-   `Planned` with a `needs refinement` note.
-5. **Orphan ADRs.** Every ADR is referenced from at least one
-   FEATURE, arc42, or Backlog entry.
-6. **SC coverage.** Every FEATURE that is not marked `Planned`
-   has at least one Success Criterion (may be `[AWAITING BA]` or
-   `[AWAITING RE]` as placeholder).
-7. **Source-path validity.** Every FEATURE's `Source (Implementation)`
-   paths point to files that exist.
-8. **Backlog integrity.** Every BL-item row has the required
-   columns filled per BACKLOG-TEMPLATE.md. Phase is set to
-   `Released | Building | Planned | Candidates`, with
-   `needs refinement: {reason}` for Candidates items (and optionally
-   Planned items). Legacy labels `Released/Building/Planned/Candidates` are
-   auto-mapped to the new names during the syntactic check.
-9. **arc42 ADR table completeness.** Every ADR under `docs/adr/`
-   is listed in arc42 Par. 9 table, and vice versa.
-10. **Phase/Status frontmatter required (N-10, N-11, N-12).** Every
-    Feature has `phase:` and `status:` in YAML-frontmatter. Every
-    Epic has `phase:`. Every ADR has `phase:` and `status:`. Missing
-    fields are reported as drift.
-11. **Backlog/frontmatter sync (E-7, E-8).** Feature-rows in the
-    backlog must show the same phase as the feature file
-    frontmatter. Epic header lines `Phase: X` in the backlog must
-    match epic file frontmatter. Mismatches are reported per
-    artifact.
-12. **Dashboard consistency (E-9).** The phase counts in the backlog
-    dashboard table match the computed totals from feature
-    frontmatters + epic frontmatters + standalone-chores table.
+2. **Backlog completeness.** Every artifact file under
+   `_devprocess/requirements/`, `_devprocess/architecture/`,
+   `_devprocess/implementation/plans/`, `_devprocess/requirements/fixes/`,
+   and `_devprocess/requirements/improvements/` has exactly one row in
+   the backlog. No artifact without a row, no row without an
+   artifact.
+3. **Backlog as single source.** Artifact frontmatter does NOT carry
+   `status:` or `phase:` fields. The backlog row is authoritative.
+   Frontmatter that duplicates these fields gets flagged.
+4. **Spec references valid.** Every Feature references a real Epic
+   ID. Every Backlog Refs entry resolves to an existing row or file.
+   Every PLAN's `feature-refs`, `adr-refs`, `fix-refs`, and
+   `imp-refs` resolve.
+5. **ADR references valid.** Every ADR ID listed in a FEATURE's
+   `adr-refs`, in arc42 Par. 9 table, in JSDoc headers, or in
+   `src/ARCHITECTURE.map` resolves to an existing ADR file.
+6. **ADR contradictions.** No two ADRs cover overlapping topics with
+   opposing decisions. Heuristic: similar titles or matching
+   `triggering-asr` clusters surfaced for human review.
+7. **ADR abstraction rule.** No ADR contains code paths
+   (`src/...` strings, file basenames, line numbers, method
+   signatures) in the core sections (Context, Decision Drivers,
+   Considered Options, Decision, Consequences). Code paths in the
+   `## Implementation Notes` appendix are exempt.
+8. **Backlog graph health.** Every Refs entry in the backlog points
+   at an existing row. The graph derived from the Refs columns is
+   acyclic (Epic -> Feature -> Plan -> Fix forms a DAG).
 
 ## Auto-fix mode
 
@@ -85,23 +89,23 @@ When run with `--fix` (or when called by another skill with
 `autofix=true`), the syntactic check repairs the following drift
 types automatically, without asking:
 
-- Missing `phase:` in Feature/Epic/ADR frontmatter: insert with the
-  best available value (feature phase from backlog row; ADR phase
-  from the drift table in backlog § ADR-Review-Status; epic phase
-  via worst-wins over its features; fallback `Building`)
-- Missing `status:` in Feature/ADR frontmatter: insert default
-  (`Planned` for Feature, `Proposed` for ADR)
-- Backlog feature-row phase differs from feature frontmatter phase:
-  overwrite the backlog row with the frontmatter value (frontmatter
-  is source of truth)
-- Backlog epic header `Phase: X` differs from epic frontmatter:
-  overwrite the header
-- Dashboard phase counts differ from computed totals: rewrite the
-  dashboard table
+- Frontmatter `status:` or `phase:` field present: REMOVE it.
+  Backlog row is the single source of truth. The fix lifts the
+  current value from the artifact into the backlog row only if no
+  row exists yet; otherwise it just removes the duplicate.
+- Backlog row missing for an existing artifact file: create the row
+  with `status: Planned`, `phase: Building` defaults, place under
+  the matching Epic section.
+- Artifact file missing for a backlog row: leave the row, flag for
+  human triage (the row may be a placeholder or outdated entry).
+- Dashboard counts differ from computed totals: rewrite the
+  dashboard table.
+- ARCHITECTURE.map row points at a missing entry-point file: flag,
+  do not auto-delete. Renames may have happened.
 
 The auto-fix report lists what was changed. Items that cannot be
-auto-fixed (e.g. orphan ADR, dead link) are reported as before and
-left for the user.
+auto-fixed (orphan ADR, dead link, ADR abstraction violation) are
+reported and left for the user.
 
 ### Mode B: Semantic check (on-demand, agent-based)
 
@@ -109,82 +113,219 @@ Runs on explicit user request or before a release. Uses subagents
 to read paired artifacts and judge whether their content remains
 consistent. Costs measurable agent-time.
 
-Checks:
+Checks (6 deep-check items):
 
-1. **Feature-ADR coherence.** The FEATURE description matches what
-   the referenced ADR decided. If an ADR was superseded and the
-   FEATURE still describes the old decision, flag it.
-2. **BA-Feature coherence.** Each Feature traces to at least one
-   JTBD in BA Par. 5 or is explicitly in Planned with no BA-anchor
-   yet. If BA.JTBD exists but no Feature addresses it, flag it.
-3. **arc42-ADR coherence.** arc42 sections that reference ADRs
-   describe what the ADR actually decided; if ADR text changed but
-   arc42 did not, flag it.
-4. **Code-Feature coherence.** For each Feature with Status
-   `Implemented`, stichprobenartige Agent-Pruefung ob die im
-   FEATURE beschriebenen Success Criteria plausibel im Code
-   belegt sind.
+1. **Spec-code coherence.** For every Feature with status Done in
+   the backlog, sample-check whether the Success Criteria
+   described in the FEATURE spec are plausibly verifiable in the
+   code (sampling, not exhaustive).
+2. **Rule-set drift.** Compare `_devprocess/rules/technical.md`
+   against the actual project state (linter config, test
+   thresholds, framework versions). Surface contradictions for
+   human triage.
+3. **Orphan artifacts.** Specs without code (FEATURE Done in
+   backlog but no entry-point in `src/ARCHITECTURE.map`); code
+   without spec (entry-point in `src/ARCHITECTURE.map` with no
+   matching FEATURE backlog row).
+4. **ADR duplication check.** Two ADRs covering the same topic at
+   different abstraction levels are flagged for consolidation.
+5. **Map completeness.** Every module under `src/` that owns
+   substance has an `ARCHITECTURE.map` entry. Triggers: more than
+   3 source files in a directory, or any directory with a
+   `README.md`.
+6. **Backlog graph render.** Produce a mermaid or JSON graph from
+   the backlog Refs columns, surface orphan nodes (no incoming or
+   outgoing edges) and status mismatches (e.g. PLAN Done but
+   parent FEATURE still In Progress).
+
+Each finding includes file path, row reference, and enough context
+to locate the issue. Findings that cannot be auto-fixed become BL
+items in the Standalone Items section with `Source = CONSISTENCY-CHECK`.
+
+### Mode C: Interactive fix-loop (on-demand or post-block)
+
+Triggered by `/consistency-check --fix-interactive` or by the
+pre-commit hook when Mode A leaves non-auto-fixable findings. The
+loop picks up the latest run from
+`.git/consistency-check.last-run.json` (Mode A always writes this
+file) and walks every finding with the user, one by one.
+
+**Resume contract.** The findings file persists across Claude Code
+sessions. If the user exits Claude mid-loop, the next
+`/consistency-check --fix-interactive` invocation reads the same
+file and continues at the first unresolved finding. Resolved
+findings are marked `status: "fixed"` or `status: "skipped"` in the
+JSON; the loop never re-asks about them. The file is deleted only
+after the loop completes and the user confirms the commit.
+
+**Universal interaction rules (the "never leave the user alone"
+contract).** Every step in this loop ends with one
+`AskUserQuestion` that satisfies all of:
+
+- One short recommendation sentence ("Empfehlung: A, weil ...").
+- Two to four concrete options, each with a one-line `Pro:` and
+  one-line `Con:` block.
+- A `Skip` option that defers the finding without losing it.
+- A `Custom` option ("eigene Anweisung schreiben") so the user can
+  always override.
+- The recommendation and the option list are derived from the
+  current finding plus the project state, not boilerplate.
+
+This rule is invariant. The loop never returns control to the user
+without an explicit next-step question. If a step has no decision
+left to make (e.g. all findings resolved), the question still asks
+about the next workflow step (commit, push, /testing, /release).
+
+**Loop structure (six phases):**
+
+1. **Load.** Read `.git/consistency-check.last-run.json`. If absent
+   or empty, run Mode A first and then continue.
+2. **Triage.** AskUserQuestion: which strategy (sequential, by
+   severity, by class, batch-fix-only, trust-mode auto-approve,
+   custom). Recommendation adapts to finding count: sequential up
+   to 10, by-severity 11+, trust-mode when the user explicitly
+   says "mach wie du denkst" or selects it.
+
+   **Trust mode (auto-approve all):** the user delegates all fix
+   decisions to the agent. The loop applies the recommended option
+   for every finding without asking, except when:
+   - A finding's three options have no clear recommendation
+     (recommendation field empty in the suggestion bundle)
+   - A fix would touch shared infrastructure (CI configs, hooks,
+     governance code) -- always escalate
+   - A fix would delete substance (more than just a Status
+     duplicate or dead link) -- escalate to confirm
+
+   In trust mode, after every batch of 10 fixes the loop posts
+   a one-line progress update so the user sees movement. At the
+   end it produces a complete audit log: per-finding the chosen
+   option, the resulting diff hunk reference, and any escalations.
+3. **Per-finding loop.** For each unresolved finding, AskUserQuestion
+   with file:line pointer, finding text, two to four concrete
+   fix options with Pro/Con, plus Skip and Custom. Recommendation
+   names the option and gives the reason from project state.
+4. **Re-check.** Run Mode A again. List remaining findings (Skips
+   and any new findings produced by fixes). AskUserQuestion: how
+   to handle remaining findings (file as backlog items with
+   Source=CONSISTENCY-CHECK, commit anyway via --no-verify, return
+   to skips, custom). Recommendation defaults to backlog-filing.
+5. **Commit.** Build the commit message from the resolved findings
+   list, show it to the user, AskUserQuestion: confirm message,
+   edit message, or cancel. Recommendation is "confirm" when the
+   message accurately summarizes the fixes.
+6. **Follow-up.** AskUserQuestion: what next (push, /coding,
+   /testing, /security-audit, /release, custom). Recommendation
+   follows the V-Model checklist (after /coding -> /testing,
+   after /testing -> /security-audit, before release -> Mode B
+   semantic check).
+
+**Fix actions per finding type.** The loop dispatches to specific
+fix patterns based on the finding's `type` field:
+
+| Finding type | Auto-fix candidates surfaced as options |
+|---|---|
+| `dead-link` | Remove, mark planned with FEAT-ref, correct path |
+| `adr-abstraction-violation` | Move path to `## Implementation Notes` appendix, move path to `src/ARCHITECTURE.map`, replace path with concept name |
+| `orphan-adr` | Mark Superseded with reference, mark Deprecated, link from a feature |
+| `orphan-feature` | Assign to existing epic, create new epic, mark Planned |
+| `feature-without-sc` | Add `[AWAITING BA]` placeholder, write SC inline, defer |
+| `source-path-broken` | Update path, mark feature Planned, remove path entry |
+| `frontmatter-status-duplicate` | Always auto-fixed in Mode A; only surfaces here if auto-fix failed |
+
+**Output of the loop.** The loop writes a single audit row in
+`_devprocess/context/METRICS.md` under "Consistency-Check Runs"
+with: timestamp, mode (C), findings-total, fixed, skipped, deferred-
+to-backlog, and the commit SHA when applicable.
 
 ## Invocation
 
 - `/consistency-check` with no args: runs Mode A on the current
-  project root, reports results.
+  project root, reports results, and writes
+  `.git/consistency-check.last-run.json`.
+- `/consistency-check --fix`: Mode A with auto-fix enabled (no user
+  interaction). Used by the pre-commit hook before falling back to
+  Mode C if findings remain.
+- `/consistency-check --fix-interactive`: Mode C interactive
+  fix-loop. Reads the last-run file and walks the user through.
 - `/consistency-check --deep` or with user saying "semantic check":
   runs Mode A + Mode B.
 - `/consistency-check --view` or user says "zeig mir den Graph",
   "show me the graph": runs Mode A and opens the interactive
   graph viewer (see Viewer-Tool below).
 - Called from another skill: the calling skill passes a scope
-  argument (e.g. `scope=feature:FEATURE-019` to check only a single
+  argument (e.g. `scope=feature:FEAT-NN-19` to check only a single
   feature's neighbourhood).
+- Called from pre-commit hook: hook runs `--fix` first, then if
+  findings remain prompts the user to launch `--fix-interactive`.
 
-## Viewer-Tool (fuer Team-Meetings und Navigation)
+## Tooling
 
-Der Graph wird **nicht** in einer eigenen Datei persistiert. Er
-existiert implizit in den Markdown-Referenzen und wird on-demand
-aus den Source-Dateien generiert.
+The syntactic checker (Mode A) and the pre-commit hook live in
+`tools/` of this DIA repo:
 
-Zwei Aufruf-Wege:
+- `tools/consistency-check.py` -- project-agnostic Mode A driver.
+  Auto-detects the repo root via `git rev-parse --show-toplevel` and
+  expects the standard DIA layout (`_devprocess/`, optional `src/`).
+  Optional `dia.config.json` in the project root overrides defaults.
+- `tools/git-hooks/pre-commit` -- pre-commit hook template that runs
+  the Mode A driver, then on findings asks the user (y/N) whether to
+  launch the interactive Mode C fix-loop in Claude Code.
+- `tools/install-git-hooks.sh` -- installer. Run from the target
+  project's repo root: `bash <DIA-checkout>/tools/install-git-hooks.sh`.
+  Copies the script to the target's `.git/hooks-data/` and installs
+  the pre-commit hook into `.git/hooks/pre-commit`.
 
-1. **Direkt per Shell:**
+Mode B (semantic) and Mode C (interactive fix-loop) are orchestrated
+inside Claude Code by this skill, not by the script.
+
+## Viewer tool (for team meetings and navigation)
+
+The graph is NOT persisted in a separate file. It exists implicitly
+in the backlog Refs columns and Markdown references; it is generated
+on-demand from the source files.
+
+Two entry points:
+
+1. **Direct shell:**
    ```bash
-   bash ~/.claude/skills/v-model-workflow/tools/open-graph.sh <project-root>
+   bash ~/.claude/skills/dia-guide/tools/open-graph.sh <project-root>
    ```
-   Startet den Parser, erzeugt das JSON in-memory, uebergibt es als
-   URL-Parameter an den Viewer und oeffnet den Default-Browser.
-   Keine Datei auf Disk.
+   The parser builds the JSON in memory, passes it as a URL parameter
+   to the viewer, and opens the default browser. No file on disk.
 
-2. **Aus diesem Skill heraus:** `/consistency-check --view` ruft
-   den gleichen Mechanismus auf.
+2. **From this skill:** `/consistency-check --view` calls the same
+   mechanism.
 
-**Viewer-Features:**
+**Viewer features:**
 
-- **Cytoscape.js**-basiert, standalone HTML (keine Build-Pipeline).
-- Filter/Lenses: `Uebersicht` (Epics, Features, ADRs), `Persona-
-  Lens` (BA-Persona -> Epic -> Feature), `Phase-Lens` (farbig nach
-  Released/Building/Planned/Candidates), `Health-Lens` (Orphans hervorgehoben),
-  `Epic-Fokus` (ein Epic mit direkten Nachbarn).
-- Click auf Knoten: Details-Panel mit Typ, Phase, Status, Datei-
-  pfad (klickbar, oeffnet im Default-Editor).
-- Kein Editor (bewusst): alle Aenderungen bleiben im Markdown. Der
-  Viewer navigiert, er persistiert nicht.
+- Cytoscape.js based, standalone HTML, no build pipeline.
+- Filters / lenses: `Overview` (Epics, Features, ADRs),
+  `Persona lens` (BA persona -> Epic -> Feature), `Phase lens`
+  (colored by Released/Building/Planned/Candidates), `Health lens`
+  (orphans highlighted), `Epic focus` (one Epic with direct
+  neighbors).
+- Click on a node: details panel with type, phase, status (read
+  from the backlog row), and file path (clickable, opens in the
+  default editor).
+- No editor: all changes stay in Markdown. The viewer navigates;
+  it does not persist.
 
-**Einsatz in Meetings:**
+**Use in meetings:**
 
-- Beamer oder Screen-Share mit Viewer-URL.
-- Phase-Lens gibt den Status-Panorama-Effekt (Grossteil Building,
-  einige Planned-Highlights).
-- Health-Lens fuer Backlog-Refinement-Sessions (was ist lose, was
-  fehlt).
+- Screen share with the viewer URL.
+- Phase lens gives the status panorama (mostly Building, a few
+  Planned highlights).
+- Health lens for backlog refinement sessions (what is loose, what
+  is missing).
 
-## Tool-Dateien
+## Tool files
 
-- `skills/v-model-workflow/tools/parse-graph.py` - Markdown -> JSON.
-  Stdlib-only, keine Dependencies.
-- `skills/v-model-workflow/tools/graph-viewer.html` - Standalone-
-  Viewer mit Cytoscape.js (CDN).
-- `skills/v-model-workflow/tools/open-graph.sh` - Wrapper, parst
-  und oeffnet den Viewer.
+- `skills/dia-guide/tools/parse-graph.py` - Markdown to JSON.
+  Stdlib only, no dependencies.
+- `skills/dia-guide/tools/graph-viewer.html` - standalone
+  viewer with Cytoscape.js (CDN).
+- `skills/dia-guide/tools/open-graph.sh` - wrapper that
+  parses and opens the viewer.
 
 ## Output
 
@@ -218,7 +359,7 @@ Findings:
 - Code-Feature semantic:    {n}
 ```
 
-### 2. Backlog update in `{ROOT}/context/10_backlog.md`
+### 2. Backlog update in `{ROOT}/context/BACKLOG.md`
 
 - **Graph-Health section** (create or replace):
 
@@ -256,13 +397,15 @@ Findings:
    `docs/` or `_devprocess/` as root. Abort with a clear message if
    neither is found.
 2. **Build the node set.** Grep for:
-   - `docs/requirements/epics/EPIC-*.md` -> Epics
-   - `docs/requirements/features/FEATURE-*.md` -> Features
-   - `docs/adr/ADR-*.md` -> ADRs
-   - `docs/implementation/plans/PLAN-*.md` -> PLANs
-   - `docs/analysis/BA-*.md` -> BA sections (parsed by headers)
-   - `docs/architecture/arc42.md` -> arc42 sections
-   - `docs/context/10_backlog.md` -> BL-Items
+   - `_devprocess/requirements/epics/EPIC-*.md` -> Epics
+   - `_devprocess/requirements/features/FEATURE-*.md` -> Features
+   - `_devprocess/architecture/ADR-*.md` -> ADRs
+   - `_devprocess/implementation/plans/PLAN-*.md` -> PLANs
+   - `_devprocess/analysis/BA-*.md` -> BA sections (parsed by headers)
+   - `_devprocess/architecture/arc42.md` -> arc42 sections
+   - `src/ARCHITECTURE.map` -> wayfinder rows
+   - JSDoc headers in entry-point files -> wayfinder cross-checks
+   - `_devprocess/context/BACKLOG.md` -> BL-Items
 3. **Build the edge set.** Parse references in each node:
    - Feature's `Epic:` field -> edge to Epic
    - Feature's `Related ADRs:` -> edges to ADRs
@@ -286,29 +429,49 @@ of truth for all V-Model skills).
 
 - `N-1` Every Feature has exactly one Epic parent.
 - `N-2` Every Epic has either at least one Feature in its MVP table
-  or is explicitly marked `Phase: Candidates` with `needs refinement`.
+  or is explicitly marked Phase Candidates with `needs refinement`.
 - `N-3` Every ADR is referenced at least once from a Feature, arc42,
   or Backlog entry.
 - `N-4` Every Feature has at least one Success Criterion entry
   (may be placeholder `[AWAITING BA]` or `[AWAITING RE]`).
-- `N-5` Every FEATURE with `status: Implemented` has a
-  `## Codebase-Verifikation` section.
-- `N-6` Every BL-Item has a Phase label
-  (`Released | Building | Planned | Candidates`).
-- `N-7` Every BL-Item with `Phase: Candidates` has a
+- `N-6` Every backlog row has a Phase label
+  (`Released | Building | Planned | Candidates`) and a Status label.
+- `N-7` Every backlog row with Phase Candidates has a
   `needs refinement: {reason}` marker.
+- `N-13` Every FIX has `feature:` and `epic:` in the frontmatter.
+- `N-14` Every IMP has `feature:` and `epic:` in the frontmatter.
+- `N-15` (NEW) No artifact frontmatter contains a `status:` or
+  `phase:` field. The backlog row is the single source of truth.
 
 ### Edge invariants
 
 - `E-1` Every Markdown link to a project-internal path resolves.
-- `E-2` Every FEATURE `Source (Implementation)` path exists or is
-  explicitly noted as planned (Phase = Planned).
-- `E-3` Every ADR listed in a FEATURE's Related-ADRs section exists.
-- `E-4` Every ADR listed in arc42 Par. 9 exists in `docs/adr/`.
-- `E-5` Every ADR under `docs/adr/` appears in arc42 Par. 9 or is
-  explicitly deprecated/superseded.
-- `E-6` Every BL-Item's Feature-Spec / ADR column links to an
-  existing file.
+- `E-3` Every ADR listed in a FEATURE's `adr-refs` exists.
+- `E-4` Every ADR listed in arc42 Par. 9 exists in
+  `_devprocess/architecture/`.
+- `E-5` Every ADR under `_devprocess/architecture/` appears in
+  arc42 Par. 9 or is explicitly deprecated or superseded.
+- `E-6` Every backlog row's Refs column resolves to existing rows
+  or files.
+- `E-10` Every `depends-on` entry resolves to an existing artifact
+  ID.
+- `E-11` The graph derived from `depends-on` AND backlog Refs
+  columns is acyclic.
+- `E-12` (NEW) Every artifact file under
+  `_devprocess/requirements/`, `_devprocess/architecture/`,
+  `_devprocess/implementation/plans/`, `_devprocess/requirements/fixes/`,
+  `_devprocess/requirements/improvements/` has exactly one row in the
+  backlog.
+- `E-13` (NEW) Every entry-point file referenced in
+  `src/ARCHITECTURE.map` exists.
+
+### ADR abstraction invariants
+
+- `A-1` (NEW) No ADR contains `src/...` paths, file basenames, line
+  numbers, or method signatures in the core sections (Context,
+  Decision Drivers, Considered Options, Decision, Consequences).
+  Code paths in the optional `## Implementation Notes` appendix are
+  exempt and explicitly allowed to go stale.
 
 ### Semantic invariants (Mode B only)
 
@@ -317,8 +480,11 @@ of truth for all V-Model skills).
   `needs BA-anchor`.
 - `S-3` arc42 sections describing an ADR's decision match the ADR's
   current Decision text (not an old revision).
-- `S-4` `Implemented` FEATUREs have their key Success Criteria
-  verifiable in the code (plausibility, not exhaustive).
+- `S-4` FEATUREs with backlog status Done have their key Success
+  Criteria verifiable in the code (plausibility, not exhaustive).
+- `S-5` (NEW) Every module under `src/` that owns substance has an
+  `ARCHITECTURE.map` row (heuristic: more than 3 source files in
+  the directory, or any directory with a `README.md`).
 
 ## Quality gates for the skill itself
 
@@ -339,7 +505,7 @@ Before this skill reports completion:
 - Active refactoring where artifacts are intentionally in flux.
   Wait for the refactor to settle, then run the check.
 - Greenfield projects without V-Model artifacts. Bootstrap via
-  `/v-model-workflow` or `/reverse-engineering` first.
+  `/dia-guide` or `/reverse-engineering` first.
 
 ## Keywords
 

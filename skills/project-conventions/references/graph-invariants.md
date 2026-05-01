@@ -14,18 +14,18 @@ Mode A entsprechend angepasst werden.
 **Knoten (Artefakt-Typen):**
 
 - `Project-BA` - `docs/analysis/BA-{PROJECT}.md` (One-Pager, Produkt-Schicht)
-- `Epic-BA` - `docs/requirements/epics/EPIC-{NNN}-ba.md` (Mini, optional pro Epic)
+- `Epic-BA` - `docs/requirements/epics/EPIC-{nn}-ba.md` (Mini, optional pro Epic)
 - `BA-Section` - eine Ueberschrift in `Project-BA` oder `Epic-BA`
  (Personas, JTBDs, Problem, Value Props, KPIs, Risks, usw.)
-- `Epic` - `docs/requirements/epics/EPIC-{NNN}-{slug}.md`
+- `Epic` - `docs/requirements/epics/EPIC-{nn}-{slug}.md`
 - `Feature` - `docs/requirements/features/FEATURE-*.md`
 - `SC` - eine Zeile in der Success-Criteria-Tabelle eines Features
-- `ADR` - `docs/adr/ADR-{NNN}-{slug}.md`
+- `ADR` - `docs/adr/ADR-{nn}-{slug}.md`
 - `arc42-Section` - eine Ueberschrift in
  `docs/architecture/arc42.md` (§1..§12)
-- `PLAN` - `docs/implementation/plans/PLAN-{NNN}-{slug}.md`
-- `FIX` - `docs/context/fixes/FIX-{NNN}-{slug}.md` (Bug-/Issue-Followup, Pflicht-Bindung an Feature/Epic)
-- `IMP` - `docs/context/improvements/IMP-{NNN}-{slug}.md` (technische Verbesserung, Pflicht-Bindung an Feature/Epic)
+- `PLAN` - `docs/implementation/plans/PLAN-{nn}-{slug}.md`
+- `FIX` - `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md` (Bug-/Issue-Followup, Pflicht-Bindung an Feature/Epic)
+- `IMP` - `_devprocess/requirements/improvements/IMP-{ee}-{ff}-{nn}-{slug}.md` (technische Verbesserung, Pflicht-Bindung an Feature/Epic)
 - `Code` - eine Datei oder Zeilenspanne unter `src/`
 
 > **Hinweis (2026-04-21):** Die alten Konzepte `BL-Item (historisch)` und
@@ -86,7 +86,7 @@ Mode A entsprechend angepasst werden.
 | E-5 | Jede ADR unter `docs/adr/` ist in arc42 §9 Tabelle ODER als deprecated markiert. | `docs/adr/`-Inhalt vs. arc42 §9. |
 | E-6 | Jede FIX/IMP-Zeile mit Feature/ADR/PLAN-Spalte zeigt auf existierendes Artefakt. | Link-Check pro Zeile. |
 | E-7 | Backlog-Feature-Zeile `Phase` stimmt mit Feature-Frontmatter `phase:` ueberein. | Fuer jedes FEATURE-NNN: Feature-Tabellenzeile im Backlog vs `phase:` im Frontmatter. |
-| E-8 | Backlog-Epic-Header `Phase: ...` stimmt mit Epic-Frontmatter `phase:` ueberein. | Fuer jedes EPIC-NNN: Header-Zeile `Phase: X` im Backlog vs `phase:` im Frontmatter. |
+| E-8 | Backlog-Epic-Header `Phase: ...` stimmt mit Epic-Frontmatter `phase:` ueberein. | Fuer jedes EPIC-{nn}: Header-Zeile `Phase: X` im Backlog vs `phase:` im Frontmatter. |
 | E-9 | Dashboard-Counts im Backlog stimmen mit Summe der Feature-/Epic-/FIX-/IMP-Phasen ueberein. | Dashboard-Tabelle neu berechnen aus Frontmatters (Epic, Feature, FIX, IMP). |
 | E-10 | `depends-on`-Referenzen in Feature/Epic/ADR/FIX/IMP-Frontmatter zeigen auf existierende Artefakte. | YAML-Feld parsen, Ziel-ID im Dateisystem pruefen. |
 | E-11 | Der `depends-on`-Graph ist azyklisch (DAG). Keine Implementierungs-Zyklen. | Topologisches Sortieren ueber alle `depends-on`-Kanten; Zyklen detektieren. |
@@ -201,7 +201,7 @@ durch `/consistency-check` und den Graph-Viewer gemappt):
  ADR).
 - `/coding`: fuehrt Mid-Course Feature-Capture-Dialog wenn neue
  user-facing Capabilities hinzukommen (N-1, N-4, BA-Anker).
-- `/v-model-workflow`: ruft `/consistency-check` beim Start (Mode A)
+- `/dia-guide`: ruft `/consistency-check` beim Start (Mode A)
  und bei Release-Closure (Mode A+B).
 - `/consistency-check`: liest alle Invarianten aus dieser Datei und
  prueft sie. Ergebnisse landen in der Graph-Health-Sektion des
@@ -217,7 +217,7 @@ Phase `Released` erreicht haben."
 **Frontmatter-Syntax:**
 
 ```yaml
-depends-on: [FEATURE-030, ADR-047]
+depends-on: [FEAT-03-30, ADR-47]
 ```
 
 **Regeln:**
@@ -266,13 +266,13 @@ erfragt): Eine Antwort auf die Frage
 
 2. **Verbesserung an bestehendem Feature** (Refactor, Performance,
    Doku-Drift, zusaetzliche Tests, Konfig-Update, etc.):
-   - neues **IMP** unter `docs/context/improvements/IMP-NNN-slug.md`
+   - neues **IMP** unter `_devprocess/requirements/improvements/IMP-{ee}-{ff}-{nn}-slug.md`
    - Frontmatter `feature:` + `epic:` PFLICHT
    - Frontmatter `phase:`, `status:`, `priority:`, optional `depends-on:`
 
 3. **Fix fuer einen beobachteten Bug oder eine Drift** (Symptom: etwas
    funktioniert nicht wie spezifiziert):
-   - neues **FIX** unter `docs/context/fixes/FIX-NNN-slug.md`
+   - neues **FIX** unter `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-slug.md`
    - Frontmatter `feature:` + `epic:` PFLICHT
    - kausale Kette im Body pflegen
 
@@ -297,9 +297,9 @@ ueber mehrere Entscheidungen.
 
 **Wo der Einstieg triagiert wird:**
 
-- `/v-model-workflow`: in der Hybrid-Entry-Detection direkt nach der
+- `/dia-guide`: in der Hybrid-Entry-Detection direkt nach der
   Projektstand-Erkennung.
-- `/business-analyse`: vor Phase 1, wenn der User direkt mit einer
+- `/business-analysis`: vor Phase 1, wenn der User direkt mit einer
   Feature-Idee kommt statt mit Problem/Persona.
 - `/requirements-engineering`: am Start, wenn der User ohne BA-Bezug
   ein Feature vorschlaegt.
@@ -315,7 +315,7 @@ ueber mehrere Entscheidungen.
 
 Die Triage-Zuordnung wird im ersten Handoff-Eintrag verankert und
 danach von allen nachfolgenden Skills als gesetzt uebernommen. Format
-und Regel: siehe `skills/v-model-workflow/SKILL.md` Abschnitt
+und Regel: siehe `skills/dia-guide/SKILL.md` Abschnitt
 "Handoff entry format". Pflichtfelder im Kopfblock: `triage:`,
 `triage_kind:`; bei IMP und FIX zusaetzlich `feature:` und `epic:`.
 

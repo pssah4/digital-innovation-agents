@@ -9,23 +9,23 @@
 ## Technical Stack
 
 **Backend:**
-- Language: {aus ADR-XXX}
-- Framework: {aus ADR-XXX}
-- Database: {aus ADR-XXX}
-- ORM: {aus ADR-XXX}
+- Language: {aus ADR-{nn}}
+- Framework: {aus ADR-{nn}}
+- Database: {aus ADR-{nn}}
+- ORM: {aus ADR-{nn}}
 
 **Frontend:** (falls applicable)
-- Framework: {aus ADR-XXX}
-- State Management: {aus ADR-XXX}
+- Framework: {aus ADR-{nn}}
+- State Management: {aus ADR-{nn}}
 
 **Infrastructure:**
-- Cloud Provider: {aus ADR-XXX}
-- Deployment: {aus ADR-XXX}
-- CI/CD: {aus ADR-XXX}
+- Cloud Provider: {aus ADR-{nn}}
+- Deployment: {aus ADR-{nn}}
+- CI/CD: {aus ADR-{nn}}
 
 **API & Integration:**
 - API Style: {REST/GraphQL}
-- Authentication: {aus ADR-XXX}
+- Authentication: {aus ADR-{nn}}
 
 ## Architecture Style
 
@@ -39,19 +39,19 @@
 
 | ADR | Title | Vorgeschlagene Entscheidung | Impact |
 |-----|-------|-----------------------------|--------|
-| ADR-001 | {Title} | {Decision} | High |
-| ADR-002 | {Title} | {Decision} | High |
-| ADR-003 | {Title} | {Decision} | Medium |
+| ADR-01 | {Title} | {Decision} | High |
+| ADR-02 | {Title} | {Decision} | High |
+| ADR-03 | {Title} | {Decision} | Medium |
 
 **Detail pro ADR:**
 
-1. **{ADR-001 Title}:** {Decision}
+1. **{ADR-01 Title}:** {Decision}
    - Rationale: {Kurze Begruendung}
 
-2. **{ADR-002 Title}:** {Decision}
+2. **{ADR-02 Title}:** {Decision}
    - Rationale: {Kurze Begruendung}
 
-3. **{ADR-003 Title}:** {Decision}
+3. **{ADR-03 Title}:** {Decision}
    - Rationale: {Kurze Begruendung}
 
 ## Data Model (Core Entities)
@@ -108,13 +108,13 @@ Claude Code sollte folgende Dokumente als Kontext lesen:
 
 | ID | Date | Question | Addressed by | Status |
 |---|---|---|---|---|
-| Q-001 | 2026-04-19 | {concrete question about an ADR or a stack choice} | ADR-007 | Pending |
+| Q-001 | 2026-04-19 | {concrete question about an ADR or a stack choice} | ADR-07 | Pending |
 
 ### Answers from Architect
 
 | ID | Date | Answer | Affected artifacts | Status |
 |---|---|---|---|---|
-| A-001 | 2026-04-20 | {concrete answer; if the Architect updates an ADR, cite it here} | ADR-007 (amended) | Resolved |
+| A-001 | 2026-04-20 | {concrete answer; if the Architect updates an ADR, cite it here} | ADR-07 (amended) | Resolved |
 
 ### Dialog rules
 

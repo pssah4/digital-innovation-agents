@@ -5,7 +5,7 @@ description: Method cards for generating, structuring, and sharpening ideas. The
 
 # Ideation methods
 
-Once you have a problem worth solving, you need ideas that try to solve it. Ideation is the part where the team goes wide, makes a mess, and then narrows down on the candidates worth prototyping. The [Business Analysis skill](../guides/business-analyse) will propose the right ideation method depending on where you are stuck: empty page, too many weak ideas, or one strong idea that is not yet concrete enough to test.
+Once you have a problem worth solving, you need ideas that try to solve it. Ideation is the part where the team goes wide, makes a mess, and then narrows down on the candidates worth prototyping. The [Business Analysis skill](../guides/business-analysis) will propose the right ideation method depending on where you are stuck: empty page, too many weak ideas, or one strong idea that is not yet concrete enough to test.
 
 Like the discovery methods, these are run between humans. The agent waits for you to come back with a shortlist of ideas it can turn into an Idea Canvas or a Value Proposition.
 

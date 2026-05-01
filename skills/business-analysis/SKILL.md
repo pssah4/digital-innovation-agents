@@ -1,5 +1,5 @@
 ---
-name: business-analyse
+name: business-analysis
 description: >
  Conducts structured business analyses: problem and stakeholder analysis,
  as-is/to-be gap analysis, user personas, scope definition. Creates BA documents
@@ -16,31 +16,78 @@ disable-model-invocation: false
 
 # Business Analyst
 
-## MANDATORY Phase 0: Artefakt-Triage (2026-04-21)
+## MANDATORY Pre-Phase 0: Branch and item check
 
-Vor jeder Code-, Doku- oder Spezifikations-Aenderung muss der Skill
-feststellen, in welche Artefakt-Kategorie die Arbeit faellt:
+BA work targets a specific backlog item (an Epic or a new Feature).
+Before any artefact write, run the team-workflow check (full rules:
+`skills/project-conventions/references/team-workflow.md`).
 
-1. **Neues FEATURE** (user-facing Capability, die es vorher nicht gab).
-2. **IMPROVEMENT (IMP)** an bestehendem Feature (Refactor, Performance,
-   Doku-Drift, Tests, Konfig).
-3. **FIX** fuer einen Bug oder eine Drift auf bestehendem Feature.
-4. **ADR** wenn die Arbeit eine Architektur-Entscheidung ist.
+1. Identify the active backlog item.
+   - Parse the user prompt ("work on EPIC-04", "BA for the new
+     onboarding flow").
+   - For genuinely new items, write the BACKLOG row first, then
+     proceed.
+   - If unclear, AskUserQuestion: which item are we working on?
 
-**Regel:** Wenn die Zuordnung aus dem User-Prompt nicht eindeutig
-ableitbar ist, stellt der Skill vor allem anderen eine praegnante
-Frage:
+2. Verify the branch matches the item:
+   - Expected: `feature/<item-id-lower>-<slug>` for FEAT/EPIC,
+     `fix/<item-id-lower>-<slug>` for FIX, `chore/<item-id-lower>-<slug>`
+     for IMP.
+   - On `main` / `master` / `dev`: AskUserQuestion to create the
+     expected branch and switch.
+   - On a different item-branch: AskUserQuestion to switch.
+   - On the expected branch: silent continue.
 
-> "Ist das ein neues Feature, ein Improvement an einem bestehenden
-> Feature, oder ein Fix fuer einen Bug? Falls Feature oder IMP/FIX:
-> welches Feature und welches Epic?"
+3. Skill-triggered GitHub integration (idempotent, local-only mode
+   if `gh` is missing):
 
-Keine Code- oder Spec-Aenderung ohne diese Zuordnung. FIX und IMP
-verlangen zwingend `feature:` und `epic:` im Frontmatter
-(Invarianten N-13, N-14). Details zum Entscheidungsbaum und den
-Ausnahmen stehen in
-`skills/project-conventions/references/graph-invariants.md`
-(Abschnitt "Artefakt-Triage am Einstiegspunkt").
+   ```
+   python3 tools/github-integration/flow.py create-issue --item <ID>
+   python3 tools/github-integration/flow.py open-draft-pr --item <ID>   # after first commit on the branch
+   ```
+
+4. At the end of the Handoff Ritual, MUST tag the phase:
+
+   ```
+   python3 tools/github-integration/flow.py tag-phase --item <ID> --phase ba
+   ```
+
+5. Write `.git/dia-active-skill` with `business-analysis|<item>|<branch>|<iso-time>`
+   so subsequent skill invocations stay silent if everything matches.
+
+The check fires only once per skill invocation. State is in
+`.git/dia-active-skill`. Override mechanisms (per-commit `--no-verify`,
+per-project `dia.protected-branches`, trunk-based mode) are
+documented in team-workflow.md.
+
+## MANDATORY Phase 0: Artifact triage
+
+When this skill is invoked from `/coding` or another phase mid-cycle
+(rare), the receiving artifact category must be clear:
+
+1. **New FEATURE** (user-facing capability that did not exist before).
+2. **IMPROVEMENT (IMP)** on an existing feature.
+3. **FIX** for a bug on an existing feature.
+4. **ADR** when the work is an architecture decision.
+
+For greenfield BA sessions (the typical case), the categorization is
+implicit: the BA itself is the input that creates the first features.
+Triage applies when the BA is invoked from a later phase to validate
+or revise hypotheses.
+
+If the assignment cannot be derived from the prompt, the skill asks
+one short question before anything else (in the user's working
+language; the English wording below is a template):
+
+> "Is this a new feature, an improvement on an existing feature, or
+> a fix for a bug? If feature or IMP/FIX: which feature and which
+> epic?"
+
+Backlog rows for new findings are mandatory output. Status, phase,
+last-change, and claim live in the backlog row, not in the artifact
+frontmatter. Details:
+`skills/project-conventions/references/graph-invariants.md`,
+section "Artifact triage at entry point".
 
 
 You conduct a structured interview with the user to understand the business
@@ -77,7 +124,7 @@ artifacts that stay compact.
  sense that it carries *results, not process iterations* (no team-
  review markers, no discarded candidates, no session diaries), but
  it contains the full substance.
-- **Epic-BA** (Mini) at `{docs-root}/requirements/epics/EPIC-NNN-ba.md`,
+- **Epic-BA** (Mini) at `{docs-root}/requirements/epics/EPIC-{nn}-ba.md`,
  one per epic that needs BA depth. Max 80 lines. References the
  Project-BA, never duplicates it.
 - **Feature-BA** (rare) only when a feature activates a new persona,
@@ -176,9 +223,11 @@ Epic-BAs reference these IDs.
 
 If the Project-BA has grown beyond the One-Pager budget (for example
 from a reverse-engineering ingest of a legacy project), move the full
-document to `{docs-root}/analysis/archive/BA-{PROJECT}-v1-full.md` and
-compose a compact Project-BA that references the archive per section.
-The archive stays readable as the evidence trail.
+document to `_devprocess/analysis/BA-{PROJECT}-v{N}-full.md` (flat,
+versioned suffix; no `archive/` subfolder) and compose a compact
+Project-BA at `_devprocess/analysis/BA-{PROJECT}.md` that references
+the archive per section. The versioned file stays readable as the
+evidence trail.
 
 ## Process Overview
 
@@ -279,7 +328,7 @@ Based on what you find, pick the interview mode:
  frontmatter:
  ```yaml
  status: Validated
- validated-by: /business-analyse on {date}
+ validated-by: /business-analysis on {date}
  reverse-engineering-provenance: true
  ```
  Remove `needs-validation: true` and leave `created-by:
@@ -455,11 +504,11 @@ real users.
 
 **Trigger conditions:**
 
-- The user invokes `/business-analyse` with an existing BA document
+- The user invokes `/business-analysis` with an existing BA document
  that is at `Status: Validated` AND a release has happened since
  the validation timestamp, OR
 - The `/coding` skill wrote a post-release handoff entry in
- `_devprocess/context/30_handoffs.md` flagging the release as
+ `_devprocess/context/HANDOFFS.md` flagging the release as
  "Ready for BA Post-Release Review".
 
 **Process:**
@@ -467,7 +516,7 @@ real users.
 1. **Load evidence sources.** Read in order:
  - `_devprocess/analysis/BA-{PROJECT}.md` Section 7.3 (Critical
  Hypotheses)
- - `_devprocess/context/40_metrics.md` (if present) for the
+ - `_devprocess/context/METRICS.md` (if present) for the
  observed signals
  - Any additional user-provided evidence (support tickets, usage
  analytics, interview notes, retention data)
@@ -494,7 +543,7 @@ real users.
 
  Rows are never deleted. New evidence blocks append.
 
-4. **Propagate to 40_metrics.md.** Update the "BA hypothesis
+4. **Propagate to METRICS.md.** Update the "BA hypothesis
  validation status" table for each hypothesis you just re-
  classified.
 
@@ -577,7 +626,7 @@ Before handoff to the Requirements Engineer, these criteria must be met:
 ## Handoff Ritual (mandatory at end of phase)
 
 This skill always runs the following ritual at the end, regardless of how
-it was started (directly or via `/v-model-workflow`).
+it was started (directly or via `/dia-guide`).
 
 ### Part 1: Artifact report
 
@@ -590,7 +639,7 @@ Produced / updated:
 
 ### Part 2: Handoff context
 
-Append a new entry to `_devprocess/context/30_handoffs.md` with:
+Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 
 - **Scope**: Simple Test / PoC / MVP
 - **Personas**: list with primary persona marked
@@ -601,7 +650,43 @@ Append a new entry to `_devprocess/context/30_handoffs.md` with:
 - **Open questions**: research items that couldn't be answered and should
  be flagged to the user or deferred
 
-### Part 3: Transition question
+### Part 3: Run `/consistency-check` mode A
+
+Run `/consistency-check` mode A at the end of the skill phase, BEFORE
+the phase-end commit. Catches missing backlog rows for new Epics or
+Personas, broken `project-kpi-ref` links between Epic-BA and
+Project-BA, dead persona references, and dashboard count drift.
+Surface findings; the user decides whether to fix now or defer.
+
+### Part 4: Phase-end commit
+
+Run the phase-end commit per `skills/project-conventions/references/team-workflow.md`
+section "Phase-end commit (binding)". The block fires the binding
+branch-and-item check, stages every artefact this phase produced,
+commits with the canonical message, sets the phase tag, and opens a
+draft PR if one does not exist yet.
+
+Canonical commit message for BA:
+
+```
+chore(ba): <ITEM-ID> BA complete
+
+<one-line summary of HMW + scope>
+
+Refs: <ITEM-ID>
+```
+
+After the commit lands, run:
+
+```
+python3 tools/github-integration/flow.py tag-phase --item <ID> --phase ba
+```
+
+Skip the commit silently if the working tree has no changes; the
+guide's post-phase consistency check will surface the empty
+phase.
+
+### Part 5: Transition question
 
 Ask the user:
 
@@ -609,14 +694,14 @@ Ask the user:
 > - `_devprocess/analysis/BA-{PROJECT}.md`
 > - `_devprocess/analysis/EXPLORE-{PROJECT}.md` (if PoC/MVP)
 >
-> The next step in the V-Model is `/requirements-engineering`, which will
-> transform the BA into Epics, Features, and Success Criteria.
+> Recommended next: `/requirements-engineering` -- transforms the BA
+> into Epics, Features, and Success Criteria.
 >
 > Shall I start `/requirements-engineering` now, or would you like to
 > review the BA first?"
 
 **On agreement** ("yes" / "go" / "next") or when running inside
-`/v-model-workflow`:
+`/dia-guide`:
 -> Start `/requirements-engineering` and pass the handoff context
 
 **On rejection** ("no" / "stop" / "I want to check first"):

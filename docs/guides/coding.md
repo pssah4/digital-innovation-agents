@@ -1,64 +1,141 @@
 ---
 title: Coding
-description: The handoff skill that loads context, reviews critically, briefs the Default agent with five sub-phase patterns, and writes artifacts back continuously.
+description: The handoff skill that loads context, reviews critically, persists plans, briefs the Default agent, captures bugs, and writes artifacts back continuously.
 ---
 
 # Coding
 
 `/coding` is the most involved skill in the workflow. It does not
 write code itself. The Default agent in your coding tool does that.
-Instead, `/coding` acts as a briefing and review layer that structures
-how the Default agent approaches the task.
+Instead, `/coding` acts as a briefing and review layer that
+structures how the Default agent approaches the task.
 
-## Four phases
+## Two entry points
+
+`/coding` has two ways in:
+
+1. **Implementation entry.** A handed-off feature with a
+   `plan-context.md` and a clear backlog row. The four phases below
+   apply.
+2. **Bug-capture entry.** A reported bug outside an active
+   implementation. `/coding` captures the FIX artefact (FIX backlog
+   row, FIX detail file, branch) without forcing an immediate fix.
+   The fix gets scheduled like any other backlog item.
+
+Both entries share the same writeback discipline: backlog row first,
+artifact body second.
+
+## Four phases (implementation entry)
 
 ```
-Phase 1: Load context (plan-context.md, ADRs, Features, CLAUDE.md)
+Phase 1: Triage gate + load context (plan-context.md, ADRs, FEAT, CLAUDE.md, wayfinder)
 Phase 2: Critical review against the real codebase
-Phase 3: Implementation (delegated to Default agent with 5 sub-phases)
+Phase 3: Plan persistence (PLAN-NN) and implementation
 Phase 4: Completion. Verification gate, regression cycle, final sync.
 ```
 
-Phase 1, 2, and 4 are the v1 differentiators preserved from the
-classic workflow. Phase 3 is where v2 adds the five Default-agent
-briefing patterns.
+## Phase 1: Triage gate and load context
+
+### Phase 1a: Triage gate
+
+Before loading context, `/coding` confirms the artifact triage. Every
+inbound item is one of: FEAT, IMP, FIX, ADR. The triage gate routes:
+
+- A new capability that delivers user value -> FEAT
+- An improvement of an existing FEAT -> IMP
+- A bug in shipped code -> FIX
+- A pure architectural decision with no implementation handoff -> ADR
+
+If the inbound item is mistyped, `/coding` re-routes to the correct
+phase before loading context.
+
+### Phase 1b: Load context
+
+`/coding` loads the full context stack:
+
+- `plan-context.md` (architecture handoff)
+- All ADRs referenced by the FEAT
+- The FEAT spec itself
+- `src/ARCHITECTURE.map` (wayfinder root)
+- The relevant module READMEs under `src/{module}/README.md`
+- The project `CLAUDE.md`
+- `_devprocess/rules/{technical,design,domain}.md`
+- The current backlog row for the FEAT
+
+The wayfinder is loaded explicitly. It is the canonical answer to
+"where does X live in the code?".
 
 ## Phase 2: Critical review
 
-Before any code changes, `/coding` reconciles the design artifacts with
-the real codebase:
+Before any code changes, `/coding` reconciles the design artifacts
+with the real codebase:
 
 - Do the ADR proposals match the actual architecture?
 - Do existing patterns contradict the proposals?
 - Are the tech-stack assumptions in `plan-context.md` correct?
 - Are dependencies or constraints missing?
 - Are modules affected but not mentioned in the designs?
+- Does the wayfinder still match the code at the entry-points the
+  ADR references?
 
 Every divergence is written back into the source artifacts before
-implementation begins. ADRs get their status updated to
-`Accepted (modified by review)`. Feature Success Criteria are adjusted.
-New ADRs are created when the review reveals missing decisions.
+implementation begins:
+
+- ADR drift -> amend the ADR (substance), update the backlog row
+  (status, last-change), update the wayfinder if entry-points moved.
+- FEAT Success Criteria drift -> adjust the FEAT, update the
+  backlog row.
+- Missing decisions -> create a new ADR, link from the backlog.
 
 This is the moment where the V-Model turns from plan into reality.
+The drift count goes into `METRICS.md`.
 
-## Phase 3: Implementation (five sub-phase patterns)
+## Phase 3: Plan persistence and implementation
 
-Before handing off to the Default agent, `/coding` briefs it with five
-mandatory patterns:
+### Phase 3a: Plan persistence
 
-### Phase 3a: Task-breakdown guidelines
+Every non-trivial implementation is persisted as a
+`PLAN-{nn}-{slug}.md` file in `_devprocess/implementation/plans/`.
+The plan is added to the backlog as a row, and the plan id appears
+in the FEAT's `Refs` column.
+
+The plan file follows the standard structure:
+
+1. **Context**: diagnostic, not descriptive. Root-cause analysis.
+2. **Changes**: one subsection per file, BEFORE / AFTER code blocks.
+3. **File summary**: table (File | Change | Risk).
+4. **Not affected**: explicit list of unchanged files (blast radius).
+5. **Verification**: acceptance criteria, build always step 1.
+6. **Plan Coverage Gate**:
+   - **SC coverage**: which Success Criterion each plan step closes
+   - **ADR alignment**: which ADR each technical decision honours
+   - **Codebase anchoring**: every file referenced in the plan exists
+     in the repo or is named explicitly as new
+   - **Verify commands**: ready to run, not pseudocode
+
+Plans go through three states tracked in the backlog row: Draft (in
+review), Active (executing), Done (closed with commit SHA).
+
+For agents without a native planning mode, `/coding` writes the plan
+to disk first and only then begins editing code. For agents with a
+native planning mode (Claude Code's plan mode, Cursor's planner),
+the native plan is exported to `PLAN-NN` after approval.
+
+### Phase 3b: Task-breakdown guidelines
 
 The Default agent is told:
 
-- Split each task into bite-size steps (2-5 minutes each): write
-  failing test, verify it fails, write minimal code, verify it passes, commit
-- Every task has a file list (Create/Modify/Test with exact paths)
-- No placeholders: "TBD", "TODO", "implement later", "Similar to Task N"
-  are forbidden
+- Split each task into bite-size steps (2 to 5 minutes each): write
+  failing test, verify it fails, write minimal code, verify it
+  passes, commit.
+- Every task has a file list (Create / Modify / Test with exact
+  paths) anchored in the wayfinder.
+- No placeholders: "TBD", "TODO", "implement later", "Similar to
+  Task N" are forbidden.
 - Self-review after plan creation: spec coverage, placeholder scan,
-  type consistency
+  type consistency, wayfinder anchoring.
 
-### Phase 3b: TDD mode (optional)
+### Phase 3c: TDD mode (optional)
 
 Opt-in. When the user enables TDD, `/coding` hands this rule to the
 Default agent: "No production code without a failing test first."
@@ -67,24 +144,47 @@ RED, verify RED, GREEN, verify GREEN, REFACTOR.
 Exceptions (with user confirmation): throwaway prototypes, generated
 code, configuration files.
 
-### Phase 3c: Debugging protocol
+### Phase 3d: Debugging protocol
 
 If a bug appears during implementation, the Default agent follows a
 4-phase root-cause process:
 
-- **Phase A: Root Cause.** Read error, reproduce, check recent changes,
-  trace data flow backwards.
-- **Phase B: Pattern Analysis.** Find working examples, read reference
-  completely.
+- **Phase A: Root Cause.** Read error, reproduce, check recent
+  changes, trace data flow backwards.
+- **Phase B: Pattern Analysis.** Find working examples, read
+  reference completely.
 - **Phase C: Hypothesis.** One hypothesis, smallest possible change,
   one variable at a time.
 - **Phase D: Implementation.** Failing test, single fix, verify.
-- **Phase D.5: Architecture alarm.** After 3+ failed fix attempts, STOP.
-  This is not a bug, it is a wrong architecture. Discuss with the user.
+- **Phase D.5: Architecture alarm.** After 3+ failed fix attempts,
+  STOP. This is not a bug, it is a wrong architecture. Discuss
+  with the user.
 
-Every bug, even a trivial one, gets an entry in
-`_devprocess/context/20_bugs.md` with a `FIX-NN` ID, causal chain, and
-priority (P0/P1/P2).
+Every bug, even a trivial one, lands as a `FIX-{ee}-{ff}-{nn}` row
+in `BACKLOG.md` BEFORE any fix is written. The detail file at
+`_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`
+carries the causal chain (Problem, Root Cause, Chain of steps
+leading to the error). Priority is P0 (immediate), P1 (short-term),
+P2 (medium-term).
+
+### Phase 3e: Mid-course discoveries
+
+Three triggers can pause `/coding` and route work back to an earlier
+phase:
+
+- **Mid-course design discovery.** An ADR no longer matches reality.
+  Pause, amend or supersede the ADR, update arc42, the wayfinder,
+  and `plan-context.md`, then continue.
+- **Mid-course requirements discovery.** A FEAT spec has a gap.
+  Pause, route back to `/requirements-engineering` for a FEAT update.
+- **Mid-course capability discovery.** The implementation needs
+  something architecture never planned (a new library, a new
+  infrastructure component, a new pattern). Pause, capture the
+  capability gap as an ADR, route through `/architecture` to
+  integrate the decision.
+
+Each trigger follows the same 6-step pattern: STOP, triage, root
+cause, backlog, change with commit Refs, Final sync.
 
 ## Phase 4: Completion
 
@@ -100,58 +200,83 @@ Before declaring anything "done", the Default agent must:
 4. **Verify** the output matches the claim
 5. **Claim** the status only now, with the evidence
 
-Forbidden language without fresh verification: "should work", "probably
-okay", "tests should be green now".
+Forbidden language without fresh verification: "should work",
+"probably okay", "tests should be green now". See
+[Verification Gates](../concepts/verification-gates) for the
+complete forbidden list.
 
-This is the most important pattern from v2. It addresses the "done
-hallucination" failure mode that plagues AI coding sessions.
+### Phase 4b: Regression test cycle (for every bug fix)
 
-### Phase 4b: Regression test cycle
+1. Write the regression test reproducing the bug.
+2. **Run 1**: test MUST pass (fix is in).
+3. Revert the fix temporarily.
+4. **Run 2**: test MUST fail (proves it catches the bug).
+5. Restore the fix.
+6. **Run 3**: test MUST pass again.
 
-For every bug fix:
+The FIX detail file at
+`_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`
+gets a `## Regression test` section: "Regression test verified via
+red-green cycle on {date}". The commit SHA goes into the backlog row.
 
-1. Write the regression test reproducing the bug
-2. **Run 1**: test MUST pass (fix is in)
-3. Revert the fix temporarily
-4. **Run 2**: test MUST fail (proves it catches the bug)
-5. Restore the fix
-6. **Run 3**: test MUST pass again
+### Phase 4c: Final synchronization
 
-The bug log in `20_bugs.md` gets a note: "Regression test verified via
-red-green cycle on {date}".
+After implementation is verified, `/coding` updates in this order
+(state first, substance second):
 
-### Final synchronization
+1. **Backlog row** (Status -> Done, phase -> code, last-change,
+   commit SHA, claim cleared).
+2. **Wayfinder** (`src/ARCHITECTURE.map` row updated, JSDoc /
+   docstring header in entry-point file refreshed, module README
+   updated).
+3. **FEAT spec** (substance only: Success Criteria verified,
+   optional `## Code Pointer` appendix that references concept
+   names, not file paths).
+4. **ADRs** (`## Implementation Notes` appendix updated; status
+   lives in the backlog row).
+5. **PLAN-NN row** (Status -> Done, change log filled in).
+6. **FIX detail files** (regression test reference, all FIX backlog
+   rows updated with commit SHAs).
+7. **`plan-context.md`, `arc42.md`, `memory/MEMORY.md`** (when
+   applicable).
+8. **`METRICS.md`** (cycle time per FEAT, drift count appended).
 
-After implementation is verified, `/coding` updates:
-
-- Feature specs (Status -> "Implemented", How-It-Works section, SC verified)
-- ADRs (all statuses finalized, Implementation Notes added)
-- Backlog (new findings, deferred items)
-- Bug log (all FIX-NN entries updated with commit SHAs)
-- plan-context.md, arc42, memory/MEMORY.md (when applicable)
-
-The result: documentation reflects the actual state, not the original plan.
+The result: documentation reflects the actual state, not the
+original plan, with state in the backlog and substance in the
+detail artifacts.
 
 ## Living Documents
 
-This continuous writeback is the Living Documents pattern. Artifacts are
-never frozen after Phase 3. They evolve with the code. See
-[Living Documents](../concepts/living-documents) for the full pattern.
+This continuous writeback is the Living Documents pattern.
+Artifacts are never frozen after Phase 3. They evolve with the
+code. State changes always go through the backlog row first. See
+[Living Documents](../concepts/living-documents) and the
+[Three-layer documentation model](../concepts/three-layer-documentation)
+for the full pattern.
 
 ## Handoff
 
-`/coding` ends with the 3-part Handoff Ritual (Artifact report, Handoff
-context in `30_handoffs.md` with references to FIX-NN bugs, Transition
-question for `/testing`).
+`/coding` ends with the 4-part [Handoff Ritual](../concepts/handoff-rituals):
+artifact report, handoff context in `HANDOFFS.md` with references
+to the new FIX rows and PLAN ids, phase-end commit
+(`feat(code): {ITEM-ID} implementation complete`) plus
+`tag-phase --phase code`, transition question for `/testing`.
+The guide runs `/consistency-check` Mode A on the changed
+artifacts at the boundary.
 
 ## Read the skill file
 
-Want to see the exact instructions the agent follows? The skill file
-is [`skills/coding/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/coding/SKILL.md)
+Want to see the exact instructions the agent follows? The skill
+file is [`skills/coding/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/coding/SKILL.md)
 on GitHub.
 
 ## What's next
 
-- [Testing guide](./testing), the next phase with the role-alongside-TDD section
-- [Living Documents concept](../concepts/living-documents), the writeback pattern
-- [Verification Gates concept](../concepts/verification-gates), why evidence matters
+- [Testing guide](./testing), the next phase with the
+  role-alongside-TDD section
+- [Living Documents concept](../concepts/living-documents), the
+  writeback pattern
+- [Three-layer documentation model](../concepts/three-layer-documentation),
+  why backlog row first
+- [Verification Gates concept](../concepts/verification-gates), why
+  evidence matters

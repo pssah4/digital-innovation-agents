@@ -12,12 +12,12 @@
 
 > How long each FEATURE spent from `Status: Planned` to
 > `Status: Implemented`. Derived from commit timestamps using the
-> `Refs: FEATURE-NNNN` cite. The `/coding` skill updates this during
+> `Refs: FEAT-NN-NN` cite. The `/coding` skill updates this during
 > its Final synchronization block.
 
 | FEATURE | Started | Completed | Cycle time | Scope | Notes |
 |---|---|---|---|---|---|
-| FEATURE-001-001 | 2026-04-19 | 2026-04-20 | 1d 3h | PoC | Signal-Layer itself |
+| FEAT-01-01 | 2026-04-19 | 2026-04-20 | 1d 3h | PoC | Signal-Layer itself |
 
 ## Drift count (plan-context.md vs. real code)
 
@@ -33,7 +33,7 @@
 ## BA hypothesis validation status
 
 > Status per Critical Hypothesis from `_devprocess/analysis/BA-{PROJECT}.md`
-> Section 7.3. The `/business-analyse` skill updates this after
+> Section 7.3. The `/business-analysis` skill updates this after
 > Phase 8 (Post-Release Review) or during any re-validation session.
 > Status values: `Validated` (by reasoning), `Confirmed by usage`,
 > `Contradicted by usage`, `Inconclusive`.
@@ -46,9 +46,8 @@
 
 > Number of times each phase handoff fired. Useful to see whether the
 > workflow is actually being followed or whether people jump straight
-> to coding. The `/v-model-workflow` orchestrator updates this after
-> every orchestrated transition. Skills invoked standalone update this
-> during their own Handoff Ritual.
+> to coding. Phase skills update this row themselves during their
+> Handoff Ritual; `/dia-guide` only reads it.
 
 | Transition | Count | Last fired |
 |---|---|---|
@@ -83,7 +82,7 @@
 - **Rising drift count** means ADRs and plan-context are falling
   behind the code. Trigger a reconciliation run.
 - **Hypothesis status stuck at Validated forever** means no
-  post-release review happened. Invoke `/business-analyse` Post-Release
+  post-release review happened. Invoke `/business-analysis` Post-Release
   Review.
 - **Phase transitions all zero on a feature that got built** means
   the workflow got skipped. The backlog entry should record why.

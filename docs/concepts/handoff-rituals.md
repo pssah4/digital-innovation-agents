@@ -1,15 +1,15 @@
 ---
 title: Handoff Rituals
-description: The mandatory 3-part ritual every phase skill runs at the end to ensure structured phase transitions.
+description: The mandatory 4-part ritual every phase skill runs at the end to ensure structured phase transitions.
 ---
 
 # Handoff Rituals
 
-Every V-Model phase skill runs a 3-part Handoff Ritual at the end of
+Every V-Model phase skill runs a 4-part Handoff Ritual at the end of
 its phase. This is the mechanism that keeps phase transitions
 structured without introducing heavy gates or approval bureaucracy.
 
-## The three parts
+## The four parts
 
 ### Part 1: Artifact report
 
@@ -27,7 +27,7 @@ of what was done.
 
 ### Part 2: Handoff context
 
-The skill appends a new entry to `_devprocess/context/30_handoffs.md`
+The skill appends a new entry to `_devprocess/context/HANDOFFS.md`
 with content that is not obvious from the artifacts alone:
 
 - Open decisions that were deferred
@@ -35,10 +35,10 @@ with content that is not obvious from the artifacts alone:
 - Risks or concerns worth flagging
 - Dependencies on other phases or external systems
 
-Example entry in `30_handoffs.md`:
+Example entry in `HANDOFFS.md`:
 
 ```markdown
-## 2026-04-14 14:30, business-analyse -> requirements-engineering
+## 2026-04-14 14:30, business-analysis -> requirements-engineering
 
 **Scope:** PoC
 
@@ -57,7 +57,28 @@ Example entry in `30_handoffs.md`:
 
 The next phase skill reads this entry to pick up context.
 
-### Part 3: Transition question
+### Part 3: Phase-end commit and tag
+
+Every phase ends with a canonical commit and a phase-done tag:
+
+```bash
+git add -A
+git commit -m "chore(ba): EPIC-01 BA complete
+
+Refs: EPIC-01
+
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>"
+
+python tools/github-integration/flow.py tag-phase --phase ba
+```
+
+The commit type matches the phase (`chore(ba)`, `feat(re)`,
+`chore(arch)`, `feat(code)`, `test`, `chore(sec)`). The
+`tag-phase` call attaches a `<ITEM-ID>/<phase>-done` tag, for
+example `EPIC-01/ba-done`. Phase-done tags are how the guide
+detects that a phase has completed for an item.
+
+### Part 4: Transition question
 
 The skill asks the user an explicit question:
 
@@ -68,18 +89,18 @@ The skill asks the user an explicit question:
 > review the BA first?"
 
 **On agreement** ("yes", "go", "next") or when running inside
-`/v-model-workflow`: the orchestrator launches the next skill and
+`/dia-guide`: the guide launches the next skill and
 passes the handoff context.
 
 **On rejection** ("no", "stop", "I want to check first"): the skill
 pauses and waits. The workflow state is preserved in `_devprocess/`
 so the user can resume later.
 
-## Why 3 parts, not a gate?
+## Why 4 parts, not a gate?
 
 A gate is a pass/fail mechanism that blocks progress. Gates sound
 good in theory but duplicate the quality checks already inside each
-skill. For example, `/business-analyse` already runs quality gates on
+skill. For example, `/business-analysis` already runs quality gates on
 its Exploration Board before handoff. An extra outer gate adds
 bureaucracy without adding rigor.
 
@@ -88,10 +109,15 @@ of context. The ritual ensures:
 
 - Nothing is lost between phases (artifact report)
 - The next phase knows what is important and what is unknown (handoff context)
+- The phase boundary is detectable from git history alone (phase-end commit and tag)
 - The user is in control at every transition (explicit question)
 
 It is verbose enough to be structured, but lightweight enough not to
 slow the workflow down.
+
+After every ritual, the guide runs `/consistency-check` Mode A
+on the changed artifacts. Drift caught at the boundary is cheap. Drift
+discovered three phases later is expensive.
 
 ## Dialog handoffs, not blockers
 
@@ -114,9 +140,9 @@ the conversation transcript, and the next session reads it on start.
 The seed format for both documents lives in
 [`skills/requirements-engineering/templates/ARCHITECT-HANDOFF-TEMPLATE.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/requirements-engineering/templates/ARCHITECT-HANDOFF-TEMPLATE.md).
 
-## The `30_handoffs.md` log
+## The `HANDOFFS.md` log
 
-`_devprocess/context/30_handoffs.md` is an append-only log of every
+`_devprocess/context/HANDOFFS.md` is an append-only log of every
 phase transition in the project. Each entry has:
 
 - Timestamp and phase transition (for example, `architecture -> coding`)
@@ -127,19 +153,19 @@ The log is never rewritten or cleaned up. It is a historical record.
 The next phase skill reads the latest entry. Older entries stay for
 audit and "how did we get here?" investigations.
 
-## Integration with the orchestrator
+## Integration with the guide
 
-When `/v-model-workflow` runs, the orchestrator reads the handoff
+When `/dia-guide` runs, the guide reads the handoff
 context after each ritual and uses it as input for the next phase.
-When a skill runs directly (without the orchestrator), the ritual
-still runs, and the next skill finds the context in `30_handoffs.md`
+When a skill runs directly (without the guide), the ritual
+still runs, and the next skill finds the context in `HANDOFFS.md`
 when it is eventually invoked.
 
 Both paths end up with the same artifacts and the same traceability.
 
 ## Rules for skills
 
-Every phase skill (`/business-analyse`, `/requirements-engineering`,
+Every phase skill (`/business-analysis`, `/requirements-engineering`,
 `/architecture`, `/coding`, `/testing`, `/security-audit`) implements
 this ritual at the end. The ritual is mandatory. The skill does not
 consider itself complete until the ritual has run.
@@ -149,6 +175,6 @@ This is documented in `skills/<skill>/SKILL.md` under a section titled
 
 ## See also
 
-- [V-Model workflow guide](../guides/v-model-workflow): the orchestrator
-- [Artifacts reference](../reference/artifacts): including `30_handoffs.md`
+- [V-Model workflow guide](../guides/dia-guide): the guide
+- [Artifacts reference](../reference/artifacts): including `HANDOFFS.md`
 - [V-Model concept](./v-model): the cycle the rituals serve

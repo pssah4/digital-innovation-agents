@@ -14,58 +14,156 @@ disable-model-invocation: false
 
 # Architect
 
-## MANDATORY Phase 0: Artefakt-Triage (2026-04-21)
+## MANDATORY Pre-Phase 0: Branch and item check
 
-Vor jeder Code-, Doku- oder Spezifikations-Aenderung muss der Skill
-feststellen, in welche Artefakt-Kategorie die Arbeit faellt:
+Architecture work writes ADRs, arc42 sections, and plan-context for
+a specific backlog item. Run the team-workflow check (full rules:
+`skills/project-conventions/references/team-workflow.md`):
 
-1. **Neues FEATURE** (user-facing Capability, die es vorher nicht gab).
-2. **IMPROVEMENT (IMP)** an bestehendem Feature (Refactor, Performance,
-   Doku-Drift, Tests, Konfig).
-3. **FIX** fuer einen Bug oder eine Drift auf bestehendem Feature.
-4. **ADR** wenn die Arbeit eine Architektur-Entscheidung ist.
+1. Identify the active item from the prompt or via AskUserQuestion.
+2. Verify the branch matches `feature/<item-id-lower>-<slug>`. On a
+   wrong branch, AskUserQuestion to switch.
+3. Skill-triggered GitHub integration:
 
-**Regel:** Wenn die Zuordnung aus dem User-Prompt nicht eindeutig
-ableitbar ist, stellt der Skill vor allem anderen eine praegnante
-Frage:
+   ```
+   python3 tools/github-integration/flow.py create-issue --item <ID>
+   python3 tools/github-integration/flow.py open-draft-pr --item <ID>
+   ```
 
-> "Ist das ein neues Feature, ein Improvement an einem bestehenden
-> Feature, oder ein Fix fuer einen Bug? Falls Feature oder IMP/FIX:
-> welches Feature und welches Epic?"
+4. At Handoff Ritual end, tag the phase:
 
-Keine Code- oder Spec-Aenderung ohne diese Zuordnung. FIX und IMP
-verlangen zwingend `feature:` und `epic:` im Frontmatter
-(Invarianten N-13, N-14). Details zum Entscheidungsbaum und den
-Ausnahmen stehen in
+   ```
+   python3 tools/github-integration/flow.py tag-phase --item <ID> --phase arch
+   ```
+
+5. Write `.git/dia-active-skill` so subsequent invocations stay silent.
+
+## MANDATORY Phase 0: Artifact triage
+
+Before any code, doc, or spec change, the skill determines which
+artifact category the work falls into:
+
+1. **New FEATURE** (user-facing capability that did not exist before).
+2. **IMPROVEMENT (IMP)** on an existing feature (refactor, performance,
+   doc drift, tests, config).
+3. **FIX** for a bug or drift on an existing feature.
+4. **ADR** when the work is an architecture decision.
+
+**Rule:** if the assignment cannot be derived unambiguously from the
+user prompt, the skill asks one short question before anything else
+(in the user's working language; the English wording below is a
+template):
+
+> "Is this a new feature, an improvement on an existing feature, or
+> a fix for a bug? If feature or IMP/FIX: which feature and which
+> epic?"
+
+No code or spec change without this assignment. FIX and IMP require
+`feature:` and `epic:` in the frontmatter. Details on the decision
+tree and exceptions live in
 `skills/project-conventions/references/graph-invariants.md`
-(Abschnitt "Artefakt-Triage am Einstiegspunkt").
+(section "Artifact triage at entry point").
 
 
-## MANDATORY: Phase and status in frontmatter + backlog sync (no asking)
+## MANDATORY: Backlog as single source of truth (no asking)
 
-Whenever this skill creates or modifies a Feature, Epic, or ADR, the
-YAML-frontmatter of the artifact MUST carry `phase:` (Feature, Epic,
-ADR) and `status:` (Feature, ADR). The backlog row of the artifact
-MUST stay in sync with that frontmatter. No confirmation dialog, no
-opt-in, no nudging the user. Execute immediately.
+Whenever this skill creates or modifies a Feature, Epic, ADR, FIX,
+IMP, or PLAN, it writes the backlog row in
+`_devprocess/context/BACKLOG.md` BEFORE touching the artifact
+body. Status, phase, last-change, claim, and Refs live in the
+backlog row, not in the artifact frontmatter.
 
-**Defaults when you have no better value:**
+**Defaults when no better value exists:**
 
-- Feature: `phase: Building`, `status: Planned`
-- Epic: `phase: Building` (derive via worst-wins once features exist)
-- ADR: `phase: Building`, `status: Proposed`
+- Feature: status Planned, phase Building
+- Epic: phase Building (derived via worst-wins once features exist)
+- ADR: status Proposed, phase Building
+- PLAN: status Draft, phase Building
 
-**Sync chain on every phase/status change:**
+**Sync chain on every status or phase change:**
 
-1. Update frontmatter of the artifact
-2. Update the artifact's row in `docs/context/10_backlog.md`
-3. If epic phase changed, update the epic header `Phase: X` line in
- the backlog and the epic file frontmatter
-4. Recompute the dashboard counts (Phase x Epics/Features/Chores)
+1. Update the backlog row (status, phase, claim, last-change, refs)
+2. Update the artifact body with the substance change
+3. Record commit SHA in the backlog row after the commit lands
+4. Recompute the dashboard counts at the bottom of the backlog
 5. Run `/consistency-check` mode A at the end of the skill phase
 
-Full rules and enum values: `skills/project-conventions/references/graph-invariants.md`,
-section "Phase/Status-Frontmatter-Konvention".
+Full rules and enum values:
+`skills/project-conventions/references/graph-invariants.md`,
+section "Backlog row format".
+
+
+## MANDATORY: Wayfinder maintenance (binding for every architecture decision)
+
+Every architecture decision touches the wayfinder layer. The skill is
+responsible for keeping `src/ARCHITECTURE.map` and the JSDoc headers
+of entry-point files current.
+
+- New concept introduced by an ADR -> add a row to
+  `src/ARCHITECTURE.map` with `concept | entry-point | ADR-{nn} | how-to-extend`.
+  Template: `templates/ARCHITECTURE-MAP-TEMPLATE.md`.
+- New module created -> write a `README.md` at the module root.
+  Template: `templates/MODULE-README-TEMPLATE.md`.
+- New entry-point file -> /coding writes the JSDoc header during
+  implementation; the architect notes the expected entry-point in
+  the ADR's Implementation Notes appendix.
+  Template: `templates/JSDOC-HEADER-TEMPLATE.md`.
+
+The wayfinder is the only place where current code paths live. ADRs
+that mention paths in their core sections (Context, Decision, Consequences)
+violate the abstraction rule and get flagged by /consistency-check.
+
+## MANDATORY: ADR abstraction rule
+
+The Context, Decision Drivers, Considered Options, Decision, and
+Consequences sections of every ADR are written WITHOUT current code
+paths, file names, line numbers, or method signatures. Code-level
+hints belong in the optional `## Implementation Notes` appendix at
+the bottom, which is explicitly allowed to go stale.
+
+Rationale: the audit of one V-Model project (2026-04-29) found that
+ADRs with concrete paths in the decision body had a measurable drift
+rate after refactoring (e.g. ADR-13 referenced
+`SessionExtractor.ts` and `LongTermExtractor.ts` long after both
+files were removed). Abstract decision text does not age with code.
+
+## MANDATORY: ADR consolidation duty
+
+When proposing a new ADR, the skill first checks whether an existing
+ADR can be merged or extended. ADR inflation is a warning signal: a
+project with 89 ADRs is harder to navigate than one with 30 thematic
+ADRs covering the same decisions.
+
+Heuristics for consolidation:
+
+- Two ADRs cover overlapping topics -> merge into one, supersede the
+  redundant one
+- A new ADR amends an existing decision -> amend the existing ADR
+  with a dated note in Consequences, do not write a new one
+- A new ADR documents a tactical detail that fits inside another
+  ADR's scope -> add a sub-section to the parent ADR
+
+The Handoff Ritual reports the consolidation moves explicitly so a
+later reviewer can audit the decision count.
+
+## MANDATORY: Rule-set maintenance
+
+The architect is the owner of `_devprocess/rules/`:
+`technical.md` (max 150 lines), `design.md` (max 100 lines, only if
+UI), `domain.md` (max 100 lines). Hard cap: 500 lines total across
+the rule sets.
+
+- New stable convention -> add to the right rule file
+- Existing rule contradicts current code -> update the rule file
+- Rule grows beyond its line cap -> compress, push detail into a
+  module README, or convert to a linter rule / type constraint /
+  test
+
+Templates:
+
+- `templates/RULES-TECHNICAL-TEMPLATE.md`
+- `templates/RULES-DESIGN-TEMPLATE.md`
+- `templates/RULES-DOMAIN-TEMPLATE.md`
 
 
 You transform requirements into architecture PROPOSALS and prepare the
@@ -75,86 +173,88 @@ context for Claude Code.
 **Output:** ADR proposals + arc42 draft + plan-context.md
 
 
-## MANDATORY: FIX/IMP statt Chores, depends-on als Graph-Kante (2026-04-21)
+## MANDATORY: FIX/IMP, depends-on as a graph edge
 
-**Chore-Begriff und FIX/IMP-Knoten entfallen.** Jede Arbeit ausserhalb
-eines Features ist entweder:
+**Chores are not a separate node type.** Every piece of work outside
+of a Feature is either:
 
-- **FIX-NNN** (Bug-/Issue-Followup) unter
- `docs/context/fixes/FIX-{NNN}-{slug}.md`
-- **IMPROVEMENT / IMP-NNN** (technische oder andersartige Aenderung, die
- kein eigenes Feature ist) unter
- `docs/context/improvements/IMP-{NNN}-{slug}.md`
+- **FIX-{ee}-{ff}-{nn}** (bug or issue follow-up) at
+  `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`
+- **IMPROVEMENT / IMP-{ee}-{ff}-{nn}** (technical or other change that is not a
+  feature) at
+  `_devprocess/requirements/improvements/IMP-{ee}-{ff}-{nn}-{slug}.md`
 
-**Pflicht-Frontmatter fuer FIX und IMP:**
+**Required frontmatter for FIX and IMP:**
 
 ```yaml
-feature: FEATURE-NNN # Pflicht: zu welchem Feature gehoert das?
-epic: EPIC-NNN # Pflicht: in welchem Epic lebt das?
-phase: Released|Building|Planned|Candidates
-status: Planned|Active|Done|Waiting|Deferred
-depends-on: [FEATURE-..., ADR-..., FIX-..., IMP-...] # optional
+id: FIX-{ee}-{ff}-{nn}
+feature: FEAT-{ee}-{ff}    # mandatory
+epic: EPIC-{nn}                    # mandatory
+adr-refs: []
+plan-refs: []
+depends-on: []
+created: {YYYY-MM-DD}
 ```
 
-FIX und IMP ohne `feature:` und `epic:` sind invalid
-(Invarianten N-13, N-14).
+FIX and IMP without `feature:` and `epic:` are invalid. Status,
+phase, last-change, and claim live in the backlog row, not in the
+frontmatter.
 
-**Abhaengigkeiten (depends-on):** Jedes Artefakt (Epic, Feature, ADR,
-FIX, IMP) darf im Frontmatter `depends-on: [ID, ID, ...]` fuehren. Der
-resultierende Graph ist azyklisch (E-11). Zielen mit IDs auf existierende
-Artefakte (E-10). Details: graph-invariants.md Abschnitt
-"Abhaengigkeiten und Implementierungsreihenfolge".
+**Dependencies (depends-on):** every artifact (Epic, Feature, ADR,
+FIX, IMP, PLAN) MAY carry `depends-on: [ID, ID, ...]` in the
+frontmatter. The resulting graph is acyclic. Targets must be
+existing artifact IDs. Details: graph-invariants.md section
+"Dependencies and implementation order".
 
-## MANDATORY: Lesbare deutsche Epic-Statements und HMW
+## MANDATORY: Hypothesis statements as full prose
 
-Epic-Hypothesis-Statements werden als **ganze deutsche Saetze**
-formuliert. Keine eingestreuten Template-Platzhalter wie `FOR`, `WHO`,
-`THE`, `IS A`, `THAT`, `UNLIKE`, `OUR SOLUTION`. Der Kern bleibt
-(Persona / Problem / Loesung / Differenzierung), aber als lesbarer
-Prosa-Absatz.
+Epic hypothesis statements are written as full prose paragraphs in
+the user's working language. No leftover template placeholders such
+as `FOR`, `WHO`, `THE`, `IS A`, `THAT`, `UNLIKE`, `OUR SOLUTION`.
+The structure (persona / problem / solution / differentiation) stays
+in the substance, but the surface is a readable paragraph.
 
-**Alt (Template-Rest, nicht mehr erlaubt):**
+How-Might-We headings follow the same rule: full sentences, not
+template placeholders.
 
-> FOR **Enterprise-Entwicklungsteams (P1)**
-> WHO **mit driftenden Artefakten arbeiten** ...
+## MANDATORY: Writing style and humanizer rules
 
-**Neu (deutscher Satz):**
+All artifacts produced by this skill follow the rules in
+`skills/project-conventions/SKILL.md` under "Writing style for every
+artifact". Zero em dashes (U+2014, U+2013, double-hyphen substitute).
+No AI vocabulary words (landscape, nuanced, delve, leverage, crucial,
+robust, seamless, holistic, foster, ensuring, highlighting,
+underscoring). No negative parallelisms ("not X but Y"). Active
+voice by default. Sentence case in headings. No rule-of-three padding.
+Before saving, scan the artifact for the forbidden vocabulary and
+fix any hit.
 
-> Fuer Enterprise-Entwicklungsteams, die mit driftenden Artefakten
-> zwischen Code, Wiki, Backlog und Roadmap arbeiten, liefert dieses
-> Epic ein Capability-Bundle aus Cross-Artifact-Lesen, Rollen-
-> Uebersetzung, Content-Creation und Forward-Inferenz. Es unterscheidet
-> sich von Cursor oder Claude Code dadurch, dass die Richtung Code-zu-
-> Fachsprache ist, nicht umgekehrt.
-
-HMW-Ueberschriften und HMW-Fragen werden ebenfalls durchgehend auf
-Deutsch formuliert ("Wie koennen wir ..." statt "How might we ...").
-
-## MANDATORY: Umlaute und /humanizer
-
-- Alle vom Skill erzeugten Dokumente verwenden korrekte deutsche
- Umlaute: `ae -> ae`, `oe -> oe`, `ue -> ue`, `ss -> ss` bzw.
- `ae/oe/ue/ss` nicht zulaessig, stattdessen `ä/ö/ü/ß`.
-- /humanizer-Regeln werden IMMER angewendet: keine Em-Dashes, keine
- AI-Vokabular-Woerter (landscape, nuanced, delve, leverage, crucial,
- robust, seamless, holistic, foster, ensuring, highlighting,
- underscoring, etc.), keine negativen Parallelismen, aktive Stimme,
- keine Rule-of-Three-Paddings.
+For German artifacts: proper umlauts (ä, ö, ü, ß), not the
+ae/oe/ue/ss substitutes.
 
 
 ## What you create
 
-- **ADRs** in `_devprocess/architecture/ADR-{XXX}-{slug}.md`
+- **ADRs** in `_devprocess/architecture/ADR-{nn}-{slug}.md`
 - **arc42** in `_devprocess/architecture/arc42.md`
 - **plan-context.md** in `_devprocess/requirements/handoff/plan-context.md`
+- **`_devprocess/rules/`** files (technical.md, design.md if UI,
+  domain.md), seeded from the rule-set templates
+- **`src/ARCHITECTURE.map`** wayfinder rows for every new concept the
+  ADR introduces
+- Optional: **module READMEs** for new modules
+  (`src/{module}/README.md`)
 
-Templates are in `templates/` in this skill directory.
+Backlog rows for every new ADR (status Proposed, phase Building) are
+written before the ADR body.
+
+Templates live under `templates/` in this skill directory.
 
 **Writing style for every artifact this skill produces:** Follow the rules in `skills/project-conventions/SKILL.md` under "Writing style for every artifact". Zero em dashes of any form. No Unicode em dash (U+2014), no en dash (U+2013), no double-hyphen substitute. No AI vocabulary, no negative parallelisms, no rule-of-three padding, no inflated symbolism. Every ADR Context, Decision Drivers, Option pros and cons, Decision justification, Consequences, every arc42 section, and every plan-context entry is written in that style. Before you save an artifact, scan it for U+2014 and U+2013 and fix any hit.
 
 ## What you do NOT create
 
-- Business Requirements (done by `/business-analyse`)
+- Business Requirements (done by `/business-analysis`)
 - User Stories (done by `/requirements-engineering`)
 - Issues/Tasks (done by Claude Code in Plan Mode)
 - Code (done by Claude Code)
@@ -215,8 +315,8 @@ session.
 Create one ADR per Critical ASR.
 Read `templates/ADR-TEMPLATE.md` for the format.
 
-Filename convention: `ADR-{XXX}-{slug}.md` (3-digit, kebab-case)
-- Correct: `ADR-001-backend-framework-selection.md`
+Filename convention: `ADR-{nn}-{slug}.md` (2-digit, kebab-case)
+- Correct: `ADR-01-backend-framework-selection.md`
 - Wrong: `ADR-1-framework.md`, `adr-001.md`
 
 Every ADR MUST contain:
@@ -274,8 +374,8 @@ around the gap:
 3. Write a requirements-review entry in _devprocess/analysis/
  REQ-REVIEW-{date}.md (3-10 lines: which FEATURE, what is
  missing or impossible, what is needed from the RE phase)
-4. Add a backlog entry to _devprocess/context/10_backlog.md
- tagged Epic + FEATURE-NNNN that the RE phase needs to address
+4. Add a backlog entry to _devprocess/context/BACKLOG.md
+ tagged Epic + FEAT-NN-NN that the RE phase needs to address
 5. Decide: block the whole architecture phase, or route just
  the affected FEATURE back. Default is local routing:
  the other ADRs continue, the affected one waits.
@@ -283,7 +383,7 @@ around the gap:
  /requirements-engineering now or defer to the next cycle.
  Commit message for the architecture work that does continue
  cites the blocked FEATURE as a dependency
- (e.g. `Refs: ADR-007, blocked-by FEATURE-0412`)
+ (e.g. `Refs: ADR-07, blocked-by FEAT-04-12`)
 ```
 
 Why this matters: an ADR that designs around a faulty FEATURE spec
@@ -298,7 +398,7 @@ surfaces at test time or in production.
 Every Critical ASR MUST have an ADR. Check:
 
 ```
-ASR: Response Time < 200ms -> ADR-003: Caching Strategy (OK)
+ASR: Response Time < 200ms -> ADR-03: Caching Strategy (OK)
 ASR: 10,000 concurrent users -> ??? (MISSING!)
 ```
 
@@ -343,7 +443,7 @@ plan-context.md MUST be consistent with the ADRs:
 ## Handoff Ritual (mandatory at end of phase)
 
 This skill always runs the following ritual at the end, regardless of how
-it was started (directly or via `/v-model-workflow`).
+it was started (directly or via `/dia-guide`).
 
 ### Part 1: Artifact report
 
@@ -356,7 +456,7 @@ Produced / updated:
 
 ### Part 2: Handoff context
 
-Append a new entry to `_devprocess/context/30_handoffs.md` with:
+Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 
 - **Tech stack justification**: why this combination was chosen
 - **Rejected alternatives**: options considered but not picked (so they
@@ -367,7 +467,34 @@ Append a new entry to `_devprocess/context/30_handoffs.md` with:
  depend on the real codebase state
 - **Consistency check**: confirmation that plan-context.md matches all ADRs
 
-### Part 3: Transition question
+### Part 3: Phase-end commit
+
+Run the phase-end commit per `skills/project-conventions/references/team-workflow.md`
+section "Phase-end commit (binding)". The block fires the binding
+branch-and-item check, stages every artefact this phase produced
+(ADRs, arc42, plan-context.md, BACKLOG row updates), commits with the
+canonical message, sets the phase tag, and opens a draft PR if one
+does not exist yet.
+
+Canonical commit message for ARCH:
+
+```
+chore(arch): <ITEM-ID> ARCH complete
+
+<one-line summary: N ADRs, arc42 sections X.Y, plan-context tech-stack>
+
+Refs: <ITEM-ID>[, ADR-NN, ADR-NN]
+```
+
+After the commit lands, run:
+
+```
+python3 tools/github-integration/flow.py tag-phase --item <ID> --phase arch
+```
+
+Skip the commit silently if the working tree has no changes.
+
+### Part 4: Transition question
 
 Ask the user:
 
@@ -376,7 +503,7 @@ Ask the user:
 > - arc42: `_devprocess/architecture/arc42.md`
 > - plan-context.md: `_devprocess/requirements/handoff/plan-context.md`
 >
-> The next step in the V-Model is `/coding`, which will:
+> Recommended next: `/coding` -- which will:
 > 1. Load plan-context.md + all ADRs + Features
 > 2. Critically review against the real codebase
 > 3. Write changes back to artifacts
@@ -390,7 +517,7 @@ Ask the user:
 > first?"
 
 **On agreement** ("yes" / "go" / "next") or when running inside
-`/v-model-workflow`:
+`/dia-guide`:
 -> Start `/coding` and pass the handoff context
 
 **On rejection** ("no" / "stop" / "I want to check first"):
@@ -400,7 +527,7 @@ Ask the user:
 
 This skill follows the conventions from `/project-conventions`.
 Ensure `_devprocess/architecture/` exists.
-Filenames: `ADR-{XXX}-{slug}.md` (3-digit, kebab-case).
+Filenames: `ADR-{nn}-{slug}.md` (2-digit, kebab-case).
 
 ## Keywords
 Architecture, ADR, arc42, Architecture Decision, Tech Stack, Solution Design,

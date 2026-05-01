@@ -24,8 +24,8 @@
 
 | ID | Source FEATURE | Classification | Constraint | Notes |
 |---|---|---|---|---|
-| ASR-001 | FEATURE-001-002 | Critical | {constraint} | {note} |
-| ASR-002 | FEATURE-001-003 | Moderate | {constraint} | |
+| ASR-001 | FEAT-01-02 | Critical | {constraint} | {note} |
+| ASR-002 | FEAT-01-03 | Moderate | {constraint} | |
 
 ## 3. Non-Functional Requirements summary
 
@@ -33,9 +33,9 @@
 
 | Category | Target | Source FEATUREs |
 |---|---|---|
-| Performance (response time p95) | {ms} | FEATURE-001-001, 001-002 |
-| Availability | {uptime %} | FEATURE-001-003 |
-| Scalability (concurrent users) | {N} | FEATURE-001-002 |
+| Performance (response time p95) | {ms} | FEAT-01-01, 001-002 |
+| Availability | {uptime %} | FEAT-01-03 |
+| Scalability (concurrent users) | {N} | FEAT-01-02 |
 | Security (authN, authZ, data class) | {list} | all |
 | Compliance | {standard, e.g. GDPR, SOC2} | {features} |
 
@@ -66,13 +66,13 @@
 
 | ID | Date | Question | Addressed by | Status |
 |---|---|---|---|---|
-| Q-001 | 2026-04-19 | {concrete question} | FEATURE-001-002 SC-03 | Pending |
+| Q-001 | 2026-04-19 | {concrete question} | FEAT-01-02 SC-03 | Pending |
 
 ### Answers from RE
 
 | ID | Date | Answer | Affected artifacts | Status |
 |---|---|---|---|---|
-| A-001 | 2026-04-20 | {concrete answer, with updated numbers} | FEATURE-001-002 (SC-03 updated) | Resolved |
+| A-001 | 2026-04-20 | {concrete answer, with updated numbers} | FEAT-01-02 (SC-03 updated) | Resolved |
 
 ### Dialog rules
 

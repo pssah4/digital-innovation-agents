@@ -1,6 +1,6 @@
 ---
 title: Your first Business Analysis
-description: Walk through a concrete business analysis with the /business-analyse skill, from scoping to handoff.
+description: Walk through a concrete business analysis with the /business-analysis skill, from scoping to handoff.
 ---
 
 # Your first Business Analysis
@@ -15,7 +15,7 @@ that hands off cleanly to Requirements Engineering.
 > async retrospectives."
 
 This is a typical starting point: a rough idea, no clear user, no
-hypothesis, no scope. Exactly where `/business-analyse` is most useful.
+hypothesis, no scope. Exactly where `/business-analysis` is most useful.
 
 ::: info Methods you will see referenced below
 The agent's main job is to notice gaps in your understanding and propose
@@ -33,7 +33,7 @@ becomes relevant.
 In your AI coding tool (Claude Code, Cursor, Codex, OpenCode, or Gemini CLI):
 
 ```
-/business-analyse
+/business-analysis
 
 I want to build a tool that helps distributed teams run better async
 retrospectives.
@@ -232,14 +232,14 @@ The skill now creates two artifacts:
 - `_devprocess/analysis/BA-retrospectives.md`: the full Business Analysis
 - `_devprocess/analysis/EXPLORE-retrospectives.md`: the Exploration Board
 
-Both follow the templates in `skills/business-analyse/templates/`.
+Both follow the templates in `skills/business-analysis/templates/`.
 
 ## Step 7: Handoff ritual
 
-`/business-analyse` ends with the mandatory 3-part Handoff Ritual:
+`/business-analysis` ends with the mandatory 3-part Handoff Ritual:
 
 1. **Artifact report**: lists the produced files and the HMW question
-2. **Handoff context**: appends an entry to `_devprocess/context/30_handoffs.md`
+2. **Handoff context**: appends an entry to `_devprocess/context/HANDOFFS.md`
    with scope, personas, critical hypotheses, and open assumptions
 3. **Transition question**: "BA complete. Shall I start `/requirements-engineering` now?"
 
@@ -250,7 +250,7 @@ the skill pauses and you can review the BA before moving on.
 
 - The BA document is the input for [`/requirements-engineering`](../guides/requirements-engineering),
   which turns it into Epics, Features, and tech-agnostic Success Criteria.
-- Or run the entire cycle in one go with [`/v-model-workflow`](../guides/v-model-workflow).
+- Or run the entire cycle in one go with [`/dia-guide`](../guides/dia-guide).
   See the next tutorial: [A full V-Model run](./full-v-model-run).
 - The full set of method cards lives under
   [Discovery methods](../reference/methods-discovery),

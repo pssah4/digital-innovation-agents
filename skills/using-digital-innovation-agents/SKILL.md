@@ -12,12 +12,12 @@ testing, and security audit.
 
 ## Entry points
 
-- `/v-model-workflow` -- Guided cycle through all phases (recommended for
+- `/dia-guide` -- Guided cycle through all phases (recommended for
   new projects or when unsure where to start)
 - `/reverse-engineering` -- Brownfield entry point: walk the V backwards
   over an existing codebase to produce plan-context, ADRs, arc42
   snapshot, FEATURE inventory, and an evidence-based BA draft
-- `/business-analyse` -- Problem exploration, ideation, validation
+- `/business-analysis` -- Problem exploration, ideation, validation
 - `/requirements-engineering` -- Epics, features, tech-agnostic success criteria
 - `/architecture` -- ADRs (MADR), arc42, plan-context.md
 - `/coding` -- Context handoff + critical review + implementation
@@ -38,22 +38,24 @@ user-facing messages adapt automatically.
 All project artifacts live under `_devprocess/`:
 
 - `_devprocess/analysis/BA-*.md`, `EXPLORE-*.md`
-- `_devprocess/requirements/epics/EPIC-*.md`, `features/FEATURE-*.md`
+- `_devprocess/requirements/epics/EPIC-*.md`, `features/FEAT-*.md`
+- `_devprocess/requirements/fixes/FIX-*.md`, `improvements/IMP-*.md`
 - `_devprocess/requirements/handoff/architect-handoff.md`, `plan-context.md`
 - `_devprocess/architecture/ADR-*.md`, `arc42.md`
-- `_devprocess/context/10_backlog.md` (living backlog)
-- `_devprocess/context/20_bugs.md` (FIX-NN bug log, written by `/coding` Phase 3c)
-- `_devprocess/context/30_handoffs.md` (append-only phase handoffs log)
-- `_devprocess/analysis/security/AUDIT-*.md`
+- `_devprocess/context/BACKLOG.md` (living backlog, incl. FIX-{ee}-{ff}-{nn} rows)
+- `_devprocess/context/HANDOFFS.md` (append-only phase handoffs log)
+- `_devprocess/analysis/AUDIT-*.md`
+- `_devprocess/analysis/sources/` (Quellen, die der User als Kontext bereitstellt)
 
 ## When to invoke which skill
 
 - If the user is starting something new and the problem space is unclear
-  -> suggest `/v-model-workflow` to orchestrate the full cycle
+  -> suggest `/dia-guide` for an orientation interview that recommends
+  the right entry point
 - If the user has an existing codebase but no V-Model artifacts
   -> `/reverse-engineering` to walk the V backwards, then
-  `/business-analyse` to validate the WHY
-- If the user has a clear problem but no solution yet -> `/business-analyse`
+  `/business-analysis` to validate the WHY
+- If the user has a clear problem but no solution yet -> `/business-analysis`
 - If the user has features defined but no architecture -> `/architecture`
 - If the user is ready to implement -> `/coding`
 
@@ -64,7 +66,7 @@ These are **suggestions**, not rules. The user is in charge.
 The Digital Innovation Agents skill set is **advisory**. The user can leave
 the workflow at any time, and you should respect that immediately.
 
-### Leaving the `/v-model-workflow` loop
+### Leaving the `/dia-guide` loop
 
 If the user is mid-workflow (for example, between phases) and says something
 like "stop", "exit", "I want to do something else", "let's pause this",
@@ -74,7 +76,7 @@ or simply asks an unrelated question:
 - Answer whatever the user is asking next directly, without invoking any
   V-Model skill.
 - The workflow state is preserved in `_devprocess/` -- the user can resume
-  later by re-invoking `/v-model-workflow`.
+  later by re-invoking `/dia-guide`.
 
 ### Temporarily disabling the skills
 
@@ -108,8 +110,8 @@ hook entirely. Mention this only if the user asks how to disable permanently.
 
 ## User Interaction Protocol (binding across every V-Model skill)
 
-When any phase-skill or the orchestrator needs a decision from the user,
-the following rules are mandatory. They apply inside `/v-model-workflow`
+When any phase-skill or the guide needs a decision from the user,
+the following rules are mandatory. They apply inside `/dia-guide`
 and when any phase-skill is invoked standalone.
 
 1. **One question per turn.** Never batch multiple open decisions into a
@@ -149,7 +151,7 @@ The V-Model workflow adapts to project scope:
 - **Minimum Viable Product** (2-6 months): Full exploration, full ideation,
   complete market assessment
 
-The `business-analyse` skill asks the user which scope applies and
+The `business-analysis` skill asks the user which scope applies and
 calibrates depth accordingly.
 
 ## Getting help

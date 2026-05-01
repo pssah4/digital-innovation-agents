@@ -35,7 +35,7 @@ Use `/reverse-engineering` when:
 - Architecture decisions exist in the code but not as ADRs.
 - Nobody on the team can answer "why did we choose X?" with confidence.
 
-If the problem space is unclear and no code exists yet, start with [`/business-analyse`](./business-analyse) instead. Reverse engineering is a brownfield tool.
+If the problem space is unclear and no code exists yet, start with [`/business-analysis`](./business-analysis) instead. Reverse engineering is a brownfield tool.
 
 ## The anti-hallucination contract
 
@@ -58,13 +58,29 @@ These rules are non-negotiable because the cost of a hallucinated persona or an 
 You will never infer personas from route names, directory names, or endpoint signatures. `/users/:id/settings` tells you the system has users. It does not tell you who they are, what they want, or why the product exists. The persona section stays as `[NEEDS USER INPUT]` unless the README or marketing copy explicitly names a user type.
 :::
 
+## Pre-Phase 0: Branch and item check
+
+Mandatory before any work. The skill expects a dedicated branch:
+
+```
+feature/reverse-engineer-{repo-name}
+```
+
+The reverse engineering run is a single multi-item exception (it
+produces many artifacts at once), and the branch carries that
+context. Phase commits and the `tag-phase` mechanism work the same
+way as in any other phase skill.
+
 ## Phased workflow
 
-The skill walks up the V in six phases. Each phase produces its own artifact before moving to the next level.
+The skill walks up the V in eight phases. Each phase produces its
+own artifact before moving to the next level. Phase -1.5 is shared
+with `/dia-migration` and absorbs any pre-existing partial
+artifacts before the inventory.
 
 ### Phase 0: Scope and codebase scan (5 to 10 min)
 
-Pick the depth, same three tiers as `/business-analyse`.
+Pick the depth, same three tiers as `/business-analysis`.
 
 | Scope | Depth | Typical duration |
 |---|---|---|
@@ -135,7 +151,13 @@ A feature is anything the system lets a user (or an API consumer) do. Sources:
 - Public exports if the project is a library.
 - Test descriptions (`describe('user can ...')`, `it('admin should ...')`).
 
-For each, write a `FEATURE-XXX-slug.md` with `Status: Observed (not validated)`. The Feature Description comes from the code. Benefits Hypothesis, User Stories, and Success Criteria stay as `[NEEDS USER INPUT]`. Those come from the forward walk through `/business-analyse` and `/requirements-engineering`.
+For each, write a `FEAT-{ee}-{ff}-{slug}.md` (epic-local
+numbering, 2-digit counters) with the inbound feature mapped to
+the epic that owns it. The backlog row carries
+`Status: Observed (not validated)`. The Feature Description comes
+from the code. Benefits Hypothesis, User Stories, and Success
+Criteria stay as `[NEEDS USER INPUT]`. Those come from the forward
+walk through `/business-analysis` and `/requirements-engineering`.
 
 ### Phase 4: Business reverse engineering to BA draft
 
@@ -168,33 +190,62 @@ When you finish, count two numbers:
 - `filled-from-sources`: how many sections are evidence-backed.
 - `needs-user-input`: how many sections are placeholders.
 
-Both counts go into the BA header so `/business-analyse` can enter Validation Mode and knows exactly how much work remains.
+Both counts go into the BA header so `/business-analysis` can enter Validation Mode and knows exactly how much work remains.
 
-### Phase 5: Backlog extraction to 10_backlog.md
+### Phase 5: Backlog extraction to BACKLOG.md
 
 Scan for:
 
 - `TODO`, `FIXME`, `HACK`, `XXX` comments in code.
 - Failing or skipped tests (`.skip`, `xit`, `pytest.mark.skip`).
-- Undocumented env vars (referenced in code but missing from `.env.example`).
+- Undocumented env vars (referenced in code but missing from
+  `.env.example`).
 - Observable features without matching test files.
 - Outdated dependencies or major versions pinned to old releases.
 - Missing CI steps (no security scan, no type-check, no linter).
 
-Append each finding as a `BL-NNN` entry with priority `P2` by default and a `Source:` line pointing at the evidence. The team will reprioritise during BA and RE.
+Append each finding to `BACKLOG.md` as a typed row, not as a
+generic counter. Bugs go in as `FIX-{ee}-{ff}-{nn}` with a detail
+file. Improvements go in as `IMP-{ee}-{ff}-{nn}`. New features
+discovered as gaps go in as `FEAT-{ee}-{ff}`. Each row carries a
+`Source:` link pointing at the evidence. The team will reprioritise
+during BA and RE.
 
-### Phase 6: Handoff to `/business-analyse`
+### Phase 6: Wayfinder bootstrap
 
-The handoff follows the standard three-part [Handoff Ritual](../concepts/handoff-rituals).
+Seed the wayfinder layer:
 
-1. Artifact report with counts (plan-context, ADRs, features, arc42 sections, backlog entries) plus the BA coverage ratio (filled over total).
-2. Handoff context entry in `_devprocess/context/30_handoffs.md` with scope, risks, gaps, and recommended next phase (always `/business-analyse`).
-3. Transition question. "Shall I start `/business-analyse` now in Validation Mode, or do you want to review the draft first?"
+- Create `src/ARCHITECTURE.map` with one row per inferred concept
+  (the same concepts that produced ADRs in Phase 2).
+- For each substantive module under `src/`, propose a
+  `src/{module}/README.md` that lists ownership, entry points, and
+  the ADR(s) that apply.
+- Propose JSDoc / docstring headers for every entry-point file the
+  ADRs reference. The skill drafts the headers but does not
+  auto-write them; the user reviews and applies them.
 
-On agreement, `/business-analyse` detects the reverse-engineered BA draft automatically and walks through every `[NEEDS USER INPUT]` marker with the user, one section at a time. Evidence-backed claims get confirmed. Placeholders get filled. Each validated section gets its status promoted from `Draft` to `Validated`.
+The wayfinder is what `/coding` reads first on day one. Without it,
+every subsequent agent has to re-infer file layout from scratch.
+
+### Phase 7: Handoff to `/business-analysis`
+
+The handoff follows the standard four-part [Handoff Ritual](../concepts/handoff-rituals).
+
+1. Artifact report with counts (wayfinder rows, plan-context,
+   ADRs, FEATs, arc42 sections, backlog entries) plus the BA
+   coverage ratio (filled over total).
+2. Handoff context entry in `_devprocess/context/HANDOFFS.md` with
+   scope, risks, gaps, and recommended next phase (always
+   `/business-analysis`).
+3. Phase-end commit (`chore(re): {repo-name} reverse-engineering
+   complete`) plus `tag-phase --phase re`.
+4. Transition question. "Shall I start `/business-analysis` now
+   in Validation Mode, or do you want to review the draft first?"
+
+On agreement, `/business-analysis` detects the reverse-engineered BA draft automatically and walks through every `[NEEDS USER INPUT]` marker with the user, one section at a time. Evidence-backed claims get confirmed. Placeholders get filled. Each validated section gets its status promoted from `Draft` to `Validated`.
 
 ::: info One skill, two entry points
-The forward and backward walks converge here. Whether the project started with `/business-analyse` or `/reverse-engineering`, the BA document is the same file at the same path, and every phase downstream (`/requirements-engineering`, `/architecture`, `/coding`) treats it identically. Reverse engineering is not a side track. It is a seed for the forward walk.
+The forward and backward walks converge here. Whether the project started with `/business-analysis` or `/reverse-engineering`, the BA document is the same file at the same path, and every phase downstream (`/requirements-engineering`, `/architecture`, `/coding`) treats it identically. Reverse engineering is not a side track. It is a seed for the forward walk.
 :::
 
 ## Quality gates
@@ -216,7 +267,7 @@ Want to see the exact instructions the agent follows? [`skills/reverse-engineeri
 
 ## Further reading
 
-- [Business Analysis guide](./business-analyse). The forward walk takes over here, starting in Validation Mode.
+- [Business Analysis guide](./business-analysis). The forward walk takes over here, starting in Validation Mode.
 - [Architecture guide](./architecture). The ADR and arc42 structure the skill uses.
 - [Living Documents concept](../concepts/living-documents). Why the reverse-engineered artifacts are meant to evolve.
 - [V-Model concept](../concepts/v-model). How both entry points feed into the same workflow.

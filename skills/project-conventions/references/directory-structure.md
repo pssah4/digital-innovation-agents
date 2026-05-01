@@ -6,30 +6,36 @@
 {project}/
 │
 ├── _devprocess/                         INTERNES WISSENSARCHIV (nicht public)
-│   ├── analysis/                        Business Analyse Dokumente
-│   │   ├── BA-{PROJECT}.md              Hauptdokument Business Analyse
+│   ├── analysis/                        Flache Ablage. Prefix pro Artefakttyp.
+│   │   ├── BA-{PROJECT}.md              Hauptdokument Business Analyse (Singleton)
+│   │   ├── EXPLORE-{PROJECT}.md         Exploration Board (Singleton, optional)
+│   │   ├── AUDIT-{PROJECT}-{DATE}.md    Security Audit Reports (n)
+│   │   ├── RESEARCH-{TOPIC}.md          Research-Notizen (n, optional)
 │   │   ├── constitution-draft.md        Optional: Projekt-Prinzipien
-│   │   └── security/                    Security Audit Reports
-│   │       └── AUDIT-{PROJECT}-{DATE}.md
+│   │   └── sources/                     User-bereitgestellte Quelldokumente, behalten
+│   │       └── SOURCE-{name}.{ext}
 │   │
 │   ├── requirements/                    Requirements Engineering
 │   │   ├── epics/                       Strategische Initiativen
-│   │   │   └── EPIC-{NNN}-{slug}.md
+│   │   │   └── EPIC-{nn}-{slug}.md
 │   │   ├── features/                    Feature-Spezifikationen (epic-lokal)
-│   │   │   └── FEATURE-{EPIC}-{NNN}-{slug}.md
+│   │   │   └── FEAT-{ee}-{ff}-{slug}.md
+│   │   ├── fixes/                       Bug-Detail-Dateien (feature-lokal)
+│   │   │   └── FIX-{ee}-{ff}-{nn}-{slug}.md
+│   │   ├── improvements/                Improvement-Detail-Dateien (feature-lokal)
+│   │   │   └── IMP-{ee}-{ff}-{nn}-{slug}.md
 │   │   └── handoff/                     Uebergabe-Dokumente zwischen Phasen
 │   │       ├── architect-handoff.md     RE -> Architect
 │   │       └── plan-context.md          Architect -> Claude Code
 │   │
 │   ├── architecture/                    Architektur-Dokumentation
-│   │   ├── ADR-{NNN}-{slug}.md          Architecture Decision Records
+│   │   ├── ADR-{nn}-{slug}.md          Architecture Decision Records
 │   │   └── arc42.md                     arc42 Gesamtdokument
 │   │
-│   └── context/                         Projekt-Status & Backlog
-│       ├── 10_backlog.md                Lebendes Backlog (per BACKLOG-TEMPLATE.md)
-│       ├── 20_bugs.md                   FIX-NN Bug-Log
-│       ├── 30_handoffs.md               Append-only Phasen-Handoffs
-│       └── 40_metrics.md                Signal-Layer (per METRICS-TEMPLATE.md)
+│   └── context/                         Projekt-Status & Index
+│       ├── BACKLOG.md                Lebendes Backlog (per BACKLOG-TEMPLATE.md), FIX-Rows leben hier
+│       ├── HANDOFFS.md               Append-only Phasen-Handoffs
+│       └── METRICS.md                Signal-Layer (per METRICS-TEMPLATE.md)
 │
 ├── src/                                 QUELLCODE
 │   ├── core/                            Kern-Logik, Pipeline, Context
@@ -94,10 +100,17 @@ _devprocess/requirements/handoff/
 _devprocess/architecture/
 ```
 
-### Phase 5: Nach Implementierung (Security)
+### Phase 5: Coding (bei Bedarf)
 ```
-_devprocess/analysis/security/
+_devprocess/implementation/plans/
+_devprocess/requirements/fixes/         beim ersten FIX
+_devprocess/requirements/improvements/  beim ersten IMP
 ```
+
+### Phase 6: Nach Implementierung (Security)
+
+Der AUDIT-Report landet flach unter `_devprocess/analysis/AUDIT-{PROJECT}-{DATE}.md`.
+Kein separater Unterordner mehr.
 
 ## Regeln
 

@@ -43,15 +43,28 @@ The loop runs three times per V-Model cycle:
 
 | Artifact | What gets updated |
 |---|---|
-| Feature specs | Status, Success Criteria verification, Definition of Done, How-It-Works section, Key Files |
-| ADRs | Status (`Accepted (modified)` or `Deprecated`), Implementation Notes, deviations from the original proposal |
-| `plan-context.md` | Tech stack (if changed), integrations, updated performance/security values |
+| `_devprocess/context/BACKLOG.md` | The single source of truth. Rows for `FEAT-{ee}-{ff}`, `FIX-{ee}-{ff}-{nn}`, `IMP-{ee}-{ff}-{nn}`, `PLAN-{nn}`, `ADR-{nn}` carry status, phase, last-change, claim, commit SHA. Status changes go HERE FIRST, then the artifact body |
+| Feature specs | Substance only: Success Criteria verification, hypothesis updates, scope clarifications, optional `## Code Pointer` appendix referencing an ARCHITECTURE.map concept. No status fields in frontmatter |
+| ADRs | Substance only: amendments to Decision Drivers / Considered Options / Decision / Consequences. Optional `## Implementation Notes` appendix may carry stale code-level hints. Status lives in the backlog row |
+| FIX detail files | Causal chain (Problem, Root Cause, Chain), regression test reference. Commit SHA and status live in the backlog row |
+| Wayfinder (`src/ARCHITECTURE.map`) | Concept rows when an entry-point is created or renamed. JSDoc headers in the entry-point file. Module READMEs |
+| Rule sets (`_devprocess/rules/*.md`) | Stable truths, hard cap 500 lines total. Updated when stack, conventions, or domain glossary actually change |
+| `plan-context.md` | Tech stack (if changed), integrations, updated performance / security values |
 | arc42 | Affected sections when architecture shifts |
-| `_devprocess/context/10_backlog.md` | BL-NNN rows (Planned/Active/Review/Done/Waiting/Deferred), dashboard counts, new findings, status transitions, commit SHAs; binding format in `BACKLOG-TEMPLATE.md` |
-| `_devprocess/context/20_bugs.md` | Every bug found, with FIX-NN ID, causal chain, commit SHA |
-| `_devprocess/context/40_metrics.md` | Cycle time per FEATURE, drift count, hypothesis status, phase transitions, cross-phase trigger counts. Append-additive, written from inside existing phase actions |
+| `_devprocess/context/METRICS.md` | Cycle time per FEAT, drift count, hypothesis status, phase transitions, cross-phase trigger counts. Append-additive, written from inside existing phase actions |
 | `memory/MEMORY.md` | When architecture key facts change |
 | `CLAUDE.md` | When new project conventions emerge |
+
+## Backlog row first, artifact body second
+
+The v3 three-layer model says state lives in one place: the backlog
+row. That includes status, phase, last-change date, claim, and
+commit SHA. The artifact body holds substance only: problem,
+decision, success criteria, reasoning. A status change touches the
+backlog row first, then the artifact, never the other way around.
+This is the structural fix for the most common drift class (status
+fields stuck at "Planned" while the code shipped). See the
+[Three-layer documentation model](./three-layer-documentation).
 
 ## Why write back before implementation?
 
@@ -85,14 +98,15 @@ were quietly dropped, the final sync catches it and forces an explicit
 decision: either the criteria are genuinely met, or they are removed
 from the Feature with a reason.
 
-## Integration with Phase 7 Release Closure
+## Integration with the Closing Handoff
 
-Phase 7 does a cross-phase final synchronization covering BA,
-Features, ADRs, arc42, and `plan-context.md`. This is the last
-checkpoint before the CHANGELOG is updated and the release is cut. If
-the BA's Validation section has measurable numbers that can now be
-filled in (for example, "reduced retro cycle time by 40%"), Phase 7
-updates them too.
+The Closing Handoff (after a green `/security-audit`) calls
+`/consistency-check` mode B for a cross-phase final synchronization
+covering BA, Features, ADRs, arc42, and `plan-context.md`. This is
+the last checkpoint before any release act. If the BA's Validation
+section has measurable numbers that can now be filled in (for
+example, "reduced retro cycle time by 40%"), mode B surfaces the
+gap so the BA gets updated.
 
 ## The opposite: dead documentation
 

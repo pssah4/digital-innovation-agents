@@ -12,3 +12,6 @@ docs/.vitepress/dist/
 # Claude Code (personal permissions, not for public sync)
 .claude/settings.json
 .claude/settings.local.json
+
+# Internal scratchpad (spikes, exploration notes, drafts)
+spike/

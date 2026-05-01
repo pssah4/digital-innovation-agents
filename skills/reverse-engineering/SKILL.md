@@ -17,58 +17,107 @@ disable-model-invocation: false
 
 # Reverse Engineering
 
-## MANDATORY Phase 0: Artefakt-Triage (2026-04-21)
+## MANDATORY Pre-Phase 0: Branch check (multi-item exception)
 
-Vor jeder Code-, Doku- oder Spezifikations-Aenderung muss der Skill
-feststellen, in welche Artefakt-Kategorie die Arbeit faellt:
+Reverse-engineering bootstraps the entire backlog at once: 20+
+artefacts can land in a single run. Branching per-item would force
+the user to juggle 20 branches before any work is done. Therefore
+RE is the exception to the per-item branching rule:
 
-1. **Neues FEATURE** (user-facing Capability, die es vorher nicht gab).
-2. **IMPROVEMENT (IMP)** an bestehendem Feature (Refactor, Performance,
-   Doku-Drift, Tests, Konfig).
-3. **FIX** fuer einen Bug oder eine Drift auf bestehendem Feature.
-4. **ADR** wenn die Arbeit eine Architektur-Entscheidung ist.
+- All reverse-engineered artefacts land on
+  `feature/reverse-engineer-<repo-name>`.
+- Per-item branches kick in AFTER RE merges, when downstream skills
+  (`/coding`, etc.) work on individual items.
 
-**Regel:** Wenn die Zuordnung aus dem User-Prompt nicht eindeutig
-ableitbar ist, stellt der Skill vor allem anderen eine praegnante
-Frage:
+Branch check at start:
 
-> "Ist das ein neues Feature, ein Improvement an einem bestehenden
-> Feature, oder ein Fix fuer einen Bug? Falls Feature oder IMP/FIX:
-> welches Feature und welches Epic?"
+- If on `main` / `master` / `dev`: refuse, AskUserQuestion to create
+  `feature/reverse-engineer-<repo-name>` and switch.
+- If on the expected branch: silent continue.
+- If on another branch: AskUserQuestion -- switch to expected, or
+  rename the current branch to the expected name.
 
-Keine Code- oder Spec-Aenderung ohne diese Zuordnung. FIX und IMP
-verlangen zwingend `feature:` und `epic:` im Frontmatter
-(Invarianten N-13, N-14). Details zum Entscheidungsbaum und den
-Ausnahmen stehen in
-`skills/project-conventions/references/graph-invariants.md`
-(Abschnitt "Artefakt-Triage am Einstiegspunkt").
+GitHub integration: RE does not create per-item issues during
+Phase 0-7. The `/dia-guide` post-RE handoff is responsible
+for that, after the user has triaged which reverse-engineered
+items are real backlog candidates.
 
+Phase tag: RE does NOT set per-item phase tags during its run.
+After RE completes and the user has triaged the backlog seed,
+`/dia-guide` runs a one-shot pass that creates GitHub
+issues and tags `<item-id>/reverse-engineered` for every promoted
+item. This signals downstream skills that the item came from RE
+(useful for "go back and validate this with the user" workflows).
 
-## MANDATORY: Phase and status in frontmatter + backlog sync (no asking)
+State stored in `.git/dia-active-skill`. Full rules:
+`skills/project-conventions/references/team-workflow.md`,
+`skills/project-conventions/references/branch-protection.md`.
 
-Whenever this skill creates or modifies a Feature, Epic, or ADR, the
-YAML-frontmatter of the artifact MUST carry `phase:` (Feature, Epic,
-ADR) and `status:` (Feature, ADR). The backlog row of the artifact
-MUST stay in sync with that frontmatter. No confirmation dialog, no
-opt-in, no nudging the user. Execute immediately.
+## MANDATORY Phase 0: Artifact triage
 
-**Defaults when you have no better value:**
+Reverse engineering scans existing code to produce artifacts. Every
+artifact this skill creates lands in one of these categories:
 
-- Feature: `phase: Building`, `status: Planned`
-- Epic: `phase: Building` (derive via worst-wins once features exist)
-- ADR: `phase: Building`, `status: Proposed`
+- **FEATURE** (observed capability with user-facing surface)
+- **ADR** (decision inferred from code patterns or external docs)
+- **IMP** (technical debt or improvement candidate surfaced by the
+  scan)
+- **FIX** (bug or drift surfaced by the scan)
 
-**Sync chain on every phase/status change:**
+The skill assigns each artifact to its category before writing.
+Frontmatter `feature:` and `epic:` are mandatory for FIX and IMP.
 
-1. Update frontmatter of the artifact
-2. Update the artifact's row in `docs/context/10_backlog.md`
-3. If epic phase changed, update the epic header `Phase: X` line in
- the backlog and the epic file frontmatter
-4. Recompute the dashboard counts (Phase x Epics/Features/Chores)
-5. Run `/consistency-check` mode A at the end of the skill phase
+## MANDATORY: Backlog as single source of truth
 
-Full rules and enum values: `skills/project-conventions/references/graph-invariants.md`,
-section "Phase/Status-Frontmatter-Konvention".
+Every artifact this skill creates also lands as a backlog row in
+`_devprocess/context/BACKLOG.md`. Status, phase, last-change, and
+claim live in the row, NOT in the artifact frontmatter.
+
+**Defaults for reverse-engineered artifacts:**
+
+- Feature observed in code: status Planned, phase Building (or
+  Released if there is evidence the capability is shipped to users)
+- ADR inferred: status Proposed, phase Building
+- BA draft: status `Draft (Reverse-Engineered)`, validation pending
+
+**Sync chain (binding order):**
+
+1. Create the backlog row
+2. Create the artifact body
+3. Run `/consistency-check` mode A at the end of the skill phase
+
+## MANDATORY: Wayfinder generation as primary output
+
+`/reverse-engineering` produces the wayfinder layer as a primary
+output, not an afterthought:
+
+- `src/ARCHITECTURE.map` populated with one row per identified
+  entry-point file. Template:
+  `skills/architecture/templates/ARCHITECTURE-MAP-TEMPLATE.md`.
+- JSDoc headers in every entry-point file. Template:
+  `skills/architecture/templates/JSDOC-HEADER-TEMPLATE.md`.
+- Module READMEs for every directory under `src/` that owns
+  substance (more than 3 source files or any cross-module API).
+  Template: `skills/architecture/templates/MODULE-README-TEMPLATE.md`.
+
+This is the most token-efficient form of project context and the
+basis on which the agent orients itself in subsequent phases.
+
+## MANDATORY: Rules layer seed
+
+`/reverse-engineering` seeds `_devprocess/rules/` with the patterns
+the codebase actually follows:
+
+- `_devprocess/rules/technical.md`: stack (detected from
+  package.json, pyproject.toml, etc.), build commands, test setup,
+  conventions visible in 10+ files.
+- `_devprocess/rules/design.md` (if UI surface exists): design
+  tokens, component patterns observed in the codebase.
+- `_devprocess/rules/domain.md`: glossary entries derived from class
+  and module names, business rules surfaced by validations or
+  invariants in code.
+
+Hard cap: 500 lines total across all rule files.
 
 
 You ingest an existing codebase and produce the V-Model artifacts that
@@ -85,71 +134,62 @@ through the normal V-Model phases.
 **Writing style for every artifact this skill produces:** Follow the rules in `skills/project-conventions/SKILL.md` under "Writing style for every artifact". Zero em dashes of any form. No Unicode em dash (U+2014), no en dash (U+2013), no double-hyphen substitute. No AI vocabulary, no negative parallelisms, no rule-of-three padding. Every reverse-engineered ADR, every FEATURE description, every anticipated Epic, the BA draft sections you fill from sources, and every backlog entry is written in that style. Before you save an artifact, scan it for U+2014 and U+2013 and fix any hit.
 
 
-## MANDATORY: FIX/IMP statt Chores, depends-on als Graph-Kante (2026-04-21)
+## MANDATORY: FIX/IMP, depends-on as a graph edge
 
-**Chore-Begriff und FIX/IMP-Knoten entfallen.** Jede Arbeit ausserhalb
-eines Features ist entweder:
+**Chores are not a separate node type.** Every piece of work outside
+of a Feature is either:
 
-- **FIX-NNN** (Bug-/Issue-Followup) unter
- `docs/context/fixes/FIX-{NNN}-{slug}.md`
-- **IMPROVEMENT / IMP-NNN** (technische oder andersartige Aenderung, die
- kein eigenes Feature ist) unter
- `docs/context/improvements/IMP-{NNN}-{slug}.md`
+- **FIX-{ee}-{ff}-{nn}** (bug or issue follow-up) at
+  `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`
+- **IMPROVEMENT / IMP-{ee}-{ff}-{nn}** (technical or other change that is not a
+  feature) at
+  `_devprocess/requirements/improvements/IMP-{ee}-{ff}-{nn}-{slug}.md`
 
-**Pflicht-Frontmatter fuer FIX und IMP:**
+**Required frontmatter for FIX and IMP:**
 
 ```yaml
-feature: FEATURE-NNN # Pflicht: zu welchem Feature gehoert das?
-epic: EPIC-NNN # Pflicht: in welchem Epic lebt das?
-phase: Released|Building|Planned|Candidates
-status: Planned|Active|Done|Waiting|Deferred
-depends-on: [FEATURE-..., ADR-..., FIX-..., IMP-...] # optional
+id: FIX-{ee}-{ff}-{nn}
+feature: FEAT-{ee}-{ff}    # mandatory
+epic: EPIC-{nn}                    # mandatory
+adr-refs: []
+plan-refs: []
+depends-on: []
+created: {YYYY-MM-DD}
 ```
 
-FIX und IMP ohne `feature:` und `epic:` sind invalid
-(Invarianten N-13, N-14).
+FIX and IMP without `feature:` and `epic:` are invalid. Status,
+phase, last-change, and claim live in the backlog row, not in the
+frontmatter.
 
-**Abhaengigkeiten (depends-on):** Jedes Artefakt (Epic, Feature, ADR,
-FIX, IMP) darf im Frontmatter `depends-on: [ID, ID, ...]` fuehren. Der
-resultierende Graph ist azyklisch (E-11). Zielen mit IDs auf existierende
-Artefakte (E-10). Details: graph-invariants.md Abschnitt
-"Abhaengigkeiten und Implementierungsreihenfolge".
+**Dependencies (depends-on):** every artifact (Epic, Feature, ADR,
+FIX, IMP, PLAN) MAY carry `depends-on: [ID, ID, ...]` in the
+frontmatter. The resulting graph is acyclic. Targets must be
+existing artifact IDs.
 
-## MANDATORY: Lesbare deutsche Epic-Statements und HMW
+## MANDATORY: Hypothesis statements as full prose
 
-Epic-Hypothesis-Statements werden als **ganze deutsche Saetze**
-formuliert. Keine eingestreuten Template-Platzhalter wie `FOR`, `WHO`,
-`THE`, `IS A`, `THAT`, `UNLIKE`, `OUR SOLUTION`. Der Kern bleibt
-(Persona / Problem / Loesung / Differenzierung), aber als lesbarer
-Prosa-Absatz.
+Epic hypothesis statements (in the BA draft this skill writes) are
+written as full prose paragraphs in the user's working language. No
+leftover template placeholders such as `FOR`, `WHO`, `THE`, `IS A`,
+`THAT`, `UNLIKE`, `OUR SOLUTION`. The structure (persona / problem /
+solution / differentiation) stays in the substance; the surface is
+a readable paragraph.
 
-**Alt (Template-Rest, nicht mehr erlaubt):**
+How-Might-We headings follow the same rule: full sentences, not
+template placeholders.
 
-> FOR **Enterprise-Entwicklungsteams (P1)**
-> WHO **mit driftenden Artefakten arbeiten** ...
+## MANDATORY: Writing style and humanizer rules
 
-**Neu (deutscher Satz):**
+All artifacts produced by this skill follow the rules in
+`skills/project-conventions/SKILL.md` under "Writing style for every
+artifact". Zero em dashes (U+2014, U+2013, double-hyphen substitute).
+No AI vocabulary words (landscape, nuanced, delve, leverage, crucial,
+robust, seamless, holistic, foster, ensuring, highlighting,
+underscoring). No negative parallelisms ("not X but Y"). Active
+voice by default. Sentence case in headings. No rule-of-three padding.
 
-> Fuer Enterprise-Entwicklungsteams, die mit driftenden Artefakten
-> zwischen Code, Wiki, Backlog und Roadmap arbeiten, liefert dieses
-> Epic ein Capability-Bundle aus Cross-Artifact-Lesen, Rollen-
-> Uebersetzung, Content-Creation und Forward-Inferenz. Es unterscheidet
-> sich von Cursor oder Claude Code dadurch, dass die Richtung Code-zu-
-> Fachsprache ist, nicht umgekehrt.
-
-HMW-Ueberschriften und HMW-Fragen werden ebenfalls durchgehend auf
-Deutsch formuliert ("Wie koennen wir ..." statt "How might we ...").
-
-## MANDATORY: Umlaute und /humanizer
-
-- Alle vom Skill erzeugten Dokumente verwenden korrekte deutsche
- Umlaute: `ae -> ae`, `oe -> oe`, `ue -> ue`, `ss -> ss` bzw.
- `ae/oe/ue/ss` nicht zulaessig, stattdessen `ä/ö/ü/ß`.
-- /humanizer-Regeln werden IMMER angewendet: keine Em-Dashes, keine
- AI-Vokabular-Woerter (landscape, nuanced, delve, leverage, crucial,
- robust, seamless, holistic, foster, ensuring, highlighting,
- underscoring, etc.), keine negativen Parallelismen, aktive Stimme,
- keine Rule-of-Three-Paddings.
+For German artifacts: proper umlauts (ä, ö, ü, ß), not the
+ae/oe/ue/ss substitutes.
 
 
 ## Core philosophy
@@ -162,12 +202,12 @@ directory layouts. If a claim is not backed by a concrete source
 `[NEEDS USER INPUT]` placeholder instead of a guess.
 
 **Draft, not ground truth.** Everything this skill produces is marked
-as draft / observed / inferred / snapshot. The next skill (`/business-analyse`)
+as draft / observed / inferred / snapshot. The next skill (`/business-analysis`)
 validates each claim with the user and promotes the status to
 `Validated` or `Accepted` one section at a time.
 
 **Forward again from the validated state.** After reverse engineering,
-the user goes through `/business-analyse` → `/requirements-engineering`
+the user goes through `/business-analysis` → `/requirements-engineering`
 → `/architecture` (if refactoring) → `/coding`. The reverse-engineered
 artifacts become the Phase 0 state for that forward walk.
 
@@ -179,19 +219,19 @@ artifacts become the Phase 0 state for that forward walk.
  architecture decision, `Status: Inferred from codebase`.
 - `_devprocess/architecture/arc42.md`. Structural snapshot,
  `Status: Reverse-engineered snapshot`.
-- `_devprocess/requirements/epics/EPIC-{NNN}-{slug}.md`. One or more
+- `_devprocess/requirements/epics/EPIC-{nn}-{slug}.md`. One or more
  **anticipated** Epics that group observed capabilities by theme.
  Even when the business motivation is not yet described, the epic
  gives the features a frame (domain, user group, module). Status:
- `Anticipated (not yet validated)`. `/business-analyse` and
+ `Anticipated (not yet validated)`. `/business-analysis` and
  `/requirements-engineering` later refine, split, merge, or rename
  these epics.
-- `_devprocess/requirements/features/FEATURE-{EPIC}-{NNN}-{slug}.md`.
+- `_devprocess/requirements/features/FEAT-{ee}-{ff}-{slug}.md`.
  One per observable user-facing capability, `Status: Observed (not
  validated)`, nested under its anticipated Epic's number.
 - `_devprocess/analysis/BA-{PROJECT}.md`. Evidence-based draft,
- `Status: Draft (reverse-engineered, awaiting validation in /business-analyse)`.
-- Append entries to `_devprocess/context/10_backlog.md`. TODOs, FIXMEs,
+ `Status: Draft (reverse-engineered, awaiting validation in /business-analysis)`.
+- Append entries to `_devprocess/context/BACKLOG.md`. TODOs, FIXMEs,
  observed gaps, tech debt, undocumented dependencies.
 
 ## What you do NOT create
@@ -201,9 +241,9 @@ artifacts become the Phase 0 state for that forward walk.
  or HMW questions. This skill only writes **Anticipated Epics**
  (thematic groupings of observed capabilities) with
  `Status: Anticipated`. The strategic content comes from
- `/business-analyse` and `/requirements-engineering` later.
+ `/business-analysis` and `/requirements-engineering` later.
 - Success Criteria or User Stories on the FEATURE inventory (those
- come from `/requirements-engineering` after `/business-analyse`)
+ come from `/requirements-engineering` after `/business-analysis`)
 - Personas, HMW questions, or value propositions that are not
  explicitly stated in the existing documentation
 
@@ -223,7 +263,7 @@ were followed.
  concrete source for a section, you write:
  ```
  [NEEDS USER INPUT. No evidence found in {searched sources}.
- /business-analyse will fill this in.]
+ /business-analysis will fill this in.]
  ```
  You do not write a "reasonable assumption" in its place.
 
@@ -266,27 +306,76 @@ Check these locations and patterns:
 - README, CONTRIBUTING, or CLAUDE.md references to workflow skills,
  DIA, MADR, arc42
 - Multiple ADR-format styles in the same directory (MADR vs custom)
-- Multiple numbering series (ADR-001..037 alongside 037..045 without
+- Multiple numbering series (ADR-01..037 alongside 037..045 without
  prefix)
+- **DIA v1 patterns** (added 2026-04-30): `FEATURE-NNNN`-style
+ filenames (4-digit), `EPIC-NNN` / `ADR-NNN` (3-digit), `status:`
+ / `phase:` fields in YAML frontmatter, `> **Status**: ...` lines
+ in artifact bodies, `_devprocess/context/fixes/` (instead of
+ `requirements/fixes/`), `_devprocess/context/20_bugs.md`,
+ numeric-prefixed `10_backlog.md` / `30_handoffs.md` /
+ `40_metrics.md`, any `archive/` folder under `_devprocess/`.
 
 If ANY of these are found, stop before producing new artifacts and
 ask the user a single `AskUserQuestion` (per the User Interaction
 Protocol, one-at-a-time with Pro/Con):
 
 > "I found existing workflow artifacts under {paths}. How should we
-> proceed? (a) consolidate them into the V-Model format before I
-> reverse-engineer the rest, (b) keep them untouched and produce new
-> artifacts alongside (flagged as separate source), (c) replace them
-> with reverse-engineered versions (destructive)."
+> proceed? (a) normalize them to current DIA conventions first
+> (Phase -1.5 runs the migration scripts), then reverse-engineer the
+> gaps from code, (b) keep them untouched and produce new artifacts
+> alongside (flagged as separate source), (c) replace them with
+> reverse-engineered versions (destructive)."
 
-Only after the decision is recorded do you proceed with Phase 0.
+Recommendation: (a) for DIA v1 patterns or any partial DIA-style
+artefacts. (b) for parallel non-DIA workflows the team wants to
+preserve. (c) only when the user explicitly confirms the existing
+artefacts are obsolete.
+
+Only after the decision is recorded do you proceed with Phase -1.5
+(if normalization was chosen) or Phase 0 (otherwise).
+
+### Phase -1.5: Migration of pre-existing artefacts (added 2026-04-30)
+
+Skipped unless Phase -1 found DIA-style artefacts and the user chose
+option (a). Runs the shared migration scripts under `tools/migration/`
+in the DIA repo, the same scripts `/dia-migration` orchestrates.
+
+Sequence (each script idempotent, run with confirmation gates only
+between major write phases):
+
+1. `tools/migration/detect_state.py` -- inventory v1/v2/mixed signals.
+2. `tools/migration/strip_frontmatter_status.py` -- pull `status:` /
+   `phase:` / `last_updated:` out of artefact YAML frontmatter.
+3. `tools/migration/strip_body_status.py` -- pull `> **Status**: ...`
+   lines out of artefact bodies.
+4. `tools/migration/migrate_naming.py` -- rename ID schemas
+   (`FEATURE-NNNN` -> `FEAT-EE-FF`, `EPIC-NNN` -> `EPIC-NN`, etc.)
+   and rewrite cross-references.
+5. `tools/migration/flatten_analysis.py` -- collapse `analysis/` to
+   the four canonical prefixes (BA, EXPLORE, RESEARCH, AUDIT).
+6. `tools/migration/build_backlog.py` -- regenerate
+   `_devprocess/context/BACKLOG.md` from the (now-clean) artefact set.
+7. `tools/migration/migrate_skill_names.py` -- rewrite legacy skill
+   names in CLAUDE.md / README / inline scripts.
+
+After Phase -1.5, the repo's existing artefacts conform to current
+DIA conventions. Phase 0 then proceeds with the code-walk to fill
+the gaps that the existing artefacts do not cover.
+
+The intent: `/dia-migration` and `/reverse-engineering` share the
+canonical migration mechanics. `/dia-migration` runs them with full
+phase-by-phase user confirmation (because the user explicitly
+invoked migration). `/reverse-engineering` runs them as a
+preparatory pass with one consolidated confirmation, because the
+user's primary intent was the code-walk.
 
 **Numbering collision protocol.** If two ADR series coexist, the
 consolidation must decide which numbers win. Rule of thumb: the
 series with the higher count of external references in source code,
 commits, and backlog wins. Renumber the smaller series with a clear
 note in the renumbered ADR header ("Before 2026-04-20 this ran as
-ADR-037; renumbered to ADR-046 because Superpowers series used 037").
+ADR-37; renumbered to ADR-46 because Superpowers series used 037").
 
 **Dedup protocol.** If two files describe the same decision or
 feature (different language, different format, same topic), merge
@@ -295,7 +384,7 @@ lists the sources. Do not silently delete.
 
 ### Phase 0: Scope and codebase scan (5-10 min)
 
-Ask the user which scope applies, same tiers as `/business-analyse`:
+Ask the user which scope applies, same tiers as `/business-analysis`:
 
 ```
 What is the scope of this reverse-engineering run?
@@ -428,7 +517,7 @@ the system lets a user (or an API consumer) do. Sources:
 **Step 3a: Anticipated Epics.** Before writing FEATURE files, group
 the observable capabilities into 1-N thematic clusters (e.g. by
 domain, module, user group). For each cluster, write an Epic
-placeholder at `_devprocess/requirements/epics/EPIC-{NNN}-{slug}.md`
+placeholder at `_devprocess/requirements/epics/EPIC-{nn}-{slug}.md`
 from `EPIC-TEMPLATE.md` with:
 
 ```yaml
@@ -438,10 +527,10 @@ source: /reverse-engineering on {date}
 needs-validation: true
 ---
 
-# EPIC-{NNN}: {thematic name, e.g. "User and access management"}
+# EPIC-{nn}: {thematic name, e.g. "User and access management"}
 
 > **Status**: Anticipated. Derived from observed capabilities,
-> not from a validated business motivation. `/business-analyse`
+> not from a validated business motivation. `/business-analysis`
 > refines or replaces the Hypothesis Statement and outcomes.
 
 ## Anticipated Scope
@@ -456,12 +545,12 @@ needs-validation: true
 ```
 
 When no obvious clusters exist, create a single catch-all
-`EPIC-001-observed-capabilities.md`. Split later.
+`EPIC-01-observed-capabilities.md`. Split later.
 
 **Step 3b: FEATURE files.** For each observable capability, write
-`_devprocess/requirements/features/FEATURE-{EPIC}-{NNN}-{slug}.md`
+`_devprocess/requirements/features/FEAT-{ee}-{ff}-{slug}.md`
 using the existing `FEATURE-TEMPLATE.md` but with reduced scope.
-`{EPIC}` is the 3-digit number of the anticipated Epic the feature
+`{EPIC}` is the 2-digit number of the anticipated Epic the feature
 belongs to, `{NNN}` is the local counter inside that Epic.
 
 ```yaml
@@ -470,7 +559,7 @@ status: Observed (not validated)
 source: /reverse-engineering on {date}
 ---
 
-# FEATURE-{EPIC}-{NNN}: {short name}
+# FEAT-{ee}-{ff}: {short name}
 
 ## Feature Description
 
@@ -481,7 +570,7 @@ Source: {file paths and line ranges that implement this feature}
 ## Benefits Hypothesis
 
 [NEEDS USER INPUT. /requirements-engineering will define this
-after /business-analyse has validated the WHY.]
+after /business-analysis has validated the WHY.]
 
 ## User Stories
 
@@ -539,7 +628,7 @@ at least one SC), and the RE-Handoff can honestly claim the Feature
 inventory is mapped against code, even when business targets are
 still open.
 
-When `/business-analyse` or `/requirements-engineering` later runs,
+When `/business-analysis` or `/requirements-engineering` later runs,
 it fills the `[AWAITING BA]` placeholders with validated business
 targets. Observable targets remain as-is unless the user explicitly
 revises them.
@@ -562,7 +651,7 @@ but with every section following the evidence rule:
 
 ```yaml
 ---
-status: Draft (reverse-engineered, awaiting validation in /business-analyse)
+status: Draft (reverse-engineered, awaiting validation in /business-analysis)
 created-by: /reverse-engineering
 needs-validation: true
 ---
@@ -594,10 +683,10 @@ When you finish, count:
 - `filled-from-sources`: how many sections are evidence-backed
 - `needs-user-input`: how many sections are placeholders
 
-Include both counts in the BA header so `/business-analyse` knows
+Include both counts in the BA header so `/business-analysis` knows
 how much work remains.
 
-### Phase 5: Backlog extraction → 10_backlog.md
+### Phase 5: Backlog extraction → BACKLOG.md
 
 Scan for:
 
@@ -611,7 +700,7 @@ Scan for:
  if major versions are pinned to old releases)
 - Missing CI steps (e.g. no security scan, no type-check, no linter)
 
-Append each finding as a row to `_devprocess/context/10_backlog.md`
+Append each finding as a row to `_devprocess/context/BACKLOG.md`
 following the binding format in
 `skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`.
 Reverse-engineered findings go into the **Standalone Items** section
@@ -684,8 +773,8 @@ checked it compiles with reality."
 
 **Parallelisation.** For large projects (20+ FEATUREs, 30+ ADRs),
 split the verification into 3-6 concurrent agents with non-
-overlapping file slices (e.g. FEATURE-001..007, FEATURE-008..015,
-FEATURE-016..021; ADR-001..015, ADR-016..030, ADR-031..046). Each
+overlapping file slices (e.g. FEAT-NN-NN..NN, FEAT-NN-NN..NN,
+FEAT-NN-NN..NN; ADR-01..015, ADR-16..030, ADR-31..046). Each
 agent reads its slice, verifies against the code, and writes the
 verification section directly. At the end, consolidate the Phase
 counts into the Backlog Dashboard and add drift-specific BL-items
@@ -739,11 +828,12 @@ Artefakte noch nicht alle geschrieben sind).
 **Output-Integration.** Die Handoff-Ritual-Zusammenfassung enthaelt
 die Graph-Health-Zahlen. Wenn der Check kritische Luecken findet
 (Dead-Links, Orphan-Features ohne Epic), weist der Handoff den User
-explizit darauf hin, bevor `/business-analyse` startet.
+explizit darauf hin, bevor `/business-analysis` startet.
 
 ### Phase 6: Handoff Ritual
 
-The handoff follows the standard 3-part pattern.
+The handoff follows the standard 4-part pattern (artifact report,
+handoff context, phase-end commit, transition question).
 
 **Part 1: Artifact report**
 
@@ -760,14 +850,14 @@ Artifacts produced:
 - {N} FEATURE-*.md (Observed)
 - BA-{PROJECT}.md (Draft, {filled}/{total} sections
  evidence-backed, {placeholder} open)
-- {N} new backlog entries (FIX-NNN oder IMP-NNN, P2)
+- {N} new backlog entries (FIX-{ee}-{ff}-{nn} oder IMP-{ee}-{ff}-{nn}, P2)
 
 Sources walked:
 - {N} code files scanned
 - {N} documentation files read
 ```
 
-**Part 2: Handoff context entry in `30_handoffs.md`**
+**Part 2: Handoff context entry in `HANDOFFS.md`**
 
 Append:
 
@@ -775,9 +865,41 @@ Append:
 - **What was reverse-engineered**: list of artifact counts
 - **Evidence coverage**: how many BA sections need user input
 - **Risks / gaps**: explicit list of placeholders the team must fill
-- **Recommended next phase**: always `/business-analyse`
+- **Recommended next phase**: always `/business-analysis`
 
-**Part 3: Transition question**
+**Part 3: Phase-end commit**
+
+Run the phase-end commit per `skills/project-conventions/references/team-workflow.md`
+section "Phase-end commit (binding)". The block fires the binding
+branch-and-item check, stages every artefact this phase produced
+(plan-context, ADRs, arc42, FEATURE specs, BA draft, BACKLOG
+seed), commits with the canonical message, sets the phase tag, and
+opens a draft PR if one does not exist yet.
+
+Reverse-engineering uses a single feature branch
+`feature/reverse-engineer-<repo-name>` (per the RE exception in
+team-workflow.md), so the commit-boundary check expects that branch
+rather than a per-item branch.
+
+Canonical commit message for RE-engineering:
+
+```
+chore(reverse): <repo-name> reverse-engineering complete
+
+<one-line summary: N FEATUREs, M ADRs, BA draft, K backlog entries>
+
+Refs: <repo-name>
+```
+
+After the commit lands, run:
+
+```
+python3 tools/github-integration/flow.py tag-phase --item <repo-name> --phase reverse
+```
+
+Skip the commit silently if the working tree has no changes.
+
+**Part 4: Transition question**
 
 Ask the user exactly this:
 
@@ -788,15 +910,15 @@ Ask the user exactly this:
 > but it does not tell us whether the product solves the right
 > problem.
 >
-> Next step: `/business-analyse`. It will walk through the draft
+> Next step: `/business-analysis`. It will walk through the draft
 > section by section, confirm the evidence-backed claims, and fill
 > the placeholders with you.
 >
-> Shall I start `/business-analyse` now, or do you want to review the
+> Shall I start `/business-analysis` now, or do you want to review the
 > reverse-engineered artifacts first?"
 
 On agreement (`yes`, `go`, `next`, `weiter`) or when running inside
-`/v-model-workflow`: start `/business-analyse`. It will detect the
+`/dia-guide`: start `/business-analysis`. It will detect the
 draft BA and enter Validation Mode automatically.
 
 On rejection: pause and wait. The artifacts stay in `_devprocess/`
@@ -824,7 +946,7 @@ Before you run the Handoff Ritual, verify:
 7. **No format or numbering conflicts.** (added 2026-04-20) If
  multiple ADR formats coexist in `docs/adr/` (e.g. MADR vs simple
  German headers), flag and normalise. If multiple ADR numbering
- series coexist (ADR-001..037 alongside 037..045 without prefix),
+ series coexist (ADR-01..037 alongside 037..045 without prefix),
  resolve the collision per Phase -1 before running the Handoff
  Ritual.
 8. **Codebase-Verifikation present on every FEATURE and ADR.** (added
@@ -878,7 +1000,7 @@ Ensure the structure exists before writing:
 ```bash
 # Replace {ROOT} with either _devprocess or docs based on detection above.
 mkdir -p {ROOT}/{analysis,requirements/{epics,features,handoff},architecture,adr,context,implementation/plans}
-touch {ROOT}/context/30_handoffs.md
+touch {ROOT}/context/HANDOFFS.md
 ```
 
 `adr/` is the canonical location for ADR files. If the project
@@ -886,7 +1008,7 @@ already puts them under `architecture/ADR-*.md`, consolidate into
 `adr/` during Phase -1 before producing new ADRs, to avoid mixed
 paths.
 
-For `{ROOT}/context/10_backlog.md`, do not create an empty file.
+For `{ROOT}/context/BACKLOG.md`, do not create an empty file.
 Seed it from
 `skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`
 so the first RE write already follows the binding format. Include

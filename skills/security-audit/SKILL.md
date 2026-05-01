@@ -23,9 +23,47 @@ through to code review. Your output is a prioritized security report
 with a concrete remediation plan.
 
 **Input:** Codebase (`src/`), dependencies (`package.json`/`pyproject.toml`), configuration
-**Output:** Security Audit Report in `_devprocess/analysis/security/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`
+**Output:** Security Audit Report in `_devprocess/analysis/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`
 
 **Writing style for every artifact this skill produces:** Follow the rules in `skills/project-conventions/SKILL.md` under "Writing style for every artifact". Zero em dashes of any form. No Unicode em dash (U+2014), no en dash (U+2013), no double-hyphen substitute. No AI vocabulary, no negative parallelisms. Every finding description, every causal chain, every remediation step, and every prioritisation rationale is written in that style. Before you save an artifact, scan it for U+2014 and U+2013 and fix any hit.
+
+## MANDATORY Pre-Phase 0: Branch and item check
+
+Security audits run in two modes:
+
+- **Per-item audit** (e.g. as part of /coding or before merging a
+  feature): runs on the item's branch, alongside coding and testing.
+  The audit-done tag goes on the same branch.
+- **Periodic full-codebase audit** (no specific feature item): runs
+  on a dedicated branch `feature/audit-<YYYY-MM-DD>` and produces a
+  standalone AUDIT report that queues FIX/IMP follow-ups.
+
+For per-item audit:
+
+1. Identify the active item from the prompt or via AskUserQuestion.
+2. Verify the branch matches the item-branch.
+3. Skill-triggered GitHub integration (idempotent):
+
+   ```
+   python3 tools/github-integration/flow.py create-issue --item <ID>
+   python3 tools/github-integration/flow.py open-draft-pr --item <ID>
+   ```
+
+4. At Handoff Ritual end, tag the phase:
+
+   ```
+   python3 tools/github-integration/flow.py tag-phase --item <ID> --phase audit
+   ```
+
+For periodic full-codebase audit: branch is
+`feature/audit-<YYYY-MM-DD>` (no item ID). The AUDIT report acts as
+its own deliverable; FIX/IMP follow-ups land in the BACKLOG, each
+with its own branch later. No draft PR is opened for the audit
+branch itself; the audit report is a deliverable, the FIX/IMP
+follow-ups are the actionable work and they get their own branches
+later via `/coding`.
+
+Full rules: `skills/project-conventions/references/team-workflow.md`.
 
 ## What you do
 
@@ -99,7 +137,7 @@ Management, Race Conditions, Hardcoded Credentials, Debug code in production.
 
 Read `templates/AUDIT-TEMPLATE.md` and create the full report.
 
-Save to: `_devprocess/analysis/security/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`
+Save to: `_devprocess/analysis/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`
 
 ## Severity schema
 
@@ -210,7 +248,7 @@ The loop repeats until all in-scope findings are resolved or the user aborts.
 Findings not fixed immediately (e.g. P2/P3 on Option B):
 
 1. **Backlog**: each open finding gets a row in
-   `_devprocess/context/10_backlog.md` following the binding format
+   `_devprocess/context/BACKLOG.md` following the binding format
    from `skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`.
    Security findings live in the **Standalone Items** section with:
    - `Typ = Security`
@@ -230,6 +268,13 @@ Findings not fixed immediately (e.g. P2/P3 on Option B):
 - ADRs: when security fixes affect architecture decisions
 - Backlog: open findings documented
 
+### Step 7: Run `/consistency-check` mode A at the end of the skill phase
+
+Catches deferred findings without backlog rows, FIX rows missing
+`feature:` / `epic:` frontmatter, dashboard counts that drifted from
+the new findings, and dead links between audit report and backlog.
+The Handoff Ritual reports the result.
+
 ### Closing
 
 ```
@@ -237,7 +282,7 @@ Security Audit complete!
 
 Resolved: {N} findings fixed
 Deferred: {N} findings in backlog
-Report: _devprocess/analysis/security/AUDIT-{PROJECT}-{DATE}.md
+Report: _devprocess/analysis/AUDIT-{PROJECT}-{DATE}.md
 ```
 
 ---
@@ -245,21 +290,21 @@ Report: _devprocess/analysis/security/AUDIT-{PROJECT}-{DATE}.md
 ## Handoff Ritual (mandatory at end of phase)
 
 After the fix-loop is closed, this skill always runs the handoff ritual,
-regardless of how it was started (directly or via `/v-model-workflow`).
+regardless of how it was started (directly or via `/dia-guide`).
 
 ### Part 1: Artifact report
 
 ```
 Produced / updated:
-- _devprocess/analysis/security/AUDIT-{PROJECT}-{DATE}.md: full report
+- _devprocess/analysis/AUDIT-{PROJECT}-{DATE}.md: full report
 - Findings resolved: {N} (P1: {N}, P2: {N}, P3: {N})
 - Findings deferred: {N} (in backlog)
-- _devprocess/context/10_backlog.md: deferred findings added
+- _devprocess/context/BACKLOG.md: deferred findings added
 ```
 
 ### Part 2: Handoff context
 
-Append a new entry to `_devprocess/context/30_handoffs.md` with:
+Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 
 - **Overall risk verdict**: Critical / High / Medium / Low
 - **Unresolved P0/P1**: any high-severity findings still open and why
@@ -267,31 +312,58 @@ Append a new entry to `_devprocess/context/30_handoffs.md` with:
 - **Architectural security concerns**: patterns that should be revisited
   in a future `/architecture` cycle (e.g. trust-boundary issues that
   require redesign, not patching)
-- **Release recommendation**: green / yellow / red for moving to Phase 7
+- **Release recommendation**: green / yellow / red verdict that gates
+  the Closing Handoff (`/consistency-check` mode B + optional release)
 
-### Part 3: Transition question
+### Part 3: Phase-end commit
+
+Run the phase-end commit per `skills/project-conventions/references/team-workflow.md`
+section "Phase-end commit (binding)". The block fires the binding
+branch-and-item check, stages every artefact this phase produced
+(audit report, BACKLOG rows for deferred findings, any FIX rows
+created from H/M findings), commits with the canonical message,
+sets the phase tag, and opens a draft PR if one does not exist yet.
+
+Canonical commit message for AUDIT:
+
+```
+chore(audit): <ITEM-ID> audit complete
+
+<one-line summary: risk verdict, N findings (P1/P2/P3), release recommendation>
+
+Refs: <ITEM-ID>[, FIX-..., FIX-...]
+```
+
+After the commit lands, run:
+
+```
+python3 tools/github-integration/flow.py tag-phase --item <ID> --phase audit
+```
+
+Skip the commit silently if the working tree has no changes.
+
+### Part 4: Transition question
 
 Ask the user:
 
 > "Security audit complete. Report saved to:
-> - `_devprocess/analysis/security/AUDIT-{PROJECT}-{DATE}.md`
+> - `_devprocess/analysis/AUDIT-{PROJECT}-{DATE}.md`
 >
 > Release readiness: {green/yellow/red}
 >
-> The next step in the V-Model workflow is **Phase 7: Release Closure**
-> (via `/v-model-workflow`), which will:
-> 1. Finalize all artifacts (BA, Features, ADRs, arc42)
-> 2. Generate release notes
-> 3. Update CHANGELOG
-> 4. Clean up the backlog
-> 5. Produce a closing report
+> Recommended next: `/consistency-check` mode B (semantic) -- finalises
+> the artifact graph (BA Validation, Feature/ADR statuses, arc42,
+> plan-context) and returns a Release-Ready verdict. After Release-
+> Ready: yes, the cycle is closed; you can run your private release
+> skill if one is configured.
 >
-> Shall I invoke `/v-model-workflow` to run the Release Closure now, or
-> would you like to review the audit first?"
+> Shall I invoke `/consistency-check` mode B now, or would you like to
+> review the audit first?"
 
 **On agreement** ("yes" / "go" / "next") or when running inside
-`/v-model-workflow`:
--> Hand control back to `/v-model-workflow` for Phase 7
+`/dia-guide`:
+-> Run `/consistency-check` mode B; on Release-Ready: yes the
+   `/dia-guide` Closing Handoff fires
 
 **On rejection** ("no" / "stop" / "I want to check first"):
 -> Pause and wait for user instruction
