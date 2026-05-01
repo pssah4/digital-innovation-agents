@@ -33,8 +33,8 @@ re-run `create-issue` and tags will sync.
 | `create-issue`       | First entry-skill invocation on a new backlog item                          |
 | `tag-phase`          | End of every Handoff Ritual (BA, RE, Arch, Code, Test, Audit)               |
 | `open-draft-pr`      | After the first commit on the item branch (typically end of Phase 0)        |
-| `ready-for-review`   | After all required phase tags are set (orchestrator handoff)                |
-| `status`             | Orchestrator post-phase consistency check, or user query                    |
+| `ready-for-review`   | After all required phase tags are set (Closing Handoff)                     |
+| `status`             | `/dia-guide` post-phase audit, or user query                                |
 
 All subcommands take `--item <ID>` (e.g. `--item FEAT-04-09`) and
 are idempotent.

@@ -3,11 +3,12 @@
 
 Rewrites references to the old skill names:
 - /business-analyse -> /business-analysis
-- /v-model-workflow -> /dia-orchestrator
+- /v-model-workflow -> /dia-guide
 - skills/business-analyse/ -> skills/business-analysis/
-- skills/v-model-workflow/ -> skills/dia-orchestrator/
+- skills/v-model-workflow/ -> skills/dia-guide/
 - bare names: business-analyse -> business-analysis,
-  v-model-workflow -> dia-orchestrator (skill-name only;
+  v-model-workflow -> dia-guide,
+  dia-orchestrator -> dia-guide (skill-name only;
   "V-Model" the methodology stays untouched)
 
 Idempotent. No-op for repos that already use the new names.
@@ -29,11 +30,14 @@ SKIP = {"_devprocess/context/HANDOFFS.md"}
 
 def transform(content: str) -> str:
     content = content.replace("skills/business-analyse/", "skills/business-analysis/")
-    content = content.replace("skills/v-model-workflow/", "skills/dia-orchestrator/")
+    content = content.replace("skills/v-model-workflow/", "skills/dia-guide/")
+    content = content.replace("skills/dia-orchestrator/", "skills/dia-guide/")
     content = content.replace("/business-analyse", "/business-analysis")
-    content = content.replace("/v-model-workflow", "/dia-orchestrator")
+    content = content.replace("/v-model-workflow", "/dia-guide")
+    content = content.replace("/dia-orchestrator", "/dia-guide")
     content = re.sub(r"\bbusiness-analyse\b", "business-analysis", content)
-    content = re.sub(r"\bv-model-workflow\b(?!-imp)", "dia-orchestrator", content)
+    content = re.sub(r"\bv-model-workflow\b(?!-imp)", "dia-guide", content)
+    content = re.sub(r"\bdia-orchestrator\b", "dia-guide", content)
     return content
 
 

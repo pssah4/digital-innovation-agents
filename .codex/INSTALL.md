@@ -35,7 +35,7 @@ ls -la ~/.agents/skills/digital-innovation-agents
 
 You should see a symlink (or junction on Windows) pointing to your skills directory.
 
-In a new Codex session, ask something like "what skills do you have available?" -- the agent should list entries including `business-analysis`, `requirements-engineering`, `architecture`, `coding`, `testing`, `security-audit`, and `dia-orchestrator`.
+In a new Codex session, ask something like "what skills do you have available?" -- the agent should list entries including `business-analysis`, `requirements-engineering`, `architecture`, `coding`, `testing`, `security-audit`, and `dia-guide`.
 
 ## Updating
 
@@ -61,7 +61,7 @@ rm -rf ~/.codex/digital-innovation-agents
 
 Once installed, start with:
 
-- `dia-orchestrator` -- Guided cycle through all phases
+- `dia-guide` -- Guided cycle through all phases
 - `business-analysis` -- Problem exploration, ideation, validation (greenfield)
 - `reverse-engineering` -- Walks the V backwards over an existing codebase (brownfield)
 - `dia-migration` -- Migrate a legacy DIA project or pre-existing V-Model variant to current conventions

@@ -23,7 +23,7 @@ without invoking a skill.
 | `migrate_naming.py`             | 3     | Rename `FEATURE-NNNN` -> `FEAT-EE-FF`, `EPIC-NNN` -> `EPIC-NN`, etc. |
 | `flatten_analysis.py`           | 4     | Flatten `analysis/` to four prefixes: BA, EXPLORE, RESEARCH, AUDIT. |
 | `build_backlog.py`              | 5     | Regenerate `_devprocess/context/BACKLOG.md` from all artefacts. |
-| `migrate_skill_names.py`        | 6     | Rewrite legacy skill names: `/business-analyse` -> `/business-analysis`, `/v-model-workflow` -> `/dia-orchestrator`. |
+| `migrate_skill_names.py`        | 6     | Rewrite legacy skill names: `/business-analyse` -> `/business-analysis`, `/v-model-workflow` -> `/dia-guide`. |
 
 All scripts:
 
