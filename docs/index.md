@@ -28,17 +28,12 @@ hero:
     <p>Walk the V backwards. Reverse-engineer a wayfinder, ADRs, an arc42 snapshot, a FEAT inventory, and an evidence-based BA draft from your code. Every claim sourced, nothing invented.</p>
     <span class="arrow">Run Reverse Engineering →</span>
   </a>
-  <a class="tile" href="/digital-innovation-agents/guides/dia-migration">
-    <h3>Upgrading an older DIA project?</h3>
-    <p>Bring a v1 or v2 project up to v3 conventions: rename FEATURE-NNNN to FEAT-EE-FF, flatten analysis, regenerate the backlog, and run a graph-health check. Idempotent, branch-safe, no source-code edits.</p>
-    <span class="arrow">Run DIA Migration →</span>
-  </a>
 </div>
 
 <div class="landing-diagram">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 460" role="img" aria-labelledby="vm-title vm-desc" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif" preserveAspectRatio="xMidYMid meet">
-  <title id="vm-title">V-Model workflow for AI coding assistants</title>
-  <desc id="vm-desc">Click any phase, method, or loop to jump to its documentation.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-150 0 1530 590" role="img" aria-labelledby="vm-title vm-desc" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif" preserveAspectRatio="xMidYMid meet">
+  <title id="vm-title">V-Model workflow for AI coding assistants (DIA v3)</title>
+  <desc id="vm-desc">Click any phase, bus, or loop to jump to its documentation. Six phases plus a Closing handoff. Two consistency buses (BACKLOG.md, ARCHITECTURE.map) and four feedback loops.</desc>
   <defs>
     <marker id="arrow-handoff" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0 L10 5 L0 10 Z" fill="#f97316"/>
@@ -46,50 +41,53 @@ hero:
     <marker id="arrow-loop" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0 L10 5 L0 10 Z" fill="#94a3b8"/>
     </marker>
+    <marker id="arrow-wayfinder-write" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#0e7490"/>
+    </marker>
   </defs>
 
   <a href="/digital-innovation-agents/guides/business-analysis">
     <rect x="30" y="15" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="110" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Users · Needs · Market</text>
+    <text x="110" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Users · Needs</text>
     <rect x="30" y="45" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="110" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">JTBD · Hypotheses</text>
+    <text x="110" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Jobs to be done</text>
     <rect x="30" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="110" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Pricing · Viability</text>
+    <text x="110" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Viability</text>
     <rect x="20" y="115" width="180" height="120" rx="16" fill="#be185d" stroke="#f9a8d4" stroke-width="2.5"/>
     <text x="110" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#fdf2f8">Business</text>
-    <text x="110" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#fdf2f8">Analysis</text>
+    <text x="110" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#fdf2f8">analysis</text>
     <text x="110" y="215" text-anchor="middle" font-size="14" fill="#fbcfe8">Why</text>
     <rect x="30" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="110" y="276" text-anchor="middle" font-size="15" fill="#475569">BA doc</text>
-    <text x="110" y="300" text-anchor="middle" font-size="15" fill="#475569">Exploration board</text>
+    <text x="110" y="300" text-anchor="middle" font-size="15" fill="#475569">Hypotheses</text>
   </a>
 
   <a href="/digital-innovation-agents/guides/requirements-engineering">
     <rect x="234" y="15" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="314" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Epic from HMW</text>
+    <text x="314" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Epics</text>
     <rect x="234" y="45" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="314" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">User stories (F/E/S)</text>
+    <text x="314" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">User stories</text>
     <rect x="234" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="314" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Validation criteria</text>
-    <rect x="224" y="115" width="180" height="120" rx="16" fill="#be185d" stroke="#f9a8d4" stroke-width="2.5"/>
-    <text x="314" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#fdf2f8">Requirements</text>
-    <text x="314" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#fdf2f8">Engineering</text>
-    <text x="314" y="215" text-anchor="middle" font-size="14" fill="#fbcfe8">What</text>
+    <text x="314" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Success criteria</text>
+    <rect x="224" y="115" width="180" height="120" rx="16" fill="#a21caf" stroke="#f0abfc" stroke-width="2.5"/>
+    <text x="314" y="158" text-anchor="middle" font-size="22" font-weight="700" fill="#fdf4ff">Requirements</text>
+    <text x="314" y="188" text-anchor="middle" font-size="22" font-weight="700" fill="#fdf4ff">engineering</text>
+    <text x="314" y="215" text-anchor="middle" font-size="14" fill="#f5d0fe">What</text>
     <rect x="234" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="314" y="276" text-anchor="middle" font-size="15" fill="#475569">Epics · Features</text>
-    <text x="314" y="300" text-anchor="middle" font-size="15" fill="#475569">Backlog · Handoff</text>
+    <text x="314" y="300" text-anchor="middle" font-size="15" fill="#475569">Backlog entry</text>
   </a>
 
   <a href="/digital-innovation-agents/guides/architecture">
     <rect x="438" y="15" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="518" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">ADR (MADR)</text>
+    <text x="518" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">ADRs (MADR)</text>
     <rect x="438" y="45" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="518" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">arc42</text>
     <rect x="438" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="518" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">plan-context</text>
-    <rect x="428" y="115" width="180" height="120" rx="16" fill="#be185d" stroke="#f9a8d4" stroke-width="2.5"/>
-    <text x="518" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#fdf2f8">Architecture</text>
-    <text x="518" y="205" text-anchor="middle" font-size="14" fill="#fbcfe8">How</text>
+    <rect x="428" y="115" width="180" height="120" rx="16" fill="#7e22ce" stroke="#d8b4fe" stroke-width="2.5"/>
+    <text x="518" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#faf5ff">Architecture</text>
+    <text x="518" y="205" text-anchor="middle" font-size="14" fill="#e9d5ff">How</text>
     <rect x="438" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="518" y="276" text-anchor="middle" font-size="15" fill="#475569">ADRs · arc42</text>
     <text x="518" y="300" text-anchor="middle" font-size="15" fill="#475569">plan-context</text>
@@ -97,29 +95,29 @@ hero:
 
   <a href="/digital-innovation-agents/guides/coding">
     <rect x="642" y="15" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="722" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Codebase review</text>
+    <text x="722" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Critical review</text>
     <rect x="642" y="45" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="722" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">TDD · Debugging</text>
+    <text x="722" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Test-driven dev</text>
     <rect x="642" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="722" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">PLAN-NN coverage gate</text>
-    <rect x="632" y="115" width="180" height="120" rx="16" fill="#7e22ce" stroke="#d8b4fe" stroke-width="2.5"/>
-    <text x="722" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#faf5ff">Coding</text>
-    <text x="722" y="205" text-anchor="middle" font-size="14" fill="#e9d5ff">Enhanced default agent</text>
+    <text x="722" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Wayfinder update</text>
+    <rect x="632" y="115" width="180" height="120" rx="16" fill="#6d28d9" stroke="#c4b5fd" stroke-width="2.5"/>
+    <text x="722" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#f5f3ff">Coding</text>
+    <text x="722" y="205" text-anchor="middle" font-size="14" fill="#ddd6fe">Build</text>
     <rect x="642" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="722" y="276" text-anchor="middle" font-size="15" fill="#475569">Source + wayfinder</text>
-    <text x="722" y="300" text-anchor="middle" font-size="15" fill="#475569">FIX backlog rows</text>
+    <text x="722" y="276" text-anchor="middle" font-size="15" fill="#475569">Source code</text>
+    <text x="722" y="300" text-anchor="middle" font-size="15" fill="#475569">Wayfinder update</text>
   </a>
 
   <a href="/digital-innovation-agents/guides/testing">
     <rect x="846" y="15" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="926" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">AAA · FIRST</text>
+    <text x="926" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Test design</text>
     <rect x="846" y="45" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="926" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Unit + integration</text>
+    <text x="926" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Unit · Integration</text>
     <rect x="846" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="926" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Coverage targets</text>
+    <text x="926" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Coverage</text>
     <rect x="836" y="115" width="180" height="120" rx="16" fill="#4338ca" stroke="#a5b4fc" stroke-width="2.5"/>
     <text x="926" y="172" text-anchor="middle" font-size="24" font-weight="700" fill="#eef2ff">Testing</text>
-    <text x="926" y="205" text-anchor="middle" font-size="14" fill="#c7d2fe">UT + IT</text>
+    <text x="926" y="205" text-anchor="middle" font-size="14" fill="#c7d2fe">Verify</text>
     <rect x="846" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="926" y="276" text-anchor="middle" font-size="15" fill="#475569">Test suites</text>
     <text x="926" y="300" text-anchor="middle" font-size="15" fill="#475569">Coverage</text>
@@ -129,16 +127,24 @@ hero:
     <rect x="1050" y="15" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="1130" y="31" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">OWASP Top 10</text>
     <rect x="1050" y="45" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
-    <text x="1130" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">LLM · SAST · SCA</text>
+    <text x="1130" y="61" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Static analysis</text>
     <rect x="1050" y="75" width="160" height="24" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="1130" y="91" text-anchor="middle" font-size="13" font-weight="500" fill="#334155">Zero Trust</text>
-    <rect x="1040" y="115" width="180" height="120" rx="16" fill="#1e40af" stroke="#93c5fd" stroke-width="2.5"/>
+    <rect x="1040" y="115" width="180" height="120" rx="16" fill="#1d4ed8" stroke="#93c5fd" stroke-width="2.5"/>
     <text x="1130" y="155" text-anchor="middle" font-size="24" font-weight="700" fill="#dbeafe">Security</text>
-    <text x="1130" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#dbeafe">Audit</text>
-    <text x="1130" y="215" text-anchor="middle" font-size="14" fill="#bfdbfe">OWASP · LLM · SCA</text>
+    <text x="1130" y="187" text-anchor="middle" font-size="24" font-weight="700" fill="#dbeafe">audit</text>
+    <text x="1130" y="215" text-anchor="middle" font-size="14" fill="#bfdbfe">Harden</text>
     <rect x="1050" y="250" width="160" height="65" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
     <text x="1130" y="276" text-anchor="middle" font-size="15" fill="#475569">Audit report</text>
-    <text x="1130" y="300" text-anchor="middle" font-size="15" fill="#475569">Backlog updates</text>
+    <text x="1130" y="300" text-anchor="middle" font-size="15" fill="#475569">Findings</text>
+  </a>
+
+  <a href="/digital-innovation-agents/guides/dia-guide">
+    <rect x="1230" y="135" width="150" height="80" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="1305" y="162" text-anchor="middle" font-size="13" font-weight="600" fill="#334155">Closing handoff</text>
+    <text x="1305" y="183" text-anchor="middle" font-size="11" font-style="italic" fill="#6b7280">consistency-check</text>
+    <text x="1305" y="200" text-anchor="middle" font-size="11" font-style="italic" fill="#6b7280">closing report</text>
+    <text x="1305" y="237" text-anchor="middle" font-size="11" font-style="italic" fill="#94a3b8">release act delegated</text>
   </a>
 
   <line x1="206" y1="175" x2="218" y2="175" stroke="#f97316" stroke-width="3.5" marker-end="url(#arrow-handoff)"/>
@@ -146,6 +152,7 @@ hero:
   <line x1="614" y1="175" x2="626" y2="175" stroke="#f97316" stroke-width="3.5" marker-end="url(#arrow-handoff)"/>
   <line x1="818" y1="175" x2="830" y2="175" stroke="#f97316" stroke-width="3.5" marker-end="url(#arrow-handoff)"/>
   <line x1="1022" y1="175" x2="1034" y2="175" stroke="#f97316" stroke-width="3.5" marker-end="url(#arrow-handoff)"/>
+  <line x1="1210" y1="175" x2="1228" y2="175" stroke="#f97316" stroke-width="3.5" marker-end="url(#arrow-handoff)"/>
 
   <line x1="110" y1="235" x2="110" y2="250" stroke="#cbd5e1" stroke-width="1.5"/>
   <line x1="314" y1="235" x2="314" y2="250" stroke="#cbd5e1" stroke-width="1.5"/>
@@ -154,19 +161,56 @@ hero:
   <line x1="926" y1="235" x2="926" y2="250" stroke="#cbd5e1" stroke-width="1.5"/>
   <line x1="1130" y1="235" x2="1130" y2="250" stroke="#cbd5e1" stroke-width="1.5"/>
 
+  <a href="/digital-innovation-agents/concepts/three-layer-documentation">
+    <line x1="110" y1="315" x2="110" y2="345" stroke="#f97316" stroke-width="1.2"/>
+    <line x1="314" y1="315" x2="314" y2="345" stroke="#f97316" stroke-width="1.2"/>
+    <line x1="518" y1="315" x2="518" y2="345" stroke="#f97316" stroke-width="1.2"/>
+    <line x1="722" y1="315" x2="722" y2="345" stroke="#f97316" stroke-width="1.2"/>
+    <line x1="926" y1="315" x2="926" y2="345" stroke="#f97316" stroke-width="1.2"/>
+    <line x1="1130" y1="315" x2="1130" y2="345" stroke="#f97316" stroke-width="1.2"/>
+    <line x1="110" y1="345" x2="1130" y2="345" stroke="#f97316" stroke-width="2"/>
+    <circle cx="110" cy="345" r="4" fill="#f97316"/>
+    <circle cx="314" cy="345" r="4" fill="#f97316"/>
+    <circle cx="518" cy="345" r="4" fill="#f97316"/>
+    <circle cx="722" cy="345" r="4" fill="#f97316"/>
+    <circle cx="926" cy="345" r="4" fill="#f97316"/>
+    <circle cx="1130" cy="345" r="4" fill="#f97316"/>
+    <text x="95" y="345" text-anchor="end" dominant-baseline="middle" font-size="14" font-weight="600" fill="#c2410c">BACKLOG.md</text>
+    <text x="95" y="362" text-anchor="end" font-size="11" font-style="italic" fill="#6b7280">status source of truth</text>
+  </a>
+
+  <a href="/digital-innovation-agents/concepts/three-layer-documentation">
+    <line x1="518" y1="315" x2="518" y2="395" stroke="#0e7490" stroke-width="1.2"/>
+    <line x1="722" y1="315" x2="722" y2="389" stroke="#0e7490" stroke-width="1.2" marker-end="url(#arrow-wayfinder-write)"/>
+    <line x1="926" y1="315" x2="926" y2="395" stroke="#0e7490" stroke-width="1.2"/>
+    <line x1="1130" y1="315" x2="1130" y2="395" stroke="#0e7490" stroke-width="1.2"/>
+    <line x1="518" y1="395" x2="1130" y2="395" stroke="#0e7490" stroke-width="2"/>
+    <circle cx="518" cy="395" r="4" fill="#0e7490"/>
+    <circle cx="722" cy="395" r="4" fill="#0e7490"/>
+    <circle cx="926" cy="395" r="4" fill="#0e7490"/>
+    <circle cx="1130" cy="395" r="4" fill="#0e7490"/>
+    <text x="503" y="395" text-anchor="end" dominant-baseline="middle" font-size="14" font-weight="600" fill="#155e75">ARCHITECTURE.map</text>
+    <text x="503" y="412" text-anchor="end" font-size="11" font-style="italic" fill="#6b7280">code source of truth</text>
+  </a>
+
   <a href="/digital-innovation-agents/guides/testing">
-    <path d="M 885 319 L 885 360 L 772 360 L 772 319" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arrow-loop)"/>
-    <text x="828" y="380" text-anchor="middle" font-size="14" font-style="italic" font-weight="500" fill="#6b7280">Test fix loop</text>
+    <path d="M 885 319 L 885 440 L 772 440 L 772 319" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arrow-loop)"/>
+    <text x="828" y="460" text-anchor="middle" font-size="14" font-style="italic" font-weight="500" fill="#6b7280">Test fix</text>
+  </a>
+
+  <a href="/digital-innovation-agents/guides/architecture">
+    <path d="M 670 319 L 670 440 L 568 440 L 568 319" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arrow-loop)"/>
+    <text x="619" y="460" text-anchor="middle" font-size="14" font-style="italic" font-weight="500" fill="#6b7280">Mid-course discovery</text>
   </a>
 
   <a href="/digital-innovation-agents/guides/security-audit">
-    <path d="M 1085 319 L 1085 405 L 730 405 L 730 319" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arrow-loop)"/>
-    <text x="907" y="425" text-anchor="middle" font-size="14" font-style="italic" font-weight="500" fill="#6b7280">Security fix loop</text>
+    <path d="M 1085 319 L 1085 510 L 750 510 L 750 319" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arrow-loop)"/>
+    <text x="917" y="530" text-anchor="middle" font-size="14" font-style="italic" font-weight="500" fill="#6b7280">Security fix</text>
   </a>
 
   <a href="/digital-innovation-agents/concepts/living-documents">
-    <path d="M 680 319 L 680 405 L 314 405 L 314 319" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arrow-loop)"/>
-    <text x="497" y="425" text-anchor="middle" font-size="14" font-style="italic" font-weight="500" fill="#6b7280">Living documents writeback</text>
+    <path d="M 700 319 L 700 510 L 314 510 L 314 319" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arrow-loop)"/>
+    <text x="507" y="530" text-anchor="middle" font-size="14" font-style="italic" font-weight="500" fill="#6b7280">Living documents</text>
   </a>
 </svg>
 </div>
