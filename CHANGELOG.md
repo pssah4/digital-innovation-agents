@@ -7,6 +7,157 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-05-01
+
+Major release. Closes the v3 drift-defense programme that has run since
+v2.4 and ships three structural changes: a complete drift catalog with
+a defense map, the dissolution of Phase 7 in favour of a thin Closing
+Handoff, and the rename of `/dia-orchestrator` to `/dia-guide` with a
+reframing of the skill from "process driver" to "on-demand orientation
+layer". Six phases plus a Closing Handoff replace the previous seven
+phases.
+
+### Migration from v2 -- breaking changes
+
+A migration script handles every artefact rename automatically:
+
+```
+python3 tools/migration/migrate_skill_names.py [project-root]
+```
+
+The script is idempotent and skips `_devprocess/context/HANDOFFS.md`
+to preserve the audit trail.
+
+Manual changes the script does not cover:
+
+- **Skill rename `/dia-orchestrator` -> `/dia-guide`.** Anywhere the
+  user's own scripts, automation, or `CLAUDE.md` references the old
+  slash command, replace it.
+- **Skill rename `/business-analyse` -> `/business-analysis`** (rolled
+  in earlier v2 work, still applies for migrating projects).
+- **Phase 7 (Release Closure) is dissolved.** The cycle now ends at
+  `/security-audit` and continues with the Closing Handoff. Anywhere
+  documentation references "Phase 7" of the V-Model, update to
+  "Closing Handoff" or remove. The `/dia-migration` skill's internal
+  Phase 7 (consistency-check), `/reverse-engineering` Phase 7
+  (Codebase-Verification Gate) and any unrelated chatmode Phase 7 are
+  unaffected.
+- **Workflow shape: 7 phases -> 6 phases plus Closing Handoff.** The
+  diagram on the landing page and in `docs/concepts/v-model.md`
+  reflects the new shape.
+
+### Added
+
+- **Three-layer documentation model** (`docs/concepts/three-layer-documentation.md`,
+  `skills/project-conventions/`). Project documentation splits into
+  Wayfinder (concept-to-file lookup, lives in `src/ARCHITECTURE.map`,
+  JSDoc headers, module READMEs), Rule sets (stable truths, hard cap
+  500 lines total in `_devprocess/rules/{technical,design,domain}.md`),
+  Backlog (single source of truth for status and the artifact relation
+  graph in `_devprocess/context/BACKLOG.md`), and Detail artifacts
+  (audit trail of the engineering process). Status, phase, last-change,
+  and claim of every artefact live only in the backlog row, not in
+  artefact frontmatter.
+- **Drift defense map** (`docs/concepts/drift-defense.md`). Catalogs
+  eight drift sources (D1-D8) with the mechanism that defends each one,
+  hard vs soft enforcement strategy, the audit checklist per release
+  cycle, and the known limits.
+- **Closing Handoff** in `/dia-guide`. Three-step block that fires
+  after `/security-audit` returns a non-red verdict: suggests
+  `/consistency-check` mode B, on Release-Ready emits a closing
+  report plus the `release-to-ba` HANDOFFS template, on not-ready
+  names the responsible skill. The release act itself (version bump,
+  merge, tag, GitHub release) is delegated to a project-specific
+  release skill outside the public DIA plugin, since release
+  pipelines are project-specific.
+- **`/consistency-check` mode A at every phase end** is now wired in
+  every phase skill's handoff ritual. Closes the previously
+  unwired D5 (orphan artifacts) gap in `/business-analysis`,
+  `/testing`, and `/security-audit`. Other phase skills had the
+  trigger already.
+- **Migration tool** (`tools/migration/migrate_skill_names.py`)
+  rewrites references to the old skill names in all `*.md`, `*.json`,
+  `*.sh`, `*.py`, `*.ts`, `*.yml` files. Idempotent. Skips
+  HANDOFFS.md. Covers the `dia-orchestrator -> dia-guide`,
+  `v-model-workflow -> dia-guide`, and `business-analyse ->
+  business-analysis` renames.
+
+### Changed
+
+- **`/dia-orchestrator` renamed to `/dia-guide`** and reframed. The
+  skill is no longer the end-to-end process driver. It is the
+  on-demand navigational layer: reads project state, recommends the
+  next phase skill, audits handoff entries for completeness, runs the
+  Closing Handoff. Phase skills are autonomous and own their
+  triage, plan-gate, consistency-check, and handoff ritual. The skill
+  body shrank from ~870 lines (with four MANDATORY blocks claiming
+  process-guardian responsibilities) to a slimmer body with a single
+  CRUD moment (post-`/reverse-engineering` item promotion at the
+  workflow boundary).
+- **Plan-gate ownership** moved from `/dia-orchestrator` to `/coding`
+  Phase 3a "Plan Coverage Gate (binding, runs before Status flips to
+  Active)". Single source of truth, no duplication.
+- **Phase 0 artefact triage** lives only in each phase skill's
+  MANDATORY Phase 0 block. The guide audits whether the latest
+  HANDOFFS entry carries the binding fields; it does not run the
+  triage itself.
+- **`/security-audit` transition** now hands off to
+  `/consistency-check` mode B (semantic) instead of "Phase 7 Release
+  Closure". Mode B returns a Release-Ready verdict that gates the
+  Closing Handoff.
+- **`README.md` skill table.** "V-Model Workflow" row rewritten:
+  on-demand orientation, audits handoff, recommends next phase skill,
+  emits Closing Handoff. The guide does not perform CRUD or drive
+  transitions. Skill taxonomy paragraph updated to describe six phase
+  skills + two entry-point skills (reverse-engineering, dia-migration)
+  + one workflow guide + four foundation skills.
+- **V-Model overview SVG** (`docs/public/v-model-overview.svg` plus
+  the inline copy in `docs/index.md`). Six phase blocks with method
+  pills above and artefact cards below, a dashed Closing Handoff
+  block to the right of Security audit, two horizontal consistency
+  buses underneath (BACKLOG.md as status source of truth across all
+  six phases, ARCHITECTURE.map as code source of truth written by
+  Coding and read by Architecture / Testing / Security audit), and
+  four feedback loops on two y-lanes (test fix, mid-course
+  discovery, security fix, living-documents writeback).
+- **VitePress site** now defaults to the light colour scheme.
+- **Landing page tiles** trimmed from three to two: greenfield
+  Business Analysis and brownfield Reverse Engineering. The
+  dia-migration tile moved into release notes; the doc itself stays
+  reachable through the sidebar.
+
+### Removed
+
+- **`Phase 7: Release Closure`** in the V-Model. Its responsibilities
+  redistributed: artefact-graph closure goes to `/consistency-check`
+  mode B, release act goes to a project-specific release skill,
+  closing report and `release-to-ba` template land in the new
+  Closing Handoff block in `/dia-guide`.
+- **`/dia-orchestrator` skill name.** Replaced by `/dia-guide`.
+  Migration script handles cross-references; tag handler scripts
+  (`flow.py tag-phase`, `flow.py status`) keep their names.
+- **MANDATORY Phase 0 block in `/dia-guide`** (was redundant with
+  every phase skill's own block).
+- **MANDATORY Plan-gate block in `/dia-guide`** (was duplicated in
+  `/coding` Phase 3a).
+- **MANDATORY consistency-check at phase boundaries block in
+  `/dia-guide`** (every phase skill runs mode A in its own handoff
+  ritual).
+- **MANDATORY Post-phase consistency check (guide role) block in
+  `/dia-guide`** (replaced with read-only "Handoff state audit"
+  section that surfaces drift but does not write, tag, or append to
+  METRICS).
+
+### Earlier v3 work merged into this release
+
+The bulk of the v3 programme (team workflow, branch protection,
+backlog-first writeback rule, ADR abstraction rule, wayfinder layer,
+verify-gate hardening) shipped in increments since v2.4.0. This
+release closes the loop. Highlights from earlier increments stay
+documented in the section below.
+
+---
+
 ### Added: team workflow -- branch=item, phase tags, GitHub integration (2026-04-30)
 
 Codifies how a backlog item flows through Git + GitHub when teams
