@@ -46,7 +46,7 @@
 
 > Number of times each phase handoff fired. Useful to see whether the
 > workflow is actually being followed or whether people jump straight
-> to coding. The `/dia-orchestrator` orchestrator updates this after
+> to coding. The `/dia-guide` guide updates this after
 > every orchestrated transition. Skills invoked standalone update this
 > during their own Handoff Ritual.
 

@@ -1,25 +1,28 @@
 ---
-name: dia-orchestrator
+name: dia-guide
 description: >
- Orchestrates the COMPLETE V-Model development cycle end-to-end (Business
- Analysis -> Requirements Engineering -> Architecture -> Coding -> Testing
- -> Security Audit -> Release Closure). TRIGGER ONLY when the user
- explicitly requests the full orchestrator or end-to-end cycle: "V-Model",
- "full V-Model cycle", "orchestrate the full workflow", "set up new
- project end-to-end", "from analysis to release", "which phase do I start
- in", "ich weiss nicht wo ich starten soll". DO NOT trigger for
+ Guides users through the V-Model workflow: takes stock of the current
+ project state, recommends the next phase skill, audits handoff entries
+ for completeness, and runs the Closing Handoff after a successful
+ security audit. The guide does not perform CRUD work on artifacts;
+ every concrete change lives in the phase skill it dispatches to.
+ TRIGGER when the user asks "where do I start", "what comes next", "I
+ am lost in the workflow", "which phase fits", "wo bin ich gerade",
+ "wo soll ich anfangen", "was kommt jetzt", or explicitly requests the
+ V-Model overview or end-to-end orientation. DO NOT trigger for
  individual phase work (use the specific phase skill instead:
  business-analysis, requirements-engineering, architecture, coding,
- testing, security-audit, release), generic mentions of "workflow",
- "process", or "next step", or when a phase skill is already running.
+ testing, security-audit), generic mentions of "workflow", "process",
+ or "next step" inside an already-running phase skill, or when a
+ phase skill is already active.
 disable-model-invocation: false
 ---
 
-# V-Model Workflow Orchestrator
+# V-Model Workflow Guide
 
 ## MANDATORY Phase 0: Artifact triage
 
-Before any code, doc, or spec change, the orchestrator (or the
+Before any code, doc, or spec change, the guide (or the
 phase-skill it dispatches) determines which artifact category the
 work falls into:
 
@@ -30,7 +33,7 @@ work falls into:
 4. **ADR** when the work is an architecture decision.
 
 **Rule:** if the assignment cannot be derived unambiguously from the
-user prompt, the orchestrator asks one short question before anything
+user prompt, the guide asks one short question before anything
 else (in the user's working language; the English wording below is a
 template):
 
@@ -46,7 +49,7 @@ tree and exceptions live in
 
 ## MANDATORY: Plan-gate transition between /architecture and /coding
 
-When the orchestrator hands off from /architecture to /coding, the
+When the guide hands off from /architecture to /coding, the
 plan-gate runs as a binding precondition. /coding does not proceed
 to implementation until all four items are green for the active PLAN:
 
@@ -60,7 +63,7 @@ to implementation until all four items are green for the active PLAN:
 4. Verify commands: at least one build command and one test command
    are defined in the PLAN body
 
-If any item is open, the orchestrator loops: amend the artifact, then
+If any item is open, the guide loops: amend the artifact, then
 re-run the gate. No code is written while an item is open.
 
 ## MANDATORY: /consistency-check at phase boundaries
@@ -71,14 +74,14 @@ result. The next phase does NOT start while the syntactic check shows
 errors that block the next phase (dead links to artifacts the next
 phase would consume, missing backlog rows, ADR abstraction violations).
 
-Mode B (semantic) runs before /release closure and on explicit user
-request.
+Mode B (semantic) runs as part of the Closing Handoff (after a
+green or yellow `/security-audit`) and on explicit user request.
 
 ## MANDATORY: Post-reverse-engineering item promotion
 
 After `/reverse-engineering` completes its 8-phase run on a
 single `feature/reverse-engineer-<repo-name>` branch, the
-orchestrator does the per-item promotion that RE itself does
+guide does the per-item promotion that RE itself does
 not do (because RE produced a backlog seed, not validated
 items).
 
@@ -102,9 +105,9 @@ Steps:
 This bridges the RE multi-item exception with the per-item
 team workflow.
 
-## MANDATORY: Post-phase consistency check (orchestrator role)
+## MANDATORY: Post-phase consistency check (guide role)
 
-After every entry-skill finishes a phase, the orchestrator runs a
+After every entry-skill finishes a phase, the guide runs a
 short consistency check on the team-workflow surface (BACKLOG.md,
 git tags, GitHub issue, draft PR, project card). This is the
 glue layer that prevents drift between artefact state and
@@ -132,9 +135,9 @@ Checks:
    the previous phase tag's timestamp; for the first phase, from
    the branch creation timestamp). This centralises METRICS
    writeback so individual phase skills do not need to maintain
-   their own metrics-write logic. When the orchestrator is bypassed
+   their own metrics-write logic. When the guide is bypassed
    (a phase skill runs standalone), the phase skill MUST append the
-   line itself in its Handoff Ritual; the orchestrator detects
+   line itself in its Handoff Ritual; the guide detects
    double-writes via the (date, item, phase) primary key and ignores
    them.
 6. **Next-phase suggestion.** Surface as `AskUserQuestion`:
@@ -145,12 +148,12 @@ Checks:
    Continue now, pause, switch to a different item, or finalise?
    ```
 
-The orchestrator runs `flow.py status --item <ID>` for the
+The guide runs `flow.py status --item <ID>` for the
 machine-readable summary that backs this question.
 
 ## MANDATORY: Feature-complete handoff before release
 
-Before `/release` is invoked, the orchestrator gates the transition
+Before `/release` is invoked, the guide gates the transition
 "Building -> ready-for-merge" with this handoff:
 
 1. Verify all required phase tags exist for the active item:
@@ -183,7 +186,7 @@ Before `/release` is invoked, the orchestrator gates the transition
    `python3 tools/github-integration/flow.py ready-for-review --item <ID>`
    then `/release`.
 
-5. On B or C: orchestrator stays available; re-checks state on next
+5. On B or C: guide stays available; re-checks state on next
    skill-end via the post-phase consistency check.
 
 
@@ -233,31 +236,32 @@ Phase 6: /security-audit
  Output: Security report + remediation, fix-loop
  |
  v
-Phase 7: Release Closure CLOSING
- Input: All artifacts + test + security results
- Output: Finalized artifacts, release notes,
- CHANGELOG update, clean backlog
+Closing Handoff (not a phase)
+ Input: Green security audit
+ Output: /consistency-check mode B verdict + release-to-ba
+ HANDOFFS template; user can run their private release skill
 ```
 
-## Orchestrated Phase Transitions
+## Guided Phase Transitions
 
-When the workflow runs via `/dia-orchestrator`, the orchestrator actively
+When the workflow runs via `/dia-guide`, the guide actively
 drives phase transitions. Every phase ends with the **Handoff Ritual** of
-the respective skill (see each skill for details). The orchestrator then:
+the respective skill (see each skill for details). The guide then:
 
 1. Reads the phase-skill's artifact report and handoff context
 2. Asks the user the transition question from the phase-skill
 3. On agreement: launches the next phase-skill, passing the handoff context
  from `_devprocess/context/HANDOFFS.md` as input
 4. On rejection: pauses, reports the current state, waits for user instruction
-5. Repeats until all phases complete, ending at Phase 7
+5. Repeats until all phases complete, ending at the Closing Handoff
+   after `/security-audit`
 
-**The orchestrator never runs in a loop without user consent.** Every
+**The guide never runs in a loop without user consent.** Every
 transition needs either an implicit "yes" (user says "go"/"next"/"continue")
 or an explicit approval. The user can exit at any point and manually
-resume later by re-invoking `/dia-orchestrator`.
+resume later by re-invoking `/dia-guide`.
 
-**When a phase-skill is invoked directly (without `/dia-orchestrator`):**
+**When a phase-skill is invoked directly (without `/dia-guide`):**
 The Handoff Ritual still runs, and the handoff context is still written
 to `_devprocess/context/HANDOFFS.md`. The user can then manually start
 the next skill, which will pick up the handoff entry.
@@ -320,7 +324,7 @@ entry-points appear.
 
 ## Start: Determine Phase
 
-Before asking the user, the orchestrator runs a **hybrid entry-point
+Before asking the user, the guide runs a **hybrid entry-point
 detection** (added 2026-04-20): it scans the project, diagnoses the
 graph state, and formulates a recommendation. The user keeps the
 override.
@@ -342,7 +346,7 @@ override.
 | plan-context.md exists, no recent code changes | `/coding` |
 | Coding done, no test coverage / failing tests | `/testing` |
 | Tests green, no security audit | `/security-audit` |
-| Everything closed, release pending | Phase 7 Release Closure |
+| Everything closed, release pending | Closing Handoff (`/consistency-check` mode B + `/release` if configured) |
 | Graph-Health shows many orphans or dead links | `/consistency-check` + Cleanup first |
 
 ### Step 2: Present recommendation + alternatives
@@ -365,7 +369,7 @@ C /architecture
 D /coding
 E /testing
 F /security-audit
-G Phase 7 Release Closure
+G Closing Handoff (Audit ist gruen, Cycle abschliessen)
 H /consistency-check (nur Graph-Pflege)
 I Orientierungs-Interview (helfe beim Entscheiden)
 ```
@@ -377,7 +381,7 @@ the recommendation.
 
 ### Step 3: Phase-Entry mit Konsistenz-Hinweis
 
-Beim Start der gewaehlten Phase zeigt der Orchestrator eventuelle
+Beim Start der gewaehlten Phase zeigt der Guide eventuelle
 Konsistenz-Luecken aus `/consistency-check`, die fuer die Phase
 relevant sind. Beispiel: vor `/architecture`-Start "Du hast 3
 Features ohne Epic-Parent, das sollten wir vorher klaeren, willst
@@ -394,7 +398,7 @@ validated: it contains only what could be cited from existing
 documentation, with `[NEEDS USER INPUT]` placeholders everywhere
 else.
 
-The orchestrator **always** hands off to `/business-analysis` next,
+The guide **always** hands off to `/business-analysis` next,
 even if the draft looks complete. Code is a good technical foundation
 but does not prove the product solves the right problem. The user
 must validate each section.
@@ -478,58 +482,44 @@ Next step:
 -> Creates a prioritized remediation plan
 ```
 
-### After Security Audit -> Phase 7 Release Closure
+### After Security Audit -> Closing Handoff
 
-After the security fix-loop is closed, the orchestrator invokes Phase 7
-(see below). This is the final phase that closes the V-Model cycle.
+When `/security-audit` returns a green or yellow verdict, the
+guide does NOT run a release-closure phase. Cycle closure
+splits into two responsibilities:
+
+- **Artifact-graph closure** -> delegated to `/consistency-check`
+  mode B (semantic). It runs the cross-phase artifact sync (BA
+  Validation, Feature/ADR finalisation, arc42, plan-context
+  coherence).
+- **Release act** (version bump, merge chain, tag, GitHub release)
+  -> delegated to the user's private `/release` skill if configured.
+  DIA does not own this step; the public plugin contains no release
+  mechanics because release pipelines are project-specific.
 
 ---
 
-## Phase 7: Release Closure
+## Closing Handoff
 
-After a successful security audit, the orchestrator explicitly runs the
-Release Closure phase. This is the endpoint that closes the cycle cleanly.
+The Closing Handoff is a short guide output, not a phase. It
+fires after `/security-audit` has produced a non-red verdict and the
+fix-loop is closed.
 
-**Goal:** Bring all artifacts into a consistent, release-ready state and
-prepare the next iteration.
-
-### Step 1: Final artifact synchronization (cross-phase)
-
-Check and update every artifact so it reflects the actual state:
-
-- **BA**: update the Validation section with real numbers if measurable
-- **Features**: all statuses correct (Implemented / Deferred / Removed)
-- **ADRs**: all statuses finalized (Accepted / Accepted (modified) / Deprecated)
-- **arc42**: affected sections up to date
-- **plan-context.md**: tech stack matches the actual state
-
-### Step 2: Generate release notes
-
-- List implemented features
-- Fixed bugs from BACKLOG.md FIX-rows with status=Done (link to the
-  matching `_devprocess/requirements/fixes/FIX-*.md`)
-- Open bugs (FIX-rows in BACKLOG with status not yet Done)
-- Security findings (resolved + deferred)
-- Breaking changes if any
-
-### Step 3: Update CHANGELOG
-
-- New section: `[Unreleased]` -> `[{version}] - {date}`
-- Features, Fixes, Breaking Changes sorted in
-- Decide semver bump (patch/minor/major)
-
-### Step 4: Backlog cleanup
-
-- All open bugs are FIX-rows in `BACKLOG.md` (no separate bug log)
-- Deferred security findings in backlog
-- New ideas from implementation (out of scope) documented as
- future-considerations
-- Completed items archived
-
-### Step 5: Closing report to the user
+### Step 1: Suggest `/consistency-check` mode B
 
 ```
-V-Model cycle complete for {PROJECT} v{version}
+Security audit verdict: {green|yellow}.
+Recommended next: /consistency-check mode B (semantic).
+-> Confirms BA Validation is filled, all Feature/ADR statuses are
+   final, arc42 reflects the actual decisions, plan-context matches
+   the real tech stack.
+-> Returns Release-Ready: yes/no.
+```
+
+### Step 2: On Release-Ready: yes -> closing report
+
+```
+V-Model cycle complete for {PROJECT}.
 
 Features: {N} implemented, {N} deferred, {N} removed
 Bugs: {N} resolved, {N} in backlog
@@ -537,27 +527,28 @@ Security: {N} P0/P1 resolved, {N} deferred
 Tests: {N} passing, Coverage {line}/{branch}/{function}
 
 Artifacts finalized:
-- BA-{PROJECT}.md
-- {N} Epics, {N} Features
+- BA, {N} Epics, {N} Features
 - {N} ADRs
 - arc42 updated
-- CHANGELOG v{version}
-- Release notes generated
+- BACKLOG clean
 
-Next iteration:
-- {recommendation based on backlog}
+Optional next step (not enforced):
+- If you have a private release skill configured for this project,
+  you can run it now to bump version, merge, tag, and publish. The
+  cycle is otherwise complete and you can iterate from
+  /business-analysis or /requirements-engineering.
 
-Tip: For a new cycle, start again with /business-analysis or
- /requirements-engineering (depending on how deep the change is).
+After release ships, append a `release-to-ba` entry to
+_devprocess/context/HANDOFFS.md so the BA Post-Release Review is
+queued. Template below.
 ```
 
-### Step 6: Queue Post-Release BA Review
+### Step 3: Post-release BA review queue (template)
 
-After the release ships, the Critical Hypotheses in
-`_devprocess/analysis/BA-{PROJECT}.md` Section 7.3 become testable
-against real usage data. To avoid the BA freezing at
-`Status: Validated` forever, append an entry to
-`_devprocess/context/HANDOFFS.md` of type `release-to-ba`:
+The `release-to-ba` HANDOFFS entry queues `/business-analysis` Phase 8
+against real usage data. Without it, the BA freezes at `Status:
+Validated` forever and the post-release review depends on human
+memory.
 
 ```
 ## release-to-ba {YYYY-MM-DD}
@@ -577,11 +568,16 @@ Hypotheses to re-validate:
 ...
 ```
 
-The user (or the orchestrator on a later invocation of
-`/business-analysis`) reads this entry and triggers
-`/business-analysis` Phase 8 once enough signal has accumulated.
-Without this queue entry, the BA review depends on human memory and
-does not happen.
+Either the user or the guide on a later invocation reads
+this entry and triggers `/business-analysis` Phase 8 once enough
+signal has accumulated.
+
+### Step 4: On Release-Ready: no -> back to the responsible skill
+
+If `/consistency-check` mode B reports gaps (e.g. open Feature
+status drift, unfinalised ADR, missing Validation numbers), the
+guide names the responsible skill and the items to fix.
+Cycle closure resumes after the fix.
 
 ---
 
@@ -646,7 +642,7 @@ BA document (Why?)
  -> Security Audit (Is it safe?)
  -> Fix-loop until resolved
  -> Backlog (What's still open?)
- -> Phase 7 Release Closure (Close the cycle)
+ -> Closing Handoff (consistency-check mode B + optional /release)
 ```
 
 Backchannel: changes in every phase flow back into the source artifacts
@@ -665,7 +661,8 @@ This workflow follows the standards from `/project-conventions`:
 
 The Workflow Overview above shows phases in a linear sequence for
 readability. In practice, the V is a decision graph. You do not always
-walk it once from Phase 0 to Phase 7. Several triggers allow a running
+walk it once from Phase 0 to the Closing Handoff. Several triggers
+allow a running
 phase to pause and route work back to a previous phase before
 continuing.
 
@@ -700,7 +697,7 @@ do NOT re-run automatically.** The user decides whether the trigger
 fix is local or whether the full walk continues from the updated
 phase. The backlog entry carries the decision.
 
-The linear look is a simplification for the orchestrated flow, not a
+The linear look is a simplification for the guided flow, not a
 law. Real projects iterate. The workflow acknowledges iteration
 explicitly and keeps the forward walk as the default, not the only
 path.
@@ -785,7 +782,7 @@ the row is free to be picked up.
 4. **Stale claims.** Claims older than the phase-expected duration
  (e.g. a Feature stuck at Active for >14 days with an active
  Claim) get flagged in the next Handoff Ritual as stale. The
- orchestrator proposes to ask the claiming pair for status or to
+ guide proposes to ask the claiming pair for status or to
  release.
 5. **Claim history is append-additive.** The Claim cell always holds
  the CURRENT claim. Previous claims live in the `Notizen` column
@@ -807,7 +804,7 @@ try to own the same row. That is the correct behaviour.
 
 The workflow writes a set of lightweight signals to
 `_devprocess/context/METRICS.md`, seeded from
-`skills/dia-orchestrator/templates/METRICS-TEMPLATE.md`. The file
+`skills/dia-guide/templates/METRICS-TEMPLATE.md`. The file
 answers one question: **is this project pulsing in the right direction
 or just moving fast somewhere else?**
 
@@ -818,7 +815,7 @@ Signals and who writes them:
 | Cycle time per FEATURE | `/coding` | Final synchronization, after commits with `Refs: FEAT-NN-NN` |
 | Drift count (plan-context vs. code) | `/coding` | After Phase 2a codebase reconciliation |
 | BA hypothesis validation status | `/business-analysis` | Phase 8 Post-Release Review, or any re-validation |
-| Phase transition counts | this orchestrator (or phase-skill if invoked standalone) | Every Handoff Ritual |
+| Phase transition counts | this guide (or phase-skill if invoked standalone) | Every Handoff Ritual |
 | Cross-phase trigger counts | the firing skill | On every mid-course trigger |
 
 **Rules:**
@@ -838,8 +835,8 @@ Signals and who writes them:
 
 When a phase-skill (`/business-analysis`, `/requirements-engineering`,
 `/architecture`, `/coding`, `/testing`, `/security-audit`) or this
-orchestrator needs a decision from the user, the following rules apply.
-They bind whether the skill is invoked via `/dia-orchestrator` or
+guide needs a decision from the user, the following rules apply.
+They bind whether the skill is invoked via `/dia-guide` or
 standalone.
 
 1. **One question per turn.** Never batch multiple open decisions into one
@@ -869,6 +866,6 @@ standalone.
 
 ## Keywords
 V-Model, workflow, full cycle, new project, development cycle,
-from analysis to implementation, full run, orchestrator, phase transitions,
-release closure, AskUserQuestion, one question at a time, pro/con,
+from analysis to implementation, full run, guide, phase transitions,
+closing handoff, AskUserQuestion, one question at a time, pro/con,
 recommendation

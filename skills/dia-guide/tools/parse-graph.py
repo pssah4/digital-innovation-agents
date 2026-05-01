@@ -320,7 +320,7 @@ class GraphBuilder:
             "edges": self.edges,
             "meta": {
                 "root": str(self.root),
-                "generated_by": "dia-orchestrator/tools/parse-graph.py",
+                "generated_by": "dia-guide/tools/parse-graph.py",
             },
         }
 
