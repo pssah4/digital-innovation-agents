@@ -24,14 +24,15 @@ and **GitHub Copilot**.
 ## What this is
 
 The project ships thirteen skills that run inside your AI coding
-assistant: ten V-Model phase skills (business analysis, requirements
-engineering, architecture, coding, testing, security audit, reverse
-engineering, the guide, dia-migration, project-conventions),
-plus three foundation skills (`consistency-check` keeps the artifact
-graph intact, `humanizer` enforces the writing rules, and
-`using-digital-innovation-agents` introduces the skill set on session
-start). Each phase skill owns one part of the V-Model, has its own
-quality gates, and hands off a structured artifact to the next phase.
+assistant. Six are V-Model phase skills (business analysis,
+requirements engineering, architecture, coding, testing, security
+audit). Two are entry-point skills for non-greenfield projects
+(reverse engineering, dia-migration). One is the on-demand workflow
+guide (`/dia-guide`). Four are foundation skills (project conventions,
+consistency check, humanizer, using-digital-innovation-agents). Every
+phase skill owns one part of the V-Model, has its own quality gates,
+and hands off a structured artifact to the next phase. The guide is
+called separately whenever the user wants an orientation read.
 Every decision stays traceable from a real user problem through
 requirements, architecture, code, tests, and a security audit.
 
@@ -234,7 +235,7 @@ innovation-agents` loads on session start to introduce the workflow).
 | **Coding** | Context handoff, critical review against the real codebase, PLAN-NN persistence with coverage gate, bug-capture entry, artifact writeback during implementation. | `/coding` | `@developer` |
 | **Testing** | Unit and integration tests with the AAA pattern, FIRST principles, coverage targets, and a fix-loop until green. | `/testing` | built-in |
 | **Security Audit** | OWASP Top 10, LLM Top 10, SAST, SCA, Zero Trust review with a fix-loop. Two modes: per-item audit and periodic full-codebase audit. | `/security-audit` | `@security-auditor` |
-| **V-Model Workflow** | Guide that guides through every phase step by step, with mandatory phase-boundary consistency checks and GitHub flow.py integration. | `/dia-guide` | built-in |
+| **V-Model Workflow Guide** | On-demand orientation: reads project state, audits the latest handoff entry, recommends the next phase skill, and emits the Closing Handoff after a green security audit. The guide does not perform CRUD or drive transitions; phase skills are autonomous. | `/dia-guide` | built-in |
 | **Debugging** | Root-cause analysis, systematic error resolution, causal chain documentation. Bugs land as FIX-EE-FF-NN rows in the backlog plus detail files in `_devprocess/requirements/fixes/`. | default agent | `@debugger` |
 
 ### Foundation skills

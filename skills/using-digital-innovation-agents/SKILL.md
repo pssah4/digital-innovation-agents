@@ -50,7 +50,8 @@ All project artifacts live under `_devprocess/`:
 ## When to invoke which skill
 
 - If the user is starting something new and the problem space is unclear
-  -> suggest `/dia-guide` to orchestrate the full cycle
+  -> suggest `/dia-guide` for an orientation interview that recommends
+  the right entry point
 - If the user has an existing codebase but no V-Model artifacts
   -> `/reverse-engineering` to walk the V backwards, then
   `/business-analysis` to validate the WHY

@@ -242,24 +242,23 @@ Closing Handoff (not a phase)
  HANDOFFS template; user can run their private release skill
 ```
 
-## Guided Phase Transitions
+## Phase Transitions (read-only audit)
 
-When the workflow runs via `/dia-guide`, the guide actively
-drives phase transitions. Every phase ends with the **Handoff Ritual** of
-the respective skill (see each skill for details). The guide then:
+When the user invokes `/dia-guide` between phases, the guide reads
+project state and surfaces the next step. The guide does not drive
+or launch phase skills; phase skills are autonomous and own their
+own handoff ritual. The guide observes:
 
-1. Reads the phase-skill's artifact report and handoff context
-2. Asks the user the transition question from the phase-skill
-3. On agreement: launches the next phase-skill, passing the handoff context
- from `_devprocess/context/HANDOFFS.md` as input
-4. On rejection: pauses, reports the current state, waits for user instruction
-5. Repeats until all phases complete, ending at the Closing Handoff
-   after `/security-audit`
+1. Reads the latest entry in `_devprocess/context/HANDOFFS.md`
+   (artifact report, triage IDs, release-readiness markers)
+2. Reports the recommended next step in plain text and names the
+   skill to invoke (e.g. "Recommended next: `/coding`")
+3. The user invokes the next phase skill themselves; the guide does
+   not call other skills
 
-**The guide never runs in a loop without user consent.** Every
-transition needs either an implicit "yes" (user says "go"/"next"/"continue")
-or an explicit approval. The user can exit at any point and manually
-resume later by re-invoking `/dia-guide`.
+The guide does not loop, does not auto-advance, and does not block.
+Every phase transition is a separate user action. The guide is
+re-invoked whenever the user wants the next-step audit again.
 
 **When a phase-skill is invoked directly (without `/dia-guide`):**
 The Handoff Ritual still runs, and the handoff context is still written
