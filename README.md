@@ -16,7 +16,7 @@ across **Claude Code**, **Cursor**, **Codex**, **OpenCode**, **Gemini CLI**,
 and **GitHub Copilot**.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/pssah4/digital-innovation-agents/main/docs/public/v-model-overview.svg" alt="V-Model workflow: Business Analysis, Requirements Engineering, Architecture, Coding, Testing, Security Audit" width="100%" />
+  <img src="https://raw.githubusercontent.com/pssah4/digital-innovation-agents/main/docs/public/v-model-overview.svg" alt="V-Model workflow for AI coding assistants: six phases (Business analysis, Requirements engineering, Architecture, Coding, Testing, Security audit) plus a Closing handoff. Two consistency buses run beneath the phases: BACKLOG.md as status source of truth and ARCHITECTURE.map as code source of truth. Four dashed feedback loops show test fix, mid-course discovery, security fix, and living-documents writeback." width="100%" />
 </p>
 
 ---
