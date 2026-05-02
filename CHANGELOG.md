@@ -7,6 +7,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-05-03
+
+Minor release. Adds two complementary defenses against parent-vs-child
+status drift in the V-Model artifact graph, plus a bug fix for the
+brownfield migration's backlog generator.
+
+### Added
+
+- `/requirements-engineering`: parent-BA status promotion check on
+  successful handoff. After Quality Gates pass and before the Handoff
+  Ritual, the skill checks the parent BA frontmatter status. If the BA
+  is at `Draft` or `Draft (...)`, one `AskUserQuestion` turn offers a
+  promotion to `Validated` (gated on user confirmation). On accept, the
+  BA frontmatter is updated and a row is appended to a
+  `## Validation Log` section. Idempotent on subsequent runs. Closes
+  GitHub issue #15.
+- `/consistency-check` Mode A: new node invariant **N-17**
+  (status coherence between parent and child artifacts). Initial pair
+  table covers BA at `Draft` with `architect-handoff.md` present, and
+  ADR at `Proposed` with a `Building`/`Released` Feature referencing
+  it. Severity defaults to `warn` (becomes `fail` under `--strict`).
+  Auto-fix is not performed; Mode C surfaces "Open phase skill" as the
+  resolution path. Closes GitHub issue #16.
+- `tools/consistency-check.py`: `parse_frontmatter()` helper plus
+  `check_status_coherence()` implementing the BA-side N-17 case via
+  file-existence signal (architect-handoff present + BA status matches
+  Draft prefix). The ADR-side check is documented but kept in the
+  skill orchestration layer because it requires backlog-row phase
+  parsing.
+- `skills/project-conventions/references/graph-invariants.md`: N-17
+  row plus a new "Status-Coherence-Pairs" reference section with match
+  semantics (Draft prefix matching), severity handling, and the
+  no-auto-fix rationale.
+
+### Fixed
+
+- `tools/migration/build_backlog.py`: H1 title cleanup ate the first
+  letter of titles whose prefix was a non-numeric word (`Feature: Chat
+  & Session-Verwaltung` -> `hat & Session-Verwaltung`). The regex used
+  `[a-z]?` with `re.IGNORECASE`, so the optional letter consumed
+  uppercase initials. Fixed by scoping the optional suffix-letter to
+  the `FEATURE-007a` case only via a non-capturing group with a digit
+  lookbehind: `(?:(?<=\d)[a-z])?`. Verified against 9 test cases.
+
+### Defense layering
+
+The two added checks are deliberately complementary, not redundant:
+
+1. The RE-side promotion is the **proactive** path that prevents the
+   breach at the right moment in the workflow.
+2. N-17 is the **safety net** that flags the breach if RE-side
+   promotion was declined, skipped, or the BA was edited out-of-band.
+
+### Not in this release
+
+- ADR-side N-17 check in the syntactic driver (still skill-orchestrated;
+  promoted to driver in a later release once backlog-row phase parsing
+  ships there).
+- Auto-fix for `status-coherence-breach` findings: status promotion is
+  a semantic claim and stays in the owning phase skill.
+
 ## [3.0.0] - 2026-05-01
 
 Major release. Closes the v3 drift-defense programme that has run since
