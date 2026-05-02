@@ -92,7 +92,7 @@ claude
 ```
 
 ```
-/plugin marketplace add pssah4/digital-innovation-agents
+/plugin marketplace add https://github.com/pssah4/digital-innovation-agents.git
 /plugin install digital-innovation-agents@pssah4-skills
 ```
 
@@ -109,10 +109,36 @@ global directory on the next session start. On Windows without WSL,
 the CLI is experimental; install through WSL or copy the skills
 manually:
 
+Re-run the same block to update; it pulls the latest commit and rewrites
+each DIA skill in place. Skills renamed or removed in newer DIA versions
+(for example `dia-orchestrator` from v2) are deleted explicitly so no
+stale skill folders survive the upgrade.
+
 ```bash
-git clone https://github.com/pssah4/digital-innovation-agents.git /tmp/dia
+# Clone or update the source checkout
+if [ -d /tmp/dia/.git ]; then
+  git -C /tmp/dia fetch --tags --prune
+  git -C /tmp/dia reset --hard origin/main
+else
+  rm -rf /tmp/dia
+  git clone https://github.com/pssah4/digital-innovation-agents.git /tmp/dia
+fi
+
 mkdir -p ~/.claude/skills
-cp -r /tmp/dia/skills/* ~/.claude/skills/
+
+# Remove legacy DIA skills that were renamed or dropped
+for legacy in dia-orchestrator; do
+  rm -rf "$HOME/.claude/skills/$legacy"
+done
+
+# Install the current DIA skill set (rm before cp avoids stale files)
+for skill in project-conventions reverse-engineering business-analysis \
+             requirements-engineering architecture coding testing \
+             security-audit consistency-check humanizer dia-guide \
+             dia-migration using-digital-innovation-agents; do
+  rm -rf "$HOME/.claude/skills/$skill"
+  cp -r "/tmp/dia/skills/$skill" "$HOME/.claude/skills/$skill"
+done
 ```
 
 ### Cursor
@@ -129,12 +155,27 @@ marketplace.
 GitHub Copilot has no marketplace command. Install by copying the
 `.github/` directory into your project root:
 
+Re-run the block to update; the source checkout is pulled to the latest
+commit and each target subfolder is wiped before copy, so no stale
+Copilot agents or chat modes survive an upgrade.
+
 ```bash
-git clone https://github.com/pssah4/digital-innovation-agents.git /tmp/dia
-cp -r /tmp/dia/.github/agents .github/agents
-cp -r /tmp/dia/.github/chatmodes .github/chatmodes
-cp -r /tmp/dia/.github/instructions .github/instructions
-cp -r /tmp/dia/.github/templates .github/templates
+# Clone or update the source checkout
+if [ -d /tmp/dia/.git ]; then
+  git -C /tmp/dia fetch --tags --prune
+  git -C /tmp/dia reset --hard origin/main
+else
+  rm -rf /tmp/dia
+  git clone https://github.com/pssah4/digital-innovation-agents.git /tmp/dia
+fi
+
+mkdir -p .github
+
+# Wipe old DIA copies before installing the current set
+for sub in agents chatmodes instructions templates; do
+  rm -rf ".github/$sub"
+  cp -r "/tmp/dia/.github/$sub" ".github/$sub"
+done
 cp /tmp/dia/.github/copilot-instructions.md .github/copilot-instructions.md
 ```
 
@@ -187,10 +228,18 @@ gemini extensions update digital-innovation-agents
 
 ### Legacy shell install
 
-For users without plugin marketplace support:
+For users without plugin marketplace support. Re-run to update; the
+script pulls the latest commit, removes legacy DIA skills (such as the
+v2 `dia-orchestrator`), and rewrites each current skill in place.
 
 ```bash
-git clone https://github.com/pssah4/digital-innovation-agents.git
+# Clone or update the checkout
+if [ -d digital-innovation-agents/.git ]; then
+  git -C digital-innovation-agents fetch --tags --prune
+  git -C digital-innovation-agents reset --hard origin/main
+else
+  git clone https://github.com/pssah4/digital-innovation-agents.git
+fi
 cd digital-innovation-agents
 ./scripts/install-skills.sh
 ```

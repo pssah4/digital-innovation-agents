@@ -47,7 +47,7 @@ claude
 ```
 
 ```
-/plugin marketplace add pssah4/digital-innovation-agents
+/plugin marketplace add https://github.com/pssah4/digital-innovation-agents.git
 /plugin install digital-innovation-agents@pssah4-skills
 ```
 

@@ -24,8 +24,29 @@ claude
 ```
 
 ```
-/plugin marketplace add pssah4/digital-innovation-agents
+/plugin marketplace add https://github.com/pssah4/digital-innovation-agents.git
 /plugin install digital-innovation-agents@pssah4-skills
+```
+
+### `Host key verification failed` / `No ED25519 host key is known for github.com`
+
+`/plugin marketplace add` fails with a git clone error mentioning
+host key verification. Cause: the GitHub shorthand form
+(`owner/repo`) clones via SSH (`git@github.com:...`), and your
+machine has never trusted GitHub's SSH host key. The fix is to use
+the explicit HTTPS URL instead, which avoids SSH altogether:
+
+```
+/plugin marketplace add https://github.com/pssah4/digital-innovation-agents.git
+```
+
+If you need the SSH form for other reasons, populate
+`~/.ssh/known_hosts` first:
+
+```bash
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> ~/.ssh/known_hosts
+chmod 644 ~/.ssh/known_hosts
 ```
 
 ### `claude: command not found`
