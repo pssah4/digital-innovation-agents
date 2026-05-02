@@ -96,6 +96,9 @@ EPICS = REQUIREMENTS / "epics"
 FIXES = REQUIREMENTS / "fixes"
 IMPROVEMENTS = REQUIREMENTS / "improvements"
 PLANS = DEV / "implementation" / "plans"
+ANALYSIS = DEV / "analysis"
+HANDOFF_DIR = REQUIREMENTS / "handoff"
+ARCHITECT_HANDOFF = HANDOFF_DIR / "architect-handoff.md"
 CONTEXT = DEV / "context"
 BACKLOG = CONTEXT / "BACKLOG.md"
 ARCH_MAP = (ROOT / CONFIG["src_dir"] / "ARCHITECTURE.map") if CONFIG.get("src_dir") else None
@@ -308,6 +311,68 @@ def parse_artifact_id(p: Path) -> str | None:
     return None
 
 
+FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
+YAML_FIELD_RE = re.compile(r"^([A-Za-z][A-Za-z0-9_-]*)\s*:\s*(.+?)\s*$", re.MULTILINE)
+
+
+def parse_frontmatter(path: Path) -> dict[str, str]:
+    """Minimal YAML frontmatter scanner. Returns flat key->value strings.
+    Only top-level scalar fields, no nesting, no lists. Sufficient for
+    the handful of fields N-17 looks at (`status`, `analysis-source`).
+    """
+    try:
+        text = path.read_text(encoding="utf-8")
+    except Exception:
+        return {}
+    m = FRONTMATTER_RE.match(text)
+    if not m:
+        return {}
+    out: dict[str, str] = {}
+    for fm in YAML_FIELD_RE.finditer(m.group(1)):
+        key = fm.group(1).strip().lower()
+        val = fm.group(2).strip().strip("\"'")
+        out[key] = val
+    return out
+
+
+DRAFT_STATUS_RE = re.compile(r"^Draft(?:\s*\(.*\))?$", re.IGNORECASE)
+
+
+def check_status_coherence() -> list[Finding]:
+    """N-17: BA must not stay at Draft once architect-handoff exists.
+    Conservative implementation: BA-side only, file-existence signal.
+    ADR-side check (Proposed ADR with Building/Released Feature) requires
+    backlog phase parsing and is left to the skill orchestration layer.
+    """
+    if not ANALYSIS.exists():
+        return []
+    handoff_present = ARCHITECT_HANDOFF.exists()
+    if not handoff_present:
+        return []
+    out: list[Finding] = []
+    for ba_path in sorted(ANALYSIS.glob("BA-*.md")):
+        fm = parse_frontmatter(ba_path)
+        status = fm.get("status", "")
+        if not DRAFT_STATUS_RE.match(status):
+            continue
+        out.append(Finding(
+            type="status-coherence-breach",
+            severity=SEVERITY_LOW,
+            file=str(ba_path.relative_to(ROOT)),
+            line=None,
+            message=(
+                f"BA at status '{status}' but architect-handoff.md exists; "
+                f"BA was exercised through RE without status promotion."
+            ),
+            suggestions=[
+                "Run /requirements-engineering once more, accept the BA promotion prompt at handoff",
+                "Run /business-analysis Validation Mode to walk the BA explicitly",
+                "Defer: file as backlog item with Source=CONSISTENCY-CHECK",
+            ],
+        ))
+    return out
+
+
 def check_backlog_completeness() -> list[Finding]:
     out: list[Finding] = []
     backlog_ids = parse_backlog_ids()
@@ -355,6 +420,7 @@ def run_checks() -> list[Finding]:
     findings.extend(check_dead_links(md_files(*artifact_dirs)))
     findings.extend(check_adr_abstraction(md_files(ARCHITECTURE)))
     findings.extend(check_backlog_completeness())
+    findings.extend(check_status_coherence())
     return findings
 
 

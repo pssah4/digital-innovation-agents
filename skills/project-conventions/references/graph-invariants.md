@@ -74,6 +74,7 @@ Mode A entsprechend angepasst werden.
 | N-14 | Jede IMP-Datei (IMPROVEMENT) hat `feature:` (Pflicht) und `epic:` (Pflicht) im Frontmatter. Beide zeigen auf existierende Artefakte. | YAML-Frontmatter parsen; IMP-Felder vs docs/requirements. |
 | N-15 | FIX- und IMP-Dateien haben `phase:` und `status:` im Frontmatter (gleiche Enum-Werte wie Features). | YAML-Frontmatter parsen. |
 | N-16 | Die alten Begriffe "Chore" und "BL-Item (historisch)" sowie der Backlog-Abschnitt `## Standalone Chores` werden nicht mehr verwendet. | Grep auf "Chore"/"BL-Item (historisch)"/"Standalone Chores" in docs/ (archive ausgenommen). |
+| N-17 | Status-Kohaerenz zwischen Eltern- und Kind-Artefakten: ein Eltern-Artefakt darf nicht in einem Pre-Validation-Status verharren, wenn ein abgeleitetes Kind-Artefakt nachweislich exerzitiert wurde. Pruefpaare siehe Tabelle "Status-Coherence-Pairs" unten. | Pro Paar: Eltern-Frontmatter `status:` lesen, Kind-Evidenz pruefen (Datei-Existenz oder Kind-Phase >= Building); bei Treffer Finding `status-coherence-breach`. |
 
 ## Edge-Invarianten
 
@@ -99,6 +100,44 @@ Mode A entsprechend angepasst werden.
 | S-2 | Feature ohne passendes BA-JTBD ist explizit geflaggt. | Subagent prueft: hat das Feature einen JTBD-Verweis in BA? Wenn nein, FIX/IMP `needs BA-anchor`. |
 | S-3 | arc42-Sektion zur ADR-Decision spiegelt aktuellen ADR-Text, nicht eine alte Revision. | Subagent liest arc42-Sektion + zitierte ADR, meldet Drift. |
 | S-4 | Features mit `status: Implemented` haben ihre SCs plausibel im Code belegbar. | Subagent stichprobenartig pro Feature; Ergebnis im Codebase-Verifikations-Abschnitt. |
+
+## Status-Coherence-Pairs (Pruefpaare fuer N-17)
+
+N-17 vergleicht den Status eines Eltern-Artefakts mit der Phase oder
+Existenz seines abgeleiteten Kind-Artefakts. Wenn das Kind nachweislich
+exerzitiert wurde (Datei existiert oder Phase ist `Building` oder
+`Released`), darf das Eltern-Artefakt nicht mehr in einem Pre-
+Validation-Status verharren.
+
+| Eltern-Typ | Eltern-Status (Pre-Validation) | Kind-Evidenz (Trigger fuer Breach) |
+| ---------- | ------------------------------ | ---------------------------------- |
+| BA | `Draft` oder `Draft (...)`-Praefix (z. B. `Draft (reverse-engineered, ...)`) | `_devprocess/requirements/handoff/architect-handoff.md` existiert UND referenziert diese BA, ODER ein Epic mit `analysis-source:` auf diese BA hat Phase `Building` oder `Released`. |
+| ADR | `Proposed` | Ein Feature mit `adr-refs:` (oder `Related-ADRs:`) auf diese ADR hat Phase `Building` oder `Released`. |
+
+Erweiterungen der Tabelle erfolgen nur, wenn ein neues Eltern-Kind-
+Verhaeltnis im V-Modell etabliert wird (z. B. PLAN als Eltern-
+Artefakt). Tabelle ist append-only; bestehende Zeilen aendern sich nur
+mit explizitem Versionierungshinweis.
+
+**Match-Regel fuer Eltern-Status:**
+
+- `Draft (...)` matcht den Praefix `Draft` mit beliebigem Klammer-
+ Inhalt (z. B. `Draft (reverse-engineered, 2026-04-12)`). Zweck:
+ BAs aus `/reverse-engineering` werden gleich behandelt wie roh
+ angelegte Drafts.
+- `Validated`, `Confirmed by usage`, `Accepted`, `Superseded`,
+ `Deprecated` zaehlen NICHT als Pre-Validation und triggern N-17
+ nicht.
+
+**Severity:** N-17 ist standardmaessig `warn`. Unter `--strict`
+(z. B. vor Release) wird `warn` zu `fail`. Status-Inkohaerenz ist ein
+Qualitaetshinweis, keine strukturelle Beschaedigung des Graphen.
+
+**Auto-Fix:** Nicht automatisch. Status-Promotion ist eine semantische
+Aussage und gehoert in den jeweiligen Phase-Skill (BA -> `/business-analysis`,
+RE -> `/requirements-engineering` ueber den Handoff-Promotion-Pfad,
+Architecture -> `/architecture` fuer ADR-Status). Mode A meldet das
+Finding; Mode C bietet "Open phase skill" als Fix-Option an.
 
 ## Phase/Status-Frontmatter-Konvention (verbindlich fuer alle Skills)
 

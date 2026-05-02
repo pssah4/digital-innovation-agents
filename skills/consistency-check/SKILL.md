@@ -231,6 +231,7 @@ fix patterns based on the finding's `type` field:
 | `feature-without-sc` | Add `[AWAITING BA]` placeholder, write SC inline, defer |
 | `source-path-broken` | Update path, mark feature Planned, remove path entry |
 | `frontmatter-status-duplicate` | Always auto-fixed in Mode A; only surfaces here if auto-fix failed |
+| `status-coherence-breach` | Open the owning phase skill (`/business-analysis` for BA Draft, `/requirements-engineering` for RE-side BA promotion, `/architecture` for ADR Proposed), Defer (file as backlog item with Source=CONSISTENCY-CHECK), Skip with reason. No direct edit option: status promotion is a semantic claim and belongs in the phase skill. |
 
 **Output of the loop.** The loop writes a single audit row in
 `_devprocess/context/METRICS.md` under "Consistency-Check Runs"
@@ -352,6 +353,7 @@ Findings:
 - Source paths broken:      {n}
 - Backlog format issues:    {n}
 - arc42-ADR table drift:    {n}
+- Status coherence breach:  {n} (warn, fail under --strict)
 {if Mode B:}
 - Feature-ADR semantic:     {n}
 - BA-Feature semantic:      {n}
@@ -376,6 +378,7 @@ Findings:
   | Source paths broken         | {ok/fail} | {n} |
   | Backlog format issues       | {ok/fail} | {n} |
   | arc42-ADR table drift       | {ok/fail} | {n} |
+  | Status coherence breach     | {ok/warn/fail} | {n} |
   {...if Mode B, extra rows}
   ```
 
@@ -413,8 +416,15 @@ Findings:
    - ADR's `Related Decisions:` / `References:` -> edges to ADRs/Features
    - BL-Item's Feature-Spec / ADR columns -> edges
    - arc42 Par. 9 table -> edges to ADRs
+   - Epic's `analysis-source:` -> edge to BA
+   - architect-handoff `source-ba:` -> edge to BA
 4. **Apply invariants.** For each check, list violations with file
-   path and line number if possible.
+   path and line number if possible. For N-17, walk the
+   Status-Coherence-Pairs table from `graph-invariants.md`: per pair,
+   read the parent's `status:` field and check the child evidence
+   condition. Emit `status-coherence-breach` findings with parent
+   path, parent status, child path, child evidence, and suggested
+   promotion target.
 5. **Write report and backlog update.**
 6. **Handoff.** Report completion with finding count. Hand back to
    the calling skill or return to user.
@@ -442,6 +452,24 @@ of truth for all V-Model skills).
 - `N-14` Every IMP has `feature:` and `epic:` in the frontmatter.
 - `N-15` (NEW) No artifact frontmatter contains a `status:` or
   `phase:` field. The backlog row is the single source of truth.
+- `N-17` (NEW) Status coherence between parent and child artifacts:
+  a parent must not stay at a pre-validation status while a derived
+  child has been exercised. Pair table below.
+
+  Parent-child pair table (initial, append-only):
+
+  | Parent | Parent draft status | Child evidence triggering breach |
+  |--------|---------------------|----------------------------------|
+  | BA | `Draft` or `Draft (...)` prefix (e.g. `Draft (reverse-engineered, ...)`) | `architect-handoff.md` exists and references this BA, OR an Epic with `analysis-source:` pointing here has phase `Building` or `Released` |
+  | ADR | `Proposed` | A Feature with `adr-refs:` pointing here has phase `Building` or `Released` |
+
+  Severity defaults to `warn` (Mode A reports, does not fail the run).
+  Under `--strict` (typically before release), `warn` becomes `fail`.
+  Auto-fix is NOT performed; the finding surfaces in Mode C with the
+  fix option "Open the owning phase skill" so the promotion happens
+  through the canonical path. Detail rule and match semantics live in
+  `skills/project-conventions/references/graph-invariants.md` under
+  "Status-Coherence-Pairs".
 
 ### Edge invariants
 

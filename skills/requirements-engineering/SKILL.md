@@ -333,6 +333,104 @@ Each feature MUST have:
 - Wrong: "Good user experience"
 - Right: "95% task completion rate in UAT"
 
+## MANDATORY: Parent BA status promotion on successful handoff
+
+After Quality Gates pass and before the Handoff Ritual runs, the skill
+promotes the parent BA status if the BA is still at a draft marker. RE
+just produced Epics, Features, and an architect-handoff from this BA,
+so the BA has been exercised end-to-end. Leaving it at `Draft (...)`
+makes the next reader wonder whether the BA is raw or content-bearing.
+
+The check runs every time, but the promotion is gated and asks the
+user once. On `Validated` it is silent.
+
+### Trigger
+
+Locate the parent BA. The BA is the file referenced as
+`analysis-source:` in the new Epics' frontmatter, or the
+`source-ba:` field in `_devprocess/requirements/handoff/architect-handoff.md`,
+or the only `_devprocess/analysis/BA-*.md` file when the project has
+exactly one.
+
+If no parent BA can be located unambiguously, skip silently and log a
+one-line notice in the Handoff Ritual artifact report
+(`Parent BA: not located, status promotion skipped`). Do not block
+the handoff.
+
+### Status promotion gate
+
+Read the parent BA frontmatter `status:` field:
+
+- **`status: Draft (reverse-engineered, ...)` or `status: Draft`**: ask
+  one confirmation turn via `AskUserQuestion`:
+
+  > Title: "Promote parent BA status?"
+  > Question: "RE derived Epics, Features, and an architect-handoff
+  > from `BA-{NAME}.md`. The BA is still marked Draft. Promote it to
+  > Validated as part of this handoff?"
+  >
+  > Options (each with Pro/Con per User Interaction Protocol):
+  > 1. (Recommended) Promote to Validated
+  >    + Pro: BA exercised end-to-end through RE, status reflects
+  >      reality, downstream readers see a content-bearing artifact.
+  >    - Con: marks the BA as validated even if you have not personally
+  >      walked every section since the co-creation dialog.
+  > 2. Keep Draft
+  >    + Pro: explicit walkthrough via `/business-analysis` Validation
+  >      Mode happens later; status change stays manual.
+  >    - Con: BA stays at Draft while its derived Epics and Features
+  >      are already in flight; later readers must guess the BA's
+  >      reliability.
+  > 3. Other (free text)
+
+  On option 1: update the BA frontmatter:
+
+  ```yaml
+  status: Validated
+  validated-by: /requirements-engineering on {YYYY-MM-DD}
+  validated-via: handoff (Epics + Features + architect-handoff)
+  ```
+
+  Append a row to the BA's `## Validation Log` section (create the
+  section if it does not exist, place it after the Executive Summary):
+
+  ```
+  | {YYYY-MM-DD} | /requirements-engineering | Validated through RE handoff: {N} epics, {M} features, architect-handoff at `_devprocess/requirements/handoff/architect-handoff.md` |
+  ```
+
+  Keep `created-by:` and `reverse-engineering-provenance:` (if set)
+  in place as historical record.
+
+  On option 2 or 3: leave the BA frontmatter untouched. Note the
+  decline in the Handoff Ritual artifact report
+  (`Parent BA status: kept at Draft per user request`).
+
+- **`status: Validated` or any other non-Draft value**: skip silently.
+  No prompt, no edit. The BA already passed validation through some
+  other path (`/business-analysis` Validation Mode, manual edit, or a
+  prior RE pass). Idempotent on the second and later runs.
+
+### Output for the Handoff Ritual report
+
+The artifact report (Part 1 of the Handoff Ritual) carries one of
+three lines depending on what happened:
+
+- `Parent BA: BA-{NAME}.md, promoted Draft -> Validated`
+- `Parent BA: BA-{NAME}.md, kept at {status} per user request`
+- `Parent BA: BA-{NAME}.md, already at status {status} (no change)`
+- `Parent BA: not located, status promotion skipped`
+
+This makes the promotion auditable in the phase-end commit.
+
+### Companion: status-coherence invariant N-17
+
+`/consistency-check` Mode A enforces N-17 (status coherence between
+parent artifacts and their downstream evidence). The RE-side promotion
+is the proactive path that prevents the breach in the first place; N-17
+is the safety net that flags the breach if RE-side promotion was
+declined or skipped, or if the BA was edited out-of-band. The two
+checks are complementary, not redundant.
+
 ## Handoff Ritual (mandatory at end of phase)
 
 This skill always runs the following ritual at the end, regardless of how
