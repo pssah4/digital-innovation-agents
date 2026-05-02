@@ -98,7 +98,7 @@ def collect(root: Path, overrides: dict) -> list[dict]:
             feat_id = f"FEAT-{ee:02d}-{ff:02d}{suffix}"
             epic_id = f"EPIC-{ee:02d}"
             title = get_first_h1(fp.read_text(encoding="utf-8")) or slug.replace("-", " ").title()
-            title = re.sub(r"^(FEATURE|FEAT|Feature)[:\s-]*\d*-?\d*[a-z]?[:\s-]*", "", title, flags=re.IGNORECASE)
+            title = re.sub(r"^(?:FEATURE|FEAT)[:\s-]*\d*-?\d*(?:(?<=\d)[a-z])?[:\s-]*", "", title, flags=re.IGNORECASE)
             ov = overrides.get(feat_id, {})
             status = ov.get("status", "Done")
             phase = ov.get("phase", "Released")
