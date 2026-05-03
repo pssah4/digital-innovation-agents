@@ -23,7 +23,10 @@ and is enforced at the end of every task and every phase.
 
 ## The gate function
 
-Five steps, all mandatory:
+Seven steps, all mandatory. Steps 1 to 5 verify the claim ("tests
+pass", "build works", "bug fixed"). Steps 6 and 7 verify that the new
+code is reachable and that a user or caller can actually trigger the
+FEATURE.
 
 1. **Identify** which command proves the claim
    - "Tests pass" -> a concrete test command with path
@@ -33,8 +36,30 @@ Five steps, all mandatory:
 3. **Read** the complete output, check the exit code, count failures
 4. **Verify** the output actually confirms the claim
 5. **Claim** the status only now, with the evidence
+6. **Reachability check** (subtype-aware, since v3.2.0): every new
+   top-level symbol introduced this session has a caller outside its
+   definition file and outside test files, OR is exported as a public
+   API entry point for `subtype: library` FEATUREs. A class that
+   compiles but is never called fails this step.
+7. **Activation-path check** (since v3.2.0): the `Type` and
+   `Identifier` claimed in the FEATURE's `## Activation Path` section
+   actually exist in the code (route registered, command registered,
+   public symbol exported, etc.). The activation path string is a grep
+   target, not a promise.
 
 Skipping any step is lying, not verifying.
+
+Steps 6 and 7 close a drift mode where backend modules existed as
+syntactic classes without callers, while the FEATURE was marked Done
+because tests and build passed. See
+[Drift defense](./drift-defense) for the source incident and the
+three-layer defense (RE-side, Mode A invariants, Mode B subagent
+checks).
+
+The reachability tooling that step 6 uses is per-language. The
+[reachability-by-stack reference](../reference/reachability-by-stack)
+lists concrete commands for TypeScript, JavaScript, Python, Go, Rust,
+React, R, plus an Obsidian-plugin TypeScript sub-profile.
 
 ## Forbidden language
 

@@ -192,18 +192,33 @@ cause, backlog, change with commit Refs, Final sync.
 
 The rule: no completion claims without fresh verification evidence.
 
-Before declaring anything "done", the Default agent must:
+Before declaring anything "done", the Default agent runs the seven-step
+gate function. Steps 1 to 5 verify the claim ("tests pass", "build
+works", "bug fixed"). Steps 6 and 7 (added in v3.2.0) verify that the
+new code is reachable and that a user or caller can actually trigger
+the FEATURE.
 
 1. **Identify** which command proves the claim
 2. **Run** it fully (not cached)
 3. **Read** the full output, check exit code, count failures
 4. **Verify** the output matches the claim
 5. **Claim** the status only now, with the evidence
+6. **Reachability check** (subtype-aware). For every new top-level
+   symbol introduced this session: verify a caller exists outside the
+   definition file and outside test files. For `subtype: library`:
+   accept a public API export as a valid alternative. On fail, the
+   FEATURE Done-status is locked.
+7. **Activation-path check.** Read the FEATURE's `## Activation Path`
+   section and verify each entry exists in the code (route registered,
+   command registered, public symbol exported, etc.). The activation
+   path string is a grep target. On fail, the FEATURE Done-status is
+   locked.
 
 Forbidden language without fresh verification: "should work",
 "probably okay", "tests should be green now". See
 [Verification Gates](../concepts/verification-gates) for the
-complete forbidden list.
+complete forbidden list. Reachability tooling per language lives in
+the [reachability-by-stack reference](../reference/reachability-by-stack).
 
 ### Phase 4b: Regression test cycle (for every bug fix)
 
@@ -219,7 +234,37 @@ The FIX detail file at
 gets a `## Regression test` section: "Regression test verified via
 red-green cycle on {date}". The commit SHA goes into the backlog row.
 
-### Phase 4c: Final synchronization
+### Phase 4c: Deferred-stub marker convention (since v3.2.0)
+
+Stubs are normal in iterative development. What is forbidden are
+silent stubs. Every stub MUST carry a marker AND a paired FIX-row in
+the backlog. The two are bidirectionally bound; `/consistency-check`
+Mode A enforces the binding via invariant E-14.
+
+Marker syntax (per-language comment style, identical content):
+
+```
+// FIXME(stub): <one-line reason> -- see FIX-{ee}-{ff}-{nn}
+# FIXME(stub): <one-line reason> -- see FIX-{ee}-{ff}-{nn}
+```
+
+Use `//` for the C-family (TypeScript, JavaScript, Java, Go, Rust,
+C#, Swift, Kotlin). Use `#` for Python, Ruby, R, shell scripts. The
+FIX-row carries the context: why the stub is there, what unblocks it,
+what to do when it is unblocked.
+
+Mode A surfaces two finding types:
+- `stub-without-fix-row` -- marker references a missing or resolved
+  FIX-ID
+- `fix-without-stub-evidence` -- FIX-row claims a stub but no marker
+  references it
+
+A marker without a FIX-row is invisible to the backlog, nobody plans
+its removal. A FIX-row without a marker is stale paperwork, nobody can
+find the actual code. The bidirectional binding turns silent deferrals
+into auditable items.
+
+### Final synchronization
 
 After implementation is verified, `/coding` updates in this order
 (state first, substance second):

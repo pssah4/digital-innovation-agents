@@ -75,6 +75,7 @@ const referenceSidebar = [
       { text: 'Commands', link: '/reference/commands' },
       { text: 'Artifacts', link: '/reference/artifacts' },
       { text: 'Conventions', link: '/reference/conventions' },
+      { text: 'Reachability by stack', link: '/reference/reachability-by-stack' },
       { text: 'Troubleshooting', link: '/reference/troubleshooting' },
     ],
   },

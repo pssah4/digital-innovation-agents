@@ -98,6 +98,7 @@ id: FEAT-01-02
 title: Semantic search across vault notes
 created: 2026-04-30
 epic: EPIC-01
+subtype: user-facing  # user-facing | library, default user-facing
 adr-refs: [ADR-03, ADR-07]
 feature-refs: []
 depends-on: [FEAT-01-01]
@@ -110,6 +111,11 @@ Fields:
 - `title` (required): one-line summary
 - `created` (required): ISO date
 - `epic` (features, fixes, improvements, plans): parent epic id
+- `subtype` (features, since v3.2.0): `user-facing` (default, anything
+  with a user trigger) or `library` (public API, no end-user trigger).
+  Drives the `## Activation Path` requirement and the `/coding`
+  Phase 4a steps 6 and 7. FEATUREs without `subtype:` stay valid for
+  backwards compatibility; new FEATUREs MUST set it.
 - `adr-refs` (features, plans): list of ADRs that apply
 - `feature-refs` (plans, fixes, improvements): list of features that
   the artifact relates to
@@ -117,6 +123,31 @@ Fields:
 
 Frontmatter does **not** carry status, phase, last-change, or claim.
 Those live in the backlog row.
+
+## Deferred-stub marker (since v3.2.0)
+
+Stubs (no-op handlers, hard-coded placeholders, intentional empty
+returns waiting on later wiring or external availability) MUST carry
+a `FIXME(stub):` marker AND a paired FIX-row in the backlog.
+Bidirectional binding; `/consistency-check` Mode A enforces it via
+invariant E-14.
+
+```
+// FIXME(stub): <one-line reason> -- see FIX-{ee}-{ff}-{nn}
+# FIXME(stub): <one-line reason> -- see FIX-{ee}-{ff}-{nn}
+```
+
+- `//` for the C-family (TypeScript, JavaScript, Java, Go, Rust, C#,
+  Swift, Kotlin, React TSX/JSX).
+- `#` for Python, Ruby, R, shell scripts.
+
+The paired FIX-row in `BACKLOG.md` and its detail file at
+`_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md` carry
+the context: why the stub is there, what unblocks it, what to do when
+it is unblocked. Notes contain `Wiring offen`, `stub`, or
+`deferred-stub` so Mode A recognises the stub character. When the
+stub is replaced by real implementation, marker AND FIX-row are
+cleaned up in the same commit.
 
 ## Bug IDs
 

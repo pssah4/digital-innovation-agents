@@ -18,8 +18,8 @@ recognizes and the mechanism that defends each one.
 
 ## The catalog
 
-DIA recognizes eight drift sources. They are independent. A project
-that defends only one of them still rots through the other seven.
+DIA recognizes ten drift sources. They are independent. A project
+that defends only one of them still rots through the other nine.
 
 | ID | Drift source | Example |
 |---|---|---|
@@ -31,6 +31,8 @@ that defends only one of them still rots through the other seven.
 | D6 | Cross-artifact contradiction | Two ADRs cover overlapping decisions with conflicting outcomes |
 | D7 | Build / test drift | Code shipped, lint or tests are red, nobody noticed |
 | D8 | Stale frontmatter status | ADR frontmatter says `Proposed`, the decision was implemented and shipped a month ago |
+| D9 | Spec-level Done without runtime evidence (since v3.2.0) | FEATURE marked Done because tests pass and build is green, but the new module has no caller, no command registration, no UI element. Surfaced in the BA-25 Karpathy-Wiki run: 15 of 28 features Done with backend modules that nothing called. |
+| D10 | Silent stub / no-op deferral (since v3.2.0) | A listener handler returns no-op while waiting on later wiring. The deferral lives only in code; the backlog has no FIX-row to track it. Removal never happens. |
 
 ## The defense map
 
@@ -47,6 +49,8 @@ in a specific skill or convention file, with a clear owner and trigger.
 | D6 | ADR consolidation duty in `/architecture` | When proposing a new ADR, the skill first checks whether an existing ADR can be merged or extended. ADR inflation is reported as a warning. Mode B of `/consistency-check` runs the full pairwise check on demand | Every new ADR proposal, on demand for the cross-check |
 | D7 | Verification gate in `/coding` and `/testing` | No completion claim without fresh verification evidence in the current message. Hard threshold: 0 test failures, 0 lint errors, 0 build errors, coverage not regressed. Forbidden phrases like "should work" trigger a re-run | After every implementation step, before every completion claim |
 | D8 | Eliminated by D2 | When status lives only in the backlog row, frontmatter cannot drift because it does not carry the field | Structural, not enforced |
+| D9 | Subtype-aware Done-definition (`/coding` Phase 4a steps 6 and 7) + N-18 invariant in `/consistency-check` Mode A + S-6 / S-7 in Mode B | FEATURE frontmatter declares `subtype: user-facing \| library`. Definition of Done requires a `## Activation Path` section with `Type` and `Identifier`. `/coding` Phase 4a checks reachability (caller exists outside definition file and tests, OR public API export) and that the activation path string actually exists in the code. N-18 (Mode A) flags Done-FEATUREs without a filled Activation Path. S-6 / S-7 (Mode B subagent) verify the SC-to-code mapping and the activation-path identifier presence. | At Done-status writeback in `/coding`, at phase end via `/consistency-check`, before release via Mode B |
+| D10 | FIXME(stub) marker convention + E-14 invariant | Every stub MUST carry `// FIXME(stub): ... -- see FIX-{ee}-{ff}-{nn}` AND a paired FIX-row in the backlog. E-14 in `/consistency-check` Mode A enforces bidirectional binding: every marker references an open FIX-ID; every FIX-row tagged as stub has at least one source-side marker. | At every stub introduction in `/coding`, on phase end in Mode A |
 
 ## Where the defense is hard, where it is soft
 
@@ -56,9 +60,9 @@ drift and the cost of the defense.
 
 | Defense type | Means | Drift sources |
 |---|---|---|
-| Hard gate | Skill stops before the first content change until the rule is satisfied | D1 (in `/coding` Phase 1a only), D7 (verify gate is a hard stop on completion claims) |
+| Hard gate | Skill stops before the first content change until the rule is satisfied | D1 (in `/coding` Phase 1a only), D7 (verify gate is a hard stop on completion claims), D9 (Phase 4a steps 6 and 7 lock Done-status until reachability and activation-path are confirmed) |
 | Soft rule | `MANDATORY` block in the skill body. Agent compliance, no technical block | D1 (in other phase skills), D3, D4, D6 |
-| Phase-end check | `/consistency-check` mode A runs at end of every phase, surfaces violations | D2, D3, D5, D8 |
+| Phase-end check | `/consistency-check` mode A runs at end of every phase, surfaces violations | D2, D3, D5, D8, D9 (N-18 catches the breach if Phase 4a was skipped), D10 (E-14) |
 | Structural elimination | Schema makes the drift impossible to express | D8 (frontmatter does not carry status), D3 (ADR core sections do not carry code paths) |
 
 The intentional design choice: hard gates are reserved for the two
@@ -108,6 +112,11 @@ release cycle, verify the eight defenses are still active:
   test, build
 - D8: spot-check three artifact frontmatters, confirm no `status` or
   `phase` field appears outside the backlog row
+- D9: spot-check three Done-FEATUREs created since the last release,
+  confirm `subtype:` field is set in frontmatter, `## Activation Path`
+  section is filled, and the claimed identifier resolves in the code
+- D10: grep `FIXME(stub):` in the source tree, confirm every match
+  references a FIX-ID that exists and is open in the backlog
 
 If a defense has slipped, the corresponding skill is the entry point
 to repair it.

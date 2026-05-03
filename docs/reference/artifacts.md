@@ -140,6 +140,13 @@ do **not** list current code paths in core sections.
   that may go stale.
 - FEATUREs are allowed an optional `## Code Pointer` appendix that
   references an ARCHITECTURE.map concept name, not a file path.
+- FEATUREs (since v3.2.0) carry `subtype: user-facing | library` in
+  frontmatter and a mandatory `## Activation Path` section in the
+  Definition of Done. The Activation Path is a Type/Identifier pair
+  that names how a user or caller reaches the FEATURE. See
+  [Conventions: required frontmatter](./conventions#required-frontmatter)
+  and the [requirements engineering guide](../guides/requirements-engineering)
+  for the full contract.
 
 ## Living documents
 

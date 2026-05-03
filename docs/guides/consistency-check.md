@@ -38,7 +38,7 @@ Trigger phrases that route to the skill: "consistency check",
 ### Mode A: syntactic (default, fast, no LLM)
 
 Runs on every phase-end trigger and pre-commit hook. Pure
-filesystem and grep, costs near zero. Eight quick-check items:
+filesystem and grep, costs near zero. Twelve quick-check items:
 
 1. **Dead links.** Every Markdown link to a project-internal path
    resolves to an existing file.
@@ -70,6 +70,24 @@ filesystem and grep, costs near zero. Eight quick-check items:
 8. **Backlog graph health.** Every Refs entry in the backlog
    points at an existing row. The graph derived from the Refs
    columns is acyclic (Epic -> Feature -> Plan -> Fix forms a DAG).
+9. **Status coherence (N-17, since v3.1.0).** A parent artifact must
+   not stay at a pre-validation status while a derived child has been
+   exercised. Initial pair table covers BA at `Draft` with
+   `architect-handoff.md` present, and ADR at `Proposed` with a
+   `Building` / `Released` Feature referencing it.
+10. **Activation Path filled (N-18, since v3.2.0).** Every FEATURE
+    with backlog status `Done` AND `subtype:` in frontmatter has a
+    non-empty `## Activation Path` section in its Definition of Done.
+    Pre-N-18 FEATUREs without `subtype:` are exempt for backwards
+    compatibility.
+11. **FIXME-stub bidirectional binding (E-14, since v3.2.0).** Every
+    `FIXME(stub):` marker in source references an open FIX-row by ID;
+    every FIX-row tagged as stub has at least one source-side marker.
+    Surfaces `stub-without-fix-row` and `fix-without-stub-evidence`
+    findings.
+12. **Status-coherence pairs reference table.** Lives in
+    `skills/project-conventions/references/graph-invariants.md` under
+    "Status-Coherence-Pairs"; new pairs land via PR.
 
 #### Auto-fix
 
@@ -88,7 +106,7 @@ abstraction violation) are reported and left for the user.
 
 Runs on explicit user request or before a release. Subagents read
 paired artifacts and judge whether their content is still
-consistent. Six deep-check items:
+consistent. Eight deep-check items:
 
 1. **Spec-code coherence.** For every FEAT with status Done, are
    the Success Criteria plausibly verifiable in the code?
@@ -104,6 +122,15 @@ consistent. Six deep-check items:
 6. **Backlog graph render.** Mermaid or JSON graph from the
    backlog Refs columns, surfacing orphan nodes and status
    mismatches.
+7. **SC-to-code mapping (S-6, since v3.2.0).** For every Done-FEATURE,
+   each Success Criterion entry maps onto a concrete code path
+   (file:line range or symbol). Subagent samples per FEATURE; reports
+   `sc-without-evidence` findings for SCs that cannot be tied to code.
+8. **Activation-path identifier presence (S-7, since v3.2.0).** The
+   `Identifier` claimed in a Done-FEATURE's `## Activation Path`
+   section is actually present in the code (route registered, command
+   registered, public symbol exported, scheduled job hooked). Reports
+   `activation-path-missing` findings.
 
 Mode B costs measurable agent-time. Run it before a release or
 when Mode A has been clean for a while but you suspect deeper

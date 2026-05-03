@@ -124,15 +124,44 @@ We will know we were right if {measurable signal}.
 - Each Critical ASR becomes an ADR in /architecture
 
 ## Definition of Done
+
+### Activation Path (mandatory since v3.2.0)
+- Type: command | route | UI-element | endpoint | scheduled-job | tool | hotkey | public-API
+- Identifier: `<command name | route path | URL | symbol name>`
+- Where it lives: <file pointer or ARCHITECTURE.map concept>
+- How a user (or caller) reaches it: <one sentence>
+
+### Functional, Quality, Documentation
 - What must be true for the feature to ship
 ```
 
 **Frontmatter rule.** Status, phase, last-change, claim, and
 commit SHA do **not** live in the frontmatter. They live in the
 **backlog row** for `FEAT-01-02`. The frontmatter carries identity
-(`id`, `title`, `created`) and graph edges (`epic`, `adr-refs`,
-`feature-refs`, `depends-on`) only. See the
+(`id`, `title`, `created`), graph edges (`epic`, `adr-refs`,
+`feature-refs`, `depends-on`), and (since v3.2.0) the activation
+contract (`subtype: user-facing | library`, default `user-facing`).
+See the
 [Three-layer documentation model](../concepts/three-layer-documentation).
+
+**FEATURE subtype (since v3.2.0).** Two values:
+
+- `user-facing` (default) -- anything an end user reaches: UI, CLI
+  command, API endpoint, scheduled job, agent tool, plugin command,
+  hotkey. Definition of Done MUST list a documented trigger.
+- `library` -- public API consumed by other code (function, class,
+  module, package). No direct end-user trigger. Definition of Done
+  MUST list the exported symbol(s) and the documentation entry.
+
+A FEATURE that builds a backend module without any caller is not a
+FEATURE -- it is infrastructure, and belongs as an IMP, not a FEAT
+with status Done. The Activation Path entry forces the question "how
+does anyone reach this code?" before the FEATURE moves out of
+specification.
+
+`/coding` Phase 4a steps 6 and 7 verify both the reachability and the
+activation-path claim before any Done-status writeback. See the
+[coding guide](./coding) for the full gate function.
 
 **FIX and IMP scope.** Bug fixes are
 `FIX-{ee}-{ff}-{nn}-{slug}.md` files (rows in `BACKLOG.md`, detail
