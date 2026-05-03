@@ -286,6 +286,12 @@ Technical details go into **Technical NFRs** -> `architect-handoff.md` -> Archit
 - **Critical Hypotheses -> Validation Criteria:** Features based on critical
  hypotheses receive an additional "Validation" section.
 - **Tech-agnostic Success Criteria** (no tech terms!)
+- **Subtype** (frontmatter): `subtype: user-facing | library`. Default
+ `user-facing` if missing. `library` for FEATUREs that ship a public
+ API only and have no end-user trigger.
+- **Activation Path** in Definition of Done: every FEATURE MUST list at
+ least one entry under `## Activation Path` describing how the FEATURE
+ is reached. See section "Activation Path requirement" below.
 - Technical NFRs (tech details ARE allowed here)
 - Identify ASRs (Critical/Moderate)
 - Definition of Done
@@ -332,6 +338,63 @@ Each feature MUST have:
 **Non-measurable Criteria:**
 - Wrong: "Good user experience"
 - Right: "95% task completion rate in UAT"
+
+## FEATURE subtype and Activation Path requirement
+
+Every FEATURE belongs to one of two subtypes. The subtype shapes the
+Definition of Done and the verification that `/coding` performs before
+allowing a Done-status writeback.
+
+| Subtype | Frontmatter | When to use | Activation Path entry |
+|---------|-------------|-------------|------------------------|
+| `user-facing` (default) | `subtype: user-facing` | Anything an end user reaches: UI, CLI command, API endpoint, scheduled job, agent tool, plugin command, hotkey | A documented trigger: route, command name, UI element, endpoint URL, schedule, tool name, etc. |
+| `library` | `subtype: library` | Public API consumed by other code (function, class, module, package). No direct end-user trigger. | Public symbol(s) and the documentation entry that describes them. The public symbol IS the activation path. |
+
+### Why this matters
+
+A FEATURE that builds a backend module without any caller is not a
+FEATURE -- it is infrastructure. It belongs as an IMP, not a FEAT
+with status Done. The Activation Path entry forces the question
+"how does anyone reach this code?" before the FEATURE moves out of
+specification.
+
+### Format inside the FEATURE document
+
+```markdown
+## Activation Path
+
+- Type: command | route | UI-element | endpoint | scheduled-job | tool | hotkey | public-API
+- Identifier: <command name | route path | URL | symbol name>
+- Where it lives: <file or section pointer>
+- How a user (or caller) reaches it: <one sentence>
+```
+
+For `subtype: library`:
+
+```markdown
+## Activation Path
+
+- Type: public-API
+- Identifier: `<exported function or class name>`
+- Where it lives: <module path or package export>
+- How a caller reaches it: imported and called as documented in <doc reference>
+```
+
+### Backwards compatibility
+
+FEATURE files written before this RFC stay valid without `subtype:` in
+their frontmatter. The new Reachability and Activation-Path checks in
+`/coding` only fire when the FEATURE has `subtype:` set or was created
+after the convention shipped. Existing projects can adopt the new
+contract per FEATURE without forced migration.
+
+### Companion: `/coding` Reachability and Activation-Path checks
+
+`/coding` Phase 4a Verification Gate runs two new checks before any
+Done-status writeback: Reachability (caller exists outside definition
+file and outside tests) and Activation-Path (the documented trigger
+actually exists in code). Both are subtype-aware. See
+`skills/coding/SKILL.md` Phase 4a for the binding rules.
 
 ## MANDATORY: Parent BA status promotion on successful handoff
 
