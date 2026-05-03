@@ -373,6 +373,211 @@ def check_status_coherence() -> list[Finding]:
     return out
 
 
+ACTIVATION_PATH_HEADER_RE = re.compile(r"^##\s+Activation Path\s*$", re.MULTILINE)
+ACTIVATION_TYPE_RE = re.compile(r"^[-*]\s*Type\s*:\s*(.+?)\s*$", re.MULTILINE)
+ACTIVATION_ID_RE = re.compile(r"^[-*]\s*Identifier\s*:\s*(.+?)\s*$", re.MULTILINE)
+
+
+def _backlog_done_features() -> set[str]:
+    """FEATURE IDs whose backlog row carries status 'Done'.
+    Best-effort parse: a row that contains the FEAT-ID and the literal
+    'Done' status token. False positives are bounded because the row
+    must lead with the FEAT-ID at the start of a markdown table cell.
+    """
+    if not BACKLOG.exists():
+        return set()
+    out: set[str] = set()
+    text = BACKLOG.read_text(encoding="utf-8")
+    for line in text.splitlines():
+        m = re.match(r"^\|\s*(FEAT-\d{2}-\d{2})\s*\|", line)
+        if not m:
+            continue
+        if "Done" in line:
+            out.add(m.group(1))
+    return out
+
+
+def check_feature_activation_path() -> list[Finding]:
+    """N-18: every FEATURE with backlog status Done has a non-empty
+    `## Activation Path` section with Type and Identifier filled.
+    FEATUREs without `subtype:` in frontmatter are exempt for backwards
+    compatibility.
+    """
+    if not FEATURES.exists():
+        return []
+    done_ids = _backlog_done_features()
+    if not done_ids:
+        return []
+    out: list[Finding] = []
+    for feat_path in sorted(FEATURES.glob("FEAT-*.md")):
+        feat_id = parse_artifact_id(feat_path)
+        if feat_id not in done_ids:
+            continue
+        fm = parse_frontmatter(feat_path)
+        if "subtype" not in fm:
+            continue  # backwards-compat: pre-N-18 FEATUREs exempt
+        try:
+            text = feat_path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        header_m = ACTIVATION_PATH_HEADER_RE.search(text)
+        if not header_m:
+            out.append(Finding(
+                type="feature-activation-path-missing",
+                severity=SEVERITY_MEDIUM,
+                file=str(feat_path.relative_to(ROOT)),
+                line=None,
+                message=(
+                    f"FEATURE {feat_id} (subtype={fm.get('subtype', 'user-facing')}) "
+                    f"is Done in backlog but has no '## Activation Path' section."
+                ),
+                suggestions=[
+                    "Open /requirements-engineering to add the Activation Path entry",
+                    "Demote FEATURE backlog status from Done to Active",
+                    "Defer: file as backlog item with Source=CONSISTENCY-CHECK",
+                ],
+            ))
+            continue
+        section = text[header_m.end():]
+        next_h2 = re.search(r"^##\s+\S", section, re.MULTILINE)
+        section = section[:next_h2.start()] if next_h2 else section
+        type_m = ACTIVATION_TYPE_RE.search(section)
+        id_m = ACTIVATION_ID_RE.search(section)
+        type_val = (type_m.group(1).strip() if type_m else "").strip("`")
+        id_val = (id_m.group(1).strip() if id_m else "").strip("`")
+        if not type_val or type_val.startswith("{") or not id_val or id_val.startswith("{"):
+            out.append(Finding(
+                type="feature-activation-path-missing",
+                severity=SEVERITY_MEDIUM,
+                file=str(feat_path.relative_to(ROOT)),
+                line=header_m.start() and text[:header_m.start()].count("\n") + 1,
+                message=(
+                    f"FEATURE {feat_id} '## Activation Path' section is present "
+                    f"but Type or Identifier is missing or unfilled (placeholder)."
+                ),
+                suggestions=[
+                    "Fill 'Type:' and 'Identifier:' with the concrete activation entry",
+                    "Demote FEATURE backlog status from Done to Active",
+                    "Skip with reason in Mode C",
+                ],
+            ))
+    return out
+
+
+FIXME_STUB_RE = re.compile(
+    r"(?://|#)\s*FIXME\(stub\)\s*:\s*(.+?)(?:\s+--\s+see\s+(FIX-\d{2}-\d{2}-\d{2}))?\s*$",
+    re.MULTILINE,
+)
+
+
+def _backlog_fix_rows_with_stub_notes() -> dict[str, str]:
+    """Map FIX-ID -> first matching backlog line for FIX-rows that
+    document a stub. Triggered by 'Wiring offen', 'stub', or
+    'deferred-stub' anywhere in the row.
+    """
+    if not BACKLOG.exists():
+        return {}
+    out: dict[str, str] = {}
+    text = BACKLOG.read_text(encoding="utf-8")
+    for line in text.splitlines():
+        m = re.match(r"^\|\s*(FIX-\d{2}-\d{2}-\d{2})\s*\|", line)
+        if not m:
+            continue
+        low = line.lower()
+        if "wiring offen" in low or "stub" in low or "deferred-stub" in low:
+            out[m.group(1)] = line
+    return out
+
+
+def _src_files() -> list[Path]:
+    if not CONFIG.get("src_dir"):
+        return []
+    src_root = ROOT / CONFIG["src_dir"]
+    if not src_root.is_dir():
+        return []
+    out: list[Path] = []
+    for ext in ("*.ts", "*.tsx", "*.js", "*.jsx", "*.py", "*.go",
+                "*.rs", "*.r", "*.R", "*.sh"):
+        out.extend(src_root.rglob(ext))
+    return sorted(out)
+
+
+def check_stub_fix_binding() -> list[Finding]:
+    """E-14: bidirectional binding between FIXME(stub) markers and FIX
+    rows. Two finding types: stub-without-fix-row (marker references
+    missing or resolved FIX-ID) and fix-without-stub-evidence (FIX-row
+    documents a stub but no marker references it).
+    """
+    src_files = _src_files()
+    backlog_stub_fixes = _backlog_fix_rows_with_stub_notes()
+    referenced_fix_ids: set[str] = set()
+    backlog_ids = parse_backlog_ids()
+    out: list[Finding] = []
+
+    for sf in src_files:
+        try:
+            text = sf.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        for ln, line in enumerate(text.splitlines(), start=1):
+            m = FIXME_STUB_RE.search(line)
+            if not m:
+                continue
+            fix_id = m.group(2)
+            if not fix_id:
+                out.append(Finding(
+                    type="stub-without-fix-row",
+                    severity=SEVERITY_LOW,
+                    file=str(sf.relative_to(ROOT)),
+                    line=ln,
+                    message=(
+                        "FIXME(stub) marker without 'see FIX-{ee}-{ff}-{nn}' reference; "
+                        "every stub MUST point at a backlog FIX row."
+                    ),
+                    suggestions=[
+                        "Open /coding to create the missing FIX-row and embed the ID in the marker",
+                        "Remove the marker if the stub has been resolved",
+                    ],
+                ))
+                continue
+            referenced_fix_ids.add(fix_id)
+            if fix_id not in backlog_ids:
+                out.append(Finding(
+                    type="stub-without-fix-row",
+                    severity=SEVERITY_LOW,
+                    file=str(sf.relative_to(ROOT)),
+                    line=ln,
+                    message=(
+                        f"FIXME(stub) marker references {fix_id} but no such FIX exists in backlog."
+                    ),
+                    suggestions=[
+                        f"Add a backlog row for {fix_id}",
+                        "Update the marker to reference the correct FIX-ID",
+                        "Remove the marker if the stub has been resolved",
+                    ],
+                ))
+
+    for fix_id in backlog_stub_fixes:
+        if fix_id in referenced_fix_ids:
+            continue
+        out.append(Finding(
+            type="fix-without-stub-evidence",
+            severity=SEVERITY_LOW,
+            file=str(BACKLOG.relative_to(ROOT)),
+            line=None,
+            message=(
+                f"FIX-row {fix_id} documents a stub (notes contain 'Wiring offen' / 'stub' / "
+                f"'deferred-stub') but no FIXME(stub) marker in the source tree references it."
+            ),
+            suggestions=[
+                "Open /coding to add the FIXME(stub) marker at the stubbed location",
+                "Resolve the FIX-row if the stub is gone (set status Done in the backlog)",
+                "Edit the row's notes if 'stub' was a false positive",
+            ],
+        ))
+    return out
+
+
 def check_backlog_completeness() -> list[Finding]:
     out: list[Finding] = []
     backlog_ids = parse_backlog_ids()
@@ -421,6 +626,8 @@ def run_checks() -> list[Finding]:
     findings.extend(check_adr_abstraction(md_files(ARCHITECTURE)))
     findings.extend(check_backlog_completeness())
     findings.extend(check_status_coherence())
+    findings.extend(check_feature_activation_path())
+    findings.extend(check_stub_fix_binding())
     return findings
 
 

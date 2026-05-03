@@ -75,6 +75,7 @@ Mode A entsprechend angepasst werden.
 | N-15 | FIX- und IMP-Dateien haben `phase:` und `status:` im Frontmatter (gleiche Enum-Werte wie Features). | YAML-Frontmatter parsen. |
 | N-16 | Die alten Begriffe "Chore" und "BL-Item (historisch)" sowie der Backlog-Abschnitt `## Standalone Chores` werden nicht mehr verwendet. | Grep auf "Chore"/"BL-Item (historisch)"/"Standalone Chores" in docs/ (archive ausgenommen). |
 | N-17 | Status-Kohaerenz zwischen Eltern- und Kind-Artefakten: ein Eltern-Artefakt darf nicht in einem Pre-Validation-Status verharren, wenn ein abgeleitetes Kind-Artefakt nachweislich exerzitiert wurde. Pruefpaare siehe Tabelle "Status-Coherence-Pairs" unten. | Pro Paar: Eltern-Frontmatter `status:` lesen, Kind-Evidenz pruefen (Datei-Existenz oder Kind-Phase >= Building); bei Treffer Finding `status-coherence-breach`. |
+| N-18 | Jedes FEATURE mit Backlog-Status `Done` enthaelt eine nicht-leere `## Activation Path` Section in der Definition of Done (Pflicht-Felder Type und Identifier ausgefuellt). FEATUREs ohne `subtype:` im Frontmatter sind aus Rueckwaerts-Kompatibilitaet ausgenommen; FEATUREs mit `subtype: user-facing` (Default wenn gesetzt) oder `subtype: library` muessen die Invariante erfuellen. | Pro Done-FEATURE: `## Activation Path` Section parsen, Type und Identifier extrahieren, beide muessen nicht-leer sein. Severity warn (fail unter --strict). |
 
 ## Edge-Invarianten
 
@@ -91,6 +92,12 @@ Mode A entsprechend angepasst werden.
 | E-9 | Dashboard-Counts im Backlog stimmen mit Summe der Feature-/Epic-/FIX-/IMP-Phasen ueberein. | Dashboard-Tabelle neu berechnen aus Frontmatters (Epic, Feature, FIX, IMP). |
 | E-10 | `depends-on`-Referenzen in Feature/Epic/ADR/FIX/IMP-Frontmatter zeigen auf existierende Artefakte. | YAML-Feld parsen, Ziel-ID im Dateisystem pruefen. |
 | E-11 | Der `depends-on`-Graph ist azyklisch (DAG). Keine Implementierungs-Zyklen. | Topologisches Sortieren ueber alle `depends-on`-Kanten; Zyklen detektieren. |
+| E-14 | Bidirektionale Bindung zwischen `FIXME(stub):` Markern im Source-Code und FIX-Rows im Backlog. Jeder Marker referenziert eine offene FIX-ID; jede FIX-Row die einen Stub dokumentiert (Notes enthalten `Wiring offen`, `stub`, oder `deferred-stub`) referenziert mindestens eine Source-Stelle. | Grep auf `FIXME(stub):` im Source-Tree (Pattern fuer `//` und `#` Comment-Style), FIX-ID extrahieren, gegen Backlog cross-checken. Umgekehrt: FIX-Row-Notes scannen, FIX-ID gegen Source-Tree gruepen. |
+
+> Anmerkung: E-12 und E-13 werden in `skills/consistency-check/SKILL.md`
+> bereits genutzt (Backlog-Completeness und ARCHITECTURE.map-Entrypoints).
+> Diese Datei fuehrt sie aktuell noch nicht. Konsolidierung in einem
+> separaten Pflege-Pass.
 
 ## Semantische Invarianten (Mode B, nur on-demand)
 
@@ -100,6 +107,8 @@ Mode A entsprechend angepasst werden.
 | S-2 | Feature ohne passendes BA-JTBD ist explizit geflaggt. | Subagent prueft: hat das Feature einen JTBD-Verweis in BA? Wenn nein, FIX/IMP `needs BA-anchor`. |
 | S-3 | arc42-Sektion zur ADR-Decision spiegelt aktuellen ADR-Text, nicht eine alte Revision. | Subagent liest arc42-Sektion + zitierte ADR, meldet Drift. |
 | S-4 | Features mit `status: Implemented` haben ihre SCs plausibel im Code belegbar. | Subagent stichprobenartig pro Feature; Ergebnis im Codebase-Verifikations-Abschnitt. |
+| S-6 | Jedes FEATURE mit Backlog-Status `Done` mappt jede Success-Criterion-Zeile auf einen konkreten Code-Pfad (file:line oder Symbol). | Subagent liest FEATURE und das Code-Pfad-Verzeichnis (ARCHITECTURE.map als Index), berichtet `sc-without-evidence` fuer SCs ohne klaren Code-Bezug. |
+| S-7 | Der `## Activation Path` Eintrag eines Done-FEATURE existiert tatsaechlich im Code. | Subagent prueft pro Aktivierungstyp (route, command, public-API, ...) ob der angegebene Identifier im Source-Tree vorkommt; berichtet `activation-path-missing` falls nicht. |
 
 ## Status-Coherence-Pairs (Pruefpaare fuer N-17)
 
@@ -139,13 +148,85 @@ RE -> `/requirements-engineering` ueber den Handoff-Promotion-Pfad,
 Architecture -> `/architecture` fuer ADR-Status). Mode A meldet das
 Finding; Mode C bietet "Open phase skill" als Fix-Option an.
 
+## FEATURE-Subtyp und Activation-Path (fuer N-18 und S-6 / S-7)
+
+Jedes FEATURE traegt einen Subtyp im Frontmatter, der den Aktivierungs-
+Vertrag bestimmt. Subtyp-Default beim Anlegen: `user-facing`.
+
+| Subtyp | Frontmatter | Wann nutzen | Aktivierungs-Pflicht |
+|--------|-------------|-------------|----------------------|
+| `user-facing` | `subtype: user-facing` | UI, CLI-Command, API-Endpunkt, Scheduled-Job, Plugin-Command, Hotkey, Agent-Tool, Web-Route, Mobile-Screen | Mindestens ein dokumentierter Trigger im `## Activation Path` Block der FEATURE-Spec; Trigger muss im Code existieren. |
+| `library` | `subtype: library` | Public API ohne End-User-Trigger (Funktion, Klasse, Modul, Package-Export) | Public Symbol(e) im `## Activation Path` Block; Symbol(e) muessen exportiert sein und in API-Doku auftauchen. |
+
+**Rueckwaerts-Kompatibilitaet:** FEATUREs ohne `subtype:` im Frontmatter
+sind aus N-18, S-6, S-7 ausgenommen. Neue FEATUREs schreiben `subtype:`
+verbindlich. Existierende Projekte koennen den Subtyp pro FEATURE
+nachpflegen, ohne dass eine harte Migration noetig ist.
+
+**`## Activation Path` Format in der FEATURE-Spec:**
+
+```markdown
+## Activation Path
+
+- Type: command | route | UI-element | endpoint | scheduled-job | tool | hotkey | public-API
+- Identifier: `<Identifier>`
+- Where it lives: <Datei oder ARCHITECTURE.map-Konzept>
+- How a user (or caller) reaches it: <ein Satz>
+```
+
+`Type` und `Identifier` sind Pflicht und nicht-leer. Mode A pruefst
+das ueber N-18; Mode B prueft via S-7 ob der Identifier im Code
+tatsaechlich vorkommt.
+
+## FIXME(stub)-Marker-Konvention (fuer E-14)
+
+Stub-Implementierungen (no-op Hooks, Hard-Coded-Placeholder, leere
+Returns die spaeter durch echte Logik ersetzt werden sollen) MUESSEN
+einen `FIXME(stub):`-Marker im Source-Code tragen UND eine paarige
+FIX-Row im Backlog haben. Bidirektionale Bindung; Mode A prueft beide
+Richtungen ueber E-14.
+
+**Marker-Syntax (Comment-Style je Sprache):**
+
+```
+// FIXME(stub): <Grund in einem Satz> -- see FIX-{ee}-{ff}-{nn}
+# FIXME(stub): <Grund in einem Satz> -- see FIX-{ee}-{ff}-{nn}
+```
+
+Verwendung:
+
+- `//` fuer C-Familie: TypeScript, JavaScript, Java, Go, Rust, C#,
+ Swift, Kotlin, React (TSX/JSX).
+- `#` fuer Python, Ruby, R, Shell-Skripte.
+
+Andere Comment-Stile (`--` SQL, `;` Lisp, `<!-- -->` HTML/XML) werden
+aktuell nicht von Mode A erkannt; bei Bedarf ueber dia.config.json
+erweitern.
+
+**Pflicht-Inhalt der zugehoerigen FIX-Row** im Backlog und in der
+Detail-Datei `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`:
+
+- Status `Open` oder `Active` (nicht `Done`, sonst Marker-Drift).
+- Notes-Feld enthaelt mindestens `Wiring offen`, `stub`, oder
+ `deferred-stub`, damit Mode A den Stub-Charakter erkennt.
+- Mindestens eine Datei-Referenz auf eine Source-Stelle, die den
+ Marker traegt.
+
+**Aufloesungs-Regel:** Wenn der Stub durch echte Implementierung
+ersetzt wird, MUESSEN beide Seiten mit demselben Commit aufgeraeumt
+werden: Marker entfernen, FIX-Row auf `Done` setzen, Detail-Datei
+mit Aufloesungs-Notiz im `## Fix` Abschnitt versehen. Mode A flaggt
+sonst entweder `stub-without-fix-row` (Marker bleibt nach FIX Done)
+oder `fix-without-stub-evidence` (FIX bleibt Open nachdem Marker
+entfernt wurde).
+
 ## Phase/Status-Frontmatter-Konvention (verbindlich fuer alle Skills)
 
 **Pflichtfelder im YAML-Frontmatter:**
 
 | Artefakt | Pflichtfelder | Default beim Anlegen |
 | -------- | ----------------------------------------------------------------------- | ------------------------------- |
-| Feature | `phase: <Lebenszyklus>`, `status: <Arbeitsstatus>` | `phase: Building`, `status: Planned` |
+| Feature | `phase: <Lebenszyklus>`, `status: <Arbeitsstatus>`, `subtype: user-facing|library` (optional fuer Bestand, Pflicht fuer neue FEATUREs ab N-18) | `phase: Building`, `status: Planned`, `subtype: user-facing` |
 | Epic | `phase: <Lebenszyklus>` | `phase: Building` (abgeleitet worst-wins) |
 | ADR | `phase: <Lebenszyklus>`, `status: Proposed|Accepted|Superseded|Deprecated` | `phase: Building`, `status: Proposed` |
 | PLAN | `status: Draft|Active|Completed` | `status: Draft` |

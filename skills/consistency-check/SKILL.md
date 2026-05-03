@@ -232,6 +232,9 @@ fix patterns based on the finding's `type` field:
 | `source-path-broken` | Update path, mark feature Planned, remove path entry |
 | `frontmatter-status-duplicate` | Always auto-fixed in Mode A; only surfaces here if auto-fix failed |
 | `status-coherence-breach` | Open the owning phase skill (`/business-analysis` for BA Draft, `/requirements-engineering` for RE-side BA promotion, `/architecture` for ADR Proposed), Defer (file as backlog item with Source=CONSISTENCY-CHECK), Skip with reason. No direct edit option: status promotion is a semantic claim and belongs in the phase skill. |
+| `feature-activation-path-missing` | Open `/requirements-engineering` to add the Activation Path entry, Demote FEATURE backlog status from Done to Active, Defer (file as backlog item with Source=CONSISTENCY-CHECK), Skip with reason. No direct edit option: subtype-aware contract is owned by `/requirements-engineering`. |
+| `stub-without-fix-row` | Open `/coding` to create the missing FIX-row, Remove the stale FIXME marker (only if the stub has been resolved in code), Skip with reason. |
+| `fix-without-stub-evidence` | Open `/coding` to add the FIXME marker at the stubbed code location, Resolve the FIX (mark Done if the stub is gone), Defer, Skip with reason. |
 
 **Output of the loop.** The loop writes a single audit row in
 `_devprocess/context/METRICS.md` under "Consistency-Check Runs"
@@ -354,6 +357,9 @@ Findings:
 - Backlog format issues:    {n}
 - arc42-ADR table drift:    {n}
 - Status coherence breach:  {n} (warn, fail under --strict)
+- Activation path missing:  {n} (warn, fail under --strict)
+- Stub without FIX-row:     {n} (warn)
+- FIX without stub evidence: {n} (warn)
 {if Mode B:}
 - Feature-ADR semantic:     {n}
 - BA-Feature semantic:      {n}
@@ -379,6 +385,8 @@ Findings:
   | Backlog format issues       | {ok/fail} | {n} |
   | arc42-ADR table drift       | {ok/fail} | {n} |
   | Status coherence breach     | {ok/warn/fail} | {n} |
+  | Activation path missing     | {ok/warn/fail} | {n} |
+  | Stub-FIX binding (E-14)     | {ok/warn} | {n} |
   {...if Mode B, extra rows}
   ```
 
@@ -424,7 +432,13 @@ Findings:
    read the parent's `status:` field and check the child evidence
    condition. Emit `status-coherence-breach` findings with parent
    path, parent status, child path, child evidence, and suggested
-   promotion target.
+   promotion target. For N-18, walk Done-FEATUREs (per backlog),
+   parse the FEATURE file for an `## Activation Path` section, emit
+   `feature-activation-path-missing` if the section is absent or
+   empty (and the FEATURE has `subtype:` set, otherwise skip per
+   backwards-compat rule). For E-14, grep the source tree for
+   `FIXME(stub):` markers, parse the embedded FIX-ID, cross-reference
+   against backlog FIX-rows; bidirectional check both ways.
 5. **Write report and backlog update.**
 6. **Handoff.** Report completion with finding count. Hand back to
    the calling skill or return to user.
@@ -470,6 +484,16 @@ of truth for all V-Model skills).
   through the canonical path. Detail rule and match semantics live in
   `skills/project-conventions/references/graph-invariants.md` under
   "Status-Coherence-Pairs".
+- `N-18` (NEW) Every FEATURE with backlog status `Done` carries an
+  `## Activation Path` section in its Definition of Done with at
+  least one filled entry (Type and Identifier non-empty). FEATUREs
+  without `subtype:` in frontmatter are exempt for backwards
+  compatibility; FEATUREs with `subtype: user-facing` (default when
+  set) or `subtype: library` MUST satisfy this invariant. Severity
+  defaults to `warn` (Mode A reports), `fail` under `--strict`. Auto-
+  fix is NOT performed; Mode C surfaces "Open `/requirements-engineering`
+  to add the Activation Path entry" or "Demote backlog status from
+  Done to Active" as the resolution path.
 
 ### Edge invariants
 
@@ -492,6 +516,18 @@ of truth for all V-Model skills).
   backlog.
 - `E-13` (NEW) Every entry-point file referenced in
   `src/ARCHITECTURE.map` exists.
+- `E-14` (NEW) Bidirectional binding between `FIXME(stub):` markers in
+  source code and FIX-rows in the backlog. For every
+  `FIXME(stub): <reason> -- see FIX-{ee}-{ff}-{nn}` in the source tree:
+  the referenced FIX-ID exists in the backlog and is in an unresolved
+  state (status not `Done`). For every FIX-row whose notes contain
+  `Wiring offen`, `stub`, or `deferred-stub`: at least one source
+  location references this FIX-ID via a `FIXME(stub):` marker.
+  Findings: `stub-without-fix-row` (marker references missing or
+  resolved FIX-ID) and `fix-without-stub-evidence` (FIX-row claims a
+  stub but no marker references it). Both surface as `warn` in Mode A.
+  Auto-fix not performed (manual triage: either add the missing FIX-row,
+  remove the stale marker, or resolve the FIX).
 
 ### ADR abstraction invariants
 
@@ -513,6 +549,17 @@ of truth for all V-Model skills).
 - `S-5` (NEW) Every module under `src/` that owns substance has an
   `ARCHITECTURE.map` row (heuristic: more than 3 source files in
   the directory, or any directory with a `README.md`).
+- `S-6` (NEW) For every FEATURE with backlog status `Done`, every
+  Success Criterion entry maps onto a concrete code path (file:line
+  range or symbol). Subagent samples per FEATURE; reports
+  `sc-without-evidence` findings for SCs that cannot be tied to code.
+  Plausibility check, not exhaustive proof.
+- `S-7` (NEW) The `## Activation Path` entry in a Done-FEATURE
+  actually exists in the code. Subagent verifies the claim per
+  activation type (route registered, command registered, public
+  symbol exported, scheduled job hooked, etc.). Reports
+  `activation-path-missing` findings when the claimed identifier is
+  absent from the code.
 
 ## Quality gates for the skill itself
 

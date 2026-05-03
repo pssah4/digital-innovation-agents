@@ -22,6 +22,7 @@ concept name, not a file path.
 id: FEAT-{ee}-{ff}
 title: {short title}
 epic: EPIC-{nn}
+subtype: user-facing  # user-facing | library
 priority: {P0 | P1 | P2}
 effort: {S | M | L}
 asr-refs: []
@@ -159,10 +160,26 @@ created: {YYYY-MM-DD}
 
 ## Definition of Done
 
+### Activation Path (mandatory)
+
+> The trigger or public symbol through which this FEATURE is reached.
+> See `/requirements-engineering` SKILL.md section "FEATURE subtype
+> and Activation Path requirement".
+>
+> For `subtype: user-facing` -- pick one type and fill it in.
+> For `subtype: library` -- fill the public-API entry.
+
+- Type: {command | route | UI-element | endpoint | scheduled-job | tool | hotkey | public-API}
+- Identifier: `{command name | route path | URL | symbol name}`
+- Where it lives: {file or section pointer, or ARCHITECTURE.map concept}
+- How a user (or caller) reaches it: {one sentence}
+
 ### Functional
 
 - [ ] All user stories implemented
 - [ ] All success criteria met (verified)
+- [ ] Activation Path entry above is filled and the trigger or symbol exists in code (verified by `/coding` Phase 4a step 7)
+- [ ] New top-level symbols introduced in this FEATURE are reachable from outside the definition file or exported as public API (verified by `/coding` Phase 4a step 6)
 
 ### Quality
 

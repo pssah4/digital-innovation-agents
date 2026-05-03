@@ -703,7 +703,7 @@ confident the agent is.
 If the agent hasn't run the verification command in this message, it cannot
 claim the task is successful.
 
-**The gate function (5 steps, all mandatory):**
+**The gate function (7 steps, all mandatory):**
 
 1. **Identify:** Which command proves the claim?
  - "Tests pass" -> concrete test command with path
@@ -715,6 +715,36 @@ claim the task is successful.
  - No -> report actual status with evidence
  - Yes -> formulate the claim with evidence
 5. **Claim:** Only now state the status
+6. **Reachability check (subtype-aware):** for every new top-level
+ symbol introduced this session (class, function, module, command,
+ route, handler, tool registration), verify a caller exists outside
+ the definition file and outside test files. Fall through to the
+ stack-specific tooling defined in `references/reachability-by-stack.md`
+ (or run the project's `dia.config.json -> reachability_check`
+ hook script if configured). Subtype-aware:
+ - `subtype: user-facing` (default): caller MUST exist outside
+ definition file and outside tests. A symbol that compiles but is
+ never called fails the check.
+ - `subtype: library`: caller MUST exist OR the symbol is exported
+ as a public API entry point and documented as such.
+ On fail, the FEATURE Done-status is locked. Options: wire it up,
+ demote `subtype:` to `library` with public API documentation, or
+ open a `FIX-{ee}-{ff}-{nn}` row "Wiring offen" and keep the FEATURE
+ at `Active` in the backlog.
+7. **Activation-path check:** for every FEATURE moving to Done in this
+ session, read the `## Activation Path` section in the FEATURE spec
+ and verify each entry exists in the code:
+ - `command` -> command name registered in command registry
+ - `route` -> route path registered in router
+ - `UI-element` -> element rendered in component tree or template
+ - `endpoint` -> handler registered with the framework
+ - `scheduled-job` -> schedule registered with the scheduler
+ - `tool` -> tool name registered in the agent tool registry
+ - `hotkey` -> hotkey registered with the platform
+ - `public-API` -> symbol exported in the package's public surface
+ The check is a grep or AST query. The activation path string in the
+ FEATURE spec MUST match an actual identifier in the code. On fail,
+ the FEATURE Done-status is locked.
 
 **Forbidden language without fresh verification:**
 - "should work", "probably okay", "looks good"
@@ -753,6 +783,48 @@ resolved and the regression test marked as valid.
 `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md` gets a
 note in its `## Regression test` section: "Regression test verified
 via red-green cycle on {date}".
+
+### Phase 4c: Deferred-stub marker convention (binding)
+
+A stub implementation is any code that intentionally returns a no-op,
+empty result, or hard-coded placeholder while waiting on later wiring,
+external data, an upstream feature, or a real implementation in a
+later phase. Stubs are normal in iterative development; what is
+forbidden is silent stubs.
+
+**Every stub MUST carry a `FIXME(stub):` marker AND a paired
+`FIX-{ee}-{ff}-{nn}` row in the backlog.** The two are bidirectionally
+bound: each marker references its FIX-ID, each FIX-row that documents
+a stub references at least one source location.
+
+Marker syntax (per-language comment style, identical content):
+
+```
+// FIXME(stub): <one-line reason> -- see FIX-{ee}-{ff}-{nn}
+# FIXME(stub): <one-line reason> -- see FIX-{ee}-{ff}-{nn}
+```
+
+Use `//` for C-family languages (TypeScript, JavaScript, Java, Go,
+Rust, C#, Swift, Kotlin). Use `#` for Python, Ruby, R, shell scripts.
+
+The FIX-row in `_devprocess/context/BACKLOG.md` and its detail file at
+`_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md` carry the
+context: why the stub is there, what unblocks it, what to do when it
+is unblocked.
+
+**`/consistency-check` Mode A enforces the binding (E-13):**
+
+- Every `FIXME(stub):` in the source tree must reference an open
+ FIX-row by ID; missing or unresolved IDs surface as
+ `stub-without-fix-row` findings.
+- Every FIX-row whose notes contain `Wiring offen`, `stub`, or similar
+ deferral language must reference at least one source location;
+ missing references surface as `fix-without-stub-evidence` findings.
+
+**Why bidirectional.** A marker without a FIX-row is invisible at the
+backlog level; nobody plans to remove it. A FIX-row without a marker
+is stale paperwork; nobody can find the actual code to remove. The
+bidirectional binding turns silent deferrals into auditable items.
 
 ### Mid-course bug discovery (binding trigger)
 
