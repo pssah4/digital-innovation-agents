@@ -226,24 +226,6 @@ To update:
 gemini extensions update digital-innovation-agents
 ```
 
-### Legacy shell install
-
-For users without plugin marketplace support. Re-run to update; the
-script pulls the latest commit, removes legacy DIA skills (such as the
-v2 `dia-orchestrator`), and rewrites each current skill in place.
-
-```bash
-# Clone or update the checkout
-if [ -d digital-innovation-agents/.git ]; then
-  git -C digital-innovation-agents fetch --tags --prune
-  git -C digital-innovation-agents reset --hard origin/main
-else
-  git clone https://github.com/pssah4/digital-innovation-agents.git
-fi
-cd digital-innovation-agents
-./scripts/install-skills.sh
-```
-
 ## Verify the install
 
 Start a session in your chosen platform and try one of these:
@@ -358,13 +340,14 @@ Start here:
 
 | Version | Status | Install |
 |---|---|---|
-| **v3** (main) | Active, recommended. Adds the three-layer documentation model, FEAT-EE-FF IDs, FIX/IMP detail files, PLAN-NN persistence, GitHub flow.py integration. | See Quick start above |
-| **v2.x** | Frozen snapshot (legacy) | `./scripts/install-skills.sh --version v2.4.0` |
-| **v1.0.0** | Frozen snapshot (legacy) | `./scripts/install-skills.sh --version v1.0.0` |
+| **v3** (main) | Active, recommended. Three-layer documentation model, FEAT-EE-FF IDs, FIX/IMP detail files, PLAN-NN persistence, GitHub flow.py integration, subtype-aware Done-definition. | See Quick start above |
+| **v2.x** | Frozen snapshot, no longer maintained | `git clone --branch v2.4.0 https://github.com/pssah4/digital-innovation-agents.git` |
+| **v1.0.0** | Frozen snapshot, no longer maintained | `git clone --branch v1.0.0 https://github.com/pssah4/digital-innovation-agents.git` |
 
 See [CHANGELOG.md](CHANGELOG.md) for details. Existing v1 or v2 projects
-upgrade through `/dia-migration`. v1 and v2 install as historical
-snapshots and are not actively maintained.
+upgrade through `/dia-migration`. v1 and v2 are historical snapshots
+and not actively maintained; for current behaviour use the marketplace
+or platform-specific install on v3.
 
 ## License
 

@@ -191,19 +191,17 @@ frontmatter.
 
 ## Version mismatch
 
-If you want a frozen historical release explicitly:
+If you need a frozen historical release for reproducibility, clone
+the tag directly:
 
 ```bash
-./scripts/install-skills.sh --version v1.0.0   # Classic
-./scripts/install-skills.sh --version v2.4.0   # Pre-drift-resistance
+git clone --branch v1.0.0 https://github.com/pssah4/digital-innovation-agents.git   # Classic
+git clone --branch v2.4.0 https://github.com/pssah4/digital-innovation-agents.git   # Pre-drift-resistance
 ```
 
-Frozen snapshots are not available through the plugin marketplace.
-They remain installable via the legacy script for historical
-reference or to reproduce older behaviour.
-
-To upgrade an existing v1 or v2 project to v3 conventions, use
-`/dia-migration`. It is idempotent and branch-safe.
+These checkouts are read-only references. v1 and v2 are no longer
+maintained. To upgrade an existing v1 or v2 project to v3 conventions,
+use `/dia-migration`. It is idempotent and branch-safe.
 
 ## Still stuck?
 

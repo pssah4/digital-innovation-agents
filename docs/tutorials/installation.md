@@ -161,23 +161,21 @@ To update:
 gemini extensions update digital-innovation-agents
 ```
 
-## Legacy shell script install
+## Frozen historical versions
 
-For platforms without plugin marketplace support, or if you need a
-specific version like v1.0.0 or v2.4.0:
-
-```bash
-git clone https://github.com/pssah4/digital-innovation-agents.git
-cd digital-innovation-agents
-./scripts/install-skills.sh
-```
-
-To pin a frozen version:
+If you need a specific older release for reproducibility (v1.0.0 or
+v2.4.0), clone the tag directly. v1 and v2 are no longer maintained;
+for active development upgrade to v3 through `/dia-migration`.
 
 ```bash
-./scripts/install-skills.sh --version v1.0.0   # Classic
-./scripts/install-skills.sh --version v2.4.0   # Pre-drift-resistance
+git clone --branch v1.0.0 https://github.com/pssah4/digital-innovation-agents.git   # Classic
+git clone --branch v2.4.0 https://github.com/pssah4/digital-innovation-agents.git   # Pre-drift-resistance
 ```
+
+These checkouts are read-only references; they do not auto-install
+into your platform. Use the platform-specific install paths above for
+v3 (marketplace, gemini extensions, manual `cp -r` for Codex /
+Copilot).
 
 ## Verify the installation
 
