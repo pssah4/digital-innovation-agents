@@ -7,6 +7,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-05-03
+
+Minor release. Closes the workflow gap surfaced in
+REFLECTION-2026-05-03-dia-workflow-silent-deferrals.md (BA-25
+Karpathy-Wiki run): 15 of 28 features marked Done while their backend
+modules existed only as classes with no caller, no activation path,
+and no end-user trigger. Adds a subtype-aware Done-definition layer,
+new consistency-check invariants for activation path and stub-FIX
+binding, a per-stack reference for reachability tooling across seven
+languages, and removes the legacy shell installer.
+
+### Added
+
+- `/requirements-engineering`: FEATURE frontmatter gains
+  `subtype: user-facing | library` (default `user-facing`). FEATURE
+  template gains a mandatory `## Activation Path` section in the
+  Definition of Done with `Type` and `Identifier` fields. Backwards
+  compatible: pre-N-18 FEATUREs without `subtype:` stay valid.
+- `/coding` Phase 4a Verification Gate extends from 5 to 7 steps:
+  step 6 reachability check (caller exists outside definition file
+  and outside tests, OR symbol exported as public API for
+  `subtype: library`); step 7 activation-path check (the documented
+  trigger or symbol exists in code).
+- `/coding` Phase 4c new section: deferred-stub marker convention.
+  Every stub MUST carry `// FIXME(stub): ... -- see FIX-{ee}-{ff}-{nn}`
+  AND a paired FIX-row in the backlog. Bidirectional binding;
+  silent stubs are forbidden.
+- `/consistency-check` Mode A: new node invariant **N-18** (FEATURE
+  with backlog status Done has a non-empty `## Activation Path`
+  section); new edge invariant **E-14** (bidirectional FIXME-stub
+  marker <-> FIX-row binding). Mode B: new semantic invariants
+  **S-6** (Success Criterion to code path mapping) and **S-7**
+  (Activation Path identifier exists in code).
+- `tools/consistency-check.py`: implements N-18 (parses
+  `## Activation Path` section, detects empty Type/Identifier and
+  unfilled template placeholders) and E-14 (FIXME-stub scan covers
+  C-family `//` and Python-family `#` comment styles, cross-references
+  against backlog FIX rows tagged as stub).
+- `skills/coding/references/reachability-by-stack.md` new file with
+  initial entries for TypeScript, JavaScript, Python, Go, Rust, React,
+  R, plus an Obsidian-plugin TypeScript sub-profile that carries the
+  seven plugin-specific points from the source reflexion (vault.on/off,
+  ToolRegistry+TOOL_GROUPS dual registration, onunload cleanup
+  contract). Three columns per stack: reachability tooling,
+  activation path types, cleanup pattern.
+- `graph-invariants.md`: N-18, E-14, S-6, S-7 rows; new sections
+  "FEATURE-Subtyp und Activation-Path" and "FIXME(stub)-Marker-
+  Konvention".
+
+### Removed
+
+- `scripts/install-skills.sh` and its three documentation references
+  (`README.md` "Legacy shell install" section, `docs/tutorials/installation.md`
+  legacy section, `docs/reference/troubleshooting.md` Version mismatch
+  section). v3 ships through the Claude Code marketplace, Cursor
+  plugin browser, and `gemini extensions install`. Codex and GitHub
+  Copilot continue to install through the manual `git clone` + `cp -r`
+  snippets in the README, which never depended on the script. Frozen
+  historical versions (v1.0.0, v2.4.0) are now installed via direct
+  `git clone --branch <tag>` checkouts, documented inline.
+
+### Why generalisable
+
+The five mitigations from the source reflexion document are
+Obsidian-plugin coloured. Their universal core: "reachability"
+becomes "caller exists or public API export", "wiring" becomes
+"activation path", "Done verlangt nutzer-sichtbaren Pfad" becomes
+"subtype-aware activation path", "silent deferral" becomes
+FIXME-stub marker, "SC-zu-Code-Mapping" stays as Mode B subagent
+check. Plain text comment styles (`//` and `#`) cover the seven
+listed stacks without further configuration.
+
+### Not in this release
+
+- Notebook / analysis subtype (`subtype: analysis`) with
+  reproducibility checks and DATASET artifact node. Deferred to a
+  future RFC, gated on actual user need.
+- Smart-contract, mobile native, and embedded stack reference rows.
+  Append-row workflow makes follow-ups trivial.
+- Auto-fix for any of the new findings: status promotion and
+  activation-path completion are semantic claims and stay in the
+  owning phase skill.
+
 ## [3.1.0] - 2026-05-03
 
 Minor release. Adds two complementary defenses against parent-vs-child
