@@ -7,6 +7,105 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-05-05
+
+Minor release. Two structural changes shipped together:
+
+1. Business Analysis refactor: the Project-BA / Epic-BA / Feature-BA
+   hierarchy is replaced with a two-layer model where every BA lives
+   flat under `_devprocess/analysis/` and feeds the corresponding
+   backlog item via a `ba-ref:` in the item's frontmatter.
+2. Pre-merge id-collision tooling: `tools/renumber-for-merge.py`
+   plus `scripts/merge-to-dev.sh` wrapper and `pre-merge-commit`
+   hook handle parallel-feature-branch id collisions before merge.
+
+### Added
+
+- **BA layers.** Project-BA `BA-{PROJECT}.md` (singleton, product
+  layer) plus Item-BAs per backlog item:
+  `BA-EPIC-{nn}-{slug}.md` (mandatory before EPIC),
+  `BA-FEAT-{ee}-{ff}-{slug}.md` (mandatory before FEAT),
+  `BA-IMP-{ee}-{ff}-{nn}-{slug}.md` and
+  `BA-FIX-{ee}-{ff}-{nn}-{slug}.md` (optional). Item-BA carries the
+  same id as the future backlog artefact. Promotion writes `ba-ref:`
+  into the artefact frontmatter; the BA stays in `analysis/` as
+  audit trail.
+- **`templates/BA-MINI-TEMPLATE.md`** for IMP and FIX. 80-line cap,
+  five sections: observed behaviour, root cause hypothesis, impact,
+  acceptance, risk and assumptions.
+- **`tools/renumber-for-merge.py`** computes id mappings between
+  source and target branches and applies renames + reference
+  updates across file names, frontmatter (id, epic, feature,
+  ba-ref, depends-on, feature-refs, adr-refs, supersedes,
+  superseded-by, target-id, parent-feat), body refs in every `*.md`
+  under `_devprocess/`, `src/ARCHITECTURE.map`, and `FIXME(stub):`
+  markers in source code. Modes: `--check-only`, `--list-conflicts`,
+  `--dry-run`, `--check-tree-duplicates`, `--source-ref`. Idempotent.
+- **`scripts/merge-to-dev.sh`** wrapper. Snapshots target, switches
+  to source, runs renumber and commits `chore(renumber)` on the
+  source branch, then merges. Renumber commit lives on source for
+  clean audit trail.
+- **`tools/git-hooks/pre-merge-commit`** safety net. Blocks direct
+  `git merge` if duplicate ids land in the working tree. Bypass:
+  `--no-verify`.
+- **`tools/MERGE.md`** internal workflow doc; **`tools/test-merge-hook.md`**
+  five end-to-end test scenarios.
+- **`docs/guides/merge-workflow.md`** public guide for the merge
+  workflow, linked from the Foundations sidebar.
+- **Graph invariants N-8 and N-9 (rewritten).** N-8: every Item-BA
+  carries `project-ba-ref:` (or `null` for single-item projects)
+  and does not redefine personas. N-9: every EPIC and FEAT with a
+  matching Item-BA carries `ba-ref:` in its frontmatter; Item-BA
+  filename matches the backlog item id.
+- **`/consistency-check` Mode A new checks**:
+  `item-ba-missing-project-ba-ref`, `orphan-item-ba`,
+  `missing-ba-ref`.
+- **`/dia-migration` Phase 8** (parallel-branch alignment, advisory):
+  scans other active branches for ids that would collide with the
+  migrated state, reports only.
+- **`/reverse-engineering` Phase 6.5** (parallel-branch alignment,
+  advisory): same mechanic for brownfield onboarding.
+
+### Changed
+
+- **`/business-analysis`** rewrites the BA hierarchy section to the
+  two-layer model with per-item-type scope mapping.
+- **`/requirements-engineering`** now reads the matching Item-BA
+  for the item being promoted and writes `ba-ref:` into the
+  EPIC/FEAT frontmatter. BA-resolution order: EPIC/FEAT
+  frontmatter `ba-ref:` -> `architect-handoff.md` `source-ba:` ->
+  matching Item-BA file by id -> Project-BA singleton.
+- **`/coding`** capability-capture flow now offers two BA-Nachtrag
+  options: append to Project-BA (cross-cutting) or create a stub
+  Item-BA (item-scoped) using `BA-MINI-TEMPLATE.md`.
+- **`/dia-migration`** Phase 1 moves legacy `EPIC-{nn}-ba.md`
+  mini-BAs from `requirements/epics/` to
+  `analysis/BA-EPIC-{nn}-{slug}.md` (the v2 mini-BA convention is
+  dropped). Phase 3 normalises Item-BA filenames. Phase 5 restores
+  `ba-ref:` on EPIC/FEAT/IMP/FIX frontmatters when a matching
+  Item-BA exists in `analysis/`.
+- **`tools/install-git-hooks.sh`** installs both `pre-commit` and
+  `pre-merge-commit` plus `renumber-for-merge.py` under
+  `.git/hooks-data/`.
+- Naming conventions, directory structure, frontmatter pflichtfelder
+  table, traceability chain across all conventions docs (skill files
+  plus VitePress docs).
+
+### Removed
+
+- **`templates/EPIC-BA-TEMPLATE.md`** (the per-epic mini-BA file
+  next to the EPIC). Replaced by Item-BAs in `analysis/`.
+
+### Migration
+
+- Run `/dia-migration` on existing v3.2.x repos to move legacy
+  `EPIC-{nn}-ba.md` files into `analysis/BA-EPIC-{nn}-{slug}.md`
+  and to populate `ba-ref:` on EPIC/FEAT/IMP/FIX frontmatters.
+- For parallel feature branches that allocated overlapping ids
+  before installing the hooks, run
+  `bash scripts/merge-to-dev.sh <branch>` per branch before
+  merging.
+
 ## [3.2.0] - 2026-05-03
 
 Minor release. Closes the workflow gap surfaced in
