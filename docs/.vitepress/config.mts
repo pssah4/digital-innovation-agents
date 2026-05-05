@@ -63,6 +63,7 @@ const guidesSidebar = [
     items: [
       { text: 'Project Conventions', link: '/guides/project-conventions' },
       { text: 'Consistency Check', link: '/guides/consistency-check' },
+      { text: 'Merge workflow', link: '/guides/merge-workflow' },
       { text: 'Humanizer', link: '/guides/humanizer' },
     ],
   },

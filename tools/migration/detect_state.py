@@ -42,6 +42,12 @@ def detect(root: Path) -> dict:
         str(p.relative_to(root)) for p in devp.rglob("archive") if p.is_dir()
     ) if devp.is_dir() else []
     findings["v1_signals"]["legacy_tech_docs"] = (devp / "architecture/legacy-tech-docs").is_dir()
+    findings["v1_signals"]["legacy_epic_ba_files"] = sorted(
+        str(p.relative_to(root)) for p in (
+            (devp / "requirements/epics").glob("EPIC-*-ba.md")
+            if (devp / "requirements/epics").is_dir() else []
+        )
+    )
 
     # v2 signals
     findings["v2_signals"]["rules_dir"] = (devp / "rules").is_dir()
@@ -117,6 +123,7 @@ def detect(root: Path) -> dict:
             + int(findings["v1_signals"]["security_subdir"])
             + int(findings["v1_signals"]["legacy_tech_docs"])
             + len(findings["v1_signals"]["archive_dirs"])
+            + len(findings["v1_signals"]["legacy_epic_ba_files"])
             + findings["counts"]["feature_4digit"]
             + findings["counts"]["epic_3digit"]
             + findings["counts"]["adr_3digit"]

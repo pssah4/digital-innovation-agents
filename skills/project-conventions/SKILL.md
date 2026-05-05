@@ -97,7 +97,11 @@ Read `references/naming-conventions.md` for the full reference.
 
 | Artifact | Pattern | Example |
 |----------|---------|---------|
-| Business Analysis | `BA-{PROJECT}.md` | `BA-myapp.md` (in `analysis/`) |
+| Project-BA (singleton) | `BA-{PROJECT}.md` | `BA-myapp.md` (in `analysis/`) |
+| Item-BA Epic | `BA-EPIC-{nn}-{slug}.md` | `BA-EPIC-04-onboarding.md` (in `analysis/`) |
+| Item-BA Feature | `BA-FEAT-{ee}-{ff}-{slug}.md` | `BA-FEAT-04-02-magic-link.md` (in `analysis/`) |
+| Item-BA Improvement | `BA-IMP-{ee}-{ff}-{nn}-{slug}.md` | `BA-IMP-04-02-01-skip-step.md` (in `analysis/`, optional) |
+| Item-BA Fix | `BA-FIX-{ee}-{ff}-{nn}-{slug}.md` | `BA-FIX-04-02-03-link-expiry.md` (in `analysis/`, optional) |
 | Exploration Board | `EXPLORE-{PROJECT}.md` | `EXPLORE-myapp.md` (in `analysis/`) |
 | Research note | `RESEARCH-{TOPIC}.md` | `RESEARCH-pricing.md` (in `analysis/`) |
 | User source | `SOURCE-{name}.{ext}` | `SOURCE-Anforderungen.json` (in `analysis/sources/`) |
@@ -163,11 +167,15 @@ commit SHA live in the backlog row, not in the file's frontmatter.
 Flat layout. Every artefact carries a type prefix in its filename and
 sits at the analysis/ root. No subfolders per artefact type.
 
-- `BA-{PROJECT}.md`             -- Business Analysis (one per project)
-- `EXPLORE-{PROJECT}.md`        -- Exploration Board (optional, one per project)
-- `AUDIT-{PROJECT}-{DATE}.md`   -- Security Audit Report (n per project)
-- `RESEARCH-{TOPIC}.md`         -- Research note (n per project, optional)
-- `ADR-{nn}-review.md`          -- Root-cause review for an ADR amendment
+- `BA-{PROJECT}.md`                       -- Project-BA, singleton, product-layer
+- `BA-EPIC-{nn}-{slug}.md`                -- Item-BA for a new epic (mandatory before EPIC)
+- `BA-FEAT-{ee}-{ff}-{slug}.md`           -- Item-BA for a new feature (mandatory before FEAT)
+- `BA-IMP-{ee}-{ff}-{nn}-{slug}.md`       -- Item-BA for an improvement (optional)
+- `BA-FIX-{ee}-{ff}-{nn}-{slug}.md`       -- Item-BA for a fix (optional)
+- `EXPLORE-{PROJECT}.md`                  -- Exploration Board (optional, one per project)
+- `AUDIT-{PROJECT}-{DATE}.md`             -- Security Audit Report (n per project)
+- `RESEARCH-{TOPIC}.md`                   -- Research note (n per project, optional)
+- `ADR-{nn}-review.md`                    -- Root-cause review for an ADR amendment
 
 The single exception is `analysis/sources/`, a subfolder for user-
 provided source documents (specifications, glossaries, RFP drafts,

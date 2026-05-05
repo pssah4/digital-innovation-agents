@@ -55,7 +55,7 @@ concept page for the rationale.
     ARCHITECTURE.map          Wayfinder root: concept | entry-point | adr | how-to-extend
     {module}/README.md        Module wayfinder (one per substantive module)
   _devprocess/                Internal knowledge archive (not public)
-    analysis/                 Flat: BA-, EPIC-{nn}-ba-, EXPLORE-, AUDIT-, RESEARCH-
+    analysis/                 Flat: BA-{PROJECT}-, BA-EPIC-, BA-FEAT-, BA-IMP-, BA-FIX-, EXPLORE-, AUDIT-, RESEARCH-
       sources/                User-supplied source files (only subfolder)
     requirements/
       epics/                  EPIC-{nn}-{slug}.md
@@ -91,8 +91,11 @@ under `analysis/`. There is no `20_bugs.md` file; bugs are
 
 | Artifact | Pattern | Example |
 |---|---|---|
-| Business Analysis | `BA-{PROJECT}.md` | `BA-myapp.md` |
-| Epic-BA | `EPIC-{nn}-ba.md` | `EPIC-01-ba.md` |
+| Project-BA (singleton) | `BA-{PROJECT}.md` | `BA-myapp.md` |
+| Item-BA Epic | `BA-EPIC-{nn}-{slug}.md` | `BA-EPIC-04-onboarding.md` |
+| Item-BA Feature | `BA-FEAT-{ee}-{ff}-{slug}.md` | `BA-FEAT-04-02-magic-link.md` |
+| Item-BA Improvement | `BA-IMP-{ee}-{ff}-{nn}-{slug}.md` | `BA-IMP-04-02-01-skip-step.md` |
+| Item-BA Fix | `BA-FIX-{ee}-{ff}-{nn}-{slug}.md` | `BA-FIX-04-02-03-link-expiry.md` |
 | Epic | `EPIC-{nn}-{slug}.md` | `EPIC-01-ai-agent-core.md` |
 | Feature | `FEAT-{ee}-{ff}-{slug}.md` | `FEAT-01-01-semantic-search.md` |
 | ADR | `ADR-{nn}-{slug}.md` | `ADR-03-embedding-provider.md` |

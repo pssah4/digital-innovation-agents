@@ -152,8 +152,9 @@ The [V-Model workflow](/concepts/v-model) defines the structure that
 PULSE relies on. Every pair reads from and writes to the same files
 in `_devprocess/`:
 
-- [`BA-{PROJECT}.md`](/guides/business-analysis): the product north star.
-  Lives across releases through [Post-Release Review](/guides/business-analysis#phase-8-post-release-review-ba-as-living-document).
+- [`BA-{PROJECT}.md` (Project-BA) plus per-item `BA-EPIC-*.md` / `BA-FEAT-*.md`](/guides/business-analysis):
+  the product north star and item-level discovery layer. Lives across releases through
+  [Post-Release Review](/guides/business-analysis#phase-8-post-release-review-ba-as-living-document).
 - [`EPIC-*.md` and `FEATURE-*.md`](/guides/requirements-engineering):
   the unit of work, written tech-agnostic so anyone (or any pair) can
   pick them up.

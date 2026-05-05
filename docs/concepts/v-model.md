@@ -47,8 +47,11 @@ loops iterate until tests pass and findings are resolved, and the
 review sync keeps architecture decisions in sync with the real codebase.
 
 **Phase 1: Business Analysis.** Exploration, Ideation, Validation.
-Produces the `BA-{PROJECT}.md` document with personas, HMW question,
-value proposition, idea potential, and critical hypotheses.
+Produces the Project-BA `BA-{PROJECT}.md` (singleton, product layer
+with personas, HMW question, value proposition, idea potential, and
+critical hypotheses) plus per-item Item-BAs (`BA-EPIC-{nn}-{slug}.md`,
+`BA-FEAT-{ee}-{ff}-{slug}.md`, optional `BA-IMP-*.md` and `BA-FIX-*.md`)
+that feed the corresponding backlog artefacts via `ba-ref:`.
 
 **Phase 2: Requirements Engineering.** Transforms the BA into Epics,
 Features, and tech-agnostic Success Criteria. Produces the

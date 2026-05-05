@@ -27,7 +27,7 @@ See [V-Model workflow guide](../guides/dia-guide),
 
 | Phase | Command | Purpose |
 |---|---|---|
-| 1 | `/business-analysis` | Exploration, Ideation, Validation. Produces `BA-{PROJECT}.md`, optional `EPIC-{nn}-ba.md` per epic, the HMW question. |
+| 1 | `/business-analysis` | Exploration, Ideation, Validation. Produces the Project-BA `BA-{PROJECT}.md` (singleton, optional but recommended) plus one Item-BA per backlog item that needs discovery depth: `BA-EPIC-{nn}-{slug}.md` (mandatory before EPIC), `BA-FEAT-{ee}-{ff}-{slug}.md` (mandatory before FEAT), `BA-IMP-*.md` and `BA-FIX-*.md` (optional). All BAs live flat in `_devprocess/analysis/` and feed the EPIC/FEAT/IMP/FIX artefact via `ba-ref:` in the artefact frontmatter. |
 | 2 | `/requirements-engineering` | Transforms BA into Epics, `FEAT-{ee}-{ff}` features, tech-agnostic Success Criteria, hypothesis statements as full prose. |
 | 3 | `/architecture` | Creates ADRs (MADR) with the abstraction rule, arc42, `plan-context.md`. Maintains the wayfinder layer. |
 | 4 | `/coding` | Critical review, PLAN-NN persistence with coverage gate, bug-capture entry, writeback to backlog and wayfinder. Bugs land as `FIX-{ee}-{ff}-{nn}` rows plus detail files. |

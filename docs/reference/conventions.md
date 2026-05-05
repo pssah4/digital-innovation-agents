@@ -38,8 +38,11 @@ concept page for the full rationale.
 
 | Artifact | Pattern | Example |
 |---|---|---|
-| Business Analysis | `BA-{PROJECT}.md` | `BA-myapp.md` (in `analysis/`) |
-| Epic-BA | `EPIC-{nn}-ba.md` | `EPIC-01-ba.md` (in `analysis/`) |
+| Project-BA (singleton) | `BA-{PROJECT}.md` | `BA-myapp.md` (in `analysis/`) |
+| Item-BA Epic | `BA-EPIC-{nn}-{slug}.md` | `BA-EPIC-04-onboarding.md` (in `analysis/`) |
+| Item-BA Feature | `BA-FEAT-{ee}-{ff}-{slug}.md` | `BA-FEAT-04-02-magic-link.md` (in `analysis/`) |
+| Item-BA Improvement | `BA-IMP-{ee}-{ff}-{nn}-{slug}.md` | `BA-IMP-04-02-01-skip-step.md` (in `analysis/`, optional) |
+| Item-BA Fix | `BA-FIX-{ee}-{ff}-{nn}-{slug}.md` | `BA-FIX-04-02-03-link-expiry.md` (in `analysis/`, optional) |
 | Exploration Board | `EXPLORE-{PROJECT}.md` | `EXPLORE-myapp.md` (in `analysis/`) |
 | Research note | `RESEARCH-{TOPIC}.md` | `RESEARCH-pricing.md` (in `analysis/`) |
 | User source | `SOURCE-{name}.{ext}` | `SOURCE-Anforderungen.json` (in `analysis/sources/`) |

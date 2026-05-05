@@ -1009,10 +1009,19 @@ Mid-course capability handling, do NOT silently add new features:
  `source: capability-capture during /coding`. Fill Capability
  line (observable SC-01), Persona, JTBD, outcome-placeholder.
 
-4. Write a BA-Nachtrag. Append to `docs/analysis/BA-{project}.md`
- under a `## User-Input-Capture ({date})` section. Mark the
- entry `unvalidated` with the same date. Never edit validated
- BA sections silently; appendix-only.
+4. Write a BA-Nachtrag. Two options depending on what fits the
+   capability:
+   a) **Project-wide concern (cross-cutting persona, value).** Append
+      to the Project-BA `_devprocess/analysis/BA-{PROJECT}.md` under
+      a `## User-Input-Capture ({date})` section. Mark `unvalidated`.
+   b) **Item-scoped concern (single feature).** Create a stub Item-BA
+      at `_devprocess/analysis/BA-FEAT-{ee}-{ff}-{slug}.md` from
+      `BA-MINI-TEMPLATE.md`, marked `status: Draft (capability-capture
+      {date})`. The corresponding FEATURE artefact gets `ba-ref:`
+      pointing at this stub.
+
+   Never edit validated BA sections silently; appendix-only on the
+   Project-BA, and stubs on the Item-BA carry their own status marker.
 
 5. Update the Epic assignment. If the capability fits an existing
  Epic, add a row to that Epic's MVP-Features table. If not,

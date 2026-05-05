@@ -293,10 +293,11 @@ override.
 
 | Observation | Recommended entry |
 | ------------------------------------------------------------- | ------------------------------------------ |
-| No V-Model artifacts at all, empty repo or pure greenfield | `/business-analysis` |
-| Code exists, no `docs/analysis/BA-*.md`, no FEATUREs | `/reverse-engineering` |
-| BA exists as Draft, not yet validated | `/business-analysis` Validation Mode |
-| BA validated, no Epics or Features | `/requirements-engineering` |
+| No V-Model artifacts at all, empty repo or pure greenfield | `/business-analysis` (Project-BA) |
+| Code exists, no `_devprocess/analysis/BA-*.md`, no FEATUREs | `/reverse-engineering` |
+| Project-BA exists as Draft, not yet validated | `/business-analysis` Validation Mode |
+| Project-BA validated, user wants to start a new epic / feature | `/business-analysis` (Item-BA) |
+| Project-BA validated and Item-BA exists, no EPIC/FEAT yet | `/requirements-engineering` |
 | Features exist, no ADRs or plan-context.md | `/architecture` |
 | plan-context.md exists, no recent code changes | `/coding` |
 | Coding done, no test coverage / failing tests | `/testing` |

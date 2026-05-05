@@ -118,10 +118,10 @@ def collect_renames(root: Path) -> tuple[list[tuple[Path, Path]], dict[str, str]
                 add(fp, new_name, f"PLAN-{m.group(1)}", f"PLAN-{n:02d}")
             id_remap[f"PLAN-{n:03d}"] = f"PLAN-{n:02d}"
 
-    # BAs, EXPLOREs, RESEARCHes
+    # EXPLOREs, RESEARCHes (no leading-zero variants since v3)
     analysis = devp / "analysis"
     if analysis.is_dir():
-        for prefix in ("BA", "EXPLORE", "RESEARCH"):
+        for prefix in ("EXPLORE", "RESEARCH"):
             for fp in analysis.glob(f"{prefix}-*.md"):
                 m = re.match(rf"^{prefix}-(\d+)-(.+)\.md$", fp.name)
                 if not m:
@@ -133,7 +133,99 @@ def collect_renames(root: Path) -> tuple[list[tuple[Path, Path]], dict[str, str]
                     add(fp, new_name, f"{prefix}-{m.group(1)}", f"{prefix}-{n:02d}")
                 id_remap[f"{prefix}-{n:03d}"] = f"{prefix}-{n:02d}"
 
+        # Item-BAs (Project-BA, BA-EPIC, BA-FEAT, BA-IMP, BA-FIX).
+        # Project-BA `BA-{shortname}.md` is left alone (no numeric ID).
+        # Legacy generic `BA-NNN-{slug}.md` cannot be auto-mapped to an
+        # Item-BA target without item context, so we warn instead of
+        # renaming.
+        for fp in analysis.glob("BA-EPIC-*.md"):
+            m = re.match(r"^BA-EPIC-(\d+)-(.+)\.md$", fp.name)
+            if not m:
+                continue
+            n = int(m.group(1))
+            slug = m.group(2)
+            new_name = f"BA-EPIC-{n:02d}-{slug}.md"
+            if fp.name != new_name:
+                add(fp, new_name, f"BA-EPIC-{m.group(1)}", f"BA-EPIC-{n:02d}")
+            id_remap[f"BA-EPIC-{n:03d}"] = f"BA-EPIC-{n:02d}"
+
+        for fp in analysis.glob("BA-FEAT-*.md"):
+            m = re.match(r"^BA-FEAT-(\d+)([a-z]?)-(\d+)-(.+)\.md$", fp.name)
+            if not m:
+                continue
+            ee, suffix, ff, slug = (
+                int(m.group(1)),
+                m.group(2) or "",
+                int(m.group(3)),
+                m.group(4),
+            )
+            new_name = f"BA-FEAT-{ee:02d}-{ff:02d}{suffix}-{slug}.md"
+            if fp.name != new_name:
+                add(
+                    fp,
+                    new_name,
+                    f"BA-FEAT-{m.group(1)}{suffix}-{m.group(3)}",
+                    f"BA-FEAT-{ee:02d}-{ff:02d}{suffix}",
+                )
+
+        for prefix in ("BA-IMP", "BA-FIX"):
+            for fp in analysis.glob(f"{prefix}-*.md"):
+                m = re.match(
+                    rf"^{prefix}-(\d+)-(\d+)-(\d+)-(.+)\.md$", fp.name
+                )
+                if not m:
+                    continue
+                ee, ff, nn, slug = (
+                    int(m.group(1)),
+                    int(m.group(2)),
+                    int(m.group(3)),
+                    m.group(4),
+                )
+                new_name = f"{prefix}-{ee:02d}-{ff:02d}-{nn:02d}-{slug}.md"
+                if fp.name != new_name:
+                    add(
+                        fp,
+                        new_name,
+                        f"{prefix}-{m.group(1)}-{m.group(2)}-{m.group(3)}",
+                        f"{prefix}-{ee:02d}-{ff:02d}-{nn:02d}",
+                    )
+
     return renames, id_remap
+
+
+def warn_legacy_generic_ba(root: Path) -> None:
+    """Surface ambiguous legacy BA files that can not be auto-promoted.
+
+    A `BA-NNN-{slug}.md` file in `analysis/` is either an old generic
+    item-BA (no item type encoded) or a project-BA with a numeric prefix
+    that pre-dates the v3 naming. We do not guess; we list them so the
+    user can rename manually based on the file's content.
+    """
+    analysis = root / "_devprocess" / "analysis"
+    if not analysis.is_dir():
+        return
+    legacy = []
+    for fp in analysis.glob("BA-*.md"):
+        if re.match(
+            r"^BA-(EPIC|FEAT|IMP|FIX)-",
+            fp.name,
+        ):
+            continue
+        if re.match(r"^BA-\d+-.+\.md$", fp.name):
+            legacy.append(fp.name)
+    if legacy:
+        print(
+            "WARN legacy generic BA files (manual decision required, "
+            "no auto-rename):"
+        )
+        for name in legacy:
+            print(f"  - {name}")
+        print(
+            "  Rename to BA-{PROJECT}.md (Project-BA) or to "
+            "BA-EPIC-NN-{slug}.md / BA-FEAT-EE-FF-{slug}.md / "
+            "BA-IMP-EE-FF-NN-{slug}.md / BA-FIX-EE-FF-NN-{slug}.md "
+            "based on the file's actual scope."
+        )
 
 
 def apply_replacements_pass1(content: str, sorted_remap: list[tuple[str, str]]) -> str:
@@ -164,8 +256,17 @@ def apply_replacements_pass2(content: str) -> str:
                      lambda m: f"ADR-{int(m.group(1)):02d}", content)
     content = re.sub(r"\bPLAN-(\d{3})\b",
                      lambda m: f"PLAN-{int(m.group(1)):02d}", content)
-    content = re.sub(r"\bBA-(\d{3})\b",
-                     lambda m: f"BA-{int(m.group(1)):02d}", content)
+    content = re.sub(r"\bBA-EPIC-(\d{3})\b",
+                     lambda m: f"BA-EPIC-{int(m.group(1)):02d}", content)
+    content = re.sub(r"\bBA-FEAT-(\d{2,3})-(\d{2,3})\b",
+                     lambda m: f"BA-FEAT-{int(m.group(1)):02d}-{int(m.group(2)):02d}",
+                     content)
+    content = re.sub(r"\bBA-IMP-(\d{2,3})-(\d{2,3})-(\d{2,3})\b",
+                     lambda m: f"BA-IMP-{int(m.group(1)):02d}-{int(m.group(2)):02d}-{int(m.group(3)):02d}",
+                     content)
+    content = re.sub(r"\bBA-FIX-(\d{2,3})-(\d{2,3})-(\d{2,3})\b",
+                     lambda m: f"BA-FIX-{int(m.group(1)):02d}-{int(m.group(2)):02d}-{int(m.group(3)):02d}",
+                     content)
     content = re.sub(r"\bEXPLORE-(\d{3})\b",
                      lambda m: f"EXPLORE-{int(m.group(1)):02d}", content)
     content = re.sub(r"\bRESEARCH-(\d{3})\b",
@@ -175,6 +276,8 @@ def apply_replacements_pass2(content: str) -> str:
 
 def main() -> int:
     root = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path.cwd().resolve()
+
+    warn_legacy_generic_ba(root)
 
     renames, id_remap = collect_renames(root)
     sorted_remap = sorted(id_remap.items(), key=lambda x: -len(x[0]))

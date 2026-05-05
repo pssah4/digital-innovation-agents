@@ -154,29 +154,59 @@ Before the skill hands off to Requirements Engineering, it checks quality gates 
 
 If a gate fails, the skill returns to the relevant section instead of handing off a half-finished BA. See [Verification Gates](../concepts/verification-gates) for the full mechanic.
 
-## BA hierarchy: Project-BA, Epic-BA, Feature-BA
+## BA layers: Project-BA and Item-BA
 
 A real project does not collapse into one Business Analysis. The BA
-itself is a layered document that mirrors the artifact graph.
+is a two-layer artifact that lives entirely in `_devprocess/analysis/`.
+Item-BAs feed the corresponding EPIC / FEAT / IMP / FIX artefact via a
+`ba-ref:` in the artefact frontmatter. They are NOT siblings of the
+backlog item.
 
-- **Project-BA** (`BA-{PROJECT}.md`) holds the high-level
-  understanding of the user, the problem space, and the strategic
-  hypothesis for the product as a whole.
-- **Epic-BA** (`EPIC-{nn}-ba.md`, in `_devprocess/analysis/`) holds
-  the BA for a specific epic. Epic-BA inherits from Project-BA and
-  refines the user, problem, and hypothesis to the epic's scope.
-  Section N-8 inheritance and Section N-9 refinements make the
-  inheritance explicit.
-- **Feature-BA** is optional, a short BA stub directly inside the
-  FEAT spec when a single feature carries enough validation work to
-  warrant its own hypothesis tracking.
+- **Project-BA** (`BA-{PROJECT}.md`) is the singleton product layer.
+  Personas, value dimensions, nordstern, project-wide constraints
+  and KPIs. Created once, referenced by every Item-BA.
+- **Item-BA** is one BA per new backlog item that needs discovery
+  depth. The file name carries the target id:
 
-The hierarchy keeps the project-level BA short and stable while
-allowing each epic to capture its own evidence trail. Persona IDs
-are stable across the hierarchy: a persona created in the
-Project-BA keeps the same id when it appears in an Epic-BA. Long
-research raw material lives in `BA-{PROJECT}-v{N}-full.md` archives,
-not in the active BA.
+  | Item type | BA file (in `analysis/`) | Promoted to | Required? |
+  |-----------|--------------------------|-------------|-----------|
+  | Epic | `BA-EPIC-{nn}-{slug}.md` | `requirements/epics/EPIC-{nn}-{slug}.md` | yes |
+  | Feature | `BA-FEAT-{ee}-{ff}-{slug}.md` | `requirements/features/FEAT-{ee}-{ff}-{slug}.md` | yes |
+  | Improvement | `BA-IMP-{ee}-{ff}-{nn}-{slug}.md` | `requirements/improvements/IMP-{ee}-{ff}-{nn}-{slug}.md` | optional |
+  | Fix | `BA-FIX-{ee}-{ff}-{nn}-{slug}.md` | `requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md` | optional |
+
+The Item-BA's id matches the future backlog item's id. When
+`/requirements-engineering` (or `/coding` for FIX) promotes the
+artefact, it writes `ba-ref:` into the EPIC/FEAT/IMP/FIX frontmatter
+pointing at the BA file. The BA stays in `analysis/` as audit trail
+and is never inlined into the backlog artefact.
+
+**Inheritance.** Item-BA frontmatter carries `project-ba-ref:`
+pointing at the Project-BA (or `null` for single-item projects).
+Personas are referenced by ID, never redefined. KPIs map upward via
+`project-kpi-ref:`. The same invariants live in
+`skills/project-conventions/references/graph-invariants.md` (N-8
+and N-9).
+
+**Templates:**
+
+- Full discovery (Project-BA, EPIC and FEAT Item-BAs):
+  `templates/BA-TEMPLATE.md`
+- Mini discovery (IMP and FIX Item-BAs, capped at 80 lines):
+  `templates/BA-MINI-TEMPLATE.md`
+
+**Scope mapping per item type:**
+
+| BA type | Default scope | Sections used |
+|---------|---------------|---------------|
+| Project-BA | PoC or MVP | full template |
+| BA-EPIC | PoC or MVP | full template |
+| BA-FEAT | Simple Test or PoC | reduced (1, 4, 5, 7, 8) |
+| BA-IMP | Simple Test | mini template |
+| BA-FIX | Simple Test | mini template |
+
+Long research raw material lives in `BA-{PROJECT}-v{N}-full.md`
+archives, not in the active Project-BA.
 
 ## Handoff
 

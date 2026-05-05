@@ -100,8 +100,16 @@ this skill. The row carries:
 You are the bridge between Business Analyst and Architect. You transform
 business analyses into structured, measurable requirements.
 
-**Input:** Business Analysis from `_devprocess/analysis/BA-*.md`
-**Output:** Epics + Features + `architect-handoff.md`
+**Input:** Project-BA `_devprocess/analysis/BA-{PROJECT}.md` plus,
+for the item being promoted, the matching Item-BA in
+`_devprocess/analysis/` (`BA-EPIC-*.md` for a new epic,
+`BA-FEAT-*.md` for a new feature). For IMP/FIX with an optional
+BA, the corresponding `BA-IMP-*.md` / `BA-FIX-*.md`.
+
+**Output:** Epics, Features, `architect-handoff.md`. Every promoted
+EPIC and FEAT artefact carries `ba-ref:` in its frontmatter,
+pointing at the Item-BA it was derived from. The Item-BA stays in
+`analysis/` as audit trail.
 
 
 ## MANDATORY: FIX/IMP, depends-on as a graph edge
@@ -120,7 +128,8 @@ of a Feature is either:
 ```yaml
 id: FIX-{ee}-{ff}-{nn}
 feature: FEAT-{ee}-{ff}    # mandatory
-epic: EPIC-{nn}                    # mandatory
+epic: EPIC-{nn}            # mandatory
+ba-ref:                    # optional, set only if a BA-FIX-*.md / BA-IMP-*.md exists
 adr-refs: []
 plan-refs: []
 depends-on: []
@@ -205,24 +214,39 @@ Your focus: **WHAT & WHY**, not HOW.
 
 ### With BA Input (preferred)
 
-Read `_devprocess/analysis/BA-*.md` and, if available,
-`_devprocess/analysis/EXPLORE-*.md` (Exploration Board). Confirm:
+Identify the BA(s) for the item being promoted:
+
+1. Project-BA at `_devprocess/analysis/BA-{PROJECT}.md` (if present)
+   carries cross-cutting personas, value, KPIs.
+2. Item-BA matching the target item ID:
+   - `BA-EPIC-{nn}-{slug}.md` for a new epic,
+   - `BA-FEAT-{ee}-{ff}-{slug}.md` for a new feature,
+   - optional `BA-IMP-*.md` / `BA-FIX-*.md` for IMP/FIX.
+
+Read both files plus, if available,
+`_devprocess/analysis/EXPLORE-{PROJECT}.md`. Confirm:
 
 ```
 Recognized information:
 - Scope: [Simple Test / PoC / MVP]
-- Main goal: [from Executive Summary]
-- How-might-we: [from Section 1.2, bridge EXPLORATION to IDEATION]
-- Value Proposition: [from Section 1.3]
-- Users/Personas: [from Section 4]
-- Needs: [from Section 4.2, functional/emotional/social]
-- Jobs to be done: [from Section 5.4, functional/emotional/social]
-- Idea Potential: [from Section 7.1, Value/Transferability/Feasibility]
-- Critical Hypotheses: [from Section 7.3]
-- Key Features: [from Section 10.3]
+- Project-BA: [path or "single-item project, no Project-BA"]
+- Item-BA: [path of the item-scoped BA]
+- Main goal: [from Item-BA Executive Summary]
+- How-might-we: [from Item-BA Section 1.2]
+- Value Proposition: [from Item-BA Section 1.3]
+- Users/Personas: [referenced IDs from Project-BA Section 4]
+- Needs: [from Item-BA Section 4.2]
+- Jobs to be done: [from Item-BA Section 5.4]
+- Idea Potential: [from Item-BA Section 7.1]
+- Critical Hypotheses: [from Item-BA Section 7.3]
 
 Shall I start creating?
 ```
+
+When the EPIC / FEAT artefact is written, include `ba-ref:` in the
+frontmatter pointing to the Item-BA file (relative path from the
+artefact). For IMP / FIX with an optional BA, write `ba-ref:` only
+if the BA exists.
 
 ### Without BA Input (Fallback)
 
@@ -409,11 +433,18 @@ user once. On `Validated` it is silent.
 
 ### Trigger
 
-Locate the parent BA. The BA is the file referenced as
-`analysis-source:` in the new Epics' frontmatter, or the
-`source-ba:` field in `_devprocess/requirements/handoff/architect-handoff.md`,
-or the only `_devprocess/analysis/BA-*.md` file when the project has
-exactly one.
+Locate the parent BA. Resolution order:
+
+1. `ba-ref:` field in the new EPIC / FEAT artefact frontmatter
+   (preferred, written by RE during this run).
+2. `source-ba:` field in
+   `_devprocess/requirements/handoff/architect-handoff.md`.
+3. The matching Item-BA file in `analysis/` whose ID corresponds to
+   the new item (`BA-EPIC-{nn}-{slug}.md` for `EPIC-{nn}`,
+   `BA-FEAT-{ee}-{ff}-{slug}.md` for `FEAT-{ee}-{ff}`).
+4. The Project-BA `_devprocess/analysis/BA-{PROJECT}.md` if it is
+   the only BA in the project (single-Item project without item-
+   scoped BA files).
 
 If no parent BA can be located unambiguously, skip silently and log a
 one-line notice in the Handoff Ritual artifact report

@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# DIA pre-merge-commit hook. Blocks merges that would introduce id
+# collisions between source and target branches (EPIC-NN, FEAT-EE-FF,
+# IMP-EE-FF-NN, FIX-EE-FF-NN, plus the corresponding Item-BAs).
+#
+# Why a hook: the canonical merge path is
+#     scripts/merge-to-dev.sh <source-branch>
+# which renumbers ids on the source branch before the merge. A direct
+# 'git merge' from the terminal would skip that step. This hook runs
+# at merge-commit time and aborts the merge if collisions exist, so
+# terminal users cannot bypass alignment by accident.
+#
+# Bypass any single merge with --no-verify (not recommended).
+#
+# Install: bash <DIA-repo>/tools/install-git-hooks.sh
+
+set -euo pipefail
+ROOT=$(git rev-parse --show-toplevel)
+
+# Locate the renumber script. Installed copy under .git/hooks-data, or
+# fall back to the DIA repo's tools/ directory if DIA_HOME is set.
+SCRIPT="$ROOT/.git/hooks-data/renumber-for-merge.py"
+if [ ! -x "$SCRIPT" ] && [ -n "${DIA_HOME:-}" ]; then
+    SCRIPT="$DIA_HOME/tools/renumber-for-merge.py"
+fi
+if [ ! -f "$SCRIPT" ]; then
+    # Tool not installed; nothing to enforce.
+    exit 0
+fi
+
+# pre-merge-commit fires after git merged the trees into the working
+# directory and is about to create the merge commit. The cleanest test
+# at this point is: are there two artefact files carrying the same id?
+# That is the actual collision the user needs to know about. The
+# --check-tree-duplicates mode does exactly this scan and exits 1 if
+# any duplicate id exists.
+TARGET_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+if [ -z "$TARGET_BRANCH" ] || [ "$TARGET_BRANCH" = "HEAD" ]; then
+    exit 0
+fi
+
+if ! python3 "$SCRIPT" --check-tree-duplicates --quiet; then
+    echo
+    echo "Merge blocked: id collisions between the merging branch and $TARGET_BRANCH."
+    echo
+    echo "Use the canonical merge path so ids are renumbered on the source"
+    echo "branch before the merge:"
+    echo
+    echo "    git merge --abort"
+    echo "    git checkout <source-branch>"
+    echo "    bash scripts/merge-to-dev.sh <source-branch> $TARGET_BRANCH"
+    echo
+    echo "If you really know what you are doing: bypass with --no-verify."
+    exit 1
+fi
+
+exit 0

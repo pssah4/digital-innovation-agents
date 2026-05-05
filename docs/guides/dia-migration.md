@@ -45,19 +45,20 @@ phase skills.
 
 ## What it does
 
-Eight phases, each independently re-runnable:
+Nine phases, each independently re-runnable:
 
 | Phase | What |
 |---|---|
 | 0 | Detection and migration plan |
 | -1.5 | Brownfield handover: defer to `/reverse-engineering` if no `_devprocess/` exists |
-| 1 | Foundation: `_devprocess/rules/`, `src/ARCHITECTURE.map`, full directory layout |
+| 1 | Foundation: `_devprocess/rules/`, `src/ARCHITECTURE.map`, full directory layout. Legacy `EPIC-{nn}-ba.md` mini-BAs are moved from `requirements/epics/` to `analysis/BA-EPIC-{nn}-{slug}.md` (the v2-style mini-BA convention is dropped in favour of flat Item-BAs) |
 | 2 | Bulk frontmatter and body status cleanup (status moves from frontmatter to backlog row) |
-| 3 | Filename migration to v3 ID schemas (`FEAT-{ee}-{ff}`, `FIX-{ee}-{ff}-{nn}`, `IMP-{ee}-{ff}-{nn}`, `EPIC-{nn}`, `ADR-{nn}`, `PLAN-{nn}`) |
+| 3 | Filename migration to v3 ID schemas (`FEAT-{ee}-{ff}`, `FIX-{ee}-{ff}-{nn}`, `IMP-{ee}-{ff}-{nn}`, `EPIC-{nn}`, `ADR-{nn}`, `PLAN-{nn}`); Item-BA filenames normalised to `BA-EPIC-{nn}-{slug}`, `BA-FEAT-{ee}-{ff}-{slug}`, `BA-IMP-{ee}-{ff}-{nn}-{slug}`, `BA-FIX-{ee}-{ff}-{nn}-{slug}` |
 | 4 | `analysis/` flattening to four prefixes (BA, EXPLORE, RESEARCH, AUDIT). The `analysis/security/` subfolder is removed; audit reports move flat into `analysis/` |
-| 5 | Backlog regeneration as single source of truth, with rows reflecting the three-layer model |
+| 5 | Backlog regeneration as single source of truth. `ba-ref:` is restored on EPIC/FEAT/IMP/FIX frontmatters when a matching Item-BA exists in `analysis/` |
 | 6 | Skill name updates (`/business-analyse` -> `/business-analysis`, `/v-model-workflow` -> `/dia-guide`) |
 | 7 | Consistency check (`/consistency-check` Mode A with auto-fix) |
+| 8 | Parallel-branch alignment (advisory): scan other active branches for ids that would now collide with the migrated state, report only. Use `tools/renumber-for-merge.py` or `scripts/merge-to-dev.sh` per branch to align before merging. See [Merge workflow](./merge-workflow) |
 
 ## Safety
 

@@ -13,9 +13,13 @@ Mode A entsprechend angepasst werden.
 
 **Knoten (Artefakt-Typen):**
 
-- `Project-BA` - `docs/analysis/BA-{PROJECT}.md` (One-Pager, Produkt-Schicht)
-- `Epic-BA` - `docs/requirements/epics/EPIC-{nn}-ba.md` (Mini, optional pro Epic)
-- `BA-Section` - eine Ueberschrift in `Project-BA` oder `Epic-BA`
+- `Project-BA` - `_devprocess/analysis/BA-{PROJECT}.md` (Singleton, Produkt-Schicht; Personas, Value, Nordstern)
+- `Item-BA` - eine BA-Datei pro neuem Backlog-Item, flach in `_devprocess/analysis/`:
+   - `BA-EPIC-{nn}-{slug}.md` (Pflicht vor neuem Epic)
+   - `BA-FEAT-{ee}-{ff}-{slug}.md` (Pflicht vor neuem Feature)
+   - `BA-IMP-{ee}-{ff}-{nn}-{slug}.md` (optional)
+   - `BA-FIX-{ee}-{ff}-{nn}-{slug}.md` (optional)
+- `BA-Section` - eine Ueberschrift in `Project-BA` oder einem `Item-BA`
  (Personas, JTBDs, Problem, Value Props, KPIs, Risks, usw.)
 - `Epic` - `docs/requirements/epics/EPIC-{nn}-{slug}.md`
 - `Feature` - `docs/requirements/features/FEATURE-*.md`
@@ -36,9 +40,10 @@ Mode A entsprechend angepasst werden.
 
 **Kanten (Referenz-Typen):**
 
-- `Project-BA.Persona -> Epic-BA` (Epic-BA referenziert Persona-ID)
-- `Epic-BA -> Epic` (erklaert: Epic-BA liefert Problem-Vertiefung)
-- `Epic-BA.KPI -> Project-BA.KPI` (einzahlend: Frontmatter `project-kpi-ref`)
+- `Item-BA -> Project-BA` (Item-BA Frontmatter `project-ba-ref` zeigt auf Project-BA)
+- `Project-BA.Persona -> Item-BA` (Item-BA referenziert Persona-ID via `personas:` im Frontmatter)
+- `Item-BA -> Epic|Feat|Imp|Fix` (Promotion: das Backlog-Item traegt `ba-ref:` auf die Item-BA-Datei)
+- `Item-BA.KPI -> Project-BA.KPI` (einzahlend: Frontmatter `project-kpi-ref`)
 - `BA.Persona -> Epic` (Zugehoerigkeit: welches Epic adressiert welche Persona)
 - `BA.JTBD -> Feature` (adressiert: welcher JTBD wird durch welches Feature geloest)
 - `Epic -> Feature` (enthaelt: MVP-Features-Tabelle im Epic)
@@ -65,8 +70,8 @@ Mode A entsprechend angepasst werden.
 | N-5 | Jedes Feature mit `status: Implemented` hat einen `## Codebase-Verifikation` Abschnitt. | Section-Header existiert. |
 | N-6 | Jedes FIX/IMP hat ein Phase-Label (`Released | Building | Planned | Candidates`). | Spalte oder Notizen-Prefix `[Phase: ...]` vorhanden. |
 | N-7 | Jedes FIX/IMP mit `Phase: Candidates` hat `needs refinement: {Grund}`-Marker. | Notizen-Feld enthaelt den Marker. |
-| N-8 | Epic-BA definiert keine Personas, Value-Dimensionen oder Nordstern - referenziert sie nur via ID. | Epic-BA enthaelt keine `## Personas`-Section mit Persona-Definitionen; `personas:` im Frontmatter listet nur IDs, die in Project-BA §2 existieren. |
-| N-9 | Jede Epic-KPI im Epic-BA hat einen `project-kpi-ref:`-Eintrag im Frontmatter, der auf eine KPI in Project-BA referenziert. | Frontmatter-Feld `project-kpi-ref` vorhanden, Wert matcht einen KPI-Namen im Project-BA. |
+| N-8 | Jedes Item-BA (`BA-EPIC-*`, `BA-FEAT-*`, `BA-IMP-*`, `BA-FIX-*`) hat ein `project-ba-ref:` im Frontmatter (Wert zeigt auf existierenden Project-BA, oder `null` wenn kein Project-BA existiert) und definiert keine Personas/Value-Dimensionen/Nordstern lokal, wenn `project-ba-ref` gesetzt ist. | Frontmatter parsen, `project-ba-ref` auf existenz pruefen; bei gesetztem Wert: Item-BA enthaelt keine eigene Persona-Definition (Persona wird per ID aus Project-BA §2 referenziert). |
+| N-9 | Jedes EPIC und FEAT, das eine zugehoerige BA-Datei in `analysis/` hat, traegt `ba-ref:` im Frontmatter, das auf diese Datei zeigt. Umgekehrt zeigt jeder Item-BA-Filename auf ein passendes Backlog-Item (BA-EPIC-04 -> EPIC-04). | Frontmatter `ba-ref:` parsen, Pfad pruefen; Filename-zu-ID-Mapping ueber Naming-Pattern verifizieren. |
 | N-10 | Jedes Feature-Frontmatter enthaelt `phase: Released|Building|Planned|Candidates` und `status: <Arbeitsstatus>`. | YAML-Frontmatter parsen, Pflicht-Felder pruefen. |
 | N-11 | Jedes Epic-Frontmatter enthaelt `phase: Released|Building|Planned|Candidates`. | YAML-Frontmatter parsen, Pflicht-Feld pruefen. |
 | N-12 | Jedes ADR-Frontmatter enthaelt `status: Proposed|Accepted|Superseded|Deprecated` und `phase: Released|Building|Planned|Candidates`. | YAML-Frontmatter parsen, beide Felder pruefen. |
@@ -120,7 +125,7 @@ Validation-Status verharren.
 
 | Eltern-Typ | Eltern-Status (Pre-Validation) | Kind-Evidenz (Trigger fuer Breach) |
 | ---------- | ------------------------------ | ---------------------------------- |
-| BA | `Draft` oder `Draft (...)`-Praefix (z. B. `Draft (reverse-engineered, ...)`) | `_devprocess/requirements/handoff/architect-handoff.md` existiert UND referenziert diese BA, ODER ein Epic mit `analysis-source:` auf diese BA hat Phase `Building` oder `Released`. |
+| BA | `Draft` oder `Draft (...)`-Praefix (z. B. `Draft (reverse-engineered, ...)`) | `_devprocess/requirements/handoff/architect-handoff.md` existiert UND referenziert diese BA, ODER ein Epic / Feature / IMP / FIX mit `ba-ref:` auf diese BA hat Phase `Building` oder `Released`. |
 | ADR | `Proposed` | Ein Feature mit `adr-refs:` (oder `Related-ADRs:`) auf diese ADR hat Phase `Building` oder `Released`. |
 
 Erweiterungen der Tabelle erfolgen nur, wenn ein neues Eltern-Kind-
@@ -226,11 +231,13 @@ entfernt wurde).
 
 | Artefakt | Pflichtfelder | Default beim Anlegen |
 | -------- | ----------------------------------------------------------------------- | ------------------------------- |
-| Feature | `phase: <Lebenszyklus>`, `status: <Arbeitsstatus>`, `subtype: user-facing|library` (optional fuer Bestand, Pflicht fuer neue FEATUREs ab N-18) | `phase: Building`, `status: Planned`, `subtype: user-facing` |
-| Epic | `phase: <Lebenszyklus>` | `phase: Building` (abgeleitet worst-wins) |
+| Project-BA | `type: ba`, `target-type: project`, `target-id: {PROJECT}`, `created:` | `type: ba`, `target-type: project` |
+| Item-BA | `type: ba`, `target-type: epic|feat|imp|fix`, `target-id:`, `project-ba-ref:` (Pfad oder `null`), `personas:` (IDs), `project-kpi-ref:` (Liste), `created:` | `target-type` aus Triage; `personas: []` falls noch keine Refs |
+| Epic | `phase: <Lebenszyklus>`; `ba-ref:` (Pflicht ab N-9) | `phase: Building` (abgeleitet worst-wins) |
+| Feature | `phase: <Lebenszyklus>`, `status: <Arbeitsstatus>`, `subtype: user-facing|library` (optional fuer Bestand, Pflicht fuer neue FEATUREs ab N-18); `ba-ref:` (Pflicht ab N-9) | `phase: Building`, `status: Planned`, `subtype: user-facing` |
 | ADR | `phase: <Lebenszyklus>`, `status: Proposed|Accepted|Superseded|Deprecated` | `phase: Building`, `status: Proposed` |
 | PLAN | `status: Draft|Active|Completed` | `status: Draft` |
-| FIX/IMP | Phase-Spalte in Backlog-Tabelle | `Building` |
+| FIX/IMP | Phase-Spalte in Backlog-Tabelle; `ba-ref:` falls eine BA existiert (sonst weglassen) | `Building` |
 
 **Phase-Werte (Enum):** `Released | Building | Planned | Candidates`.
 Siehe Phase-Schema-Konvention unten fuer Semantik.
@@ -379,24 +386,46 @@ erfragt): Eine Antwort auf die Frage
 
 **Entscheidungsbaum (Skill wendet ihn ohne Rueckfrage an, wenn eindeutig):**
 
-1. **Neue user-facing Capability** (Funktion, die es vorher nicht gab):
-   - neues **FEATURE** anlegen, Pflicht-Bindung an ein Epic (existierend oder neu)
-   - Frontmatter `phase: Candidates` oder `Planned`, `status: Planned`
+1. **Neuer Epic** (themenbreite Capability-Klammer):
+   - **PFLICHT vorher:** Item-BA `analysis/BA-EPIC-{nn}-{slug}.md`
+     via `/business-analysis`
+   - dann **EPIC** anlegen unter
+     `_devprocess/requirements/epics/EPIC-{nn}-{slug}.md`,
+     Frontmatter `ba-ref:` zeigt auf die BA-Datei
    - `/requirements-engineering` uebernimmt
 
-2. **Verbesserung an bestehendem Feature** (Refactor, Performance,
+2. **Neue user-facing Capability** (Funktion, die es vorher nicht gab):
+   - **PFLICHT vorher:** Item-BA `analysis/BA-FEAT-{ee}-{ff}-{slug}.md`
+     via `/business-analysis` (Ausnahme: Feature ist vollstaendig
+     durch die Epic-Item-BA gedeckt - Skill fragt einmal)
+   - dann neues **FEATURE** anlegen, Pflicht-Bindung an ein Epic
+   - Frontmatter `phase: Candidates` oder `Planned`,
+     `status: Planned`, `ba-ref:` zeigt auf die BA-Datei
+   - `/requirements-engineering` uebernimmt
+
+3. **Verbesserung an bestehendem Feature** (Refactor, Performance,
    Doku-Drift, zusaetzliche Tests, Konfig-Update, etc.):
-   - neues **IMP** unter `_devprocess/requirements/improvements/IMP-{ee}-{ff}-{nn}-slug.md`
-   - Frontmatter `feature:` + `epic:` PFLICHT
+   - **OPTIONAL vorher:** Mini-BA
+     `analysis/BA-IMP-{ee}-{ff}-{nn}-{slug}.md` wenn Wert oder
+     Scope unklar; sonst direkt das IMP-Artefakt
+   - neues **IMP** unter
+     `_devprocess/requirements/improvements/IMP-{ee}-{ff}-{nn}-{slug}.md`
+   - Frontmatter `feature:` + `epic:` PFLICHT, `ba-ref:` falls
+     BA existiert
    - Frontmatter `phase:`, `status:`, `priority:`, optional `depends-on:`
 
-3. **Fix fuer einen beobachteten Bug oder eine Drift** (Symptom: etwas
+4. **Fix fuer einen beobachteten Bug oder eine Drift** (Symptom: etwas
    funktioniert nicht wie spezifiziert):
-   - neues **FIX** unter `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-slug.md`
-   - Frontmatter `feature:` + `epic:` PFLICHT
+   - **OPTIONAL vorher:** Mini-BA
+     `analysis/BA-FIX-{ee}-{ff}-{nn}-{slug}.md` wenn Root Cause
+     oder Soll-Verhalten unklar; sonst direkt das FIX-Artefakt
+   - neues **FIX** unter
+     `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`
+   - Frontmatter `feature:` + `epic:` PFLICHT, `ba-ref:` falls
+     BA existiert
    - kausale Kette im Body pflegen
 
-4. **Architektur-Entscheidung**, die weitere Artefakte beeinflusst:
+5. **Architektur-Entscheidung**, die weitere Artefakte beeinflusst:
    - neue **ADR** (MADR-Format), verknuepft mit betroffenen Features
    - `/architecture` uebernimmt
 
