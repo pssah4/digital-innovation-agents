@@ -227,6 +227,20 @@ Seed the wayfinder layer:
 The wayfinder is what `/coding` reads first on day one. Without it,
 every subsequent agent has to re-infer file layout from scratch.
 
+### Phase 6.5: Parallel-branch alignment (advisory)
+
+Reverse-engineering allocates fresh ids while walking the code
+(EPIC, FEAT, plus FIX/IMP from TODO/FIXME extraction). If the
+brownfield repo has unmerged feature branches that already carry
+their own ids, those branches will collide with the freshly
+inventoried state once the maintainer tries to merge them.
+
+This phase enumerates such branches and lists the collisions, but
+does **not** modify them. For each affected branch, the maintainer
+runs `bash scripts/merge-to-dev.sh <branch> <re-branch>` (or the
+underlying `tools/renumber-for-merge.py` directly) before merging.
+See [Merge workflow](./merge-workflow) for the full mechanics.
+
 ### Phase 7: Handoff to `/business-analysis`
 
 The handoff follows the standard four-part [Handoff Ritual](../concepts/handoff-rituals).

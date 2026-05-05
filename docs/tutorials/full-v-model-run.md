@@ -32,7 +32,9 @@ pick **A) Starting from scratch**. It launches `/business-analysis`.
 See the [first Business Analysis tutorial](./first-business-analysis) for
 the detailed walkthrough. For this overview, the key outputs are:
 
-- `BA-{PROJECT}.md` (Business Analysis document)
+- `BA-{PROJECT}.md` (Project-BA, product layer; singleton, optional but recommended)
+- `BA-EPIC-{nn}-{slug}.md` (one Item-BA per new epic, mandatory before EPIC)
+- `BA-FEAT-{ee}-{ff}-{slug}.md` (one Item-BA per new feature, mandatory before FEAT)
 - `EXPLORE-{PROJECT}.md` (Exploration Board for PoC/MVP)
 - HMW question, personas, critical hypotheses
 
@@ -229,8 +231,10 @@ src/
   {module}/README.md
 _devprocess/
   analysis/
-    BA-{PROJECT}.md
-    EPIC-01-ba.md
+    BA-{PROJECT}.md                     (Project-BA, singleton)
+    BA-EPIC-01-{slug}.md                (Item-BA per epic)
+    BA-FEAT-01-01-{slug}.md             (Item-BA per feature)
+    BA-FIX-01-02-03-{slug}.md           (Item-BA per fix, optional)
     EXPLORE-{PROJECT}.md
     AUDIT-{PROJECT}-2026-04-30.md       (flat, no analysis/security/)
   requirements/

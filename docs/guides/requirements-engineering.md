@@ -7,8 +7,17 @@ description: Turn a validated Business Analysis into Epics, Features, and tech-a
 
 `/requirements-engineering` is the bridge between [Business Analysis](./business-analysis) (the Why) and [Architecture](./architecture) (the How). It transforms the validated business analysis into structured, measurable, tech-agnostic requirements that a human or AI architect can actually design against.
 
-**Input:** `_devprocess/analysis/BA-{PROJECT}.md` (validated BA)
-**Output:** Epics, Features, `architect-handoff.md`
+**Input:** `_devprocess/analysis/BA-{PROJECT}.md` (Project-BA, if any)
+plus the matching Item-BA in `_devprocess/analysis/`
+(`BA-EPIC-{nn}-{slug}.md` for a new epic,
+`BA-FEAT-{ee}-{ff}-{slug}.md` for a new feature). The Item-BA is
+the immediate source for the EPIC/FEAT spec; the Project-BA
+supplies personas, value dimensions, and KPIs by ID.
+
+**Output:** Epics, Features, `architect-handoff.md`. Every promoted
+EPIC and FEAT artefact carries `ba-ref:` in its frontmatter pointing
+at the Item-BA it was derived from. The Item-BA stays in
+`analysis/` as audit trail.
 
 ## Why this phase exists
 

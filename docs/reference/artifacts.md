@@ -28,9 +28,12 @@ status fields stuck at "Planned" while the code shipped. See the
     ARCHITECTURE.map               Wayfinder root: concept | entry-point | adr | how-to-extend
     {module}/README.md             Module wayfinder (one per substantive module)
   _devprocess/
-    analysis/                      Flat. BA, EXPLORE, AUDIT, RESEARCH, EPIC-{nn}-ba.
-      BA-{PROJECT}.md              Phase 1: Project-level Business Analysis
-      EPIC-{nn}-ba.md              Phase 1: Epic-level BA inheriting from Project-BA
+    analysis/                      Flat. BA layers (Project-BA + Item-BA), EXPLORE, AUDIT, RESEARCH.
+      BA-{PROJECT}.md                       Phase 1: Project-BA singleton (product layer)
+      BA-EPIC-{nn}-{slug}.md                Phase 1: Item-BA per new epic (mandatory before EPIC)
+      BA-FEAT-{ee}-{ff}-{slug}.md           Phase 1: Item-BA per new feature (mandatory before FEAT)
+      BA-IMP-{ee}-{ff}-{nn}-{slug}.md       Phase 1: Item-BA per improvement (optional)
+      BA-FIX-{ee}-{ff}-{nn}-{slug}.md       Phase 1: Item-BA per fix (optional)
       EXPLORE-{PROJECT}.md         Phase 1: Exploration Board (PoC/MVP)
       RESEARCH-{TOPIC}.md          Phase 1: Discovery research notes
       AUDIT-{PROJECT}-{YYYY-MM-DD}.md  Phase 6: Security audit report (flat, no subfolder)
@@ -191,8 +194,8 @@ purposes:
 ## Traceability chain
 
 ```
-BA document (Why?)
-  -> Epic + Epic-BA (What, strategic?)
+Project-BA + Item-BA in analysis/ (Why?)
+  -> Epic / Feature spec with `ba-ref:` (What?)
     -> Feature spec (What, concrete?)
       -> ASR (What is architecture-relevant?)
         -> ADR (How do we solve it?)
