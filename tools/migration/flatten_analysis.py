@@ -38,12 +38,69 @@ def next_research_num(adir: Path) -> int:
     return (max(nums) + 1) if nums else 1
 
 
+def relocate_legacy_epic_ba(root: Path, adir: Path) -> int:
+    """Move legacy mini-BA files (`EPIC-{nn}-ba.md`) from
+    `_devprocess/requirements/epics/` to
+    `_devprocess/analysis/BA-EPIC-{nn}-{slug}.md`. Slug is taken from
+    the sibling EPIC-{nn}-{slug}.md file. Returns the number of files
+    moved.
+    """
+    epics_dir = root / "_devprocess/requirements/epics"
+    if not epics_dir.is_dir():
+        return 0
+    moved = 0
+    for fp in sorted(epics_dir.glob("EPIC-*-ba.md")):
+        m = re.match(r"^EPIC-(\d+)-ba\.md$", fp.name)
+        if not m:
+            continue
+        nn_raw = m.group(1)
+        nn = int(nn_raw)
+        siblings = list(epics_dir.glob(f"EPIC-{nn_raw}-*.md")) + list(
+            epics_dir.glob(f"EPIC-{nn:02d}-*.md")
+        )
+        slug = None
+        for sib in siblings:
+            sm = re.match(rf"^EPIC-(?:{nn_raw}|{nn:02d})-(.+)\.md$", sib.name)
+            if sm and sm.group(1) != "ba":
+                slug = sm.group(1)
+                break
+        if slug is None:
+            slug = "untitled"
+            print(
+                f"  WARN no sibling EPIC-{nn:02d}-*.md for {fp.name}, "
+                f"using slug 'untitled'"
+            )
+        target = adir / f"BA-EPIC-{nn:02d}-{slug}.md"
+        if target.exists():
+            print(
+                f"  SKIP target exists: {target.relative_to(root)} "
+                f"(legacy {fp.relative_to(root)} not moved)"
+            )
+            continue
+        adir.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(fp), str(target))
+        print(f"  moved {fp.relative_to(root)} -> {target.relative_to(root)}")
+        moved += 1
+    return moved
+
+
 def main() -> int:
     root = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path.cwd().resolve()
     adir = root / "_devprocess/analysis"
     if not adir.is_dir():
         print("No _devprocess/analysis/ found, nothing to flatten")
+        # Still try to move legacy mini-BAs into the (about-to-exist)
+        # analysis dir, otherwise the user keeps them next to the EPIC.
+        if (root / "_devprocess/requirements/epics").is_dir() and any(
+            (root / "_devprocess/requirements/epics").glob("EPIC-*-ba.md")
+        ):
+            adir.mkdir(parents=True, exist_ok=True)
+            relocate_legacy_epic_ba(root, adir)
         return 0
+
+    relocated = relocate_legacy_epic_ba(root, adir)
+    if relocated:
+        print(f"  Relocated {relocated} legacy EPIC-*-ba.md files to analysis/")
 
     sec = adir / "security"
     if sec.is_dir():

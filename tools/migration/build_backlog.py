@@ -15,6 +15,7 @@ Usage:
 """
 from __future__ import annotations
 import argparse
+import os
 import re
 import sys
 from collections import defaultdict
@@ -26,6 +27,131 @@ def get_first_h1(content: str) -> str:
         if line.startswith("# "):
             return line[2:].strip()
     return ""
+
+
+def ba_ref_to_id(ref: str | list | None) -> str | None:
+    """Extract a short BA id (`BA-EPIC-04`, `BA-FEAT-04-02`, ...) from a
+    `ba-ref:` value. Returns None when the value is missing or unparseable.
+    """
+    if not ref:
+        return None
+    if isinstance(ref, list):
+        ref = ref[0] if ref else ""
+    if not isinstance(ref, str):
+        return None
+    name = ref.rsplit("/", 1)[-1]
+    m = re.match(
+        r"^(BA-(?:EPIC-\d+|FEAT-\d+-\d+|IMP-\d+-\d+-\d+|FIX-\d+-\d+-\d+))",
+        name,
+    )
+    return m.group(1) if m else None
+
+
+def find_item_ba(adir: Path, kind: str, ee: int, ff: int | None = None,
+                 nn: int | None = None) -> Path | None:
+    """Locate the matching Item-BA file for a given target item.
+
+    kind is one of 'EPIC', 'FEAT', 'IMP', 'FIX'.
+    """
+    if not adir.is_dir():
+        return None
+    if kind == "EPIC":
+        pattern = f"BA-EPIC-{ee:02d}-*.md"
+    elif kind == "FEAT":
+        if ff is None:
+            return None
+        pattern = f"BA-FEAT-{ee:02d}-{ff:02d}-*.md"
+    elif kind in ("IMP", "FIX"):
+        if ff is None or nn is None:
+            return None
+        pattern = f"BA-{kind}-{ee:02d}-{ff:02d}-{nn:02d}-*.md"
+    else:
+        return None
+    matches = sorted(adir.glob(pattern))
+    return matches[0] if matches else None
+
+
+def insert_ba_ref(artefact_path: Path, ba_path: Path) -> bool:
+    """Add `ba-ref:` to an artefact's YAML frontmatter if missing.
+
+    Returns True when the file was modified. Idempotent: existing
+    `ba-ref:` lines (any value) are left untouched.
+    """
+    content = artefact_path.read_text(encoding="utf-8")
+    fm_match = re.match(r"^---\s*\n(.*?)\n---\s*\n", content, re.DOTALL)
+    rel_str = os.path.relpath(
+        ba_path.resolve(), start=artefact_path.resolve().parent
+    ).replace("\\", "/")
+
+    new_line = f"ba-ref: {rel_str}"
+
+    if fm_match:
+        fm_body = fm_match.group(1)
+        if re.search(r"^ba-ref\s*:", fm_body, re.MULTILINE):
+            return False
+        new_fm = fm_body + "\n" + new_line
+        new_content = (
+            "---\n" + new_fm + "\n---\n" + content[fm_match.end():]
+        )
+    else:
+        new_content = "---\n" + new_line + "\n---\n\n" + content
+
+    artefact_path.write_text(new_content, encoding="utf-8")
+    return True
+
+
+def restore_ba_refs(root: Path) -> int:
+    """Walk requirements/{epics,features,improvements,fixes} and insert
+    `ba-ref:` into each artefact's frontmatter when a matching Item-BA
+    file exists in analysis/.
+
+    Idempotent: skips artefacts whose frontmatter already carries a
+    ba-ref. Returns the number of modified files.
+    """
+    devp = root / "_devprocess"
+    adir = devp / "analysis"
+    modified = 0
+
+    epics_dir = devp / "requirements/epics"
+    if epics_dir.is_dir():
+        for fp in sorted(epics_dir.glob("EPIC-*.md")):
+            m = re.match(r"^EPIC-(\d+)-(?!ba\.md$).+\.md$", fp.name)
+            if not m:
+                continue
+            ee = int(m.group(1))
+            ba = find_item_ba(adir, "EPIC", ee)
+            if ba and insert_ba_ref(fp, ba):
+                modified += 1
+
+    feats_dir = devp / "requirements/features"
+    if feats_dir.is_dir():
+        for fp in sorted(feats_dir.glob("FEAT-*.md")):
+            m = re.match(r"^FEAT-(\d+)-(\d+)[a-z]?-.+\.md$", fp.name)
+            if not m:
+                continue
+            ee, ff = int(m.group(1)), int(m.group(2))
+            ba = find_item_ba(adir, "FEAT", ee, ff)
+            if ba and insert_ba_ref(fp, ba):
+                modified += 1
+
+    for kind, sub in (("IMP", "improvements"), ("FIX", "fixes")):
+        d = devp / f"requirements/{sub}"
+        if not d.is_dir():
+            continue
+        for fp in sorted(d.glob(f"{kind}-*.md")):
+            m = re.match(rf"^{kind}-(\d+)-(\d+)-(\d+)-.+\.md$", fp.name)
+            if not m:
+                continue
+            ee, ff, nn = (
+                int(m.group(1)),
+                int(m.group(2)),
+                int(m.group(3)),
+            )
+            ba = find_item_ba(adir, kind, ee, ff, nn)
+            if ba and insert_ba_ref(fp, ba):
+                modified += 1
+
+    return modified
 
 
 def parse_frontmatter(content: str) -> dict:
@@ -61,20 +187,27 @@ def collect(root: Path, overrides: dict) -> list[dict]:
 
     # EPICs
     for fp in sorted((devp / "requirements/epics").glob("EPIC-*.md")) if (devp / "requirements/epics").is_dir() else []:
+        if fp.name.endswith("-ba.md"):
+            # legacy mini-BA (should have been moved by flatten_analysis)
+            continue
         m = re.match(r"^EPIC-(\d+)-(.+)\.md$", fp.name)
         if not m:
             continue
         en = int(m.group(1))
         slug = m.group(2)
         epic_id = f"EPIC-{en:02d}"
-        title = get_first_h1(fp.read_text(encoding="utf-8")) or slug.replace("-", " ").title()
+        content = fp.read_text(encoding="utf-8")
+        title = get_first_h1(content) or slug.replace("-", " ").title()
         title = re.sub(r"^EPIC[\s-]*\d+:\s*", "", title, flags=re.IGNORECASE)
         title = re.sub(r"^Epic:\s*", "", title)
         ov = overrides.get(epic_id, {})
         status = ov.get("status", "Active")
         phase = ov.get("phase", "Building")
+        fm = parse_frontmatter(content)
+        ba_id = ba_ref_to_id(fm.get("ba-ref"))
+        refs = [ba_id] if ba_id else []
         add(id=epic_id, type="Epic", title=title, status=status, phase=phase,
-            epic=epic_id, epic_num=en, refs=[], source="BA",
+            epic=epic_id, epic_num=en, refs=refs, source="BA",
             commit="", claim="", last_change="", notes="",
             file=str(fp.relative_to(root)))
 
@@ -97,13 +230,17 @@ def collect(root: Path, overrides: dict) -> list[dict]:
             slug = m.group(4)
             feat_id = f"FEAT-{ee:02d}-{ff:02d}{suffix}"
             epic_id = f"EPIC-{ee:02d}"
-            title = get_first_h1(fp.read_text(encoding="utf-8")) or slug.replace("-", " ").title()
+            content = fp.read_text(encoding="utf-8")
+            title = get_first_h1(content) or slug.replace("-", " ").title()
             title = re.sub(r"^(?:FEATURE|FEAT)[:\s-]*\d*-?\d*(?:(?<=\d)[a-z])?[:\s-]*", "", title, flags=re.IGNORECASE)
             ov = overrides.get(feat_id, {})
             status = ov.get("status", "Done")
             phase = ov.get("phase", "Released")
+            fm = parse_frontmatter(content)
+            ba_id = ba_ref_to_id(fm.get("ba-ref"))
+            refs = [epic_id] + ([ba_id] if ba_id else [])
             add(id=feat_id, type="Feature", title=title[:80], status=status, phase=phase,
-                epic=epic_id, epic_num=ee, refs=[epic_id], source="BA",
+                epic=epic_id, epic_num=ee, refs=refs, source="BA",
                 commit="", claim="", last_change="", notes=ov.get("notes", ""),
                 file=str(fp.relative_to(root)))
 
@@ -126,8 +263,11 @@ def collect(root: Path, overrides: dict) -> list[dict]:
             ov = overrides.get(fid, {})
             status = ov.get("status", "Done")
             phase = ov.get("phase", "Released")
+            fm = parse_frontmatter(content)
+            ba_id = ba_ref_to_id(fm.get("ba-ref"))
+            refs = [feat_id, epic_id] + ([ba_id] if ba_id else [])
             add(id=fid, type="Fix", title=title[:80], status=status, phase=phase,
-                epic=epic_id, epic_num=ee, refs=[feat_id, epic_id], source="BUG",
+                epic=epic_id, epic_num=ee, refs=refs, source="BUG",
                 commit="", claim="", last_change="", notes=prio,
                 file=str(fp.relative_to(root)))
 
@@ -142,12 +282,16 @@ def collect(root: Path, overrides: dict) -> list[dict]:
             iid = f"IMP-{ee:02d}-{ff:02d}-{nn:02d}"
             feat_id = f"FEAT-{ee:02d}-{ff:02d}"
             epic_id = f"EPIC-{ee:02d}"
-            title = get_first_h1(fp.read_text(encoding="utf-8")) or slug.replace("-", " ").title()
+            content = fp.read_text(encoding="utf-8")
+            title = get_first_h1(content) or slug.replace("-", " ").title()
             ov = overrides.get(iid, {})
             status = ov.get("status", "Planned")
             phase = ov.get("phase", "Building")
+            fm = parse_frontmatter(content)
+            ba_id = ba_ref_to_id(fm.get("ba-ref"))
+            refs = [feat_id, epic_id] + ([ba_id] if ba_id else [])
             add(id=iid, type="Improvement", title=title[:80], status=status, phase=phase,
-                epic=epic_id, epic_num=ee, refs=[feat_id, epic_id], source="USER",
+                epic=epic_id, epic_num=ee, refs=refs, source="USER",
                 commit="", claim="", last_change="", notes="",
                 file=str(fp.relative_to(root)))
 
@@ -314,6 +458,9 @@ def main() -> int:
     root = Path(args.project_root).resolve()
     cfg = root / args.config
     overrides = load_overrides(cfg)
+    ba_ref_count = restore_ba_refs(root)
+    if ba_ref_count:
+        print(f"Restored ba-ref: in {ba_ref_count} artefact frontmatters")
     art = collect(root, overrides)
     print(f"Collected {len(art)} artifacts")
     backlog_path = root / "_devprocess/context/BACKLOG.md"

@@ -424,7 +424,8 @@ Findings:
    - ADR's `Related Decisions:` / `References:` -> edges to ADRs/Features
    - BL-Item's Feature-Spec / ADR columns -> edges
    - arc42 Par. 9 table -> edges to ADRs
-   - Epic's `analysis-source:` -> edge to BA
+   - Epic's / Feature's / IMP's / FIX's `ba-ref:` -> edge to BA
+   - Item-BA's `project-ba-ref:` -> edge to Project-BA
    - architect-handoff `source-ba:` -> edge to BA
 4. **Apply invariants.** For each check, list violations with file
    path and line number if possible. For N-17, walk the
@@ -474,7 +475,7 @@ of truth for all V-Model skills).
 
   | Parent | Parent draft status | Child evidence triggering breach |
   |--------|---------------------|----------------------------------|
-  | BA | `Draft` or `Draft (...)` prefix (e.g. `Draft (reverse-engineered, ...)`) | `architect-handoff.md` exists and references this BA, OR an Epic with `analysis-source:` pointing here has phase `Building` or `Released` |
+  | BA | `Draft` or `Draft (...)` prefix (e.g. `Draft (reverse-engineered, ...)`) | `architect-handoff.md` exists and references this BA, OR an Epic / Feature / IMP / FIX with `ba-ref:` pointing here has phase `Building` or `Released` |
   | ADR | `Proposed` | A Feature with `adr-refs:` pointing here has phase `Building` or `Released` |
 
   Severity defaults to `warn` (Mode A reports, does not fail the run).

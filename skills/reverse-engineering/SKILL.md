@@ -229,8 +229,12 @@ artifacts become the Phase 0 state for that forward walk.
 - `_devprocess/requirements/features/FEAT-{ee}-{ff}-{slug}.md`.
  One per observable user-facing capability, `Status: Observed (not
  validated)`, nested under its anticipated Epic's number.
-- `_devprocess/analysis/BA-{PROJECT}.md`. Evidence-based draft,
+- `_devprocess/analysis/BA-{PROJECT}.md`. Evidence-based Project-BA
+ draft (singleton, product layer),
  `Status: Draft (reverse-engineered, awaiting validation in /business-analysis)`.
+ Item-BAs (`BA-EPIC-*.md`, `BA-FEAT-*.md`, ...) are NOT created by
+ this skill. They are the responsibility of `/business-analysis`
+ once the user starts working on a specific item.
 - Append entries to `_devprocess/context/BACKLOG.md`. TODOs, FIXMEs,
  observed gaps, tech debt, undocumented dependencies.
 
@@ -829,6 +833,53 @@ Artefakte noch nicht alle geschrieben sind).
 die Graph-Health-Zahlen. Wenn der Check kritische Luecken findet
 (Dead-Links, Orphan-Features ohne Epic), weist der Handoff den User
 explizit darauf hin, bevor `/business-analysis` startet.
+
+### Phase 9: Parallel-branch alignment (advisory, added 2026-05-05)
+
+Reverse-engineering allocates fresh ids while walking the code
+(EPIC-NN, FEAT-EE-FF, plus FIX/IMP from TODO/FIXME extraction). If
+the brownfield repo has unmerged feature branches that already
+carry their own ids, those branches will collide with the freshly
+inventoried state once the maintainer tries to merge them.
+
+This phase does **not** modify other branches. It enumerates them
+and reports which ones would need a renumber-before-merge step.
+
+Steps:
+
+1. Enumerate other branches:
+   ```bash
+   git for-each-ref --format='%(refname:short)' refs/heads/ \
+     | grep -Ev '^(main|master|dev|<reverse-engineering-branch>)$'
+   ```
+2. For each branch, check for collisions against the reverse-
+   engineering branch (read-only, no checkout needed if the script
+   uses `--source-ref`):
+   ```bash
+   for B in <list>; do
+     python3 tools/renumber-for-merge.py \
+       --target <reverse-engineering-branch> \
+       --source-ref "$B" \
+       --list-conflicts
+   done
+   ```
+3. Aggregate the JSON outputs into a final report block in
+   `_devprocess/context/HANDOFFS.md`:
+   ```
+   ## reverse-engineering {YYYY-MM-DD} -- parallel-branch alignment
+   Branches with id collisions vs the reverse-engineered state:
+   - feature/foo: epic 1, feat 2, fix 0, imp 0
+   - feature/bar: epic 0, feat 1, fix 1, imp 0
+   To align before merging, run on each branch:
+     bash scripts/merge-to-dev.sh <branch> <reverse-engineering-branch>
+   ```
+4. The maintainer decides per branch (renumber, rebase, abandon).
+   The skill does not switch branches automatically beyond the
+   read-only `git ls-tree` calls inside the script.
+
+If no parallel branches exist, the phase prints "No parallel
+branches found" and returns. Reverse-engineering proceeds to the
+Handoff Ritual either way.
 
 ### Phase 6: Handoff Ritual
 

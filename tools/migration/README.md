@@ -20,9 +20,9 @@ without invoking a skill.
 | `detect_state.py`               | 0     | Inventory the repo, classify v1/v2/mixed/brownfield. JSON output. |
 | `strip_frontmatter_status.py`   | 2a    | Remove `status:`, `phase:`, `last_updated:` from YAML frontmatter. |
 | `strip_body_status.py`          | 2b    | Remove `**Status:**` / `> **Status**: ...` lines from artifact bodies. |
-| `migrate_naming.py`             | 3     | Rename `FEATURE-NNNN` -> `FEAT-EE-FF`, `EPIC-NNN` -> `EPIC-NN`, etc. |
-| `flatten_analysis.py`           | 4     | Flatten `analysis/` to four prefixes: BA, EXPLORE, RESEARCH, AUDIT. |
-| `build_backlog.py`              | 5     | Regenerate `_devprocess/context/BACKLOG.md` from all artefacts. |
+| `migrate_naming.py`             | 3     | Rename `FEATURE-NNNN` -> `FEAT-EE-FF`, `EPIC-NNN` -> `EPIC-NN`, normalise Item-BA filenames (`BA-EPIC-NN`, `BA-FEAT-EE-FF`, `BA-IMP-EE-FF-NN`, `BA-FIX-EE-FF-NN`), warn on legacy generic `BA-NNN-{slug}.md` that needs manual triage. |
+| `flatten_analysis.py`           | 4     | Flatten `analysis/` to four prefixes (BA, EXPLORE, RESEARCH, AUDIT). Move legacy mini-BAs `_devprocess/requirements/epics/EPIC-NN-ba.md` to `_devprocess/analysis/BA-EPIC-NN-{slug}.md`. |
+| `build_backlog.py`              | 5     | Regenerate `_devprocess/context/BACKLOG.md` from all artefacts. Restore `ba-ref:` in EPIC/FEAT/IMP/FIX frontmatter when a matching Item-BA exists in `analysis/`. |
 | `migrate_skill_names.py`        | 6     | Rewrite legacy skill names: `/business-analyse` -> `/business-analysis`, `/v-model-workflow` -> `/dia-guide`. |
 
 All scripts:

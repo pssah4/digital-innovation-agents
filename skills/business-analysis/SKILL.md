@@ -60,32 +60,53 @@ The check fires only once per skill invocation. State is in
 per-project `dia.protected-branches`, trunk-based mode) are
 documented in team-workflow.md.
 
-## MANDATORY Phase 0: Artifact triage
+## MANDATORY Phase 0: BA target triage
 
-When this skill is invoked from `/coding` or another phase mid-cycle
-(rare), the receiving artifact category must be clear:
+Every BA session targets exactly one item type. The triage decides
+which BA file is created, which template is used, and which scope
+the interview runs at.
 
-1. **New FEATURE** (user-facing capability that did not exist before).
-2. **IMPROVEMENT (IMP)** on an existing feature.
-3. **FIX** for a bug on an existing feature.
-4. **ADR** when the work is an architecture decision.
+The five possible outcomes:
 
-For greenfield BA sessions (the typical case), the categorization is
-implicit: the BA itself is the input that creates the first features.
-Triage applies when the BA is invoked from a later phase to validate
-or revise hypotheses.
+1. **Project-BA** (singleton). The product layer for the whole
+   project. Greenfield session, no Project-BA exists yet, OR the
+   user explicitly wants to refresh the Project-BA. File:
+   `analysis/BA-{PROJECT}.md`.
+2. **EPIC Item-BA**. Discovery for a new epic. File:
+   `analysis/BA-EPIC-{nn}-{slug}.md`. Mandatory before
+   `/requirements-engineering` opens an epic.
+3. **FEAT Item-BA**. Discovery for a new feature inside an existing
+   epic. File: `analysis/BA-FEAT-{ee}-{ff}-{slug}.md`. Mandatory
+   before `/requirements-engineering` opens a feature, unless the
+   feature is fully covered by its parent EPIC's BA (skill asks).
+4. **IMP Item-BA** (optional). Mini discovery for an enhancement on
+   an existing feature where the value or scope is unclear. File:
+   `analysis/BA-IMP-{ee}-{ff}-{nn}-{slug}.md`. Uses
+   `BA-MINI-TEMPLATE.md`.
+5. **FIX Item-BA** (optional). Mini discovery for a bug whose root
+   cause or correct behaviour is unclear. File:
+   `analysis/BA-FIX-{ee}-{ff}-{nn}-{slug}.md`. Uses
+   `BA-MINI-TEMPLATE.md`.
 
-If the assignment cannot be derived from the prompt, the skill asks
-one short question before anything else (in the user's working
-language; the English wording below is a template):
+If the target cannot be derived from the prompt, ask one short
+question via `AskUserQuestion` (in the user's working language):
 
-> "Is this a new feature, an improvement on an existing feature, or
-> a fix for a bug? If feature or IMP/FIX: which feature and which
-> epic?"
+> "Which item is this BA for: Project-BA (product layer), a new EPIC,
+> a new FEAT inside an existing epic, or a smaller IMP/FIX?"
 
-Backlog rows for new findings are mandatory output. Status, phase,
-last-change, and claim live in the backlog row, not in the artifact
-frontmatter. Details:
+For Item-BAs, also resolve the parent epic and the next free ID:
+
+- EPIC: scan `requirements/epics/` plus the BACKLOG, take the next
+  free 2-digit number.
+- FEAT: confirm the parent EPIC, then take the next free FF inside
+  that epic.
+- IMP/FIX: confirm parent EPIC and parent FEAT, then take the next
+  free NN.
+
+The backlog row for the future item is created at the start of the
+BA (not at promotion), so the ID is reserved while the BA is in
+progress. Status in the BACKLOG row defaults to
+`Status: BA-in-progress`. Details:
 `skills/project-conventions/references/graph-invariants.md`,
 section "Artifact triage at entry point".
 
@@ -112,52 +133,102 @@ After the user agrees, prepare the concrete artifact they need (interview guidel
 
 ## What You Create
 
-The BA stack is hierarchical. Each level owns different decisions and
-artifacts that stay compact.
+The BA stack has two layers, both flat in `analysis/`. Every BA is an
+**input** to a backlog item, never a sibling that lives next to the
+item. After promotion by `/requirements-engineering`, the BA stays
+in `analysis/` as audit trail and the EPIC / FEAT / IMP / FIX
+artefact references it via `ba-ref:` in its frontmatter.
 
-- **Project-BA** (full product-context document) at
- `{docs-root}/analysis/BA-{PROJECT}.md` or
- `_devprocess/analysis/BA-{PROJECT}.md`. After reading it, a new
- team member or a new agent must know what the product is for, for
- whom, with what value, in what scope, and under what constraints.
- Typical length 500-900 lines. The document is compact in the
- sense that it carries *results, not process iterations* (no team-
- review markers, no discarded candidates, no session diaries), but
- it contains the full substance.
-- **Epic-BA** (Mini) at `{docs-root}/requirements/epics/EPIC-{nn}-ba.md`,
- one per epic that needs BA depth. Max 80 lines. References the
- Project-BA, never duplicates it.
-- **Feature-BA** (rare) only when a feature activates a new persona,
- has its own hypotheses, or delivers measurably different value.
- Usually the FEATURE-spec with Success Criteria is enough and no
- Feature-BA is created.
-- **Exploration Board** at `{docs-root}/analysis/EXPLORE-{PROJECT}.md`
- for PoC/MVP projects where discovery work runs ahead of the BA.
-- Optional: **Constitution Draft** for project principles.
+### Layer 1: Project-BA (singleton, product layer)
+
+`{docs-root}/analysis/BA-{PROJECT}.md` (typically `_devprocess/analysis/BA-{PROJECT}.md`).
+
+Created **once** at project start, or reconstructed via `/reverse-engineering`.
+Carries the cross-cutting product layer:
+
+- Personas (stable IDs P1, P2, ... reused by every Item-BA)
+- Value Proposition with value dimensions
+- Nordstern, Wow, Anti-Definition
+- Project-wide risks, constraints, NFR priority order
+- Strategic KPIs
+
+After reading it, a new team member or agent knows what the product
+is for, for whom, with what value, in what scope. Typical length
+500-900 lines. Item-BAs reference this document by ID; they do not
+duplicate it.
+
+### Layer 2: Item-BA (one per backlog item that needs BA depth)
+
+Pre-coding discovery for a single new backlog item. File name
+mirrors the target item:
+
+| Item type | BA file (in `analysis/`) | Promoted to |
+|-----------|--------------------------|-------------|
+| Epic | `BA-EPIC-{nn}-{slug}.md` | `requirements/epics/EPIC-{nn}-{slug}.md` |
+| Feature | `BA-FEAT-{ee}-{ff}-{slug}.md` | `requirements/features/FEAT-{ee}-{ff}-{slug}.md` |
+| Improvement | `BA-IMP-{ee}-{ff}-{nn}-{slug}.md` | `requirements/improvements/IMP-{ee}-{ff}-{nn}-{slug}.md` |
+| Fix | `BA-FIX-{ee}-{ff}-{nn}-{slug}.md` | `requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md` |
+
+**When is an Item-BA mandatory?**
+
+- **EPIC and FEAT: mandatory.** Every new epic and every new top-level
+  feature requires a BA before requirements engineering touches it.
+- **IMP and FIX: optional.** Use only when the cause or value of the
+  change is unclear and discovery work is needed. A trivial bug or a
+  small enhancement ships through `/coding` without a BA.
+
+**Numbering rule.** The Item-BA carries the ID of the target item.
+`BA-EPIC-04-onboarding.md` becomes `EPIC-04-onboarding.md`. The next
+free ID for the target type is reserved when the BA is created and
+written into the BACKLOG row. The BA file is not renumbered after
+promotion.
+
+**Project-BA-ref rule.** Every Item-BA frontmatter carries
+`project-ba-ref:` pointing to the Project-BA (or `null` if no
+Project-BA exists yet, which is the case for single-Item projects).
+Personas, value dimensions, KPIs are referenced by ID, not redefined.
+
+### Exploration Board (PoC / MVP only)
+
+`{docs-root}/analysis/EXPLORE-{PROJECT}.md` for the discovery work
+that runs ahead of the Project-BA on greenfield projects. Stays
+flat in `analysis/`. Not duplicated per item.
 
 ## What You Do NOT Create
 
-- Epics/Features specs themselves (done by RE with
- `/requirements-engineering`). You may create the Epic-BA that feeds
- the Epic spec, but not the Epic spec or its Feature list.
+- Epics, Features, Improvements, or Fix specs themselves (done by
+ `/requirements-engineering` for EPIC/FEAT/IMP and by `/coding` for
+ FIX). You produce the BA that feeds those specs, not the specs.
 - Technical solutions (done by Architect with `/architecture`)
 - User Stories (done by RE)
 
 Your focus: **WHY & WHO**, not WHAT & HOW.
 
-## BA Hierarchy and Inheritance
+## How a BA fits the V-Model
 
-The Project-BA is the stable product layer. Epic-BAs reference it.
-The rules below are enforced by `/consistency-check` via invariants
-`N-8` and `N-9` in `skills/project-conventions/references/graph-invariants.md`.
+The BA is a **pre-coding artefact**. The flow is always:
 
-### Project-BA owns (single source of truth)
+```
+BA (analysis/)  ->  EPIC / FEAT / IMP / FIX (requirements/...)  ->  /architecture or /coding
+```
 
-The Project-BA is organized in these mandatory sections. Length
-grows with project complexity; a small project may be shorter, a
-brownfield ingest longer. Stakeholder politics are *not* a mandatory
-section and typically belong elsewhere (strategic fit note,
-roadmap).
+Two layers, both under `analysis/`:
+
+1. **Project-BA** (singleton). Personas, value, nordstern, project-
+   wide constraints. Created once. Many Item-BAs reference it.
+2. **Item-BA** (one per new backlog item that needs discovery
+   depth). Inherits personas and KPIs by ID from the Project-BA.
+
+Item-BAs are not "mini-BAs that live next to an epic". They are
+discovery documents in `analysis/` whose ID matches the future item
+ID. The promotion step writes the corresponding EPIC/FEAT/IMP/FIX
+artefact and adds `ba-ref:` to its frontmatter.
+
+### Project-BA: required sections
+
+Length grows with project complexity. Small projects shorter,
+brownfield ingests longer. Stakeholder politics belong elsewhere
+(strategic fit note, roadmap), not in the BA.
 
 1. **Executive Summary:** Problem Statement / HMW (Meta + persona-
  specific + cross-cutting) / Value Proposition (core sentences +
@@ -180,48 +251,53 @@ roadmap).
 
 Stable IDs used across this BA: persona IDs (P1, P2, P3, ...), value
 dimension numbers, KPI dimension names, risk IDs (R-1, R-2, ...).
-Epic-BAs reference these IDs.
+Item-BAs reference these IDs.
 
-### Epic-BA owns (per epic)
+### Item-BA: scope by item type
 
-- Reference to relevant Personas by ID only (no redefinition)
-- Reference to adressed value dimensions by index
-- Part-problem: what is specific to this epic
-- JTBDs per adressed persona
-- Three falsifiable epic hypotheses
-- Epic-KPIs, each mapped to a Project-BA strategic KPI via the
- frontmatter field `project-kpi-ref:`
-- Epic-specific risks (only what is new or different vs product-level)
-- Scope boundary against neighbor epics
+The depth of an Item-BA depends on the target item type. The skill
+calibrates the interview accordingly.
 
-### Inheritance rules (verbindlich)
+| Item type | Default scope | Sections used (from BA-TEMPLATE.md) | Length |
+|-----------|---------------|-------------------------------------|--------|
+| EPIC | PoC or MVP | full template | up to 500 lines |
+| FEAT | Simple Test or PoC | reduced: 1, 4, 5, 7, 8 | 100-300 lines |
+| IMP | Simple Test | mini template (see below) | <80 lines |
+| FIX | Simple Test | mini template (see below) | <80 lines |
 
-1. **Epic-BA must not redefine** personas, value dimensions, or
- nordstern. It references by ID.
-2. **New persona candidates** discovered while writing an Epic-BA go
- first into the Project-BA (via Update Mode of this skill), then
- the Epic-BA can reference them.
-3. **Epic-KPIs must map** to a Project-BA strategic KPI. Without a
- `project-kpi-ref:` in the Epic-BA frontmatter, the epic cannot
- advance beyond phase Candidates.
+For IMP and FIX, use `templates/BA-MINI-TEMPLATE.md`. It captures
+observed behaviour, root cause hypothesis, impact, acceptance, and
+risk in five short sections. No persona walk, no idea potential, no
+market assessment.
+
+### Inheritance rules (binding)
+
+1. **Item-BA must not redefine** personas, value dimensions, or
+   nordstern. It references the Project-BA by ID via the
+   `project-ba-ref:` frontmatter field.
+2. **New persona candidates** discovered while writing an Item-BA
+   go first into the Project-BA (via Refresh Mode of this skill),
+   then the Item-BA can reference them.
+3. **Item-BA KPIs map upward** to a Project-BA strategic KPI via the
+   `project-kpi-ref:` frontmatter list. KPIs that do not map are
+   flagged by `/consistency-check`.
 4. **If the Project-BA changes** (persona deferred, value dimension
- removed, risk escalated), `/consistency-check` flags every
- dependent Epic-BA as `needs review` so they can be re-validated.
-5. **When should you create a Feature-BA?** Answer these three
- questions. If all are "no", skip it and rely on the FEATURE-spec:
- - Does this feature activate a persona not covered by its Epic-BA?
- - Does this feature have hypotheses the Epic-BA does not cover?
- - Does this feature deliver a measurably different value that
- needs its own KPI baseline?
+   removed, risk escalated), `/consistency-check` flags every
+   dependent Item-BA as `needs review`.
+5. **Single-item projects without a Project-BA**. If the project
+   never warranted a Project-BA (a single-feature tool, a one-off
+   fix repo), `project-ba-ref:` is `null` and the Item-BA defines
+   its own personas and KPIs locally. The skill warns once and
+   continues.
 
 ### Templates
 
-- Project-BA: `templates/BA-TEMPLATE.md`
-- Epic-BA: `templates/EPIC-BA-TEMPLATE.md` (compact, reference-first)
+- Project-BA and EPIC/FEAT-Item-BA: `templates/BA-TEMPLATE.md`
+- IMP/FIX Mini-BA: `templates/BA-MINI-TEMPLATE.md`
 
 ### Archiving long-form BAs
 
-If the Project-BA has grown beyond the One-Pager budget (for example
+If the Project-BA has grown beyond a readable budget (for example
 from a reverse-engineering ingest of a legacy project), move the full
 document to `_devprocess/analysis/BA-{PROJECT}-v{N}-full.md` (flat,
 versioned suffix; no `archive/` subfolder) and compose a compact
@@ -293,14 +369,18 @@ adding more topics. Quality over quantity.
 
 ### Phase 0: Existing BA Detection (Preflight)
 
-Before you ask the first interview question, check whether a BA
-document already exists for this project:
+Before you ask the first interview question, scan `analysis/` for
+existing BA documents that match the BA target chosen in the triage:
 
 ```bash
 ls _devprocess/analysis/BA-*.md 2>/dev/null
 ```
 
-Based on what you find, pick the interview mode:
+The scan returns the Project-BA (`BA-{PROJECT}.md`) plus every
+Item-BA (`BA-EPIC-*.md`, `BA-FEAT-*.md`, `BA-IMP-*.md`,
+`BA-FIX-*.md`). Pick the file that matches the triage target.
+
+Based on what you find for the chosen target, pick the interview mode:
 
 - **No file** -> **Standard New Mode**. Continue with Phase 1 below.
  You run the full interview from scratch.
@@ -339,7 +419,7 @@ Based on what you find, pick the interview mode:
 - **File exists without the Draft marker (`status: Validated` or no
  status)** -> **Refresh Mode**. The BA was already validated in an
  earlier session. Ask the user: "A validated BA already exists for
- this project. Do you want to A) refresh it (walk it again and
+ this {target}. Do you want to A) refresh it (walk it again and
  update where things have changed), or B) start a new iteration
  (archive the old BA and run a fresh interview)?" Proceed based on
  the answer.
@@ -477,16 +557,32 @@ For PoC/MVP: Create the Exploration Board as a separate document.
 
 ### Phase 5: Create Documents
 
-Read the template files in `templates/` and fill them based on the interview:
+Read the template files in `templates/` and fill them based on the
+interview. The save path depends on the BA target chosen in Phase 0:
 
 1. **Exploration Board** (PoC/MVP): `templates/EXPLORATION-BOARD.md`
- -> Save to: `_devprocess/analysis/EXPLORE-{PROJECT}.md`
+   -> Save to: `_devprocess/analysis/EXPLORE-{PROJECT}.md`
 
-2. **Business Analysis**: `templates/BA-TEMPLATE.md`
- -> Save to: `_devprocess/analysis/BA-{PROJECT}.md`
+2. **Business Analysis**, depending on target type:
+   - **Project-BA**: `templates/BA-TEMPLATE.md`
+     -> `_devprocess/analysis/BA-{PROJECT}.md`
+   - **EPIC Item-BA**: `templates/BA-TEMPLATE.md` (full)
+     -> `_devprocess/analysis/BA-EPIC-{nn}-{slug}.md`
+   - **FEAT Item-BA**: `templates/BA-TEMPLATE.md` (sections 1, 4,
+     5, 7, 8 only)
+     -> `_devprocess/analysis/BA-FEAT-{ee}-{ff}-{slug}.md`
+   - **IMP Item-BA**: `templates/BA-MINI-TEMPLATE.md`
+     -> `_devprocess/analysis/BA-IMP-{ee}-{ff}-{nn}-{slug}.md`
+   - **FIX Item-BA**: `templates/BA-MINI-TEMPLATE.md`
+     -> `_devprocess/analysis/BA-FIX-{ee}-{ff}-{nn}-{slug}.md`
 
-The BA document references the results from the Exploration Board and
-integrates IDEATION and EVALUATE results.
+The Item-BA references the Project-BA via `project-ba-ref:` in its
+frontmatter. Personas, value dimensions, and KPIs are referenced by
+ID, not redefined.
+
+The BA document also references the results from the Exploration
+Board (if one was produced) and integrates IDEATION and EVALUATE
+results.
 
 ### Phase 8: Post-Release Review (optional, after first real usage)
 
@@ -505,8 +601,8 @@ real users.
 **Trigger conditions:**
 
 - The user invokes `/business-analysis` with an existing BA document
- that is at `Status: Validated` AND a release has happened since
- the validation timestamp, OR
+ (Project-BA OR Item-BA) at `Status: Validated` AND a release has
+ happened since the validation timestamp, OR
 - The `/coding` skill wrote a post-release handoff entry in
  `_devprocess/context/HANDOFFS.md` flagging the release as
  "Ready for BA Post-Release Review".
@@ -514,8 +610,10 @@ real users.
 **Process:**
 
 1. **Load evidence sources.** Read in order:
- - `_devprocess/analysis/BA-{PROJECT}.md` Section 7.3 (Critical
- Hypotheses)
+ - The target BA file (`BA-{PROJECT}.md` for project-wide
+   hypotheses, or `BA-EPIC-{nn}-{slug}.md` /
+   `BA-FEAT-{ee}-{ff}-{slug}.md` for item-level hypotheses),
+   Section 7.3 (Critical Hypotheses)
  - `_devprocess/context/METRICS.md` (if present) for the
  observed signals
  - Any additional user-provided evidence (support tickets, usage
@@ -632,9 +730,14 @@ it was started (directly or via `/dia-guide`).
 
 ```
 Produced / updated:
-- _devprocess/analysis/BA-{PROJECT}.md: full Business Analysis document
+- _devprocess/analysis/BA-{TARGET}.md: Business Analysis for {TARGET}
+  ({TARGET} is one of: {PROJECT}, EPIC-{nn}-{slug},
+  FEAT-{ee}-{ff}-{slug}, IMP-{ee}-{ff}-{nn}-{slug},
+  FIX-{ee}-{ff}-{nn}-{slug})
 - _devprocess/analysis/EXPLORE-{PROJECT}.md: Exploration Board (PoC/MVP only)
-- Key output: How-Might-We question, Value Proposition, Personas
+- BACKLOG row reserved for the future EPIC/FEAT/IMP/FIX item
+- Key output: How-Might-We question, Value Proposition,
+  referenced Personas (by ID)
 ```
 
 ### Part 2: Handoff context
@@ -653,10 +756,12 @@ Append a new entry to `_devprocess/context/HANDOFFS.md` with:
 ### Part 3: Run `/consistency-check` mode A
 
 Run `/consistency-check` mode A at the end of the skill phase, BEFORE
-the phase-end commit. Catches missing backlog rows for new Epics or
-Personas, broken `project-kpi-ref` links between Epic-BA and
-Project-BA, dead persona references, and dashboard count drift.
-Surface findings; the user decides whether to fix now or defer.
+the phase-end commit. Catches missing backlog rows for new items,
+broken `project-ba-ref` and `project-kpi-ref` links between Item-BAs
+and the Project-BA, dead persona references, missing `ba-ref:` on
+EPIC/FEAT artefacts that have a corresponding BA file in
+`analysis/`, and dashboard count drift. Surface findings; the user
+decides whether to fix now or defer.
 
 ### Part 4: Phase-end commit
 
@@ -691,11 +796,12 @@ phase.
 Ask the user:
 
 > "Business Analysis is complete. Documents saved to:
-> - `_devprocess/analysis/BA-{PROJECT}.md`
+> - `_devprocess/analysis/BA-{TARGET}.md`
 > - `_devprocess/analysis/EXPLORE-{PROJECT}.md` (if PoC/MVP)
 >
-> Recommended next: `/requirements-engineering` -- transforms the BA
-> into Epics, Features, and Success Criteria.
+> Recommended next: `/requirements-engineering` -- promotes the BA
+> into the corresponding EPIC / FEAT / IMP / FIX artefact under
+> `requirements/...` and writes `ba-ref:` into its frontmatter.
 >
 > Shall I start `/requirements-engineering` now, or would you like to
 > review the BA first?"

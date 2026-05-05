@@ -1,8 +1,22 @@
-# Business Analysis: {Project Name}
+---
+type: ba
+target-type: project | epic | feat
+target-id: {PROJECT | EPIC-NN | FEAT-EE-FF}
+project-ba-ref: {path to BA-PROJECT.md, or null for Project-BA itself}
+personas: [P1, P3]                # IDs only, defined in Project-BA
+value-dimensions: [1, 3]          # indices, defined in Project-BA
+project-kpi-ref: []               # KPI names from Project-BA, empty for Project-BA itself
+scope: simple-test | poc | mvp
+created: YYYY-MM-DD
+---
 
-> **Scope:** [Simple Test / PoC / MVP]
-> **Created:** {Date}
-> **Status:** Draft / Review / Approved
+# Business Analysis: {Title}
+
+> Title pattern: "{Project Name}" for Project-BA, "{Epic title}" for
+> EPIC Item-BA, "{Feature title}" for FEAT Item-BA.
+>
+> Status, phase, last-change, and claim live in the BACKLOG row, not
+> in this frontmatter.
 
 ---
 
@@ -322,3 +336,17 @@
 
 ### D. References
 {Links to relevant documents}
+
+---
+
+## Section selection per BA target
+
+Not every BA target uses every section. Drop the unused sections
+when filling the template.
+
+| Target | Sections to fill |
+|--------|------------------|
+| Project-BA (`BA-{PROJECT}.md`) | All sections (1-12) |
+| EPIC Item-BA (`BA-EPIC-{nn}-{slug}.md`) | All sections (1-12); 11 only for PoC/MVP scope |
+| FEAT Item-BA (`BA-FEAT-{ee}-{ff}-{slug}.md`) | 1 (Executive Summary), 4 (User Analysis), 5 (Problem Analysis), 7 (Idea Potential), 8 (Scope) |
+| IMP / FIX | Use `BA-MINI-TEMPLATE.md` instead of this template |

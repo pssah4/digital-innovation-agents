@@ -161,6 +161,9 @@ user review.
   - presence of any `archive/` directory under `_devprocess/` -> v1
   - frontmatter `status:` or `phase:` fields -> v1
   - body-level `**Status:**` headers in artifacts -> v1
+  - presence of `_devprocess/requirements/epics/EPIC-*-ba.md`
+    (legacy mini-BA next to the EPIC) -> v1, must move to
+    `analysis/BA-EPIC-{nn}-{slug}.md` in Phase 4
 - Count each finding.
 - Decide migration scope:
   - all v2 patterns, no findings -> exit with green report
@@ -192,6 +195,10 @@ Create the layers that DIA v2 requires regardless of starting state.
 3. `_devprocess/requirements/{epics,features,fixes,improvements,handoff}/`
    directories. Move existing `_devprocess/context/fixes/` to
    `_devprocess/requirements/fixes/` and same for `improvements/`.
+   Legacy `EPIC-{nn}-ba.md` files inside
+   `_devprocess/requirements/epics/` are moved to
+   `_devprocess/analysis/BA-EPIC-{nn}-{slug}.md` (slug from the
+   sibling EPIC file). The legacy mini-BA convention is dropped.
 4. `_devprocess/analysis/` flattened: `analysis/security/AUDIT-*`
    moves to `analysis/` root, `archive/` deleted (with the file
    list shown to the user first).
@@ -231,7 +238,9 @@ Renames artifact files and updates all cross-references in
 | `IMP-{eeff}-{nn}-{slug}.md` | `IMP-{ee}-{ff}-{nn}-{slug}.md` | analog                              |
 | `ADR-NNN-{slug}.md`      | `ADR-{nn}-{slug}.md`       | strip leading zero                     |
 | `PLAN-NNN-{slug}.md`     | `PLAN-{nn}-{slug}.md`      | strip leading zero                     |
-| `BA-NNN-{slug}.md`       | `BA-{nn}-{slug}.md`        | strip leading zero                     |
+| `BA-{slug}.md` (project, no item ref) | `BA-{PROJECT}.md`        | Singleton Project-BA, slug becomes project shortname |
+| `BA-NNN-{slug}.md` (legacy item-BA)   | `BA-EPIC-{nn}-{slug}.md` | Legacy generic BA-NNN promoted to Item-BA-Epic if it carries epic-level discovery; otherwise renamed to `BA-{PROJECT}.md` (asks user once) |
+| `EPIC-{nn}-ba.md` (legacy mini)       | `BA-EPIC-{nn}-{slug}.md` | move from `requirements/epics/` to `analysis/`; slug carried over from sibling EPIC file |
 | `EXPLORE-NNN-{slug}.md`  | `EXPLORE-{nn}-{slug}.md`   | strip leading zero                     |
 | `RESEARCH-NNN-{slug}.md` | `RESEARCH-{nn}-{slug}.md`  | strip leading zero                     |
 | handoff files            | `architect-handoff-FEAT-{ee}-{ff}.md`, `plan-context-FEAT-{ee}-{ff}.md` | per active feature stream |
@@ -255,6 +264,20 @@ audit-trail records.
 Reduces the analysis/ directory to four flat prefixes (`BA-`,
 `EXPLORE-`, `RESEARCH-`, `AUDIT-`) at the root, plus a single
 `sources/` subfolder for user-provided source documents.
+
+The BA prefix has five accepted shapes after the migration. All five
+sit flat in `analysis/`. None live next to the EPIC artefact:
+
+- `BA-{PROJECT}.md` (singleton Project-BA)
+- `BA-EPIC-{nn}-{slug}.md` (Item-BA per epic)
+- `BA-FEAT-{ee}-{ff}-{slug}.md` (Item-BA per feature)
+- `BA-IMP-{ee}-{ff}-{nn}-{slug}.md` (Item-BA per improvement, optional)
+- `BA-FIX-{ee}-{ff}-{nn}-{slug}.md` (Item-BA per fix, optional)
+
+Legacy mini-BAs at `_devprocess/requirements/epics/EPIC-{nn}-ba.md`
+move to `analysis/BA-EPIC-{nn}-{slug}.md`, with `{slug}` carried
+over from the sibling EPIC file. The `EPIC-{nn}-ba.md` file is
+removed after the move.
 
 - `CODEBASE-NNN`, `DESIGN-NNN`, `SECURITY-NNN`, `SPIKE-NNN`,
   `FINDING-`, `ROOT-CAUSE-`, `GAP-ANALYSE-`, `SOLUTION-PROPOSAL-`,
@@ -292,7 +315,11 @@ status, phase, claim, and Refs.
   - PLANs default to Draft/Building.
 - The Refs column is populated from frontmatter `epic:`,
   `adr-refs:`, `feature-refs:`, `related:`, `supersedes:`,
-  `superseded-by:`.
+  `superseded-by:`, `ba-ref:`.
+- For every EPIC and FEAT artefact whose ID has a matching
+  `analysis/BA-EPIC-*` or `analysis/BA-FEAT-*` file (after Phase 4),
+  the script writes `ba-ref:` into the artefact frontmatter so the
+  promotion link is restored.
 - A pre-existing `BACKLOG.md` is overwritten only after the
   user confirms (the script saves the previous version under
   `BACKLOG.md.preMigration` for one-step rollback).
@@ -388,12 +415,62 @@ All scripts:
 8. **Phase 6**: skill name updates. Idempotent, commit after.
 9. **Phase 7**: consistency check. Run `/consistency-check` mode A
    with `--fix`. Final report.
+10. **Phase 8**: parallel-branch id alignment check. After the
+    migration commits land, scan other active branches for ids that
+    would collide with the migrated state. Report only, do not
+    modify other branches. See "Phase 8: Parallel-branch alignment"
+    below.
 
 Each phase ends with a commit message:
 `chore(dia-migration): phase N -- {short summary}`.
 
 The user can interrupt between phases. Re-running `/dia-migration`
 picks up at the next dirty phase based on the detection output.
+
+## Phase 8: Parallel-branch alignment (advisory)
+
+Migration touches many artefact ids. If other feature branches were
+in flight while the migration ran, those branches may carry ids that
+now collide with the migrated state on the migration branch.
+
+The skill does **not** rewrite history on other branches. It only
+reports, so the maintainer decides per branch what to do (rebase,
+re-renumber via `tools/renumber-for-merge.py`, or abandon).
+
+Steps:
+
+1. Enumerate other branches:
+   ```bash
+   git for-each-ref --format='%(refname:short)' refs/heads/ \
+     | grep -Ev '^(main|master|dev|chore/dia-migration-)'
+   ```
+2. For each branch, run a list-only collision check against the
+   migration branch:
+   ```bash
+   git checkout <branch>
+   python3 tools/renumber-for-merge.py \
+     --target chore/dia-migration-<date> \
+     --list-conflicts
+   git checkout chore/dia-migration-<date>
+   ```
+3. Aggregate the JSON output into a final report block in
+   `_devprocess/context/HANDOFFS.md`:
+
+   ```
+   ## dia-migration {YYYY-MM-DD} -- parallel-branch alignment
+   Branches with id collisions vs migrated state:
+   - feature/foo: epic 1, feat 2, fix 0, imp 0
+   - feature/bar: epic 0, feat 1, fix 1, imp 0
+   To align before merging, run on each branch:
+     bash scripts/merge-to-dev.sh <branch> chore/dia-migration-<date>
+   ```
+
+4. The maintainer decides per branch. The skill itself does not
+   switch branches for the user beyond the temporary checkouts in
+   step 2 (which it always restores).
+
+This phase is advisory. If no other branches exist, it is a no-op
+that prints "No parallel branches found".
 
 ## Handoff Ritual
 

@@ -318,7 +318,8 @@ YAML_FIELD_RE = re.compile(r"^([A-Za-z][A-Za-z0-9_-]*)\s*:\s*(.+?)\s*$", re.MULT
 def parse_frontmatter(path: Path) -> dict[str, str]:
     """Minimal YAML frontmatter scanner. Returns flat key->value strings.
     Only top-level scalar fields, no nesting, no lists. Sufficient for
-    the handful of fields N-17 looks at (`status`, `analysis-source`).
+    the handful of fields N-17 looks at (`status`, `ba-ref`,
+    `project-ba-ref`).
     """
     try:
         text = path.read_text(encoding="utf-8")
@@ -340,9 +341,12 @@ DRAFT_STATUS_RE = re.compile(r"^Draft(?:\s*\(.*\))?$", re.IGNORECASE)
 
 def check_status_coherence() -> list[Finding]:
     """N-17: BA must not stay at Draft once architect-handoff exists.
-    Conservative implementation: BA-side only, file-existence signal.
-    ADR-side check (Proposed ADR with Building/Released Feature) requires
-    backlog phase parsing and is left to the skill orchestration layer.
+    Applies to every BA file in analysis/ (Project-BA `BA-{PROJECT}.md`
+    and Item-BAs `BA-EPIC-*.md`, `BA-FEAT-*.md`, `BA-IMP-*.md`,
+    `BA-FIX-*.md`). Conservative implementation: BA-side only, file-
+    existence signal. ADR-side check (Proposed ADR with Building/
+    Released Feature) requires backlog phase parsing and is left to
+    the skill orchestration layer.
     """
     if not ANALYSIS.exists():
         return []
@@ -578,6 +582,131 @@ def check_stub_fix_binding() -> list[Finding]:
     return out
 
 
+ITEM_BA_PATTERNS = {
+    "EPIC": (re.compile(r"^BA-EPIC-(\d{2})-(.+)\.md$"), EPICS, "EPIC-{ee:02d}-"),
+    "FEAT": (
+        re.compile(r"^BA-FEAT-(\d{2})-(\d{2})([a-z]?)-(.+)\.md$"),
+        FEATURES,
+        "FEAT-{ee:02d}-{ff:02d}{suffix}-",
+    ),
+    "IMP": (
+        re.compile(r"^BA-IMP-(\d{2})-(\d{2})-(\d{2})-(.+)\.md$"),
+        IMPROVEMENTS,
+        "IMP-{ee:02d}-{ff:02d}-{nn:02d}-",
+    ),
+    "FIX": (
+        re.compile(r"^BA-FIX-(\d{2})-(\d{2})-(\d{2})-(.+)\.md$"),
+        FIXES,
+        "FIX-{ee:02d}-{ff:02d}-{nn:02d}-",
+    ),
+}
+
+
+def check_item_ba_frontmatter() -> list[Finding]:
+    """N-8: every Item-BA carries `project-ba-ref:` (path or `null`).
+    Persona definitions inside the Item-BA are flagged when
+    `project-ba-ref:` is set (the Item-BA must reference, not redefine).
+    Conservative: we only enforce the frontmatter field. Persona-
+    redefinition detection lives in Mode B.
+    """
+    if not ANALYSIS.exists():
+        return []
+    out: list[Finding] = []
+    for ba_path in sorted(ANALYSIS.glob("BA-*.md")):
+        if ba_path.name == "BA-{PROJECT}.md":
+            continue
+        if not any(
+            ba_path.name.startswith(f"BA-{kind}-") for kind in ITEM_BA_PATTERNS
+        ):
+            # Project-BA singleton or legacy generic BA: skip N-8.
+            continue
+        fm = parse_frontmatter(ba_path)
+        if "project-ba-ref" not in fm:
+            out.append(Finding(
+                type="item-ba-missing-project-ba-ref",
+                severity=SEVERITY_LOW,
+                file=str(ba_path.relative_to(ROOT)),
+                line=None,
+                message=(
+                    "Item-BA frontmatter has no `project-ba-ref:`. "
+                    "Set the path to the Project-BA, or `null` if no "
+                    "Project-BA exists."
+                ),
+                suggestions=[
+                    "Add `project-ba-ref: ../analysis/BA-{PROJECT}.md` to the frontmatter",
+                    "Add `project-ba-ref: null` if this is a single-item project",
+                ],
+            ))
+    return out
+
+
+def check_ba_ref_bidirectional() -> list[Finding]:
+    """N-9: each Item-BA's filename matches a backlog item, and each
+    EPIC/FEAT artefact for which an Item-BA exists carries `ba-ref:` in
+    its frontmatter pointing at the BA file. IMP/FIX BAs are optional;
+    when a BA file exists, the artefact must still link it.
+    """
+    if not ANALYSIS.exists():
+        return []
+    out: list[Finding] = []
+    for kind, (pattern, target_dir, target_prefix_template) in ITEM_BA_PATTERNS.items():
+        if not target_dir.exists():
+            continue
+        for ba_path in sorted(ANALYSIS.glob(f"BA-{kind}-*.md")):
+            m = pattern.match(ba_path.name)
+            if not m:
+                continue
+            if kind == "EPIC":
+                ee = int(m.group(1))
+                target_glob = f"EPIC-{ee:02d}-*.md"
+            elif kind == "FEAT":
+                ee, ff = int(m.group(1)), int(m.group(2))
+                suffix = m.group(3) or ""
+                target_glob = f"FEAT-{ee:02d}-{ff:02d}{suffix}-*.md"
+            else:
+                ee, ff, nn = (
+                    int(m.group(1)),
+                    int(m.group(2)),
+                    int(m.group(3)),
+                )
+                target_glob = f"{kind}-{ee:02d}-{ff:02d}-{nn:02d}-*.md"
+            matches = list(target_dir.glob(target_glob))
+            if not matches:
+                out.append(Finding(
+                    type="orphan-item-ba",
+                    severity=SEVERITY_LOW,
+                    file=str(ba_path.relative_to(ROOT)),
+                    line=None,
+                    message=(
+                        f"Item-BA file has no matching {kind} artefact "
+                        f"under {target_dir.relative_to(ROOT)}."
+                    ),
+                    suggestions=[
+                        f"Create the {kind} artefact via /requirements-engineering",
+                        "Delete the Item-BA if the work was abandoned",
+                    ],
+                ))
+                continue
+            target_path = matches[0]
+            target_fm = parse_frontmatter(target_path)
+            if not target_fm.get("ba-ref"):
+                out.append(Finding(
+                    type="missing-ba-ref",
+                    severity=SEVERITY_LOW,
+                    file=str(target_path.relative_to(ROOT)),
+                    line=None,
+                    message=(
+                        f"{kind} artefact has no `ba-ref:` in frontmatter "
+                        f"but a matching Item-BA exists at "
+                        f"{ba_path.relative_to(ROOT)}."
+                    ),
+                    suggestions=[
+                        f"Add `ba-ref: {os.path.relpath(ba_path, target_path.parent)}` to the frontmatter",
+                    ],
+                ))
+    return out
+
+
 def check_backlog_completeness() -> list[Finding]:
     out: list[Finding] = []
     backlog_ids = parse_backlog_ids()
@@ -626,6 +755,8 @@ def run_checks() -> list[Finding]:
     findings.extend(check_adr_abstraction(md_files(ARCHITECTURE)))
     findings.extend(check_backlog_completeness())
     findings.extend(check_status_coherence())
+    findings.extend(check_item_ba_frontmatter())
+    findings.extend(check_ba_ref_bidirectional())
     findings.extend(check_feature_activation_path())
     findings.extend(check_stub_fix_binding())
     return findings

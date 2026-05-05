@@ -7,7 +7,11 @@ Einzige Ausnahme: `sources/` fuer User-bereitgestellte Quellen.
 
 | Typ | Muster | Beispiele |
 |-----|--------|-----------|
-| Business Analysis | `BA-{PROJECT}.md` | `BA-myapp.md`, `BA-intranet-portal.md` |
+| Project-BA (Singleton) | `BA-{PROJECT}.md` | `BA-myapp.md`, `BA-intranet-portal.md` |
+| Item-BA fuer Epic | `BA-EPIC-{nn}-{slug}.md` | `BA-EPIC-04-onboarding.md` |
+| Item-BA fuer Feature | `BA-FEAT-{ee}-{ff}-{slug}.md` | `BA-FEAT-04-02-magic-link-login.md` |
+| Item-BA fuer Improvement | `BA-IMP-{ee}-{ff}-{nn}-{slug}.md` | `BA-IMP-04-02-01-reduce-onboarding-steps.md` |
+| Item-BA fuer Fix | `BA-FIX-{ee}-{ff}-{nn}-{slug}.md` | `BA-FIX-04-02-03-magic-link-expiry-bug.md` |
 | Exploration Board | `EXPLORE-{PROJECT}.md` | `EXPLORE-myapp.md` |
 | Security Audit | `AUDIT-{PROJECT}-{YYYY-MM-DD}.md` | `AUDIT-myapp-2026-03-22.md` |
 | Research-Notiz | `RESEARCH-{TOPIC}.md` | `RESEARCH-pricing.md` (optional, n pro Projekt) |
@@ -101,3 +105,6 @@ Einzige Ausnahme: `sources/` fuer User-bereitgestellte Quellen.
 | `FEATURE-1-1-Suche.md` | `FEAT-01-01-search.md` | 3-stellig, Englisch, kebab |
 | `BA_myapp.md` | `BA-myapp.md` | Bindestrich, nicht Unterstrich |
 | `audit-myapp.md` | `AUDIT-myapp-2026-03-22.md` | Prefix uppercase, Datum |
+| `EPIC-04-ba.md` (in `requirements/epics/`) | `BA-EPIC-04-{slug}.md` (in `analysis/`) | Item-BA lebt in `analysis/`, nicht neben dem Epic |
+| `BA-EPIC-onboarding.md` | `BA-EPIC-04-onboarding.md` | ID des Ziel-Items mitfuehren |
+| `BA-feat-04-02-login.md` | `BA-FEAT-04-02-login.md` | Item-Typ uppercase |

@@ -7,7 +7,11 @@
 │
 ├── _devprocess/                         INTERNES WISSENSARCHIV (nicht public)
 │   ├── analysis/                        Flache Ablage. Prefix pro Artefakttyp.
-│   │   ├── BA-{PROJECT}.md              Hauptdokument Business Analyse (Singleton)
+│   │   ├── BA-{PROJECT}.md              Project-BA, Singleton, Produkt-Schicht
+│   │   ├── BA-EPIC-{nn}-{slug}.md       Item-BA fuer einen neuen Epic (Pflicht vor EPIC)
+│   │   ├── BA-FEAT-{ee}-{ff}-{slug}.md  Item-BA fuer ein neues Feature (Pflicht vor FEAT)
+│   │   ├── BA-IMP-{ee}-{ff}-{nn}-{slug}.md  Item-BA fuer ein Improvement (optional)
+│   │   ├── BA-FIX-{ee}-{ff}-{nn}-{slug}.md  Item-BA fuer einen Fix (optional)
 │   │   ├── EXPLORE-{PROJECT}.md         Exploration Board (Singleton, optional)
 │   │   ├── AUDIT-{PROJECT}-{DATE}.md    Security Audit Reports (n)
 │   │   ├── RESEARCH-{TOPIC}.md          Research-Notizen (n, optional)
