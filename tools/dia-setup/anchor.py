@@ -300,11 +300,24 @@ def parse_anchor_files(toml_text: str) -> list[str]:
             return []
         return [str(f) for f in files]
     except ModuleNotFoundError:
-        match = re.search(r"anchor_files\s*=\s*\[([^\]]*)\]", toml_text)
+        # Match the entire anchor_files = [...] block (multiline). TOML
+        # accepts both basic strings ("...") and literal strings ('...')
+        # inside arrays, plus arbitrary trailing whitespace and commas.
+        match = re.search(
+            r"anchor_files\s*=\s*\[([^\]]*)\]",
+            toml_text,
+            re.DOTALL,
+        )
         if not match:
             return []
-        items = re.findall(r'"([^"]+)"', match.group(1))
-        return list(items)
+        # Pull every quoted string from the array body, accepting either
+        # quote style. Hand-edited configs with mixed quotes still load.
+        body = match.group(1)
+        items: list[str] = []
+        for token in re.finditer(r'"([^"]*)"|\'([^\']*)\'', body):
+            value = token.group(1) if token.group(1) is not None else token.group(2)
+            items.append(value)
+        return items
 
 
 def build_parser() -> argparse.ArgumentParser:

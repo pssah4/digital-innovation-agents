@@ -75,8 +75,15 @@ export const DigitalInnovationAgentsPlugin = async ({ client, directory }) => {
       try {
         if (fs.existsSync(candidate)) {
           const text = fs.readFileSync(candidate, 'utf8');
-          const match = text.match(/^[ \t]*mode\s*=\s*"(off|git-only|github-sync)"/m);
-          return match ? match[1] : 'git-only';
+          // TOML accepts both basic strings (mode = "off") and literal
+          // strings (mode = 'off'). The template uses double quotes,
+          // but the comment explicitly invites hand edits, so we honor
+          // both shapes here too.
+          const match = text.match(
+            /^[ \t]*mode\s*=\s*(?:"(off|git-only|github-sync)"|'(off|git-only|github-sync)')/m,
+          );
+          if (match) return match[1] || match[2];
+          return 'git-only';
         }
       } catch {
         // ignore and walk up

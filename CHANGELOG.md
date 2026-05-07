@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (sixth review pass)
+
+- **TOML single-quoted strings now parse in every fallback.**
+  `/dia-setup` writes double quotes, but `.dia/config.toml`
+  invites hand edits and TOML accepts both
+  `mode = "off"` and `mode = 'off'`. The Python-3.9 fallback
+  branches in flow.py and the regex-only fallback in
+  `tools/dia-setup/anchor.py`, plus the OpenCode plugin's
+  `readDiaMode`, only matched double quotes. A hand edit with
+  single quotes silently broke deactivation and project sync.
+- New shared helper `_toml_string_fallback(key, text)` in flow.py
+  matches both quote styles and returns the captured value or
+  `None`. The three callers (`read_dia_mode`,
+  `read_dia_github_config`, `read_source_branch`) use it,
+  `project_number` keeps its integer-literal regex.
+- `tools/dia-setup/anchor.py parse_anchor_files` accepts mixed
+  quote styles inside the `anchor_files = [...]` array. A hand
+  edit with `'CLAUDE.md'` next to `"AGENTS.md"` loads cleanly.
+- The OpenCode plugin's mode regex now reads
+  `mode = "..."` and `mode = '...'`. Sandbox-tested with both
+  shapes; default fallback (no config or unrecognised value) is
+  unchanged at `git-only`.
+- The SessionStart hook already accepted both quote styles via
+  the existing `'"off"|'\''off'\'''` shell pattern; no change
+  needed there.
+
 ### Fixed (fifth review pass)
 
 - **`consistency-check --fix` preserves reverse-engineering markers.**

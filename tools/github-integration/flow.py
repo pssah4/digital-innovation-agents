@@ -84,10 +84,31 @@ def read_dia_mode() -> str:
         if mode in ("off", "git-only", "github-sync"):
             return mode
     except ModuleNotFoundError:
-        match = re.search(r'mode\s*=\s*"([^"]+)"', text)
-        if match and match.group(1) in ("off", "git-only", "github-sync"):
-            return match.group(1)
+        value = _toml_string_fallback("mode", text)
+        if value in ("off", "git-only", "github-sync"):
+            return value
     return "git-only"
+
+
+# TOML allows both `key = "value"` (basic) and `key = 'value'` (literal).
+# /dia-setup writes double quotes, but the template explicitly invites
+# hand edits. The fallback parsers below need to match both shapes.
+
+
+def _toml_string_fallback(key: str, text: str) -> str | None:
+    """Find a top-level `key = "value"` or `key = 'value'` line.
+
+    Lightweight, regex-only, used when tomllib is unavailable
+    (Python < 3.11). Returns the captured string or None.
+    """
+    pattern = re.compile(
+        rf'^[ \t]*{re.escape(key)}\s*=\s*(?:"([^"]*)"|\'([^\']*)\')',
+        re.MULTILINE,
+    )
+    match = pattern.search(text)
+    if not match:
+        return None
+    return match.group(1) if match.group(1) is not None else match.group(2)
 
 
 def read_dia_github_config() -> dict:
@@ -108,12 +129,20 @@ def read_dia_github_config() -> dict:
     except ModuleNotFoundError:
         # Minimal regex scan for systems without tomllib (Python < 3.11).
         # Reads the keys flow.py actually consumes; do not extend this
-        # list without also extending the consumers.
+        # list without also extending the consumers. Accepts both
+        # double-quoted and single-quoted TOML strings; project_number
+        # is read as an integer literal.
         out: dict = {}
-        for key in ("project_number", "status_field", "project_owner"):
-            m = re.search(rf'{key}\s*=\s*("([^"]*)"|(\d+))', text)
-            if m:
-                out[key] = m.group(2) if m.group(2) is not None else int(m.group(3))
+        for key in ("status_field", "project_owner"):
+            value = _toml_string_fallback(key, text)
+            if value is not None:
+                out[key] = value
+        m = re.search(
+            rf'^[ \t]*project_number\s*=\s*(\d+)',
+            text, re.MULTILINE,
+        )
+        if m:
+            out["project_number"] = int(m.group(1))
         return out
 
 
@@ -137,8 +166,8 @@ def read_source_branch() -> str:
         sb = data.get("source_branch", "develop")
         return str(sb) if sb else "develop"
     except ModuleNotFoundError:
-        m = re.search(r'source_branch\s*=\s*"([^"]+)"', text)
-        return m.group(1) if m else "develop"
+        value = _toml_string_fallback("source_branch", text)
+        return value if value else "develop"
 
 
 def mode_active_or_skip(action: str) -> bool:
