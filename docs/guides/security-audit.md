@@ -94,7 +94,7 @@ with fresh output before claiming the finding is closed. See
 Ends with the 4-part [Handoff Ritual](../concepts/handoff-rituals):
 artifact report, handoff context appended to `HANDOFFS.md`,
 phase-end commit (`chore(sec): {ITEM-ID} security complete`) plus
-`tag-phase --phase sec`, transition question. The guide runs
+`tag-phase --phase sec` and `sync-status --item {ITEM-ID}` (no-op outside `mode = "github-sync"`), transition question. The guide runs
 `/consistency-check` Mode A on the changed artifacts at the
 boundary.
 

@@ -11,13 +11,21 @@ coding tool to see autocomplete suggestions. The thirteen skills
 group into guide, brownfield entries, V-Model phase skills,
 and foundation skills.
 
+## Activation
+
+| Command | When to use |
+|---|---|
+| `/dia-setup` | First call in any new project. Writes `.dia/config.toml` with one of three modes (`off`, `git-only`, `github-sync`) and manages anchor blocks in agent files (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.windsurfrules`). Re-run any time to change the mode or remove the anchors. |
+
+See [dia-setup guide](../guides/dia-setup) and [Three modes](../concepts/three-modes).
+
 ## Guide and entry points
 
 | Command | When to use |
 |---|---|
 | `/dia-guide` | Starting a new project, running the full cycle, or resuming an interrupted workflow. Drives phase transitions, mandatory phase-boundary consistency checks, GitHub flow.py integration, and ends with the Closing Handoff. |
 | `/reverse-engineering` | Brownfield entry. Walks the V backwards over an existing codebase. Produces wayfinder, ADRs, arc42, FEAT inventory, backlog seed, evidence-based BA draft. Every claim sourced. |
-| `/dia-migration` | Existing DIA users upgrading between versions (v1 -> v2 -> v3). Renames `FEATURE-NNNN` to `FEAT-EE-FF`, flattens analysis, regenerates the backlog, runs graph-health. Idempotent, branch-safe. |
+| `/dia-migration` | Existing DIA users upgrading between versions (v1 -> v2 -> v3). Renames `FEATURE-NNNN` to `FEAT-EE-FF`, flattens analysis, regenerates the backlog, runs graph-health. Stage 5b migrates the BACKLOG status vocabulary to the GitHub-aligned set. Idempotent, branch-safe. |
 
 See [V-Model workflow guide](../guides/dia-guide),
 [Reverse Engineering guide](../guides/reverse-engineering), and
@@ -37,7 +45,28 @@ See [V-Model workflow guide](../guides/dia-guide),
 Each phase skill ends with a **4-part Handoff Ritual**: artifact
 report, handoff context appended to `HANDOFFS.md`, phase-end commit
 (canonical `{type}({phase}): {ITEM-ID} {phase} complete`) plus
-`tag-phase` call, transition question.
+`tag-phase` followed by `sync-status`, transition question.
+
+## flow.py subcommands (mode-aware GitHub integration)
+
+`tools/github-integration/flow.py` is the team-collaboration driver.
+It reads `.dia/config.toml` and skips GitHub-touching subcommands
+when the mode is not `github-sync`. Skills call it during the
+Handoff Ritual; you can also invoke it directly.
+
+| Subcommand | What it does | Mode requirement |
+|---|---|---|
+| `create-issue --item ID` | Create a GitHub issue for the backlog item, add `gh project item-add` if `[github] project_number` is set in `.dia/config.toml` | `github-sync` |
+| `tag-phase --item ID --phase PHASE` | Set the local annotated git tag `<id-lower>/<phase>-done`. Phases: `ba`, `re`, `arch`, `code`, `test`, `sec`, `ready-for-review`. Legacy `audit` accepted as alias for `sec` | `git-only` or `github-sync` |
+| `sync-status --item ID` | Mirror BACKLOG Status to the GitHub issue state and the configured Project Status field; pull GitHub Assignee back into the BACKLOG Claim column. Clears Claim on `Done` or when no Assignee is set | `github-sync` |
+| `promote-to-epic --item EPIC-NN [--rename-branch]` | After RE: rename the parent issue to `EPIC-NN: {title}`, create one sub-issue per FEAT and IMP under the EPIC, write a `## Sub-Issues` tasklist into the parent body, optionally rename the feature branch to `feature/epic-NN-<slug>` | `github-sync` |
+| `open-draft-pr --item ID` | Open a draft PR against the configured `source_branch` (default `develop`) | `github-sync` |
+| `ready-for-review --item ID [--with-sec]` | Verify the required phase tags are set (`code-done`, `test-done`, optionally `sec-done`); flip the draft PR to ready. Legacy `--with-audit` accepted as alias for `--with-sec` | `github-sync` |
+| `validate-fix --item FIX-EE-FF-NN` | Hotfix-scoped consistency check: BACKLOG row exists with refs to parent FEAT, at least one commit on the branch cites the FIX-id, no orphan `FIXME(stub):` references the id, GitHub issue exists in `github-sync` | always |
+| `status --item ID` | Print branch, phase tags, and GitHub issue state for the item | `git-only` or `github-sync` |
+
+`validate-fix` always runs the local checks; the GitHub-side
+issue check is gated on `github-sync`.
 
 ## Foundation skills
 

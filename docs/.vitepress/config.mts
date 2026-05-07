@@ -20,6 +20,12 @@ const guidesSidebar = [
     ],
   },
   {
+    text: 'Activation',
+    items: [
+      { text: 'dia-setup', link: '/guides/dia-setup' },
+    ],
+  },
+  {
     text: 'Guide',
     items: [
       { text: 'V-Model workflow guide', link: '/guides/dia-guide' },
@@ -101,11 +107,18 @@ const conceptsSidebar = [
     ],
   },
   {
+    text: 'Activation and modes',
+    items: [
+      { text: 'Three modes', link: '/concepts/three-modes' },
+    ],
+  },
+  {
     text: 'Discipline patterns',
     items: [
       { text: 'Tech-agnostic Requirements', link: '/concepts/tech-agnostic-requirements' },
       { text: 'Handoff Rituals', link: '/concepts/handoff-rituals' },
       { text: 'Verification Gates', link: '/concepts/verification-gates' },
+      { text: 'Hotfix lane', link: '/concepts/hotfix-lane' },
     ],
   },
 ]

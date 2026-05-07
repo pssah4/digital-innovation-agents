@@ -160,7 +160,7 @@ first, substance second):
 Ends with the 4-part [Handoff Ritual](../concepts/handoff-rituals):
 artifact report, handoff context appended to `HANDOFFS.md`,
 phase-end commit (`test: {ITEM-ID} testing complete`) plus
-`tag-phase --phase test`, transition question. The guide
+`tag-phase --phase test` and `sync-status --item {ITEM-ID}` (no-op outside `mode = "github-sync"`), transition question. The guide
 runs `/consistency-check` Mode A on the changed artifacts at the
 boundary. The next phase is [`/security-audit`](./security-audit).
 The handoff context documents any accepted coverage gaps with

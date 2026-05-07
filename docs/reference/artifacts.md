@@ -240,6 +240,70 @@ project name.
 
 The `/project-conventions` skill runs this for you if you invoke it.
 
+## `.dia/config.toml` (activation surface)
+
+Separate from the V-Model artifact tree, every DIA-aware project
+carries one configuration file at the repo root:
+
+```
+{project}/
+  .dia/
+    config.toml                      Mode, anchor files, source branch, GitHub project
+```
+
+This file is written by `/dia-setup` and committed to the repo so
+the team shares the active mode. Schema:
+
+```toml
+mode = "git-only"                    # "off" | "git-only" | "github-sync"
+
+anchor_files = [                     # files that carry a managed
+  "CLAUDE.md",                       # anchor block; managed by
+  "AGENTS.md",                       # tools/dia-setup/anchor.py
+  "GEMINI.md",
+  ".cursorrules",
+]
+
+source_branch = "develop"            # base for new feature branches
+                                     # and the draft-PR target
+
+[github]                             # only honored in github-sync
+project_number = 7                   # GitHub Projects v2 number
+status_field = "Status"              # single-select field name
+```
+
+See [Three modes](../concepts/three-modes) for what each value
+means and [dia-setup guide](../guides/dia-setup) for how the file
+is created.
+
+## BACKLOG status vocabulary
+
+The Status column in `BACKLOG.md` and the GitHub Project Status
+field share one vocabulary:
+
+| Status      | Meaning                                          |
+|-------------|--------------------------------------------------|
+| `Backlog`   | Captured but not yet prioritized; also where blocked or deferred items rest |
+| `Ready`     | Prioritized, scheduled for an iteration, free to claim |
+| `In Progress` | Someone is actively working on this item       |
+| `In Review` | PR open, awaiting review or quality gates        |
+| `Done`      | Merged, finished. Row stays under its Epic.      |
+
+Projects that predate the stage-3 migration may still carry the
+legacy values (`Planned`, `Active`, `Review`, `Waiting`,
+`Deferred`). Run
+`tools/migration/migrate_status_vocabulary.py` (or `/dia-migration`,
+which calls it as Phase 5b) to migrate. `flow.py sync-status`
+includes a legacy translation table that resolves the old values
+until the migration runs.
+
+The independent **Phase column** (`Released`, `Building`,
+`Planned`, `Candidates`) describes the epic-level temporal stage of
+an item and is orthogonal to Status. The phase tags
+(`<id>/ba-done`, ..., `<id>/sec-done`) are git tags, not column
+values; they record which V-Model phases are complete for the
+item.
+
 ## See also
 
 - [Conventions](./conventions): naming rules, frontmatter, language

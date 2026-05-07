@@ -274,7 +274,7 @@ Gate failures are never suppressed. The skill reopens the failing section instea
 
 ## Handoff
 
-`/architecture` ends with the standard four-part [Handoff Ritual](../concepts/handoff-rituals): artifact report, handoff context appended to `HANDOFFS.md`, phase-end commit (`chore(arch): {ITEM-ID} ARCH complete`) plus `tag-phase --phase arch`, transition question. The guide runs `/consistency-check` Mode A on the changed artifacts at the boundary.
+`/architecture` ends with the standard four-part [Handoff Ritual](../concepts/handoff-rituals): artifact report, handoff context appended to `HANDOFFS.md`, phase-end commit (`chore(arch): {ITEM-ID} ARCH complete`) plus `tag-phase --phase arch` and `sync-status --item {ITEM-ID}` (no-op outside `mode = "github-sync"`), transition question. The guide runs `/consistency-check` Mode A on the changed artifacts at the boundary.
 
 The handoff context entry in `_devprocess/context/HANDOFFS.md` is particularly rich because it captures decisions the next phase must not re-litigate:
 
