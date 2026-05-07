@@ -54,6 +54,7 @@ stage 1.
 | `status`             | `/dia-guide` post-phase audit, or user query                                |
 | `sync-status`        | After every Handoff Ritual; mirrors backlog Status to issue / project      |
 | `promote-to-epic`    | After RE finishes for a new EPIC; renames parent, creates sub-issues       |
+| `validate-fix`       | After a hotfix lands; hotfix-scoped consistency check                      |
 
 All subcommands take `--item <ID>` (e.g. `--item FEAT-04-09`) and
 are idempotent.
@@ -121,6 +122,31 @@ status_field = "Status"
 Without a `project_number`, only the issue state (open / closed) is
 mirrored. With it, `sync-status` resolves the project owner from the
 repo, looks up the field id, and sets the single-select option.
+
+## validate-fix
+
+Hotfix-scoped consistency check. Hotfixes skip the V-Model phases,
+so `/consistency-check` mode A has no automatic trigger for them.
+`validate-fix` performs the minimum check the standard flow would
+have done. Run after the hotfix commit lands and (in github-sync
+mode) the issue is created.
+
+```
+python3 tools/github-integration/flow.py validate-fix --item FIX-NN-NN-NN
+```
+
+Checks:
+
+1. The FIX row exists in `BACKLOG.md` with correct id and references
+   the parent FEAT in the Refs column.
+2. At least one commit on the current branch cites the FIX id in
+   the subject or `Refs:` trailer.
+3. No `FIXME(stub):` referencing this FIX id exists in the codebase
+   without the matching BACKLOG row.
+4. In `mode = "github-sync"`: a GitHub issue exists for the FIX id.
+
+Output is JSON with `ok: true|false` and a `findings` list. Exit
+code is non-zero if any finding fires.
 
 ## promote-to-epic
 

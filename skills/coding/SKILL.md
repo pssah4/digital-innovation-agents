@@ -155,12 +155,61 @@ When all five criteria hold, the flow is:
      --label "fix,hotfix"`), then run
      `python3 tools/github-integration/flow.py sync-status --item
      FIX-{ee}-{ff}-{nn}`.
+   - **Always** (in any mode) close with
+     `python3 tools/github-integration/flow.py validate-fix --item
+     FIX-{ee}-{ff}-{nn}` to run the hotfix-scoped consistency check
+     described below.
 3. **Acknowledge** in chat: list the modified files, the FIX-ID,
-   and the issue URL (if created).
+   the issue URL (if created), and the validate-fix verdict.
 
 The hotfix lane does **not** suspend the regression-test cycle
 (Phase 4b). If the bug is non-trivial enough to need a regression
 test, write it; the 15-minute budget includes the test.
+
+Four consistency mechanisms keep the hotfix lane safe even when
+the V-Model phases are skipped:
+
+1. **FIX-Row in `BACKLOG.md` (mandatory, even retroactively).**
+   Every fix gets a BACKLOG row with full ID `FIX-{ee}-{ff}-{nn}`,
+   either before the fix (standard lane) or right after
+   (hotfix lane). The row is the anchor that
+   `/consistency-check` mode A uses to find and validate the fix.
+2. **Commit cites the FIX-ID.** The commit message subject and
+   `Refs:` trailer both name the FIX, the parent FEAT, and any
+   other affected artifact:
+   ```
+   fix: FIX-05-02-01 button click handler null check
+
+   Refs: FIX-05-02-01, FEAT-05-02
+   ```
+   Git history and BACKLOG.md stay synchronized through the cite.
+3. **Deferred-stub marker (bidirectional binding).** If the fix
+   leaves a temporary stub, `/consistency-check` mode A enforces
+   the link in both directions:
+   - code marker `// FIXME(stub): <reason> -- see FIX-05-02-01`
+   - the FIX row points back at the stub via the Notes column
+   A missing pair triggers `stub-without-fix-row` or
+   `fix-without-stub-evidence`.
+4. **Regression-test cycle.** Hotfixes still run the Phase 4b
+   3-run cycle (write test, run passes, revert fix run fails,
+   restore fix run passes). The FIX detail file gets a
+   `## Regression test` entry confirming the cycle.
+
+The gap. `/consistency-check` mode A normally fires at the end of
+every phase. Hotfixes have no phase boundary, so the check has no
+automatic trigger. To close the gap, the hotfix flow runs
+`flow.py validate-fix --item FIX-{ee}-{ff}-{nn}` right after the
+GitHub issue is created. The subcommand performs a hotfix-scoped
+mode-A check:
+
+- FIX row exists in BACKLOG.md with the correct id and refs
+- at least one commit on the current branch cites the FIX id in
+  the subject or `Refs:` trailer
+- no `FIXME(stub):` referencing this FIX-id exists in the codebase
+  without a matching FIX row
+
+The validate-fix call is part of the hotfix lane's mandatory
+post-fix steps; it is not optional.
 
 Anti-misuse signal. The directions meeting reviews the share of
 hotfix-lane FIX items per iteration. If hotfixes account for more

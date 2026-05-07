@@ -34,6 +34,25 @@ The backlog truth lives in `_devprocess/context/BACKLOG.md` (in the
 repo). GitHub is the team-collaboration layer on top: every backlog
 item gets a GitHub issue, a project card, and eventually a PR.
 
+### Source of truth split (binding)
+
+Status and Claim are mirrored between BACKLOG.md and GitHub, but
+each has a single source of truth:
+
+- **Status**: BACKLOG.md is canonical. `flow.py sync-status` writes
+  to GitHub (issue state, project Status field). The reverse is not
+  performed: a status edit on GitHub does not flow back into the
+  backlog.
+- **Claim**: GitHub Assignee is canonical. `flow.py sync-status`
+  reads the Assignee and writes it into the BACKLOG `Claim` column
+  as `{login} @ {YYYY-MM-DD}`. The reverse is not performed: a
+  Claim edited only in BACKLOG.md is not pushed to GitHub.
+
+This asymmetry is deliberate: skills write to BACKLOG.md as part
+of their Handoff Ritual; team members assign themselves on the
+GitHub UI. Each side touches the format that fits its workflow,
+the sync mirrors them.
+
 ### Issue creation
 
 Triggered by the first skill that touches a NEW backlog item
@@ -120,6 +139,25 @@ ritual, the skill sets a git tag pointing at the last commit of
 that phase. Tags are annotated (not lightweight), carry a one-line
 message describing what the phase delivered, and are pushed with
 the next push.
+
+### "Phase" disambiguation (binding terminology)
+
+The word "Phase" carries two meanings in DIA, and they are NOT the
+same:
+
+- **Phase tag** (this section). A git tag of the form
+  `<item-id-lower>/<phase>-done` set at the end of each V-Model
+  phase. Used by `/dia-guide` and `flow.py` to know which phases
+  are complete for a given item. Examples: `feat-04-09/ba-done`,
+  `feat-04-09/code-done`.
+- **Phase column in `BACKLOG.md`**. A separate column with values
+  `Released`, `Building`, `Planned`, `Candidates` describing the
+  epic-level temporal stage of the item. Independent from the phase
+  tags.
+
+When a document says "Phase: Building", it refers to the BACKLOG
+column. When it says "Phase tag" or "phase-done tag", it refers to
+the git tag. Phase tags do not change the BACKLOG Phase column.
 
 ### Tag schema
 

@@ -876,6 +876,85 @@ def slugify(text: str) -> str:
     return text.strip("-") or "untitled"
 
 
+# ---------- Subcommand: validate-fix ------------------------------------
+
+FIX_ID_RE = re.compile(r"^FIX-\d{2}-\d{2}-\d{2}$")
+
+
+def cmd_validate_fix(args: argparse.Namespace) -> int:
+    """Hotfix-scoped consistency check for a FIX row.
+
+    Hotfixes skip the V-Model phases, so /consistency-check mode A
+    has no natural trigger for them. validate-fix performs the
+    minimum set of checks that the standard flow would have done:
+      - the FIX row exists in BACKLOG.md with correct id and refs
+      - at least one commit on the current branch cites the FIX id
+      - no FIXME(stub) referencing this id exists without a row
+
+    Mode-aware: the local checks always run. The GitHub-side issue
+    presence check only runs in mode = "github-sync".
+    """
+    item = normalize_item(args.item)
+    if not FIX_ID_RE.match(item):
+        print(f"[validate-fix] only FIX-EE-FF-NN ids are supported, got {item}",
+              file=sys.stderr)
+        return 1
+    findings: list[str] = []
+
+    # 1. Backlog row presence + refs sanity.
+    row = find_backlog_row(item)
+    if not row:
+        findings.append(f"missing BACKLOG row for {item}")
+    else:
+        cols = parse_backlog_columns(row)
+        refs = cols.get("refs", "")
+        feat_pattern = "FEAT-" + "-".join(item.split("-")[1:3])  # FEAT-EE-FF
+        if feat_pattern not in refs:
+            findings.append(
+                f"BACKLOG row for {item} does not reference parent {feat_pattern} in Refs"
+            )
+
+    # 2. Commit on current branch cites the FIX id.
+    try:
+        log_out = run([
+            "git", "log", "--format=%s%n%b", "--no-merges", "-50",
+        ]).stdout
+    except subprocess.CalledProcessError:
+        log_out = ""
+    if item not in log_out:
+        findings.append(
+            f"no commit on the current branch cites {item} in subject or body"
+        )
+
+    # 3. Stub markers without a row.
+    try:
+        grep_out = run([
+            "git", "grep", "-n", "-E", "FIXME\\(stub\\)",
+        ], check=False).stdout
+    except subprocess.CalledProcessError:
+        grep_out = ""
+    for line in grep_out.splitlines():
+        match = re.search(r"FIX-\d{2}-\d{2}-\d{2}", line)
+        if match:
+            stub_id = match.group(0)
+            if stub_id == item and not row:
+                findings.append(
+                    f"FIXME(stub) cites {item} but the BACKLOG row is missing"
+                )
+
+    # 4. Optional GitHub-side check.
+    if read_dia_mode() == "github-sync" and gh_repo_configured():
+        issue = find_issue_for_item(item)
+        if not issue:
+            findings.append(f"no GitHub issue found for {item}")
+
+    if findings:
+        print(json.dumps({"item": item, "ok": False, "findings": findings}, indent=2))
+        return 1
+    print(json.dumps({"item": item, "ok": True, "findings": []}, indent=2))
+    return 0
+
+
 # ---------- Subcommand: status ------------------------------------------
 
 def cmd_status(args: argparse.Namespace) -> int:
@@ -949,6 +1028,13 @@ def main() -> int:
     p7.add_argument("--rename-branch", action="store_true",
                     help="rename the current feature branch to feature/epic-NN-<slug>")
     p7.set_defaults(func=cmd_promote_to_epic)
+
+    p8 = sub.add_parser(
+        "validate-fix",
+        help="Hotfix-scoped consistency check: BACKLOG row, commit cite, stub markers, optional GitHub issue",
+    )
+    p8.add_argument("--item", required=True, help="FIX-EE-FF-NN")
+    p8.set_defaults(func=cmd_validate_fix)
 
     args = p.parse_args()
     return args.func(args)

@@ -72,9 +72,9 @@ lives in the audit report. Status, phase, last-change, claim, and
 commit SHA live in the backlog row.
 
 A High finding that the team explicitly decides not to fix in this
-cycle stays in the backlog with `Status: Deferred` and a reason
-recorded in the audit report. There is no silent "we'll get to it"
-state.
+cycle stays in the backlog with `Status: Backlog` and a reason
+recorded in the audit report (Notes column). There is no silent
+"we'll get to it" state.
 
 ## Fix-loop
 

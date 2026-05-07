@@ -77,6 +77,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fails, the standard capture-then-fix path applies. Anti-misuse
   signal: the directions meeting flags iterations where hotfixes
   exceed 30% of the work as a quality-debt item.
+- **Four hotfix consistency mechanisms documented.** The Hotfix
+  lane section now lists explicitly: the FIX-Row in BACKLOG.md is
+  mandatory even retroactively; the commit cites the FIX-id in
+  subject and `Refs:`; deferred-stub markers bind bidirectionally
+  with the FIX row; the regression-test cycle still runs.
+- **`flow.py validate-fix` (new).** Hotfix-scoped consistency
+  check that runs after the hotfix commit lands. Verifies the FIX
+  row exists with correct refs, at least one commit on the branch
+  cites the FIX id, no orphan `FIXME(stub):` references this id,
+  and (in `github-sync` mode) the GitHub issue exists. Closes the
+  gap that `/consistency-check` mode A normally fills at phase
+  boundaries; hotfixes have no phase boundary.
+- **`/coding` Hotfix step 2** now ends with a `flow.py validate-fix`
+  call as a mandatory closing step.
+- **`team-workflow.md`** disambiguates the word "Phase" (binding):
+  "Phase tag" is the git tag `<id>/<phase>-done`; "Phase" without
+  qualifier in the BACKLOG context is the column with values
+  Released/Building/Planned/Candidates. The two are independent.
+  Resolves the K1 inconsistency from the workflow improvement plan.
+- **K2 documented**: source of truth split between Status (BACKLOG
+  is canonical) and Claim (GitHub Assignee is canonical). The
+  asymmetry is now an explicit binding rule in team-workflow.md.
+- **Doc sweep** for residual legacy status references in
+  `docs/concepts/three-layer-documentation.md`,
+  `docs/guides/security-audit.md`,
+  `docs/guides/consistency-check.md`.
 - **BACKLOG status vocabulary migrated to the GitHub-aligned set.**
   The Status column now reads `Backlog`, `Ready`, `In Progress`,
   `In Review`, `Done`, matching GitHub Project boards 1:1. The old
