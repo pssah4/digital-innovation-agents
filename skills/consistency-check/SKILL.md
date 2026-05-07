@@ -93,6 +93,11 @@ types automatically, without asking:
   Backlog row is the single source of truth. The fix lifts the
   current value from the artifact into the backlog row only if no
   row exists yet; otherwise it just removes the duplicate.
+  **Reverse-engineering exception** (graph-invariants N-10 / N-11):
+  values starting with `Anticipated`, `Observed`, `Inferred`, or
+  `Draft (reverse-engineered, ...)` are validation markers that
+  `/business-analysis` strips after validation. The autofix keeps
+  them and only removes generic lifecycle status / phase entries.
 - Backlog row missing for an existing artifact file: create the row
   with `status: Ready`, `phase: Building` defaults, place under
   the matching Epic section.

@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (seventh review pass)
+
+- **graph-invariants Edge-Invarianten now consistent with N-10/N-11.**
+  E-7 previously compared the BACKLOG Feature row's `Phase` column
+  against the Feature frontmatter `phase:` field. With N-10
+  forbidding `phase:` in Feature frontmatter, that comparison made
+  no sense. E-7 now compares the FEAT row's Phase against the Phase
+  in the Epic header above it (worst-wins derivation). E-8
+  reorientes the Epic-header Phase against its child FEAT rows.
+  E-9 recomputes dashboard counts from BACKLOG rows directly
+  rather than from frontmatters. The implementation in
+  consistency-check.py does not yet exercise these invariants;
+  whoever implements them now has the correct target.
+- **`validate-fix` mode semantics aligned across docs and code.**
+  The code lets local checks (BACKLOG row, commit cite,
+  `FIXME(stub)` markers) run in every mode and only gates the
+  GitHub-issue check on `mode = "github-sync"`. flow.py README
+  now describes that explicitly: GitHub-only subcommands are
+  no-ops in `off`/`git-only`, but `validate-fix` always runs the
+  local checks. The `three-modes.md` table got a dedicated
+  validate-fix row showing `local-only / local-only / full`.
+- **`docs/concepts/three-modes.md` end-to-end run table.** New
+  section spells out what really happens in `github-sync` step by
+  step: hook injection, branch creation, create-issue, every
+  Handoff Ritual's `tag-phase` + `sync-status`, post-RE
+  `promote-to-epic`, draft PR, ready-for-review, hotfix lane's
+  `validate-fix`, and the post-merge `apply-renumber` for issue
+  titles plus parent-body Sub-Issues tasklists.
+- **`docs/reference/conventions.md` and `docs/guides/dia-guide.md`
+  flow.py reference list rewritten.** The previous lists referred
+  to `--phase plan` (never existed) and `flow.py claim --pair`
+  (never implemented). Both now name the actual subcommands
+  (`create-issue`, `tag-phase`, `sync-status`, `promote-to-epic`,
+  `open-draft-pr`, `ready-for-review`, `validate-fix`,
+  `apply-renumber`) and explain that Claim flows from the GitHub
+  Assignee through `sync-status`.
+- **`/consistency-check` SKILL.md autofix description names the
+  reverse-engineering exception.** The text previously said
+  status/phase frontmatter is removed without qualification; now
+  it explicitly lists the validation markers (`Anticipated`,
+  `Observed`, `Inferred`, `Draft (reverse-engineered, ...)`) the
+  autofix keeps, matching graph-invariants N-10/N-11 and the
+  helper introduced in stage 14.
+
 ### Fixed (sixth review pass)
 
 - **TOML single-quoted strings now parse in every fallback.**

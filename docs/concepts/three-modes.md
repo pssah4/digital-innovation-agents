@@ -21,13 +21,39 @@ same skill. The mode is a single line in `.dia/config.toml`.
 | BACKLOG.md, FEAT specs, ADRs, plans get written | yes | yes | yes |
 | `flow.py tag-phase` sets the local phase tag | no | yes | yes |
 | `flow.py status` reports on tags and branch | no | yes | yes |
-| `flow.py create-issue`, `open-draft-pr`, `sync-status`, `promote-to-epic`, `validate-fix` | no | no | yes |
+| `flow.py create-issue`, `open-draft-pr`, `sync-status`, `promote-to-epic` | no | no | yes |
+| `flow.py validate-fix` (local checks always run, GitHub-issue check only in github-sync) | local-only | local-only | full |
 | GitHub issue created per backlog item | no | no | yes |
 | Sub-issues + tasklist on the parent EPIC | no | no | yes |
 | GitHub Project Status field mirrored from BACKLOG | no | no | yes |
 | Claim column populated from GitHub Assignee | no | no | yes |
 | Local git hooks (`pre-commit`, `pre-merge-commit`) | independent | independent | independent |
 | `scripts/merge-to-dev.sh` | independent | independent | independent |
+
+## End-to-end run in `github-sync` (what really happens)
+
+When `mode = "github-sync"` is active, the workflow runs through
+without manual intervention beyond the standard skill prompts.
+This table maps each step to the visible side-effect on GitHub.
+
+| Step | Skill or script | Effect (in `github-sync`) |
+|---|---|---|
+| Session start | SessionStart hook | Bootstrap skill is injected; the agent learns the skill catalog and `DIA_PLUGIN_ROOT` |
+| Item start (entry A/B/C) | `/dia-guide` | New feature branch from the configured `source_branch` (default `develop`) |
+| First skill writes a backlog row | the phase skill | `flow.py create-issue --item <ID>` creates the GitHub issue, plus `gh project item-add` if `project_number` is set |
+| Each phase Handoff Ritual ends | the phase skill | `flow.py tag-phase --phase <X>` (annotated tag, issue label updated, checklist ticked, `phase:planned` removed) AND `flow.py sync-status --item <ID>` (mirror BACKLOG Status to issue and Project Status field, pull GitHub Assignee back into BACKLOG Claim, clear Claim on Done or no-assignee) |
+| End of `/requirements-engineering` (when EPIC ID becomes known) | `/requirements-engineering` | `flow.py promote-to-epic --item EPIC-NN --rename-branch` rewrites the parent issue title to `EPIC-NN: <title>`, creates a sub-issue per FEAT/IMP, writes a `## Sub-Issues` tasklist into the parent body, renames the feature branch to `feature/epic-NN-<slug>` |
+| First commit on the feature branch | `/coding` (or manual) | `flow.py open-draft-pr --item <ID>` opens the draft PR against `source_branch` |
+| All required phase tags set | Closing Handoff | `flow.py ready-for-review --item <ID> [--with-sec]` verifies tags exist, flips draft -> ready, sets the `<id>/ready-for-review` tag |
+| Hotfix lane closes | `/coding` | `flow.py validate-fix --item FIX-EE-FF-NN` runs all four checks: BACKLOG row with parent-FEAT refs, commit cites the FIX id, no orphan `FIXME(stub):`, GitHub issue exists |
+| `scripts/merge-to-dev.sh <branch>` runs | the merge wrapper | `tools/renumber-for-merge.py --plan-out FILE` aligns ids; merge happens; `flow.py apply-renumber --plan FILE` rewrites GitHub issue titles AND parent-body Sub-Issues tasklist according to the renumber map. Plan file is preserved at `.dia/last-renumber-plan.json` on failure for retry. |
+
+The only one-time setup that does not happen automatically in
+`github-sync` is the GitHub Project board configuration. `/dia-setup`
+asks for `project_number`, `status_field` (default `Status`), and
+optional `project_owner` once via `AskUserQuestion`. With
+`project_number = 0` the issue itself still syncs; only the project
+Status field stays untouched.
 
 ## Which mode for which situation
 

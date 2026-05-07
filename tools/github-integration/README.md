@@ -31,13 +31,20 @@ re-run `create-issue` and tags will sync.
 flow.py reads `.dia/config.toml` (managed by `/dia-setup`) and
 respects the `mode` setting:
 
-- `off`: every subcommand is a no-op with a clear message.
-- `git-only`: GitHub-only subcommands (`create-issue`,
-  `open-draft-pr`, `ready-for-review`, `sync-status`,
-  `promote-to-epic`) are no-ops. `tag-phase` and
+- `off`: GitHub-only subcommands (`create-issue`, `open-draft-pr`,
+  `ready-for-review`, `sync-status`, `promote-to-epic`,
+  `apply-renumber`) are no-ops. `tag-phase` and `status` are also
+  no-ops in `off` per the three-modes contract. Exception:
+  `validate-fix` runs its local checks (BACKLOG row, commit cite,
+  FIXME stub markers) in every mode; only the GitHub-issue check
+  is skipped in `off` and `git-only`.
+- `git-only`: GitHub-only subcommands stay no-ops. `tag-phase` and
   `status` work locally so phase-end commits keep their tags.
-- `github-sync`: full behaviour. Issues, PRs, project field, tasklist
-  rollups all sync.
+  `validate-fix` runs the local checks; the GitHub-issue check is
+  skipped.
+- `github-sync`: full behaviour. Issues, PRs, project field,
+  tasklist rollups, `validate-fix` GitHub-issue check, and the
+  post-merge `apply-renumber` all sync.
 
 If `.dia/config.toml` is missing, the script falls back to
 `git-only` for backwards compatibility with setups created before
