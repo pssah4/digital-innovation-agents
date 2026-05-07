@@ -268,15 +268,36 @@ tag-phase --phase {phase}` to attach the `<id>/{phase}-done` tag.
 ## GitHub integration
 
 Phase skills coordinate with GitHub through
-`tools/github-integration/flow.py`:
+`tools/github-integration/flow.py`. Mode-aware: GitHub-only
+subcommands are no-ops outside `mode = "github-sync"`.
 
-- `flow.py create-issue --item <ITEM-ID>`: create a tracking issue
-- `flow.py tag-phase --phase {ba|re|arch|plan|code|test|sec}`: attach
-  a phase-done tag
-- `flow.py ready-for-review`: convert draft PR to ready
-- `flow.py claim --pair {pair-id}`: register the pair claim
+- `flow.py create-issue --item <ITEM-ID>`: create a tracking issue,
+  optionally add to the configured GitHub Project
+- `flow.py tag-phase --phase {ba|re|arch|code|test|sec}`: attach
+  a `<id>/<phase>-done` tag at the phase-end commit. The release-
+  readiness marker `ready-for-review` is the special case: it
+  emits `<id>/ready-for-review` without the `-done` suffix
+- `flow.py sync-status --item <ITEM-ID>`: mirror BACKLOG Status to
+  issue and Project, mirror GitHub Assignee back into the Claim
+  column
+- `flow.py promote-to-epic --item EPIC-NN [--rename-branch]`:
+  rewrite the parent issue, create sub-issues, write the
+  Sub-Issues tasklist, optionally rename the feature branch
+- `flow.py open-draft-pr --item <ITEM-ID>`: open a draft PR
+  against the configured `source_branch`
+- `flow.py ready-for-review --item <ITEM-ID> [--with-sec]`:
+  flip the draft PR to ready, set the `<id>/ready-for-review`
+  tag
+- `flow.py validate-fix --item FIX-EE-FF-NN`: hotfix-scoped
+  consistency check (local checks always, GitHub-issue check in
+  `github-sync`)
+- `flow.py apply-renumber --plan FILE`: align GitHub issue titles
+  and parent-body Sub-Issues tasklists with a renumber plan;
+  invoked from `scripts/merge-to-dev.sh` after the merge
 
-The backlog row remains the local source of truth; GitHub mirrors it.
+The backlog row is the source of truth for Status; the GitHub
+Assignee is the source of truth for Claim; `sync-status` mirrors
+both sides.
 
 ## Plan structure
 

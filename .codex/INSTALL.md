@@ -1,6 +1,9 @@
 # Installing Digital Innovation Agents for Codex
 
-Enable the V-Model skill set in Codex via native skill discovery. Just clone and symlink.
+Enable the V-Model skill set in Codex via native skill discovery.
+The skills call helper scripts under `tools/`, so the install needs
+both the skills directory and `DIA_PLUGIN_ROOT` so the helpers can
+be resolved at runtime.
 
 ## Prerequisites
 
@@ -25,17 +28,36 @@ Enable the V-Model skill set in Codex via native skill discovery. Just clone and
    cmd /c mklink /J "$env:USERPROFILE\.agents\skills\digital-innovation-agents" "$env:USERPROFILE\.codex\digital-innovation-agents\skills"
    ```
 
-3. **Restart Codex** (quit and relaunch the CLI) to discover the skills.
+3. **Export `DIA_PLUGIN_ROOT`** so skills can find `tools/`:
+   ```bash
+   echo 'export DIA_PLUGIN_ROOT="$HOME/.codex/digital-innovation-agents"' >> ~/.zshrc
+   # or ~/.bashrc, depending on your shell
+   ```
+
+   **Windows (PowerShell):**
+   ```powershell
+   [Environment]::SetEnvironmentVariable("DIA_PLUGIN_ROOT", "$env:USERPROFILE\.codex\digital-innovation-agents", "User")
+   ```
+
+4. **Restart Codex** (quit and relaunch the CLI) and reopen your
+   shell so the new variable is picked up.
 
 ## Verify
 
 ```bash
 ls -la ~/.agents/skills/digital-innovation-agents
+echo "$DIA_PLUGIN_ROOT"
+ls "$DIA_PLUGIN_ROOT/tools/github-integration/flow.py"
 ```
 
-You should see a symlink (or junction on Windows) pointing to your skills directory.
+You should see a symlink (or junction on Windows) pointing to your
+skills directory, the `DIA_PLUGIN_ROOT` variable resolves to the
+clone, and `flow.py` is reachable through it.
 
-In a new Codex session, ask something like "what skills do you have available?" -- the agent should list entries including `business-analysis`, `requirements-engineering`, `architecture`, `coding`, `testing`, `security-audit`, and `dia-guide`.
+In a new Codex session, ask "what skills do you have available?".
+The agent should list entries including `dia-setup`,
+`business-analysis`, `requirements-engineering`, `architecture`,
+`coding`, `testing`, `security-audit`, and `dia-guide`.
 
 ## Updating
 
@@ -43,12 +65,15 @@ In a new Codex session, ask something like "what skills do you have available?" 
 cd ~/.codex/digital-innovation-agents && git pull
 ```
 
-Skills update instantly through the symlink.
+Skills update instantly through the symlink. `tools/`, `hooks/`,
+and `scripts/` update with the same `git pull` since they live in
+the same repository.
 
 ## Uninstalling
 
 ```bash
 rm ~/.agents/skills/digital-innovation-agents
+# Remove the DIA_PLUGIN_ROOT line from ~/.zshrc or ~/.bashrc
 ```
 
 Optionally delete the clone:

@@ -72,9 +72,9 @@ lives in the audit report. Status, phase, last-change, claim, and
 commit SHA live in the backlog row.
 
 A High finding that the team explicitly decides not to fix in this
-cycle stays in the backlog with `Status: Deferred` and a reason
-recorded in the audit report. There is no silent "we'll get to it"
-state.
+cycle stays in the backlog with `Status: Backlog` and a reason
+recorded in the audit report (Notes column). There is no silent
+"we'll get to it" state.
 
 ## Fix-loop
 
@@ -94,7 +94,7 @@ with fresh output before claiming the finding is closed. See
 Ends with the 4-part [Handoff Ritual](../concepts/handoff-rituals):
 artifact report, handoff context appended to `HANDOFFS.md`,
 phase-end commit (`chore(sec): {ITEM-ID} security complete`) plus
-`tag-phase --phase sec`, transition question. The guide runs
+`tag-phase --phase sec` and `sync-status --item {ITEM-ID}` (no-op outside `mode = "github-sync"`), transition question. The guide runs
 `/consistency-check` Mode A on the changed artifacts at the
 boundary.
 

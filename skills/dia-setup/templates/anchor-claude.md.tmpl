@@ -1,0 +1,20 @@
+## Digital Innovation Agents Workflow
+
+This project uses the DIA V-Model workflow for AI-augmented innovation
+and development.
+
+- Mode: `{{mode}}`
+- Settings: `.dia/config.toml`
+- Bootstrap skill: `skills/dia-bootstrap/SKILL.md`
+
+For non-trivial work, default to `/dia-guide` for an orientation read.
+Phase skills (`/business-analysis`, `/requirements-engineering`,
+`/architecture`, `/coding`, `/testing`, `/security-audit`) are
+autonomous and own their handoffs.
+
+Hotfix lane: small bug fixes (max 3 files, no breaking change, fits
+an existing FEAT, under 15 minutes) may bypass the full cycle as
+long as a FIX-Row in `BACKLOG.md` and a GitHub issue are created
+afterwards.
+
+To change the mode or remove this anchor, run `/dia-setup`.

@@ -16,7 +16,13 @@ const guidesSidebar = [
   {
     text: 'Orientation',
     items: [
-      { text: 'Using DIA', link: '/guides/using-digital-innovation-agents' },
+      { text: 'DIA Bootstrap', link: '/guides/dia-bootstrap' },
+    ],
+  },
+  {
+    text: 'Activation',
+    items: [
+      { text: 'dia-setup', link: '/guides/dia-setup' },
     ],
   },
   {
@@ -101,11 +107,18 @@ const conceptsSidebar = [
     ],
   },
   {
+    text: 'Activation and modes',
+    items: [
+      { text: 'Three modes', link: '/concepts/three-modes' },
+    ],
+  },
+  {
     text: 'Discipline patterns',
     items: [
       { text: 'Tech-agnostic Requirements', link: '/concepts/tech-agnostic-requirements' },
       { text: 'Handoff Rituals', link: '/concepts/handoff-rituals' },
       { text: 'Verification Gates', link: '/concepts/verification-gates' },
+      { text: 'Hotfix lane', link: '/concepts/hotfix-lane' },
     ],
   },
 ]

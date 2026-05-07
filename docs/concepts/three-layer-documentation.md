@@ -114,7 +114,7 @@ A request like "let's reindex the vault when notes change" produces:
 
 | Artifact | What it contains |
 |---|---|
-| `BACKLOG.md` row `FEAT-01-02` | Status (Active), phase (code), claim, refs to ADR-07 and PLAN-04, commit SHA when done |
+| `BACKLOG.md` row `FEAT-01-02` | Status (In Progress), phase (Building), claim, refs to ADR-07 and PLAN-04, commit SHA when done |
 | `_devprocess/requirements/features/FEAT-01-02-reindex-on-change.md` | Problem, success criteria, hypothesis, scope. No tasks, no code paths |
 | `_devprocess/architecture/ADR-07-reindex-trigger.md` | Decision drivers, considered options (cron / file watcher / queue), decision (file watcher), consequences. No file paths in core sections |
 | `_devprocess/implementation/plans/PLAN-04-reindex-mvp.md` | Task list with `src/index/watcher.ts` paths, verify commands, plan coverage gate |

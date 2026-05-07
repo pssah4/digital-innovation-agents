@@ -146,16 +146,36 @@ The phase skills coordinate with GitHub through
 `tools/github-integration/flow.py`:
 
 - `flow.py create-issue --item <ITEM-ID>`: create a tracking issue
-  on phase entry
-- `flow.py tag-phase --phase {ba|re|arch|plan|code|test|sec}`:
-  attach a `<ITEM-ID>/<phase>-done` tag at every phase-end commit
-- `flow.py ready-for-review`: convert draft PR to ready when the
-  cycle reaches the Closing Handoff
-- `flow.py claim --pair {pair-id}`: register the pair claim
+  on phase entry, optional `gh project item-add` if a project is
+  configured
+- `flow.py tag-phase --phase {ba|re|arch|code|test|sec}`: attach
+  a `<id>/<phase>-done` tag at every phase-end commit. The
+  release-readiness marker `ready-for-review` is the single
+  exception, it produces `<id>/ready-for-review` without the
+  `-done` suffix
+- `flow.py sync-status --item <ITEM-ID>`: mirror the BACKLOG
+  Status to the GitHub issue and Project Status field, pull the
+  GitHub Assignee back into the BACKLOG Claim column
+- `flow.py promote-to-epic --item EPIC-NN [--rename-branch]`:
+  rewrite the parent issue, create sub-issues, write the
+  Sub-Issues tasklist, optionally rename the branch
+- `flow.py ready-for-review --item <ITEM-ID> [--with-sec]`:
+  flip the draft PR to ready when the cycle reaches the Closing
+  Handoff
+- `flow.py validate-fix --item FIX-EE-FF-NN`: hotfix-scoped
+  consistency check (always runs the local checks; the
+  GitHub-issue check is gated on `mode = github-sync`)
+- `flow.py apply-renumber --plan FILE`: invoked from
+  `scripts/merge-to-dev.sh` after a renumber to align GitHub
+  issue titles and parent-body Sub-Issues tasklists
+- Claim ownership now flows from the GitHub Assignee into the
+  BACKLOG Claim column via `sync-status`. The earlier separate
+  `claim` subcommand has been removed.
 
 The guide reads `flow.py status --item <ID>` for its state audit.
-The local backlog row remains the source of truth; GitHub mirrors
-it.
+The local backlog row remains the source of truth for status; the
+GitHub Assignee is the source of truth for the Claim column;
+both sides are mirrored by `sync-status`.
 
 ## Concurrent agent coordination
 

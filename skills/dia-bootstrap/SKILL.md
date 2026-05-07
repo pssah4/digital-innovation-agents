@@ -1,17 +1,67 @@
 ---
-name: using-digital-innovation-agents
-description: Introduces the V-Model skill set and entry points. Advisory, not enforcing - user can always opt out.
+name: dia-bootstrap
+description: Bootstrap context for the Digital Innovation Agents V-Model workflow. Auto-loaded at session start by the SessionStart hook (unless mode = off). Carries the entry-point catalog, the helper-script path resolution rule, the activation contract, and opt-out behaviour. The user does not invoke this skill manually.
 ---
 
-# Using Digital Innovation Agents
+# DIA Bootstrap
 
 You have access to a structured V-Model workflow for AI-augmented innovation
 and development. These skills guide projects from initial business concept
 through requirements engineering, architecture design, implementation,
 testing, and security audit.
 
+## Helper script paths (binding for every phase skill)
+
+Phase skills call helper scripts that ship with the plugin: `flow.py`
+under `tools/github-integration/`, `anchor.py` under `tools/dia-setup/`,
+the migration scripts under `tools/migration/`,
+`tools/consistency-check.py`, `tools/renumber-for-merge.py`, and the
+merge wrappers under `scripts/`. These scripts live in the plugin
+bundle, NOT in the user project, so the relative path `tools/...`
+that the skill text uses must be resolved against the plugin root,
+not against the user's working directory.
+
+Resolution priority:
+
+1. **`$DIA_PLUGIN_ROOT`** (preferred). The SessionStart hook prints
+   this value at session start, manual installs export it from
+   `~/.zshrc`, and the OpenCode plugin sets it on plugin load.
+2. **`$CLAUDE_PLUGIN_ROOT`** when running under Claude Code.
+3. **`$CURSOR_PLUGIN_ROOT`** when running under Cursor.
+4. **Working directory** as last resort. This only succeeds when the
+   user happens to run the agent from inside the plugin checkout.
+
+Concrete: when a phase skill writes
+`python3 tools/github-integration/flow.py create-issue --item FEAT-04-09`,
+expand it before invoking to
+`python3 "$DIA_PLUGIN_ROOT/tools/github-integration/flow.py" create-issue --item FEAT-04-09`.
+The same rule applies to every `tools/...` and `scripts/...` path
+in any skill text.
+
+If `$DIA_PLUGIN_ROOT` is unset and no platform variable resolves
+the path, surface a clear error to the user and link them to the
+[installation tutorial](https://pssah4.github.io/digital-innovation-agents/tutorials/installation).
+Do not guess.
+
+## Activation
+
+If this project does not yet have `.dia/config.toml`, run `/dia-setup`
+first. The setup skill asks for the mode (`off`, `git-only`,
+`github-sync`), creates `.dia/config.toml`, and writes anchor blocks
+into the agent files (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`,
+`.cursorrules`, ...). Re-run `/dia-setup` any time to change the
+mode or remove the anchors.
+
+When `mode = "off"`, the SessionStart hook stays silent and phase
+skills do not run. When `mode = "git-only"`, the workflow runs
+locally (commits, tags, merge scripts) without GitHub sync. When
+`mode = "github-sync"`, phase skills mirror backlog state to GitHub
+issues via `tools/github-integration/flow.py`.
+
 ## Entry points
 
+- `/dia-setup` -- Activation, mode change, deactivation. Run this
+  in a fresh project before any other DIA skill
 - `/dia-guide` -- Guided cycle through all phases (recommended for
   new projects or when unsure where to start)
 - `/reverse-engineering` -- Brownfield entry point: walk the V backwards

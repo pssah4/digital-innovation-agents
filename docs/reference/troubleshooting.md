@@ -70,10 +70,10 @@ with `claude --version`.
 3. Check that the marketplace was added: `/plugin marketplace list`
 4. If using the manual fallback, verify `~/.claude/skills/` contains
    all **thirteen** skill directories: `architecture`,
-   `business-analysis`, `coding`, `consistency-check`, `dia-migration`,
-   `dia-guide`, `humanizer`, `project-conventions`,
-   `requirements-engineering`, `reverse-engineering`, `security-audit`,
-   `testing`, `using-digital-innovation-agents`.
+   `business-analysis`, `coding`, `consistency-check`, `dia-bootstrap`,
+   `dia-guide`, `dia-migration`, `dia-setup`, `humanizer`,
+   `project-conventions`, `requirements-engineering`,
+   `reverse-engineering`, `security-audit`, `testing`.
 
 ### Cursor: plugin not recognized
 
@@ -131,7 +131,7 @@ in Copilot Chat.
    gemini extensions install https://github.com/pssah4/digital-innovation-agents
    ```
 3. Verify `GEMINI.md` was loaded (check the first user message for
-   the `using-digital-innovation-agents` content)
+   the `dia-bootstrap` content)
 
 ## Runtime issues
 

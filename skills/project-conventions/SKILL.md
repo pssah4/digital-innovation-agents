@@ -270,7 +270,7 @@ template placeholders, technical terms such as `status`, `phase`,
 **Note:** Skills are written in English so they are portable across
 languages, but when a skill runs and talks to the user, the agent
 switches to the user's language. See
-`skills/using-digital-innovation-agents/SKILL.md`.
+`skills/dia-bootstrap/SKILL.md`.
 
 ## Feature Lifecycle
 
@@ -278,7 +278,7 @@ Every feature goes through:
 
 ```
 1. BACKLOG ROW      -- Create row in _devprocess/context/BACKLOG.md
-                       FIRST. Status=Planned, Phase=Building, Refs={Epic}.
+                       FIRST. Status=Ready, Phase=Building, Refs={Epic}.
 2. CLAIM            -- Set Claim column to {pair-id} @ {date}
 3. FEATURE-SPEC     -- Write the substance (description, SC, NFRs)
                        AFTER the row exists. No status field in

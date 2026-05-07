@@ -34,6 +34,25 @@ The backlog truth lives in `_devprocess/context/BACKLOG.md` (in the
 repo). GitHub is the team-collaboration layer on top: every backlog
 item gets a GitHub issue, a project card, and eventually a PR.
 
+### Source of truth split (binding)
+
+Status and Claim are mirrored between BACKLOG.md and GitHub, but
+each has a single source of truth:
+
+- **Status**: BACKLOG.md is canonical. `flow.py sync-status` writes
+  to GitHub (issue state, project Status field). The reverse is not
+  performed: a status edit on GitHub does not flow back into the
+  backlog.
+- **Claim**: GitHub Assignee is canonical. `flow.py sync-status`
+  reads the Assignee and writes it into the BACKLOG `Claim` column
+  as `{login} @ {YYYY-MM-DD}`. The reverse is not performed: a
+  Claim edited only in BACKLOG.md is not pushed to GitHub.
+
+This asymmetry is deliberate: skills write to BACKLOG.md as part
+of their Handoff Ritual; team members assign themselves on the
+GitHub UI. Each side touches the format that fits its workflow,
+the sync mirrors them.
+
 ### Issue creation
 
 Triggered by the first skill that touches a NEW backlog item
@@ -83,32 +102,37 @@ Auto-applied per item type and priority:
 - Type: `feature`, `fix`, `improvement`, `epic`
 - Priority: `p0`, `p1`, `p2`
 - Phase: `phase:planned`, `phase:ba`, `phase:re`, `phase:arch`,
-  `phase:coding`, `phase:testing`, `phase:audit`, `phase:review`
+  `phase:coding`, `phase:testing`, `phase:sec`, `phase:review`
 
 The phase label is updated by the guide when phase tags are
 set (see below). Only one phase label at a time.
 
 ### GitHub Projects board
 
-A single "DIA workflow" project per repo, with columns matching the
-phases. Cards move via GitHub Actions triggered by phase tags or by
-`flow.py update-issue --phase X`. The DIA agent does not touch the
-GitHub API for project cards directly; it sets git tags and the
-GitHub-side automation moves the card.
+A single GitHub Project per repo, with a Status field that maps
+1:1 to the BACKLOG Status column (see below). Items are mirrored
+by `flow.py sync-status --item <ID>`, called from the Handoff
+Ritual at every phase end. `flow.py tag-phase --phase <X>` updates
+the issue's phase label and ticks its checklist via
+`update_issue_after_tag`. The DIA agent does not touch the GitHub
+API outside these two paths.
 
-Recommended project column setup:
+Recommended project Status field setup. The status vocabulary
+matches the BACKLOG.md Status column 1:1 so `flow.py sync-status`
+mirrors directly without translation.
 
-| Column         | Card lands here when               |
-|----------------|------------------------------------|
-| Planned        | Issue created                      |
-| BA             | tag `<id>/ba-done` set             |
-| RE             | tag `<id>/re-done` set             |
-| Architecture   | tag `<id>/arch-done` set           |
-| Coding         | tag `<id>/code-done` set           |
-| Testing        | tag `<id>/test-done` set           |
-| Audit          | tag `<id>/audit-done` set          |
-| Review         | tag `<id>/ready-for-review` set    |
-| Done           | PR merged                          |
+| Status        | Card lands here when                                   |
+|---------------|---------------------------------------------------------|
+| Backlog       | Issue created or item parked / blocked                 |
+| Ready         | Item prioritized in directions and ready to claim      |
+| In Progress   | Someone claimed the item and is actively working on it |
+| In Review     | Draft PR flipped to ready, review pending              |
+| Done          | PR merged, item shipped                                |
+
+The phase fields (BA, RE, Architecture, Coding, Testing, Audit) are
+labels driven by the per-phase tag, not separate status columns.
+Phase labels and Status are orthogonal: an item in `In Progress`
+can carry any of the `phase:*` labels.
 
 ## Phase tags: agent-set, GitHub-readable
 
@@ -117,6 +141,25 @@ ritual, the skill sets a git tag pointing at the last commit of
 that phase. Tags are annotated (not lightweight), carry a one-line
 message describing what the phase delivered, and are pushed with
 the next push.
+
+### "Phase" disambiguation (binding terminology)
+
+The word "Phase" carries two meanings in DIA, and they are NOT the
+same:
+
+- **Phase tag** (this section). A git tag of the form
+  `<item-id-lower>/<phase>-done` set at the end of each V-Model
+  phase. Used by `/dia-guide` and `flow.py` to know which phases
+  are complete for a given item. Examples: `feat-04-09/ba-done`,
+  `feat-04-09/code-done`.
+- **Phase column in `BACKLOG.md`**. A separate column with values
+  `Released`, `Building`, `Planned`, `Candidates` describing the
+  epic-level temporal stage of the item. Independent from the phase
+  tags.
+
+When a document says "Phase: Building", it refers to the BACKLOG
+column. When it says "Phase tag" or "phase-done tag", it refers to
+the git tag. Phase tags do not change the BACKLOG Phase column.
 
 ### Tag schema
 
@@ -131,7 +174,7 @@ the next push.
 | `feat-04-09/arch-done`           | `/architecture`                | ADRs / arc42 updates / plan-context handed to coding |
 | `feat-04-09/code-done`           | `/coding`                      | Implementation committed, build green |
 | `feat-04-09/test-done`           | `/testing`                     | Tests added, coverage check passed |
-| `feat-04-09/audit-done`          | `/security-audit`              | Audit report written, findings filed |
+| `feat-04-09/sec-done`            | `/security-audit`              | Audit report written, findings filed (legacy `audit-done` still accepted) |
 | `feat-04-09/ready-for-review`    | `/dia-guide`            | All required phases complete, draft PR -> ready |
 
 ### Setting tags
@@ -283,24 +326,40 @@ guide runs the feature-complete handoff:
    - Posts a final comment summarising the deliverables.
    - Suggests next step (request review, plan release, etc.).
 
-## Guide: post-phase consistency check
+## Guide: post-phase audit (read-only)
 
-`/dia-guide` is the conductor. After every entry-skill
-finishes a phase, the guide gets invoked (silently or
-explicitly) and runs:
+`/dia-guide` is the navigation layer, not an orchestrator. It is
+invoked **explicitly** by the user when orientation is needed
+("where do I start", "what comes next"). It does not run silently
+after every phase, does not set tags, does not auto-fix drift,
+and does not call other skills. Each phase skill is autonomous
+and owns its own Handoff Ritual (commit, tag-phase, sync-status).
 
-1. **Branch check:** is the current branch on an item-branch (per
-   the schema above)?
-2. **Tag check:** does the just-finished phase have its tag set?
-   If not, set it now.
-3. **Backlog check:** does the BACKLOG row's status reflect the
-   phase progress?
-4. **Issue check:** is the GitHub issue's checklist in sync with
-   the tags?
+When invoked, the guide reads the current project state and
+**reports** rather than fixes:
+
+1. **Branch:** is the current branch on an item-branch (per the
+   schema above)? If not, surface a warning naming the expected
+   pattern.
+2. **Phase tag:** did the just-finished phase set its
+   `<id>/<phase>-done` tag (or `<id>/ready-for-review` for the
+   release-readiness marker)? If missing, name the responsible
+   phase skill so the user can re-run its Handoff Ritual.
+3. **Backlog row:** does the BACKLOG row's Status reflect the
+   phase progress? Discrepancies indicate the phase skill's
+   handoff ritual did not write the row before the phase-end
+   commit.
+4. **GitHub issue:** does the issue exist and carry the right
+   phase label and ticked checklist? (`flow.py status --item <ID>`
+   provides the snapshot.)
 5. **Next-phase suggestion:** what is the natural next phase for
-   this item? Surface it as `AskUserQuestion`:
-   "Phase `<X>` complete for `<ID>`. Recommended next: `/{skill}`.
-    Continue now, pause, or pick a different next step?"
+   this item? Surface as plain text, the user invokes the skill
+   themselves.
+
+The guide owns two narrow CRUD moments at workflow boundaries
+that no single phase skill covers (item-start branch creation
+when the user enters at A/B/C, post-`/reverse-engineering` item
+promotion). Everything else is read-only.
 
 The guide is the consistency layer that prevents drift
 between Git tags, BACKLOG.md, GitHub issues, and project cards.

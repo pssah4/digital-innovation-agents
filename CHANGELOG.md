@@ -7,6 +7,569 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (security audit, two reviewers)
+
+Two security audits ran against the branch (one auto-driven by the
+`/security-audit` skill, one external review). Their findings
+overlapped only partially because they covered different surfaces
+(CLI tooling vs. browser-based graph viewer). All five
+non-trivial findings from both reports are addressed in this
+commit; one low finding is deferred to backlog.
+
+- **M-1 Graph viewer XSS via innerHTML rewrite (CWE-79).**
+  `skills/dia-guide/tools/graph-viewer.html` previously built the
+  details panel via string concatenation of graph fields
+  (`raw.label`, `raw.id`, `raw.path`, ...) and assigned the result
+  to `info.innerHTML`. A malicious graph payload could inject
+  markup or script when a user pasted JSON or dropped a file. The
+  `showNodeInfo` and `clearInfo` functions now use `replaceChildren`,
+  `createElement`, and `textContent` exclusively. New helpers
+  `metaRow`, `edgeItem`, and `safeFileLink`. `safeFileLink` rejects
+  `javascript:`, `data:`, `vbscript:` schemes and paths containing
+  spaces, accepts `file://`, `http(s)://` and relative paths
+  (rendered as `file://`). Sandbox-tested with mock injection
+  payloads.
+- **M-2 apply-renumber id validation (CWE-20).** `flow.py`
+  `cmd_apply_renumber` now runs every `(old, new)` pair through
+  `ITEM_RE` before any `gh issue edit` fires. A hand-edited or
+  tampered plan file with strings like `"EPIC-12; rm -rf /"` is
+  rejected with exit code 2 and a clear error listing every
+  invalid pair. Three sandbox payloads (shell metacharacters,
+  HTML, path traversal) all rejected as expected.
+- **L-1 Graph viewer CDN script vendored locally (CWE-829).**
+  Previously: `<script src="https://unpkg.com/cytoscape@3.30.2/...">`.
+  Now: `<script src="cytoscape.min.js">`, with the file vendored
+  at `skills/dia-guide/tools/cytoscape.min.js` (cytoscape@3.30.2,
+  sha-384 in commit). HTML carries an update-procedure comment
+  block. Removes the runtime CDN dependency and the
+  supply-chain vector if unpkg or the cytoscape package were
+  compromised.
+- **L-2 last-renumber-plan.json gitignored (CWE-668).**
+  `.dia/last-renumber-plan.json` is now in `.gitignore`. The file
+  is workflow state that `scripts/merge-to-dev.sh` writes on
+  apply-renumber failure for retry; it should not enter the
+  branch history. Plus a comment in `.gitignore` explaining what
+  it is.
+- **L-3 Windows hook wrapper argument quoting (CWE-78).**
+  `hooks/run-hook.cmd` previously forwarded `%2 %3 %4 %5 %6 %7 %8
+  %9` without quoting. cmd.exe metacharacters in branch names,
+  file paths, or future hook arguments could be reinterpreted.
+  Forwarded args now use `"%~2" "%~3" ...`: the `%~N` form strips
+  any surrounding quotes from the original argument and we re-quote
+  cleanly. No attacker-controlled args are forwarded today; the
+  fix prevents the vector from opening if hooks ever pass file
+  paths or branch names.
+
+Deferred to backlog: L-4 (SessionStart hook leaks absolute home
+path in injected context). Privacy-only finding, no security
+exposure; `~/`-substitution lands in the next iteration.
+
+Verified:
+- consistency-check mode A green.
+- py_compile on flow.py.
+- bash -n on session-start and merge-to-dev.sh.
+- vitepress build green (4.3s).
+- ITEM_RE rejects three classes of injection (shell metachars,
+  HTML, path traversal).
+
+### Fixed (eighth review pass)
+
+- **graph-invariants triage decision tree aligned with N-10 / N-15.**
+  Step 2 ("new user-facing capability") still told the agent to set
+  `phase: Candidates` or `Planned` in the FEATURE frontmatter; step
+  3 ("improvement") still told it to write `phase:`, `status:`, and
+  `priority:` into the IMP frontmatter. Both contradicted the
+  refactor that moved lifecycle state out of artefact frontmatter
+  into the BACKLOG row. The decision tree now states explicitly
+  that FEATURE / IMP frontmatter carries identity and relations
+  only (`id`, `epic`, `feature`, `ba-ref`, `depends-on`,
+  `subtype`), and that Status, Phase, and Priority live in the
+  BACKLOG row.
+
+### Fixed (seventh review pass)
+
+- **graph-invariants Edge-Invarianten now consistent with N-10/N-11.**
+  E-7 previously compared the BACKLOG Feature row's `Phase` column
+  against the Feature frontmatter `phase:` field. With N-10
+  forbidding `phase:` in Feature frontmatter, that comparison made
+  no sense. E-7 now compares the FEAT row's Phase against the Phase
+  in the Epic header above it (worst-wins derivation). E-8
+  reorientes the Epic-header Phase against its child FEAT rows.
+  E-9 recomputes dashboard counts from BACKLOG rows directly
+  rather than from frontmatters. The implementation in
+  consistency-check.py does not yet exercise these invariants;
+  whoever implements them now has the correct target.
+- **`validate-fix` mode semantics aligned across docs and code.**
+  The code lets local checks (BACKLOG row, commit cite,
+  `FIXME(stub)` markers) run in every mode and only gates the
+  GitHub-issue check on `mode = "github-sync"`. flow.py README
+  now describes that explicitly: GitHub-only subcommands are
+  no-ops in `off`/`git-only`, but `validate-fix` always runs the
+  local checks. The `three-modes.md` table got a dedicated
+  validate-fix row showing `local-only / local-only / full`.
+- **`docs/concepts/three-modes.md` end-to-end run table.** New
+  section spells out what really happens in `github-sync` step by
+  step: hook injection, branch creation, create-issue, every
+  Handoff Ritual's `tag-phase` + `sync-status`, post-RE
+  `promote-to-epic`, draft PR, ready-for-review, hotfix lane's
+  `validate-fix`, and the post-merge `apply-renumber` for issue
+  titles plus parent-body Sub-Issues tasklists.
+- **`docs/reference/conventions.md` and `docs/guides/dia-guide.md`
+  flow.py reference list rewritten.** The previous lists referred
+  to `--phase plan` (never existed) and `flow.py claim --pair`
+  (never implemented). Both now name the actual subcommands
+  (`create-issue`, `tag-phase`, `sync-status`, `promote-to-epic`,
+  `open-draft-pr`, `ready-for-review`, `validate-fix`,
+  `apply-renumber`) and explain that Claim flows from the GitHub
+  Assignee through `sync-status`.
+- **`/consistency-check` SKILL.md autofix description names the
+  reverse-engineering exception.** The text previously said
+  status/phase frontmatter is removed without qualification; now
+  it explicitly lists the validation markers (`Anticipated`,
+  `Observed`, `Inferred`, `Draft (reverse-engineered, ...)`) the
+  autofix keeps, matching graph-invariants N-10/N-11 and the
+  helper introduced in stage 14.
+
+### Fixed (sixth review pass)
+
+- **TOML single-quoted strings now parse in every fallback.**
+  `/dia-setup` writes double quotes, but `.dia/config.toml`
+  invites hand edits and TOML accepts both
+  `mode = "off"` and `mode = 'off'`. The Python-3.9 fallback
+  branches in flow.py and the regex-only fallback in
+  `tools/dia-setup/anchor.py`, plus the OpenCode plugin's
+  `readDiaMode`, only matched double quotes. A hand edit with
+  single quotes silently broke deactivation and project sync.
+- New shared helper `_toml_string_fallback(key, text)` in flow.py
+  matches both quote styles and returns the captured value or
+  `None`. The three callers (`read_dia_mode`,
+  `read_dia_github_config`, `read_source_branch`) use it,
+  `project_number` keeps its integer-literal regex.
+- `tools/dia-setup/anchor.py parse_anchor_files` accepts mixed
+  quote styles inside the `anchor_files = [...]` array. A hand
+  edit with `'CLAUDE.md'` next to `"AGENTS.md"` loads cleanly.
+- The OpenCode plugin's mode regex now reads
+  `mode = "..."` and `mode = '...'`. Sandbox-tested with both
+  shapes; default fallback (no config or unrecognised value) is
+  unchanged at `git-only`.
+- The SessionStart hook already accepted both quote styles via
+  the existing `'"off"|'\''off'\'''` shell pattern; no change
+  needed there.
+
+### Fixed (fifth review pass)
+
+- **`consistency-check --fix` preserves reverse-engineering markers.**
+  The autofix previously removed every `status:` and `phase:` line
+  from Feature/Epic frontmatter. graph-invariants N-10 and N-11
+  explicitly allow `status: Anticipated (not yet validated)`,
+  `Observed (not validated)`, `Inferred`, and
+  `Draft (reverse-engineered, ...)` until `/business-analysis`
+  validates the artefact. Autofix would silently delete those.
+  New helper `is_reverse_engineering_marker` checks the value
+  against the tolerated prefixes; matching entries are kept,
+  everything else still gets removed. Sandbox-tested with three
+  files (Anticipated kept, Observed kept, Planned removed).
+- **OpenCode plugin honors `mode = "off"`.** The transform
+  previously injected the bootstrap on every session regardless
+  of the project setting, breaking the deactivation contract on
+  the OpenCode side. The plugin now reads `.dia/config.toml`
+  from the OpenCode session directory (walks upwards), and skips
+  both `config.skills.paths` registration and the bootstrap
+  injection when the project's mode is `off`. Default fallback
+  (no config) remains `git-only` so existing setups keep working.
+- **`flow.py status` is gated on mode.** The three-modes contract
+  pins `status` to `git-only` and `github-sync`; the code
+  previously ignored mode and printed the report even at
+  `mode = "off"`. Now it returns the standard "skipping
+  (mode=off)" message and exits 0 in `off`.
+- **`CLAUDE.md` Feature lifecycle example uses the new
+  vocabulary.** The introductory bullet at line 164 still listed
+  `Status: Planned`; rewritten to `Status: Ready` to match the
+  GitHub-aligned set declared at line 91.
+
+### Fixed (fourth review pass)
+
+- **`project_owner` survives the Python 3.9 fallback parser.**
+  flow.py's `read_dia_github_config` falls back to a regex scan
+  on systems without `tomllib` (Python < 3.11). The fallback
+  previously read `project_number`, `repo`, and `status_field`.
+  `repo` is not in the schema; `project_owner` is. Fallback list
+  corrected to `("project_number", "status_field", "project_owner")`,
+  with a comment that any new key consumed by flow.py must also
+  land here.
+- **BACKLOG-Template examples use the new vocabulary.** The
+  example rows for ADR, PLAN, and standalone items previously
+  carried `Accepted`, `Active`, `Planned` in the Status column,
+  which contradicted the introductory paragraph that names the
+  GitHub-aligned set as the only allowed values. Examples now
+  read `Done | In Progress | Ready | Backlog`. ADR / PLAN
+  frontmatter status (`Accepted`, `Active`) move to the Notes
+  column for traceability.
+- **`graph-invariants.md` no longer requires status/phase in
+  Feature/Epic frontmatter.** N-10 and N-11 are inverted: they
+  now forbid the lifecycle status/phase fields in
+  Feature/Epic/FIX/IMP frontmatter, with a single tolerated
+  exception for reverse-engineered artefacts (`Anticipated (not
+  yet validated)`, `Observed (not validated)`) that
+  `/business-analysis` removes once validated. The default
+  artefact-frontmatter table is rewritten so the BACKLOG row
+  defaults are visible. Single-Source-of-Truth statement now
+  names the BACKLOG row, not the artefact frontmatter.
+- **`coding/SKILL.md` Defaults bullet leftovers removed.** The
+  three bullets `PLAN: status Draft, FIX: status Open, IMP:
+  status Planned` directly under the corrected Defaults table
+  contradicted the table values. The bullets are gone; IMP gets
+  its own row in the table (`Ready` / `Backlog if deferred`,
+  no frontmatter status).
+- **`/dia-guide` reverse-engineering promotion uses the new
+  vocabulary.** The triage step previously looked for
+  `Status: Anticipated` and wrote `Status: Planned` after
+  promotion. Now items sit at `Status: Backlog` with an
+  `anticipated` note in the Notes column; promotion sets
+  `Status: Ready` (or `In Progress` for items that already
+  ship) and drops the note. The `python3 tools/...` invocation
+  also gains the `${DIA_PLUGIN_ROOT:-.}` prefix to match the
+  helper-path convention.
+- **flow.py PHASE_ALIASES comment** corrected: `sec` is the
+  canonical name, `audit` is the legacy alias. Code already had
+  the right behaviour; only the comment drifted.
+
+### Fixed (third review pass)
+
+- **Status vocabulary harmonized across all skill defaults.** The
+  "Defaults" blocks in `skills/coding/SKILL.md`,
+  `skills/architecture/SKILL.md`, and
+  `skills/reverse-engineering/SKILL.md` previously mixed BACKLOG
+  Status values with frontmatter status values for ADRs (Proposed)
+  and PLANs (Draft). Each block is now a two-column table that
+  separates the BACKLOG `Status` (always
+  `Backlog | Ready | In Progress | In Review | Done`) from the
+  artefact's own frontmatter status (Proposed / Accepted / Draft /
+  Active). Reverse-engineered features default to `Done` /
+  `Released` when there is shipping evidence, `In Progress` /
+  `Building` when partial. Stops the silent `Planned -> Ready`
+  rewrite that the legacy mapping in flow.py used to mask.
+- **`/dia-setup` Settings file format example** now shows
+  `project_number = 7`, `status_field = "Status"`, and
+  `project_owner = ""`. Previously the example listed `project = ""`
+  / `repo = ""`, which flow.py never reads. Manual config edits
+  done from the example produced silently broken Project sync.
+- **`/consistency-check` row-creation default** uses
+  `status: Ready` instead of `status: Planned` when it auto-fills
+  a missing backlog row.
+- **`scripts/merge-to-dev.sh` keeps the renumber plan on failure.**
+  Previously the tmp file was always deleted, so a failed
+  `apply-renumber` (gh / network / auth issue) dropped the
+  mapping needed for a clean retry. The plan now moves to
+  `.dia/last-renumber-plan.json` on failure with a clear
+  retry-instruction printed to stderr; the tmp file is removed
+  only on success.
+- **`docs/reference/commands.md` tag-phase row** documents the
+  special case: phases `ba`, `re`, `arch`, `code`, `test`, `sec`
+  produce `<id>/<phase>-done`; `ready-for-review` produces
+  `<id>/ready-for-review` without the suffix. Resolves the
+  reference drift flagged by the third review pass.
+
+### Fixed (second review pass)
+
+- **`ready-for-review` tag is no longer named `-done`.**
+  `flow.py tag-phase --phase ready-for-review` previously created
+  `<id>/ready-for-review-done`, which broke the team-workflow
+  contract (tag should be `<id>/ready-for-review`) and any
+  GitHub-Actions automation that triggers on the documented tag.
+  cmd_tag_phase and cmd_status now branch on the special phase
+  name and emit the canonical tag.
+- **`.dia/config.toml` schema aligns with flow.py.** The template
+  in `skills/dia-setup/templates/dia-config.toml.tmpl` previously
+  shipped `project = ""` and `repo = ""`, while `flow.py
+  sync-status` looks up `project_number`, `status_field`, and
+  `project_owner`. The template now writes the keys flow.py
+  consumes, with helpful comments. `/dia-setup` gains a new step 4
+  that asks for `project_number` (and optional owner / status field
+  name) when the user picks `mode = "github-sync"`.
+- **`update-issue` is gone for good.** The dead subcommand was
+  still listed in `flow.py` docstring and `GITHUB_REQUIRED_ACTIONS`
+  even though the parser had no entry. team-workflow.md and
+  dia-guide/SKILL.md still cited it. Replaced docstring entries
+  with the live subcommands (sync-status, promote-to-epic,
+  validate-fix), removed the GITHUB_REQUIRED_ACTIONS entry, and
+  rewrote the cross-references to point at the actual mechanism
+  (`tag-phase` invokes `update_issue_after_tag` internally).
+- **`phase:planned` is removed once a real phase tag lands.**
+  `update_issue_after_tag` now treats `phase:planned` as part of
+  the phase-label set and removes it together with the other
+  obsolete labels when adding the new one.
+- **GitHub Project sync is more robust.**
+  `update_project_status_field` now reads
+  `[github] project_owner` from `.dia/config.toml` (falls back to
+  the repo owner), passes `--limit 200` to `gh project field-list`
+  and `--limit 1000` to `gh project item-list`, and caches the
+  field metadata per process so multiple sync-status calls in a
+  Handoff Ritual do not re-resolve the same project.
+- **`/dia-guide` is documented as read-only.**
+  team-workflow.md previously claimed the guide auto-fixes drift
+  and runs after every phase. The new section "Guide: post-phase
+  audit (read-only)" matches the actual SKILL.md contract: the
+  guide is invoked explicitly, reports rather than fixes, and
+  surfaces the responsible phase skill when something is missing.
+
+### Added (renumber sync)
+
+- **`tools/renumber-for-merge.py --plan-out FILE`** writes the
+  applied id mapping (epics, feats, imps, fixes) as JSON, so the
+  GitHub-side issue titles can be brought back in line with the
+  renumbered local ids.
+- **`flow.py apply-renumber --plan FILE`** reads such a plan and
+  performs two passes against GitHub:
+  - **Body sync** for every Epic that owns a renamed sub-item or
+    that was renamed itself: fetch the parent issue body, rewrite
+    every old id occurrence (with word boundaries so
+    `FEAT-05-011` is not matched when the key is `FEAT-05-01`,
+    and `MEGAFEAT-05-01` is left alone) to its new id, save. The
+    Sub-Issues tasklist and any other id mention inside the body
+    are kept in sync.
+  - **Title sync** for every (old -> new) pair: rename the issue
+    title from `OLD-NN: slug` to `NEW-NN: slug` while preserving
+    the slug suffix.
+  Body sync runs before title sync so the lookup by old id still
+  resolves the right issue. Idempotent. Mode-aware (no-op outside
+  `github-sync`). Two helpers extracted: `collect_affected_epics`
+  and `rewrite_ids_in_text`, plus `find_issue_for_item` gained
+  an `include_body` flag so the cheap path stays cheap.
+- **`scripts/merge-to-dev.sh`** writes the renumber plan to a tmp
+  file and calls `flow.py apply-renumber` after the merge so the
+  GitHub-issue view never drifts from the merged backlog.
+
+### Renamed
+
+- **Bootstrap skill renamed**: `using-digital-innovation-agents` ->
+  `dia-bootstrap`. The new name is shorter, follows the `dia-*`
+  convention (alongside `dia-setup`, `dia-guide`, `dia-migration`),
+  and clearly signals the skill's role: bootstrap context that
+  loads automatically at session start, not a user-invoked command.
+  The skill folder, its SKILL.md frontmatter, the SessionStart
+  hook reference, the OpenCode plugin path, the anchor templates,
+  the README install snippets, the docs page, and the VitePress
+  sidebar all point at the new name. Old references in earlier
+  CHANGELOG entries are left as historical record.
+
+### Fixed (install paths)
+
+- **Manual install now ships the helper scripts.** The Claude Code
+  manual-install snippet in the README clones the full bundle to
+  `$DIA_PLUGIN_ROOT` (default `~/.local/share/dia-plugin`),
+  symlinks the skills into `~/.claude/skills/`, and persists
+  `DIA_PLUGIN_ROOT` in the user's shell rc. Previously only
+  `skills/` was copied, so every `python3 tools/...` call failed
+  the moment the agent ran from a project that did not contain
+  the helper scripts.
+- **Codex install** clones into `~/.codex/digital-innovation-agents`
+  and now exports `DIA_PLUGIN_ROOT` so the symlinked skills can
+  resolve `tools/`, `hooks/`, and `scripts/` at runtime.
+- **OpenCode plugin** sets `DIA_PLUGIN_ROOT` from the plugin
+  bundle path on plugin load. INSTALL.md mentions the variable in
+  the troubleshooting section.
+- **GitHub Copilot install** now copies `tools/`, `scripts/`, and
+  `hooks/` into the project alongside `.github/`. Copilot agents
+  run with the project as their working directory and have no
+  plugin-bundle path; the helpers must travel with the project.
+- **Cursor plugin manifest** declares `tools/`, `scripts/`,
+  `.claude-plugin/`, and `.dia/` under a new `includes` array so
+  the cursor marketplace ships them alongside skills and hooks.
+  Version bumped from 2.0.0 to 3.3.0.
+- **Gemini extension manifest** adds the same `includes` block and
+  version bump from 3.2.0 to 3.3.0. GEMINI.md tells the agent
+  where the helpers live and how to set `DIA_PLUGIN_ROOT`.
+- **SessionStart hook** resolves a stable plugin root and emits it
+  as `DIA_PLUGIN_ROOT=...` at the top of the bootstrap context.
+  The agent now sees the path in every session and can expand
+  `tools/...` references against it.
+- **`using-digital-innovation-agents` SKILL.md** documents the
+  helper-path resolution rule: priority `$DIA_PLUGIN_ROOT >
+  $CLAUDE_PLUGIN_ROOT > $CURSOR_PLUGIN_ROOT > cwd`. Skills must
+  expand `tools/...` against the resolved root before invoking,
+  surface a clear error when nothing resolves.
+
+### Fixed (workflow review followups)
+
+- **PR target branch is now configurable.** `flow.py open-draft-pr`
+  reads `source_branch` from `.dia/config.toml` (default `develop`)
+  instead of hard-coding `dev`. Repos that follow the team-workflow
+  contract no longer land PRs on the wrong base. New helper
+  `read_source_branch()`.
+- **`promote-to-epic` now finds raw issues.** When the parent issue
+  still carries its original raw title (no `EPIC-NN:` prefix yet),
+  the lookup falls back to a title-based match against the BACKLOG
+  Title column. The standard documented call from
+  `requirements-engineering/SKILL.md` no longer requires an
+  explicit `--parent-issue`.
+- **`sync-status` is wired into every Handoff Ritual.** The phase
+  skills (`/business-analysis`, `/requirements-engineering`,
+  `/architecture`, `/coding`, `/testing`, `/security-audit`) now
+  call `flow.py sync-status --item <ID>` directly after `tag-phase`.
+  No-op outside `mode = "github-sync"`. Closes the drift gap where
+  BACKLOG Status, GitHub Project Status, and Claim diverged
+  between phase boundaries.
+- **Phase rename `audit` -> `sec`.** The canonical Security phase
+  identifier is `sec`. Tags use `<id>/sec-done`,
+  `flow.py tag-phase --phase sec`, and the project label is
+  `phase:sec`. The legacy value `audit` is accepted as a
+  deprecated alias on tag-phase and ready-for-review (`--with-sec`
+  with `--with-audit` as alias). Skill texts and team-workflow.md
+  use the new value; `dia-guide` accepts both tag forms during the
+  feature-complete read.
+- **Claim sync handles edge cases.** `sync-status` clears the
+  BACKLOG Claim column when status is `Done` or no GitHub
+  Assignee is set, instead of leaving stale claims behind.
+  `write_claim_into_backlog` accepts an empty claim and writes a
+  single space to keep the table valid.
+- **`create-issue` adds the issue to the configured Project.**
+  When `[github] project_number` is set, a `gh project item-add`
+  call follows the issue create. Previously, sub-issues from
+  `promote-to-epic` and feature/IMP issues from `create-issue` did
+  not appear on the Project board automatically.
+- **RE default status fixed.** RE Defaults section now reads
+  `status Ready` (was `status Planned`), aligned with the new
+  vocabulary.
+
+### Documentation
+
+- **flow.py README mapping table rewritten.** The pre-stage-3
+  translation block is replaced with the new identity-plus-legacy
+  picture: BACKLOG and GitHub now share one vocabulary, the
+  legacy table only resolves un-migrated repos.
+- **Plugin-repo CLAUDE.md / AGENTS.md (symlinked).** Picks up new
+  contributor-facing sections: workflow activation contract, three
+  modes, BACKLOG status vocabulary, hotfix lane, phase tag rename.
+- **`.dia/config.toml` for the plugin repo itself.** Set to
+  `mode = "off"`. The plugin does not apply itself to itself; the
+  hook stays silent during plugin development sessions.
+- **Doc sweep**: residual legacy status references (`Status:
+  Planned/Active/Review/Deferred`) in `skills/project-conventions/SKILL.md`,
+  `skills/reverse-engineering/SKILL.md`,
+  `tools/consistency-check.py` suggestions, and
+  `docs/tutorials/full-v-model-run.md` updated to the new
+  vocabulary. PLAN-internal status (Draft/Active/Done) and ADR
+  status (Proposed/Accepted/Superseded) deliberately untouched
+  because they are independent state machines.
+
+### Added
+
+- **`/dia-setup` skill.** Activation, mode change, and deactivation
+  entry point for the plugin in a user project. Writes
+  `.dia/config.toml` with one of three modes (`off`, `git-only`,
+  `github-sync`) and manages anchor blocks in agent-facing files
+  (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.cursorrules`,
+  `.github/copilot-instructions.md`, `.windsurfrules`). Re-running
+  the skill changes the mode or removes the anchors cleanly.
+- **`tools/dia-setup/anchor.py`.** Idempotent helper that writes,
+  removes, lists, and verifies anchor blocks. Detects existing
+  blocks via stable marker pairs and replaces them in place.
+  Markdown comment markers for `.md` files, hash-comment markers
+  for `.cursorrules` and `.windsurfrules`.
+- **Anchor templates.** Per-tool templates under
+  `skills/dia-setup/templates/` so each agent file gets the
+  appropriate format (full block in CLAUDE.md / AGENTS.md, slim
+  pointer in GEMINI.md, YAML-frontmatter variant for `.cursorrules`,
+  Markdown for Copilot).
+
+### Changed
+
+- **`hooks/session-start`.** Reads `.dia/config.toml` from the
+  current working directory upwards. If `mode = "off"`, the hook
+  emits an empty injection so the bootstrap skill stays silent in
+  projects that opted out. Other modes preserve the legacy
+  injection behaviour.
+- **`skills/using-digital-innovation-agents/SKILL.md`.** Added an
+  Activation section that points new users to `/dia-setup` before
+  any other DIA skill, and explains the three modes.
+- **`tools/github-integration/flow.py`.** Reads `.dia/config.toml`
+  via a new `read_dia_mode()` helper and gates GitHub-only
+  subcommands (`create-issue`, `update-issue`, `open-draft-pr`,
+  `ready-for-review`, `sync-status`, `promote-to-epic`) on
+  `mode = "github-sync"`. `tag-phase` and `status` keep working
+  locally in `git-only`. Default when `.dia/config.toml` is
+  missing: `git-only`, so existing setups keep their behaviour.
+- **`flow.py sync-status`** is new. Mirrors backlog Status to the
+  GitHub issue (open / closed) and to the configured Project
+  status field, and pulls the Assignee back into the BACKLOG
+  Claim column. Translates the current BACKLOG vocabulary
+  (`Planned/Active/Review/Done/...`) to the GitHub vocabulary
+  (`Backlog/Ready/In Progress/In Review/Done`). The translation
+  table collapses to identity once stage 3 migrates the BACKLOG
+  vocabulary.
+- **`flow.py promote-to-epic`** is new. After RE produces an EPIC,
+  this subcommand renames the parent issue, creates sub-issues
+  for each FEAT and IMP under the EPIC, writes a `## Sub-Issues`
+  tasklist into the parent body for GitHub auto-rollup, and
+  optionally renames the feature branch to
+  `feature/epic-NN-<slug>`. Idempotent.
+- **`skills/dia-guide/SKILL.md`.** New "Item-start branch
+  creation" section. When the user picks entry-points A, B, or C,
+  the guide reads `source_branch` from `.dia/config.toml`
+  (default `develop`), creates `feature/<slug>` from that base,
+  and hands off to the chosen phase skill. The branch rename to
+  `feature/epic-NN-<slug>` happens later via
+  `flow.py promote-to-epic --rename-branch`.
+- **`skills/requirements-engineering/SKILL.md`.** Handoff ritual
+  documents the `promote-to-epic` call after EPIC ID assignment.
+  No-op outside `mode = "github-sync"`.
+- **Hotfix lane in `/coding`.** A new section in
+  `skills/coding/SKILL.md` defines a fast-path for small,
+  obvious bug fixes: maximum 3 files, no breaking change, fits an
+  existing FEAT, under 15 minutes. The fix runs first, the FIX-Row,
+  detail file, commit, and (in `github-sync` mode) GitHub issue are
+  created afterwards so the work stays visible. When any criterion
+  fails, the standard capture-then-fix path applies. Anti-misuse
+  signal: the directions meeting flags iterations where hotfixes
+  exceed 30% of the work as a quality-debt item.
+- **Four hotfix consistency mechanisms documented.** The Hotfix
+  lane section now lists explicitly: the FIX-Row in BACKLOG.md is
+  mandatory even retroactively; the commit cites the FIX-id in
+  subject and `Refs:`; deferred-stub markers bind bidirectionally
+  with the FIX row; the regression-test cycle still runs.
+- **`flow.py validate-fix` (new).** Hotfix-scoped consistency
+  check that runs after the hotfix commit lands. Verifies the FIX
+  row exists with correct refs, at least one commit on the branch
+  cites the FIX id, no orphan `FIXME(stub):` references this id,
+  and (in `github-sync` mode) the GitHub issue exists. Closes the
+  gap that `/consistency-check` mode A normally fills at phase
+  boundaries; hotfixes have no phase boundary.
+- **`/coding` Hotfix step 2** now ends with a `flow.py validate-fix`
+  call as a mandatory closing step.
+- **`team-workflow.md`** disambiguates the word "Phase" (binding):
+  "Phase tag" is the git tag `<id>/<phase>-done`; "Phase" without
+  qualifier in the BACKLOG context is the column with values
+  Released/Building/Planned/Candidates. The two are independent.
+  Resolves the K1 inconsistency from the workflow improvement plan.
+- **K2 documented**: source of truth split between Status (BACKLOG
+  is canonical) and Claim (GitHub Assignee is canonical). The
+  asymmetry is now an explicit binding rule in team-workflow.md.
+- **Doc sweep** for residual legacy status references in
+  `docs/concepts/three-layer-documentation.md`,
+  `docs/guides/security-audit.md`,
+  `docs/guides/consistency-check.md`.
+- **BACKLOG status vocabulary migrated to the GitHub-aligned set.**
+  The Status column now reads `Backlog`, `Ready`, `In Progress`,
+  `In Review`, `Done`, matching GitHub Project boards 1:1. The old
+  set (`Planned`, `Active`, `Review`, `Done`, `Waiting`, `Deferred`)
+  resolves through a one-shot migration:
+  `tools/migration/migrate_status_vocabulary.py`.
+  - `Planned` -> `Ready`
+  - `Active` -> `In Progress`
+  - `Review` -> `In Review`
+  - `Done` -> `Done`
+  - `Waiting`, `Deferred` -> `Backlog`
+- **`/dia-migration` Phase 5b.** Runs the status vocabulary script
+  after the backlog is regenerated. Idempotent.
+- **`flow.py sync-status` mapping is now legacy-only.** Allowed
+  values pass through unchanged; legacy values still translate via
+  `LEGACY_STATUS_MAPPING` so an un-migrated repo keeps working.
+  The mapping exits as soon as a project runs the migration.
+- **`BACKLOG-TEMPLATE.md`, `team-workflow.md`, METRICS-TEMPLATE.md,
+  and core phase skills** updated to reference the new vocabulary
+  in instructions and examples. Broader doc sweep is stage 5.
+
 ## [3.3.0] - 2026-05-05
 
 Minor release. Two structural changes shipped together:

@@ -1,14 +1,16 @@
 ---
-title: Using Digital Innovation Agents
-description: The orientation skill that loads automatically on session start. Introduces the V-Model skill set, entry points, and opt-out behaviour.
+title: DIA Bootstrap
+description: The skill that loads automatically on session start. Carries the entry-point catalog, helper-script path resolution, activation contract, and opt-out behaviour. Not invoked manually.
 ---
 
-# Using Digital Innovation Agents
+# DIA Bootstrap
 
-`using-digital-innovation-agents` is the orientation skill. It
-loads **automatically at session start** via the SessionStart hook
-and gives the agent a brief introduction to the workflow on every
-new session. You do not invoke it manually.
+`dia-bootstrap` is the bootstrap skill (renamed from
+`using-digital-innovation-agents` in v3.3). It loads
+**automatically at session start** via the SessionStart hook (or
+the OpenCode plugin's transform) and gives the agent its
+introduction to the workflow on every new session. You do not
+invoke it manually.
 
 The skill exists for two reasons:
 
@@ -167,7 +169,7 @@ calibrates depth accordingly.
 
 ## Read the skill file
 
-[`skills/using-digital-innovation-agents/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/using-digital-innovation-agents/SKILL.md)
+[`skills/dia-bootstrap/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/dia-bootstrap/SKILL.md)
 on GitHub.
 
 ## See also

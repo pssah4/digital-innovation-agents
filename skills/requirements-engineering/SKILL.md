@@ -75,7 +75,7 @@ backlog row, not in the artifact frontmatter.
 For every new FEATURE or IMP, a backlog row is mandatory output of
 this skill. The row carries:
 
-- Initial status (Planned)
+- Initial status (Ready)
 - Initial phase (Building, or Candidates if early ideation)
 - Epic link in Refs
 - Source (BA, RE, REV, USER)
@@ -84,9 +84,9 @@ this skill. The row carries:
 
 **Defaults when no better value exists:**
 
-- Feature: status Planned, phase Building
+- Feature: status Ready, phase Building
 - Epic: phase Building (derived via worst-wins once features exist)
-- IMP: status Planned, phase Candidates
+- IMP: status Ready, phase Candidates
 
 **Sync chain (binding order):**
 
@@ -578,12 +578,43 @@ After the commit lands, run:
 
 ```
 python3 tools/github-integration/flow.py tag-phase --item <ID> --phase re
+python3 tools/github-integration/flow.py sync-status --item <ID>
 ```
+
+`sync-status` mirrors the BACKLOG Status column to the GitHub
+issue and project (and the GitHub Assignee back into the BACKLOG
+Claim column). It is a no-op outside `mode = "github-sync"`.
 
 For long RE phases that span days and produce many features,
 intermediate commits per cluster of features are encouraged. Each
 intermediate commit follows the same template; only the final
 phase-end commit gets the `<id>/re-done` tag.
+
+### Promote to Epic (mode = github-sync only)
+
+When the EPIC ID has been assigned for the first time during this
+RE phase, the handoff includes a promotion step that mirrors the
+artifacts to GitHub and renames the feature branch:
+
+```
+python3 tools/github-integration/flow.py promote-to-epic \
+  --item EPIC-NN --rename-branch
+```
+
+The promote-to-epic subcommand:
+
+- renames the parent issue to `EPIC-NN: <title>` and adds the
+  `epic` label
+- creates one sub-issue per FEAT and IMP that lives under the EPIC
+  in the BACKLOG (idempotent, skips existing sub-issues)
+- writes a tasklist into the parent body so GitHub tracks the
+  rollup automatically
+- renames the current feature branch from `feature/<provisional>`
+  to `feature/epic-NN-<slug>` if the user passes `--rename-branch`
+
+The subcommand is a no-op in `mode = "off"` and `mode = "git-only"`.
+Skip the call when the EPIC was already promoted in a previous
+session, the subcommand stays idempotent but emits noise.
 
 Skip the commit silently if the working tree has no changes.
 
@@ -630,7 +661,7 @@ project name, an empty dashboard, and one section per drafted Epic.
 
 After every Epic or Feature created or modified, update the backlog
 in the same edit pass: add the new row to the matching Epic
-section, set status (typically `Planned` for fresh entries), link the
+section, set status (typically `Ready` for fresh entries), link the
 Feature-Spec filename, and refresh the dashboard counts. The backlog
 MUST reflect the project state before the Handoff Ritual runs.
 
