@@ -506,7 +506,7 @@ def cmd_tag_phase(args: argparse.Namespace) -> int:
         print("[tag-phase] mode=off, skipping (run /dia-setup to change)")
         return 0
     cur = current_branch()
-    if not branch_matches_item(cur, item) and cur not in ("main", "master", "dev"):
+    if not branch_matches_item(cur, item) and cur not in ("main", "master", "dev", "develop"):
         print(f"[tag-phase] WARNING: current branch '{cur}' does not match item '{item}'.")
     # Phase-end tags carry the "-done" suffix to mark a completed phase.
     # ready-for-review is not a phase but a release-readiness marker, so

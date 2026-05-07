@@ -26,7 +26,7 @@ die Skripte unter `.git/hooks-data/`. Direkt aus dem DIA-Repo
 funktioniert auch:
 
 ```bash
-bash <DIA-repo>/scripts/merge-to-dev.sh feature/foo dev
+bash <DIA-repo>/scripts/merge-to-dev.sh feature/foo develop
 ```
 
 (Der Wrapper findet das Skript ueber den `tools/`-Pfad oder
@@ -36,7 +36,7 @@ ueber `.git/hooks-data/` als Fallback.)
 
 ```bash
 bash scripts/merge-to-dev.sh <source-branch> [<target-branch>]
-# Default target: dev
+# Default target: develop
 ```
 
 Was passiert:
@@ -59,7 +59,7 @@ git reset --hard <target>-backup
 ## Direktmerge: was passiert dann?
 
 ```bash
-git checkout dev
+git checkout develop
 git merge --no-ff feature/foo
 ```
 
@@ -74,7 +74,7 @@ Use the canonical merge path so ids are renumbered on the source
 branch before the merge:
     git merge --abort
     git checkout <source-branch>
-    bash scripts/merge-to-dev.sh <source-branch> dev
+    bash scripts/merge-to-dev.sh <source-branch> develop
 ```
 
 Bypass per `git merge --no-verify` ist moeglich, sollte aber nur

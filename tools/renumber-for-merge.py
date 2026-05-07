@@ -667,8 +667,8 @@ def apply_plan(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--target", default="dev",
-                        help="target branch to align with (default: dev)")
+    parser.add_argument("--target", default="develop",
+                        help="target branch to align with (default: develop)")
     parser.add_argument("--source", default="HEAD",
                         help="source branch label, for logging (default: HEAD)")
     parser.add_argument("--source-ref", default=None,

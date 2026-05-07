@@ -13,7 +13,7 @@ mode = "off"
 # want to anchor (CLAUDE.md, AGENTS.md, GEMINI.md, .cursorrules).
 anchor_files = []
 
-source_branch = "dev"
+source_branch = "develop"
 
 [github]
 project_number = 0

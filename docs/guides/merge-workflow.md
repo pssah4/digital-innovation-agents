@@ -39,7 +39,7 @@ under `.git/hooks/` and copies the renumber engine to
 
 ```bash
 bash scripts/merge-to-dev.sh <source-branch> [<target-branch>]
-# Default target: dev
+# Default target: develop
 ```
 
 The wrapper:
@@ -67,7 +67,7 @@ git reset --hard <target>-backup
 ## Direct merge: what happens then?
 
 ```bash
-git checkout dev
+git checkout develop
 git merge --no-ff feature/foo
 ```
 
@@ -83,7 +83,7 @@ branch before the merge:
 
     git merge --abort
     git checkout <source-branch>
-    bash scripts/merge-to-dev.sh <source-branch> dev
+    bash scripts/merge-to-dev.sh <source-branch> develop
 
 If you really know what you are doing: bypass with --no-verify.
 ```

@@ -45,7 +45,7 @@ mkdir -p .git/hooks-data
 cp $DIA/tools/renumber-for-merge.py .git/hooks-data/
 
 # 3. dev: legt EPIC-04 (onboarding) an
-git checkout -qb dev
+git checkout -qb develop
 printf -- '---\nid: EPIC-04\n---\n# EPIC-04\n' \
   > _devprocess/requirements/epics/EPIC-04-onboarding.md
 echo "EPIC-04" > _devprocess/context/BACKLOG.md
@@ -58,7 +58,7 @@ printf -- '---\nid: EPIC-04\n---\n# EPIC-04\n' \
 git add -A && git commit -qm "feature/foo: EPIC-04 billing"
 
 # 5. Direktmerge versuchen
-git checkout -q dev
+git checkout -q develop
 git merge --no-ff -m "merge feature/foo direct" feature/foo
 echo "exit code: $?"
 git log --oneline --all --graph -5
@@ -85,7 +85,7 @@ git merge --abort 2>/dev/null
 git branch -D dev-backup 2>/dev/null
 
 # Wrapper laufen lassen
-bash $DIA/scripts/merge-to-dev.sh feature/foo dev
+bash $DIA/scripts/merge-to-dev.sh feature/foo develop
 echo "exit code: $?"
 
 # Verifikation
@@ -139,14 +139,14 @@ mkdir -p .git/hooks-data
 cp $DIA/tools/renumber-for-merge.py .git/hooks-data/
 
 # dev: EPIC-04, FEAT-04-02, FIX-04-02-01
-git checkout -qb dev
+git checkout -qb develop
 printf -- '---\nid: EPIC-04\n---\n' > _devprocess/requirements/epics/EPIC-04-onb.md
 printf -- '---\nid: FEAT-04-02\nepic: EPIC-04\n---\n' \
   > _devprocess/requirements/features/FEAT-04-02-magic.md
 printf -- '---\nid: FIX-04-02-01\nfeature: FEAT-04-02\nepic: EPIC-04\n---\n' \
   > _devprocess/requirements/fixes/FIX-04-02-01-bug.md
 echo "EPIC-04, FEAT-04-02, FIX-04-02-01" > _devprocess/context/BACKLOG.md
-git add -A && git commit -qm "dev"
+git add -A && git commit -qm "develop"
 
 # feature/bar (off main): kollidierendes EPIC-04 + FEAT-04-02 + FIX-04-02-01
 git checkout -qb feature/bar main
@@ -159,7 +159,7 @@ printf -- '---\nid: FIX-04-02-01\nfeature: FEAT-04-02\nepic: EPIC-04\n---\n' \
 git add -A && git commit -qm "feature/bar"
 
 # Wrapper laufen
-bash $DIA/scripts/merge-to-dev.sh feature/bar dev
+bash $DIA/scripts/merge-to-dev.sh feature/bar develop
 echo "exit: $?"
 
 # Verifikation
@@ -186,7 +186,7 @@ cat _devprocess/requirements/features/FEAT-05-02-checkout.md
 cd /tmp/dia-merge-test2
 
 # --list-conflicts ohne Apply
-git checkout -q dev
+git checkout -q develop
 git reset -q --hard HEAD~1  # vor dem Merge
 git checkout -q feature/bar
 git reset -q --hard HEAD~1  # vor dem Renumber-Commit (falls vorhanden)
@@ -201,7 +201,7 @@ python3 $DIA/tools/renumber-for-merge.py --target dev --dry-run
 git status --short  # sollte leer sein
 
 # --check-tree-duplicates (post-merge state)
-git checkout -q dev
+git checkout -q develop
 git merge --no-ff -m "test" feature/bar 2>/dev/null  # kann blockieren
 python3 $DIA/tools/renumber-for-merge.py --check-tree-duplicates
 echo "tree-duplicates exit: $?"
