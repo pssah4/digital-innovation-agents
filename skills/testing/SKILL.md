@@ -398,8 +398,9 @@ After a successful test run, follow the backlog-first writeback order:
 
 1. **Backlog row first.** Update the backlog row for every FEATURE,
    FIX, IMP, or PLAN whose status the test run changed. Coverage
-   notes go into the Notes column. Status transitions: Active ->
-   Review or Active -> Done depending on the phase.
+   notes go into the Notes column. Status transitions:
+   `In Progress -> In Review` or `In Progress -> Done` depending on
+   the phase.
 2. **Feature specs (substance only).** Verify Success Criteria are
    still accurate. Status field is NOT in the spec; it lives in the
    backlog row.

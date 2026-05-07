@@ -75,7 +75,7 @@ backlog row, not in the artifact frontmatter.
 For every new FEATURE or IMP, a backlog row is mandatory output of
 this skill. The row carries:
 
-- Initial status (Planned)
+- Initial status (Ready)
 - Initial phase (Building, or Candidates if early ideation)
 - Epic link in Refs
 - Source (BA, RE, REV, USER)
@@ -656,7 +656,7 @@ project name, an empty dashboard, and one section per drafted Epic.
 
 After every Epic or Feature created or modified, update the backlog
 in the same edit pass: add the new row to the matching Epic
-section, set status (typically `Planned` for fresh entries), link the
+section, set status (typically `Ready` for fresh entries), link the
 Feature-Spec filename, and refresh the dashboard counts. The backlog
 MUST reflect the project state before the Handoff Ritual runs.
 

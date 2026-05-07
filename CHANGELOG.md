@@ -68,6 +68,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`skills/requirements-engineering/SKILL.md`.** Handoff ritual
   documents the `promote-to-epic` call after EPIC ID assignment.
   No-op outside `mode = "github-sync"`.
+- **BACKLOG status vocabulary migrated to the GitHub-aligned set.**
+  The Status column now reads `Backlog`, `Ready`, `In Progress`,
+  `In Review`, `Done`, matching GitHub Project boards 1:1. The old
+  set (`Planned`, `Active`, `Review`, `Done`, `Waiting`, `Deferred`)
+  resolves through a one-shot migration:
+  `tools/migration/migrate_status_vocabulary.py`.
+  - `Planned` -> `Ready`
+  - `Active` -> `In Progress`
+  - `Review` -> `In Review`
+  - `Done` -> `Done`
+  - `Waiting`, `Deferred` -> `Backlog`
+- **`/dia-migration` Phase 5b.** Runs the status vocabulary script
+  after the backlog is regenerated. Idempotent.
+- **`flow.py sync-status` mapping is now legacy-only.** Allowed
+  values pass through unchanged; legacy values still translate via
+  `LEGACY_STATUS_MAPPING` so an un-migrated repo keeps working.
+  The mapping exits as soon as a project runs the migration.
+- **`BACKLOG-TEMPLATE.md`, `team-workflow.md`, METRICS-TEMPLATE.md,
+  and core phase skills** updated to reference the new vocabulary
+  in instructions and examples. Broader doc sweep is stage 5.
 
 ## [3.3.0] - 2026-05-05
 

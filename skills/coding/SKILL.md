@@ -466,7 +466,7 @@ Flow:
  plan-mode. Do not edit the structure. If the agent is less
  capable and produced nothing usable, fall back to the minimal
  structure described in the template.
-5. Flip status to `Active` once implementation begins.
+5. Flip status to `In Progress` once implementation begins.
 6. Every mid-course trigger (see "Mid-course bug discovery" and
  "Mid-course design discovery" below) appends a dated entry to the
  plan's `## Change Log` section BEFORE the code edit. Never
@@ -480,7 +480,7 @@ Skip the plan file only for:
 
 The plan file is part of the artifact report in the Handoff Ritual.
 
-**Plan Coverage Gate (binding, runs before Status flips to Active).**
+**Plan Coverage Gate (binding, runs before Status flips to In Progress).**
 
 Regardless of which agent produced the plan, the skill checks four
 things against the source artifacts. The check happens AFTER the

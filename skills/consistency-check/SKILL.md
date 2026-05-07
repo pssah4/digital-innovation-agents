@@ -232,7 +232,7 @@ fix patterns based on the finding's `type` field:
 | `source-path-broken` | Update path, mark feature Planned, remove path entry |
 | `frontmatter-status-duplicate` | Always auto-fixed in Mode A; only surfaces here if auto-fix failed |
 | `status-coherence-breach` | Open the owning phase skill (`/business-analysis` for BA Draft, `/requirements-engineering` for RE-side BA promotion, `/architecture` for ADR Proposed), Defer (file as backlog item with Source=CONSISTENCY-CHECK), Skip with reason. No direct edit option: status promotion is a semantic claim and belongs in the phase skill. |
-| `feature-activation-path-missing` | Open `/requirements-engineering` to add the Activation Path entry, Demote FEATURE backlog status from Done to Active, Defer (file as backlog item with Source=CONSISTENCY-CHECK), Skip with reason. No direct edit option: subtype-aware contract is owned by `/requirements-engineering`. |
+| `feature-activation-path-missing` | Open `/requirements-engineering` to add the Activation Path entry, Demote FEATURE backlog status from Done to In Progress, Defer (file as backlog item with Source=CONSISTENCY-CHECK), Skip with reason. No direct edit option: subtype-aware contract is owned by `/requirements-engineering`. |
 | `stub-without-fix-row` | Open `/coding` to create the missing FIX-row, Remove the stale FIXME marker (only if the stub has been resolved in code), Skip with reason. |
 | `fix-without-stub-evidence` | Open `/coding` to add the FIXME marker at the stubbed code location, Resolve the FIX (mark Done if the stub is gone), Defer, Skip with reason. |
 

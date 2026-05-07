@@ -254,7 +254,7 @@ Findings not fixed immediately (e.g. P2/P3 on Option B):
    - `Typ = Security`
    - `Source = SEC`
    - `Prio` mapped from finding severity (H -> P1, M -> P2, L -> P3)
-   - `Status = Planned`
+   - `Status = Ready`
    - `Evidence = path:line`
    - `Notes` = finding ID (H-N / M-N / L-N) + short risk description
    After adding rows, refresh the dashboard counts and "Letztes Update".

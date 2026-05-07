@@ -40,14 +40,13 @@ Last update: {YYYY-MM-DD} by {skill-or-user}
 
 ## Dashboard
 
-| Status   | Count | | Phase      | Count |
-|----------|-------|-|------------|-------|
-| Planned  | 0     | | Released   | 0     |
-| Active   | 0     | | Building   | 0     |
-| Review   | 0     | | Planned    | 0     |
-| Done     | 0     | | Candidates | 0     |
-| Waiting  | 0     | |            |       |
-| Deferred | 0     | |            |       |
+| Status      | Count | | Phase      | Count |
+|-------------|-------|-|------------|-------|
+| Backlog     | 0     | | Released   | 0     |
+| Ready       | 0     | | Building   | 0     |
+| In Progress | 0     | | Planned    | 0     |
+| In Review   | 0     | | Candidates | 0     |
+| Done        | 0     | |            |       |
 
 | Priority | Count |
 |----------|-------|
@@ -64,12 +63,15 @@ Counts are recomputed on every backlog write by the writing skill.
 
 ### Status (artifact lifecycle)
 
-- `Planned`: created, not yet started
-- `Active`: in progress (spec, plan, and implementation rolled up)
-- `Review`: work complete, in review
-- `Done`: finished. Row stays under its Epic.
-- `Waiting`: blocked, waiting for decision or dependency
-- `Deferred`: deliberately postponed, not committed
+Status values match the GitHub Projects vocabulary so backlog rows
+and project cards stay 1:1 in sync via `flow.py sync-status`.
+
+- `Backlog`: captured but not yet prioritized; also where blocked or
+  deferred items rest
+- `Ready`: prioritized, scheduled for an iteration, free to be claimed
+- `In Progress`: someone is actively working on this item
+- `In Review`: PR open, awaiting review or quality gates
+- `Done`: merged, finished. Row stays under its Epic for traceability.
 
 ### Phase (epic-level temporal stage)
 
@@ -125,7 +127,7 @@ Phase: Building | Target: {Q2 2026}
 
 | ID                | Type    | Title          | Status   | Phase    | Prio | Refs                              | Source | Commit    | Claim                          | Last change | Notes |
 |-------------------|---------|----------------|----------|----------|------|------------------------------------|--------|-----------|--------------------------------|-------------|-------|
-| FEAT-01-01   | Feature | {short title}  | Active   | Building | P1   | EPIC-01, ADR-03, PLAN-01        | BA     |           | sebastian-opus-4.7 @ 2026-04-19 | 2026-04-19  | {note} |
+| FEAT-01-01   | Feature | {short title}  | In Progress | Building | P1   | EPIC-01, ADR-03, PLAN-01        | BA     |           | sebastian-opus-4.7 @ 2026-04-19 | 2026-04-19  | {note} |
 | FEAT-01-02   | Feature | {short title}  | Done     | Released | P1   | EPIC-01, ADR-02, PLAN-02        | BA     | `a1b2c3d` |                                | 2026-04-10  |       |
 | ADR-03           | ADR     | {short title}  | Accepted | Released | P1   | FEAT-01-01                    | RE     |           |                                | 2026-04-15  |       |
 | PLAN-01          | Plan    | {short title}  | Active   | Building | P1   | FEAT-01-01                    | RE     |           | sebastian-opus-4.7 @ 2026-04-19 | 2026-04-19  |       |
@@ -210,7 +212,7 @@ ADR, plan, fix, or improvement run this sequence:
 **What counts as a status-changing action:**
 
 - New entry created (Feature, ADR, Plan, Fix, Improvement, BL-Item)
-- Status transition (Planned -> Active -> Review -> Done, etc.)
+- Status transition (Ready -> In Progress -> In Review -> Done, etc.)
 - Phase transition (Candidates -> Planned -> Building -> Released)
 - Priority or Epic mapping changed
 - Implementation complete (status Done with commit SHA)

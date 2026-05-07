@@ -96,19 +96,22 @@ phases. Cards move via GitHub Actions triggered by phase tags or by
 GitHub API for project cards directly; it sets git tags and the
 GitHub-side automation moves the card.
 
-Recommended project column setup:
+Recommended project Status field setup. The status vocabulary
+matches the BACKLOG.md Status column 1:1 so `flow.py sync-status`
+mirrors directly without translation.
 
-| Column         | Card lands here when               |
-|----------------|------------------------------------|
-| Planned        | Issue created                      |
-| BA             | tag `<id>/ba-done` set             |
-| RE             | tag `<id>/re-done` set             |
-| Architecture   | tag `<id>/arch-done` set           |
-| Coding         | tag `<id>/code-done` set           |
-| Testing        | tag `<id>/test-done` set           |
-| Audit          | tag `<id>/audit-done` set          |
-| Review         | tag `<id>/ready-for-review` set    |
-| Done           | PR merged                          |
+| Status        | Card lands here when                                   |
+|---------------|---------------------------------------------------------|
+| Backlog       | Issue created or item parked / blocked                 |
+| Ready         | Item prioritized in directions and ready to claim      |
+| In Progress   | Someone claimed the item and is actively working on it |
+| In Review     | Draft PR flipped to ready, review pending              |
+| Done          | PR merged, item shipped                                |
+
+The phase fields (BA, RE, Architecture, Coding, Testing, Audit) are
+labels driven by the per-phase tag, not separate status columns.
+Phase labels and Status are orthogonal: an item in `In Progress`
+can carry any of the `phase:*` labels.
 
 ## Phase tags: agent-set, GitHub-readable
 

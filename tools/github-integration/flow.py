@@ -515,12 +515,15 @@ def cmd_ready_for_review(args: argparse.Namespace) -> int:
 
 # ---------- Subcommand: sync-status -------------------------------------
 
-# Pre-stage-3 status mapping: BACKLOG values -> GitHub project values.
-# Stage 3 migrates BACKLOG to the GitHub vocabulary, after which the
-# mapping becomes the identity. We keep the mapping table here so the
-# transition is clear and easy to remove.
-STATUS_MAPPING_TO_GITHUB = {
-    "Planned": "Backlog",
+# Status passes through unchanged. BACKLOG and GitHub share one
+# vocabulary: Backlog, Ready, In Progress, In Review, Done.
+# Legacy BACKLOG values from before the stage-3 migration still
+# resolve correctly via the legacy table below; once a project has
+# run `tools/migration/migrate_status_vocabulary.py`, these entries
+# never trigger.
+ALLOWED_STATUSES = ("Backlog", "Ready", "In Progress", "In Review", "Done")
+LEGACY_STATUS_MAPPING = {
+    "Planned": "Ready",
     "Active": "In Progress",
     "Review": "In Review",
     "Done": "Done",
@@ -547,7 +550,17 @@ def parse_backlog_columns(row: dict) -> dict:
 
 
 def map_status_to_github(backlog_status: str) -> str | None:
-    return STATUS_MAPPING_TO_GITHUB.get(backlog_status.strip())
+    """Return the GitHub status for a BACKLOG status, or None if unknown.
+
+    Pre-stage-3 BACKLOG values are translated via LEGACY_STATUS_MAPPING.
+    Already-migrated values pass through unchanged.
+    """
+    s = backlog_status.strip()
+    if s in ALLOWED_STATUSES:
+        return s
+    if s in LEGACY_STATUS_MAPPING:
+        return LEGACY_STATUS_MAPPING[s]
+    return None
 
 
 def github_issue_assignee(issue_number: int) -> str:
@@ -703,8 +716,9 @@ def cmd_sync_status(args: argparse.Namespace) -> int:
         return 0
     issue_number = int(issue["number"])
 
-    # Open / closed transition by Done.
-    target_state = "closed" if backlog_status == "Done" else "open"
+    # Open / closed transition by Done. The check uses the mapped
+    # value so legacy backlogs still close on Done correctly.
+    target_state = "closed" if github_status == "Done" else "open"
     if issue["state"].lower() != target_state:
         verb = "close" if target_state == "closed" else "reopen"
         try:
