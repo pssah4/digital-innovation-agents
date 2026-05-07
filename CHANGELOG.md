@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-05-07
+
+Workflow collaboration improvement release. Twenty commits address
+user feedback on installability, the workflow contract, the
+GitHub-side mirror, and a two-reviewer security audit. Highlights:
+
+- New `/dia-setup` skill for opt-in plugin activation in any project
+  (modes off, git-only, github-sync) plus a managed anchor block in
+  agent files (CLAUDE.md, AGENTS.md, GEMINI.md, .cursorrules,
+  .github/copilot-instructions.md, .windsurfrules).
+- Mode-aware `flow.py` with three new subcommands: `sync-status`,
+  `promote-to-epic`, `validate-fix`, plus `apply-renumber` for the
+  post-merge issue title and parent-body Sub-Issues tasklist sync.
+- BACKLOG status vocabulary aligned to GitHub Projects (`Backlog`,
+  `Ready`, `In Progress`, `In Review`, `Done`). Migration via
+  `/dia-migration` Phase 5b.
+- Hotfix lane in `/coding` with five-criteria gate, four
+  consistency mechanisms, and the `validate-fix` closing check.
+- Bootstrap skill renamed `using-digital-innovation-agents` to
+  `dia-bootstrap`.
+- Phase rename `audit` -> `sec` (legacy `audit` accepted as alias).
+- Install paths: ship helper scripts on every install path, expose
+  `DIA_PLUGIN_ROOT` so skills resolve `tools/...` against the plugin
+  bundle from any working directory.
+- Branch convention `dev` -> `develop` across the toolchain.
+- Security audit fixes: graph viewer XSS via DOM API, `apply-renumber`
+  id validation, vendored Cytoscape, Windows hook arg quoting,
+  `last-renumber-plan.json` gitignored.
+
+See "Fixed" / "Added" / "Renamed" entries in the Unreleased section
+above for the full list of changes; this header simply tags the
+release.
+
 ### Fixed (security audit, two reviewers)
 
 Two security audits ran against the branch (one auto-driven by the
