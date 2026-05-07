@@ -104,11 +104,14 @@ the RE handoff or directly.
 ## Post-reverse-engineering item promotion (the only CRUD moment)
 
 `/reverse-engineering` finishes with a backlog seed: 20+ items at
-`Status: Anticipated, Source: REV` on a single
-`feature/reverse-engineer-<repo-name>` branch. Per-item branches
-and per-item GitHub issues kick in only after a user-driven triage:
-which seed items become real backlog candidates? `/reverse-engineering`
-explicitly defers this step to the guide (see RE's Pre-Phase 0).
+`Status: Backlog, Source: REV, Notes: anticipated` on a single
+`feature/reverse-engineer-<repo-name>` branch. The Status column
+uses the GitHub-aligned vocabulary; the "anticipated" flavour is
+recorded in the Notes column so the user can filter for it during
+triage. Per-item branches and per-item GitHub issues kick in only
+after a user-driven triage: which seed items become real backlog
+candidates? `/reverse-engineering` explicitly defers this step to
+the guide (see RE's Pre-Phase 0).
 
 This is the only place where the guide writes. It is a multi-item
 user interaction at a workflow boundary that no single phase skill
@@ -117,15 +120,19 @@ operations.
 
 Steps:
 
-1. Read `BACKLOG.md`, list items with `Status: Anticipated, Source: REV`.
-2. AskUserQuestion: which items should be promoted now (vs. left as
-   anticipated for later)?
+1. Read `BACKLOG.md`, list items with
+   `Status: Backlog, Source: REV` whose Notes column contains
+   `anticipated`.
+2. AskUserQuestion: which items should be promoted now (vs. left in
+   `Backlog` with the `anticipated` note for later)?
 3. For each promoted item:
    ```
-   python3 tools/github-integration/flow.py create-issue --item <ID>
+   python3 ${DIA_PLUGIN_ROOT:-.}/tools/github-integration/flow.py create-issue --item <ID>
    git tag -a <id-lower>/reverse-engineered -m "Item promoted from /reverse-engineering"
    ```
-4. Update BACKLOG row: `Status` -> `Planned` (or as appropriate).
+4. Update BACKLOG row: `Status` -> `Ready` (or `In Progress` if the
+   item already ships and only needs the inventory recorded).
+   Remove the `anticipated` note from the Notes column.
 5. Recommend the next skill: typically `/business-analysis` to
    validate the BA draft, or `/coding` for items that already
    ship and just need the inventory recorded.

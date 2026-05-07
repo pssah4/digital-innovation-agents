@@ -239,9 +239,7 @@ in the BACKLOG Status column.
 | ADR | `In Progress` | `Proposed` | `Building` |
 | PLAN | `In Progress` | `Draft` until plan-coverage gate passes, then `Active` | `Building` |
 | FIX | `Ready` (capture) or `In Progress` (active fix) | (none) | `Building` |
-- PLAN: status Draft, phase Building
-- FIX: status Open, phase Building (or Released if shipped)
-- IMP: status Planned, phase Building
+| IMP | `Ready` (or `Backlog` if deferred) | (none) | `Building` |
 
 **Sync chain on every status or phase change (binding order):**
 

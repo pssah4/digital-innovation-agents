@@ -129,8 +129,8 @@ Phase: Building | Target: {Q2 2026}
 |-------------------|---------|----------------|----------|----------|------|------------------------------------|--------|-----------|--------------------------------|-------------|-------|
 | FEAT-01-01   | Feature | {short title}  | In Progress | Building | P1   | EPIC-01, ADR-03, PLAN-01        | BA     |           | sebastian-opus-4.7 @ 2026-04-19 | 2026-04-19  | {note} |
 | FEAT-01-02   | Feature | {short title}  | Done     | Released | P1   | EPIC-01, ADR-02, PLAN-02        | BA     | `a1b2c3d` |                                | 2026-04-10  |       |
-| ADR-03           | ADR     | {short title}  | Accepted | Released | P1   | FEAT-01-01                    | RE     |           |                                | 2026-04-15  |       |
-| PLAN-01          | Plan    | {short title}  | Active   | Building | P1   | FEAT-01-01                    | RE     |           | sebastian-opus-4.7 @ 2026-04-19 | 2026-04-19  |       |
+| ADR-03           | ADR     | {short title}  | Done     | Released | P1   | FEAT-01-01                    | RE     |           |                                | 2026-04-15  | ADR-status: Accepted |
+| PLAN-01          | Plan    | {short title}  | In Progress | Building | P1   | FEAT-01-01                    | RE     |           | sebastian-opus-4.7 @ 2026-04-19 | 2026-04-19  | PLAN-status: Active |
 | FIX-013           | Fix     | {short title}  | Done     | Released | P0   | FEAT-01-02, PLAN-02          | BUG    | `e4f5g6h` |                                | 2026-04-17  | BUG-013 |
 
 ---
@@ -148,8 +148,8 @@ findings, direct stakeholder requests, technical debt.
 
 | ID     | Type     | Title              | Status  | Phase    | Prio | Refs              | Source | Commit | Claim | Last change | Notes |
 |--------|----------|--------------------|---------|----------|------|-------------------|--------|--------|-------|-------------|-------|
-| BL-050 | Security | CSRF token missing | Planned | Building | P1   |                   | SEC    |        |       | 2026-04-19  | H-2   |
-| BL-051 | Improvement | lodash outdated | Planned | Candidates | P3 |                   | REV    |        |       | 2026-04-19  |       |
+| BL-050 | Security | CSRF token missing | Ready   | Building | P1   |                   | SEC    |        |       | 2026-04-19  | H-2   |
+| BL-051 | Improvement | lodash outdated | Backlog | Candidates | P3 |                   | REV    |        |       | 2026-04-19  |       |
 
 ---
 

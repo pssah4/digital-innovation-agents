@@ -37,9 +37,9 @@ import sys
 from pathlib import Path
 
 VALID_PHASES = ("ba", "re", "arch", "code", "test", "sec", "ready-for-review")
-# `audit` is the v3 name for the security phase, kept as a tolerated
-# alias for repos that already carry `<id>/audit-done` tags from
-# earlier runs. New tags use `sec`.
+# `sec` is the canonical name for the security phase. `audit` is the
+# legacy v3 name, kept as a tolerated alias for repos that already
+# carry `<id>/audit-done` tags from earlier runs. New tags use `sec`.
 PHASE_ALIASES = {"audit": "sec"}
 ITEM_RE = re.compile(r"^(EPIC-\d{2}|FEAT-\d{2}-\d{2}|FIX-\d{2}-\d{2}-\d{2}|IMP-\d{2}-\d{2}-\d{2})$")
 
@@ -106,9 +106,11 @@ def read_dia_github_config() -> dict:
         gh = data.get("github", {})
         return gh if isinstance(gh, dict) else {}
     except ModuleNotFoundError:
-        # Minimal scan: extract project_number and repo and status_field
+        # Minimal regex scan for systems without tomllib (Python < 3.11).
+        # Reads the keys flow.py actually consumes; do not extend this
+        # list without also extending the consumers.
         out: dict = {}
-        for key in ("project_number", "repo", "status_field"):
+        for key in ("project_number", "status_field", "project_owner"):
             m = re.search(rf'{key}\s*=\s*("([^"]*)"|(\d+))', text)
             if m:
                 out[key] = m.group(2) if m.group(2) is not None else int(m.group(3))

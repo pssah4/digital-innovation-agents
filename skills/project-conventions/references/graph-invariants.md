@@ -72,12 +72,12 @@ Mode A entsprechend angepasst werden.
 | N-7 | Jedes FIX/IMP mit `Phase: Candidates` hat `needs refinement: {Grund}`-Marker. | Notizen-Feld enthaelt den Marker. |
 | N-8 | Jedes Item-BA (`BA-EPIC-*`, `BA-FEAT-*`, `BA-IMP-*`, `BA-FIX-*`) hat ein `project-ba-ref:` im Frontmatter (Wert zeigt auf existierenden Project-BA, oder `null` wenn kein Project-BA existiert) und definiert keine Personas/Value-Dimensionen/Nordstern lokal, wenn `project-ba-ref` gesetzt ist. | Frontmatter parsen, `project-ba-ref` auf existenz pruefen; bei gesetztem Wert: Item-BA enthaelt keine eigene Persona-Definition (Persona wird per ID aus Project-BA §2 referenziert). |
 | N-9 | Jedes EPIC und FEAT, das eine zugehoerige BA-Datei in `analysis/` hat, traegt `ba-ref:` im Frontmatter, das auf diese Datei zeigt. Umgekehrt zeigt jeder Item-BA-Filename auf ein passendes Backlog-Item (BA-EPIC-04 -> EPIC-04). | Frontmatter `ba-ref:` parsen, Pfad pruefen; Filename-zu-ID-Mapping ueber Naming-Pattern verifizieren. |
-| N-10 | Jedes Feature-Frontmatter enthaelt `phase: Released|Building|Planned|Candidates` und `status: <Arbeitsstatus>`. | YAML-Frontmatter parsen, Pflicht-Felder pruefen. |
-| N-11 | Jedes Epic-Frontmatter enthaelt `phase: Released|Building|Planned|Candidates`. | YAML-Frontmatter parsen, Pflicht-Feld pruefen. |
-| N-12 | Jedes ADR-Frontmatter enthaelt `status: Proposed|Accepted|Superseded|Deprecated` und `phase: Released|Building|Planned|Candidates`. | YAML-Frontmatter parsen, beide Felder pruefen. |
+| N-10 | Feature-Frontmatter traegt KEINEN Lifecycle-`status:`- und KEINEN `phase:`-Wert. Beide Felder leben in der Backlog-Row (Single-Source-of-Truth, siehe `project-conventions/SKILL.md`). Ausnahme fuer Reverse-Engineered Artefakte: ein einmaliges `status: Observed (not validated)` darf im Frontmatter stehen, bis `/business-analysis` das Feature validiert; danach wird das Feld entfernt. | YAML-Frontmatter parsen, `phase:` auf Abwesenheit pruefen; `status:` nur tolerieren, wenn der Wert ein Reverse-Engineered-Marker ist (`Observed`, `Inferred`, `Draft (reverse-engineered, ...)`); sonst `frontmatter-status-leak`. |
+| N-11 | Epic-Frontmatter traegt KEINEN Lifecycle-`status:`- und KEINEN `phase:`-Wert. Ausnahme: Reverse-Engineered Epics duerfen `status: Anticipated (not yet validated)` tragen, bis `/business-analysis` und `/requirements-engineering` sie verfeinern. | YAML-Frontmatter parsen, `phase:` ablehnen; `status:` nur als Reverse-Engineered-Marker tolerieren. |
+| N-12 | Jedes ADR-Frontmatter enthaelt `status: Proposed|Accepted|Superseded|Deprecated` (ADR-eigenes Statusfeld, MADR-Konvention; nicht zu verwechseln mit dem Backlog-Status der ADR-Row). Kein `phase:` im ADR-Frontmatter. | YAML-Frontmatter parsen, ADR-Status-Wert pruefen. |
 | N-13 | Jede FIX-Datei hat `feature:` (Pflicht) und `epic:` (Pflicht) im Frontmatter. Beide Felder zeigen auf existierende Artefakte. | YAML-Frontmatter parsen; FIX-Felder vs docs/requirements. |
 | N-14 | Jede IMP-Datei (IMPROVEMENT) hat `feature:` (Pflicht) und `epic:` (Pflicht) im Frontmatter. Beide zeigen auf existierende Artefakte. | YAML-Frontmatter parsen; IMP-Felder vs docs/requirements. |
-| N-15 | FIX- und IMP-Dateien haben `phase:` und `status:` im Frontmatter (gleiche Enum-Werte wie Features). | YAML-Frontmatter parsen. |
+| N-15 | FIX- und IMP-Dateien tragen wie Features KEINEN `status:`- und KEINEN `phase:`-Wert im Frontmatter. State lebt in der Backlog-Row. | YAML-Frontmatter parsen. |
 | N-16 | Die alten Begriffe "Chore" und "BL-Item (historisch)" sowie der Backlog-Abschnitt `## Standalone Chores` werden nicht mehr verwendet. | Grep auf "Chore"/"BL-Item (historisch)"/"Standalone Chores" in docs/ (archive ausgenommen). |
 | N-17 | Status-Kohaerenz zwischen Eltern- und Kind-Artefakten: ein Eltern-Artefakt darf nicht in einem Pre-Validation-Status verharren, wenn ein abgeleitetes Kind-Artefakt nachweislich exerzitiert wurde. Pruefpaare siehe Tabelle "Status-Coherence-Pairs" unten. | Pro Paar: Eltern-Frontmatter `status:` lesen, Kind-Evidenz pruefen (Datei-Existenz oder Kind-Phase >= Building); bei Treffer Finding `status-coherence-breach`. |
 | N-18 | Jedes FEATURE mit Backlog-Status `Done` enthaelt eine nicht-leere `## Activation Path` Section in der Definition of Done (Pflicht-Felder Type und Identifier ausgefuellt). FEATUREs ohne `subtype:` im Frontmatter sind aus Rueckwaerts-Kompatibilitaet ausgenommen; FEATUREs mit `subtype: user-facing` (Default wenn gesetzt) oder `subtype: library` muessen die Invariante erfuellen. | Pro Done-FEATURE: `## Activation Path` Section parsen, Type und Identifier extrahieren, beide muessen nicht-leer sein. Severity warn (fail unter --strict). |
@@ -233,30 +233,42 @@ entfernt wurde).
 | -------- | ----------------------------------------------------------------------- | ------------------------------- |
 | Project-BA | `type: ba`, `target-type: project`, `target-id: {PROJECT}`, `created:` | `type: ba`, `target-type: project` |
 | Item-BA | `type: ba`, `target-type: epic|feat|imp|fix`, `target-id:`, `project-ba-ref:` (Pfad oder `null`), `personas:` (IDs), `project-kpi-ref:` (Liste), `created:` | `target-type` aus Triage; `personas: []` falls noch keine Refs |
-| Epic | `phase: <Lebenszyklus>`; `ba-ref:` (Pflicht ab N-9) | `phase: Building` (abgeleitet worst-wins) |
-| Feature | `phase: <Lebenszyklus>`, `status: <Arbeitsstatus>`, `subtype: user-facing|library` (optional fuer Bestand, Pflicht fuer neue FEATUREs ab N-18); `ba-ref:` (Pflicht ab N-9) | `phase: Building`, `status: Planned`, `subtype: user-facing` |
-| ADR | `phase: <Lebenszyklus>`, `status: Proposed|Accepted|Superseded|Deprecated` | `phase: Building`, `status: Proposed` |
-| PLAN | `status: Draft|Active|Completed` | `status: Draft` |
-| FIX/IMP | Phase-Spalte in Backlog-Tabelle; `ba-ref:` falls eine BA existiert (sonst weglassen) | `Building` |
+| Epic | `ba-ref:` (Pflicht ab N-9). KEIN `phase:`, KEIN `status:` im Frontmatter; beide leben in der Backlog-Row. | Frontmatter ohne Status/Phase |
+| Feature | `subtype: user-facing|library` (optional fuer Bestand, Pflicht fuer neue FEATUREs ab N-18); `ba-ref:` (Pflicht ab N-9). KEIN `status:`, KEIN `phase:` im Frontmatter. | `subtype: user-facing`, BACKLOG-Row mit `status: Ready, phase: Building` |
+| ADR | `status: Proposed|Accepted|Superseded|Deprecated` (ADR-Frontmatter, MADR). KEIN `phase:`. | Frontmatter `status: Proposed`, BACKLOG-Row mit `status: In Progress, phase: Building` |
+| PLAN | `status: Draft|Active|Completed` (PLAN-Frontmatter). | Frontmatter `status: Draft`, BACKLOG-Row mit `status: In Progress, phase: Building` |
+| FIX/IMP | `feature:` (Pflicht), `epic:` (Pflicht), `ba-ref:` falls eine BA existiert (sonst weglassen). KEIN `status:`, KEIN `phase:` im Frontmatter. | BACKLOG-Row mit `status: Ready, phase: Building` |
+
+**Backlog-Status-Werte (Enum):** `Backlog | Ready | In Progress |
+In Review | Done`. Diese Werte stehen in der `Status`-Spalte der
+Backlog-Row und werden 1:1 mit der GitHub-Project-Status-Spalte
+synchronisiert (`flow.py sync-status`). Sie sind **nicht** mit den
+ADR/PLAN-Frontmatter-Status-Werten zu verwechseln, die parallel in
+den jeweiligen Artefakten leben.
 
 **Phase-Werte (Enum):** `Released | Building | Planned | Candidates`.
-Siehe Phase-Schema-Konvention unten fuer Semantik.
+Phase steht in der Backlog-Row und beschreibt die Epic-Lebenszyklus-
+Stufe. Siehe Phase-Schema-Konvention unten fuer Semantik.
 
-**Status-Werte:**
+**Frontmatter-Status (per Artefakt-Typ, lebt NUR im Frontmatter, nicht im Backlog):**
 
-- Feature-Status: `Planned | Observed | Implemented | Done`
 - ADR-Status (MADR): `Proposed | Accepted | Superseded | Deprecated`
 - PLAN-Status: `Draft | Active | Completed`
+- Feature, Epic, FIX, IMP: kein Frontmatter-Status. State steht
+  ausschliesslich in der Backlog-Row.
 
-**Single Source of Truth:** Das YAML-Frontmatter des Artefakts ist die
-Wahrheit. Backlog-Zeilen sind Projektionen davon und muessen beim
-Aendern synchron nachgezogen werden.
+**Single Source of Truth:** Die Backlog-Row ist die Wahrheit fuer
+Status und Phase eines Artefakts. ADR- und PLAN-Frontmatter-Status
+sind separate, artefaktspezifische Lifecycle-Felder, die nicht im
+Backlog auftauchen.
 
-**Sync-Pflicht beim Aendern von `phase:` oder `status:` in einem Artefakt:**
+**Sync-Pflicht bei State-Aenderungen:**
 
-1. Frontmatter im Artefakt aktualisieren.
-2. Backlog-Zeile des Artefakts aktualisieren (Feature-Tabellenzeile
- unter dem Epic-Abschnitt, bzw. Epic-Header `Phase: X`).
+1. Backlog-Row aktualisieren (Status, Phase, Last-Change, Claim).
+   Das ist der Schritt, der die Wahrheit setzt.
+2. Bei ADR/PLAN: zusaetzlich das Frontmatter-Status-Feld in der
+   Datei selbst pflegen (fuer Lifecycle-Zwecke, nicht fuer
+   Backlog-Synchronisation).
 3. Wenn Epic-Phase neu abgeleitet werden muss (worst-wins ueber
  Features): Epic-Frontmatter und Epic-Header-Zeile im Backlog
  aktualisieren.
@@ -400,7 +412,7 @@ erfragt): Eine Antwort auf die Frage
      durch die Epic-Item-BA gedeckt - Skill fragt einmal)
    - dann neues **FEATURE** anlegen, Pflicht-Bindung an ein Epic
    - Frontmatter `phase: Candidates` oder `Planned`,
-     `status: Planned`, `ba-ref:` zeigt auf die BA-Datei
+     Backlog-Row mit `status: Ready, phase: Building`, `ba-ref:` zeigt auf die BA-Datei
    - `/requirements-engineering` uebernimmt
 
 3. **Verbesserung an bestehendem Feature** (Refactor, Performance,

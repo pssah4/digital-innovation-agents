@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (fourth review pass)
+
+- **`project_owner` survives the Python 3.9 fallback parser.**
+  flow.py's `read_dia_github_config` falls back to a regex scan
+  on systems without `tomllib` (Python < 3.11). The fallback
+  previously read `project_number`, `repo`, and `status_field`.
+  `repo` is not in the schema; `project_owner` is. Fallback list
+  corrected to `("project_number", "status_field", "project_owner")`,
+  with a comment that any new key consumed by flow.py must also
+  land here.
+- **BACKLOG-Template examples use the new vocabulary.** The
+  example rows for ADR, PLAN, and standalone items previously
+  carried `Accepted`, `Active`, `Planned` in the Status column,
+  which contradicted the introductory paragraph that names the
+  GitHub-aligned set as the only allowed values. Examples now
+  read `Done | In Progress | Ready | Backlog`. ADR / PLAN
+  frontmatter status (`Accepted`, `Active`) move to the Notes
+  column for traceability.
+- **`graph-invariants.md` no longer requires status/phase in
+  Feature/Epic frontmatter.** N-10 and N-11 are inverted: they
+  now forbid the lifecycle status/phase fields in
+  Feature/Epic/FIX/IMP frontmatter, with a single tolerated
+  exception for reverse-engineered artefacts (`Anticipated (not
+  yet validated)`, `Observed (not validated)`) that
+  `/business-analysis` removes once validated. The default
+  artefact-frontmatter table is rewritten so the BACKLOG row
+  defaults are visible. Single-Source-of-Truth statement now
+  names the BACKLOG row, not the artefact frontmatter.
+- **`coding/SKILL.md` Defaults bullet leftovers removed.** The
+  three bullets `PLAN: status Draft, FIX: status Open, IMP:
+  status Planned` directly under the corrected Defaults table
+  contradicted the table values. The bullets are gone; IMP gets
+  its own row in the table (`Ready` / `Backlog if deferred`,
+  no frontmatter status).
+- **`/dia-guide` reverse-engineering promotion uses the new
+  vocabulary.** The triage step previously looked for
+  `Status: Anticipated` and wrote `Status: Planned` after
+  promotion. Now items sit at `Status: Backlog` with an
+  `anticipated` note in the Notes column; promotion sets
+  `Status: Ready` (or `In Progress` for items that already
+  ship) and drops the note. The `python3 tools/...` invocation
+  also gains the `${DIA_PLUGIN_ROOT:-.}` prefix to match the
+  helper-path convention.
+- **flow.py PHASE_ALIASES comment** corrected: `sec` is the
+  canonical name, `audit` is the legacy alias. Code already had
+  the right behaviour; only the comment drifted.
+
 ### Fixed (third review pass)
 
 - **Status vocabulary harmonized across all skill defaults.** The
