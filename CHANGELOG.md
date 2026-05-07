@@ -37,6 +37,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`skills/using-digital-innovation-agents/SKILL.md`.** Added an
   Activation section that points new users to `/dia-setup` before
   any other DIA skill, and explains the three modes.
+- **`tools/github-integration/flow.py`.** Reads `.dia/config.toml`
+  via a new `read_dia_mode()` helper and gates GitHub-only
+  subcommands (`create-issue`, `update-issue`, `open-draft-pr`,
+  `ready-for-review`, `sync-status`, `promote-to-epic`) on
+  `mode = "github-sync"`. `tag-phase` and `status` keep working
+  locally in `git-only`. Default when `.dia/config.toml` is
+  missing: `git-only`, so existing setups keep their behaviour.
+- **`flow.py sync-status`** is new. Mirrors backlog Status to the
+  GitHub issue (open / closed) and to the configured Project
+  status field, and pulls the Assignee back into the BACKLOG
+  Claim column. Translates the current BACKLOG vocabulary
+  (`Planned/Active/Review/Done/...`) to the GitHub vocabulary
+  (`Backlog/Ready/In Progress/In Review/Done`). The translation
+  table collapses to identity once stage 3 migrates the BACKLOG
+  vocabulary.
+- **`flow.py promote-to-epic`** is new. After RE produces an EPIC,
+  this subcommand renames the parent issue, creates sub-issues
+  for each FEAT and IMP under the EPIC, writes a `## Sub-Issues`
+  tasklist into the parent body for GitHub auto-rollup, and
+  optionally renames the feature branch to
+  `feature/epic-NN-<slug>`. Idempotent.
+- **`skills/dia-guide/SKILL.md`.** New "Item-start branch
+  creation" section. When the user picks entry-points A, B, or C,
+  the guide reads `source_branch` from `.dia/config.toml`
+  (default `develop`), creates `feature/<slug>` from that base,
+  and hands off to the chosen phase skill. The branch rename to
+  `feature/epic-NN-<slug>` happens later via
+  `flow.py promote-to-epic --rename-branch`.
+- **`skills/requirements-engineering/SKILL.md`.** Handoff ritual
+  documents the `promote-to-epic` call after EPIC ID assignment.
+  No-op outside `mode = "github-sync"`.
 
 ## [3.3.0] - 2026-05-05
 

@@ -30,10 +30,10 @@ disable-model-invocation: false
 - Audits whether the last handoff carries the binding fields
   (`triage:`, `triage_kind:`, `epic:`, `feature:`)
 - Runs the Closing Handoff after a green `/security-audit`
-- Does the post-`/reverse-engineering` item promotion (the only
-  CRUD moment the guide owns, because it is a multi-item user
-  interaction at a workflow boundary that no single phase skill
-  covers)
+- Owns two narrow CRUD moments at workflow boundaries that no single
+  phase skill covers: (a) the **post-`/reverse-engineering` item
+  promotion** (described below), and (b) the **item-start branch
+  creation** when the user enters at A/B/C from a fresh repo
 
 What the guide does NOT do:
 
@@ -49,6 +49,57 @@ What the guide does NOT do:
   Each phase skill runs mode A in its own handoff ritual. Mode B
   fires from the Closing Handoff, see below.
 - It does not call other skills. It recommends; the user invokes.
+
+## Item-start branch creation
+
+When the user picks entry-point A, B, or C in the hybrid entry-point
+detection (see "Start: Determine Phase" below), the guide creates a
+fresh feature branch from the configured source branch before the
+phase skill takes over. The phase skill itself does not own this
+because the branch must exist before the first artifact is written.
+
+Steps:
+
+1. **Read `.dia/config.toml`.** Extract the `source_branch`
+   (default `develop`) and the `mode`. If the file is missing, fall
+   back to `develop` and treat the mode as `git-only`.
+2. **Slug input.** Ask the user (single `AskUserQuestion`, short
+   plain-text "Other" slot) for a short kebab-case slug describing
+   the item. The slug is provisional. It becomes the suffix of the
+   feature branch name. Example: `auto-save-on-input`.
+3. **Branch creation.**
+   ```bash
+   git fetch origin <source_branch> --quiet || true
+   git checkout <source_branch>
+   git pull --ff-only origin <source_branch> 2>/dev/null || true
+   git checkout -b feature/<slug>
+   ```
+   If the branch already exists, switch to it and warn the user. Do
+   not overwrite work.
+4. **Mode-aware GitHub side-effect.** If `mode = "github-sync"` and
+   the user has an existing GitHub issue tracking this item, the
+   guide reminds the user to assign themselves on GitHub so that
+   `flow.py sync-status` can mirror the assignee into the BACKLOG
+   `Claim` column once the item gets a real ID. The guide does not
+   create an issue at this stage; the phase skill that first writes
+   a backlog row (typically `/business-analysis` or
+   `/requirements-engineering`) calls `flow.py create-issue` once
+   the ID is known.
+5. **Hand-off.** Print the branch name to the user, then recommend
+   the relevant phase skill: A -> `/business-analysis`,
+   B -> `/requirements-engineering`, C -> `/architecture`. The
+   phase skill takes over.
+
+Branch rename after RE: when `/requirements-engineering` finishes
+and the EPIC ID is known, the user (or `/dia-guide` on a later
+invocation) can run
+```
+python3 tools/github-integration/flow.py promote-to-epic --item EPIC-NN --rename-branch
+```
+to retitle the parent issue, create sub-issues, and rename the
+branch from `feature/<slug>` to `feature/epic-NN-<slug>`. The
+guide does not run this automatically; the user invokes it via
+the RE handoff or directly.
 
 ## Post-reverse-engineering item promotion (the only CRUD moment)
 

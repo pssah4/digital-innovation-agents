@@ -26,6 +26,23 @@ script enters **local-only mode**: it sets git tags but skips all
 GitHub API calls. Switching to GitHub later is non-destructive --
 re-run `create-issue` and tags will sync.
 
+## Mode awareness
+
+flow.py reads `.dia/config.toml` (managed by `/dia-setup`) and
+respects the `mode` setting:
+
+- `off`: every subcommand is a no-op with a clear message.
+- `git-only`: GitHub-only subcommands (`create-issue`,
+  `update-issue`, `open-draft-pr`, `ready-for-review`,
+  `sync-status`, `promote-to-epic`) are no-ops. `tag-phase` and
+  `status` work locally so phase-end commits keep their tags.
+- `github-sync`: full behaviour. Issues, PRs, project field, tasklist
+  rollups all sync.
+
+If `.dia/config.toml` is missing, the script falls back to
+`git-only` for backwards compatibility with setups created before
+stage 1.
+
 ## Subcommands
 
 | Subcommand           | When called by skills                                                       |
@@ -35,6 +52,8 @@ re-run `create-issue` and tags will sync.
 | `open-draft-pr`      | After the first commit on the item branch (typically end of Phase 0)        |
 | `ready-for-review`   | After all required phase tags are set (Closing Handoff)                     |
 | `status`             | `/dia-guide` post-phase audit, or user query                                |
+| `sync-status`        | After every Handoff Ritual; mirrors backlog Status to issue / project      |
+| `promote-to-epic`    | After RE finishes for a new EPIC; renames parent, creates sub-issues       |
 
 All subcommands take `--item <ID>` (e.g. `--item FEAT-04-09`) and
 are idempotent.
@@ -60,7 +79,71 @@ python3 tools/github-integration/flow.py ready-for-review --item FEAT-04-09 --wi
 
 # Anytime: where do we stand?
 python3 tools/github-integration/flow.py status --item FEAT-04-09
+
+# After every handoff ritual: mirror backlog status and claim
+python3 tools/github-integration/flow.py sync-status --item FEAT-04-09
+
+# Once per new EPIC after RE: rename parent, create sub-issues
+python3 tools/github-integration/flow.py promote-to-epic \
+  --item EPIC-04 --rename-branch
 ```
+
+## sync-status: backlog -> GitHub status mapping
+
+The BACKLOG schema currently uses `Planned`, `Active`, `Review`,
+`Done`, `Waiting`, `Deferred`. GitHub project boards typically use
+`Backlog`, `Ready`, `In Progress`, `In Review`, `Done`. Until stage 3
+migrates BACKLOG to the GitHub vocabulary, `sync-status` translates:
+
+| BACKLOG status | GitHub status |
+|---|---|
+| `Planned`  | `Backlog`     |
+| `Active`   | `In Progress` |
+| `Review`   | `In Review`   |
+| `Done`     | `Done`        |
+| `Waiting`  | `Backlog`     |
+| `Deferred` | `Backlog`     |
+
+`Done` also closes the GitHub issue; any other status reopens it.
+The mapping table will collapse to identity once stage 3 lands.
+
+## Project-level configuration
+
+`sync-status` updates the issue and, optionally, a status field on a
+GitHub Project. Configure the project in `.dia/config.toml`:
+
+```toml
+[github]
+project_number = 7
+status_field = "Status"
+```
+
+Without a `project_number`, only the issue state (open / closed) is
+mirrored. With it, `sync-status` resolves the project owner from the
+repo, looks up the field id, and sets the single-select option.
+
+## promote-to-epic
+
+Run after `/requirements-engineering` has produced an EPIC and one
+or more FEATs / IMPs.
+
+```
+python3 tools/github-integration/flow.py promote-to-epic \
+  --item EPIC-NN [--parent-issue 42] [--rename-branch]
+```
+
+Steps:
+
+1. Renames the parent issue title to `EPIC-NN: <title>`. Adds the
+   `epic` label.
+2. Creates sub-issues for every `FEAT-NN-*` and `IMP-NN-*-*` row in
+   the BACKLOG (skips already-existing ones).
+3. Writes a `## Sub-Issues` tasklist into the parent body so GitHub
+   tracks the rollup automatically.
+4. With `--rename-branch`: renames the current feature branch to
+   `feature/epic-NN-<slug>`. No-op if it already matches.
+
+Idempotent. Safe to re-run.
 
 ## Tag schema
 

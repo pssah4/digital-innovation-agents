@@ -585,6 +585,32 @@ intermediate commits per cluster of features are encouraged. Each
 intermediate commit follows the same template; only the final
 phase-end commit gets the `<id>/re-done` tag.
 
+### Promote to Epic (mode = github-sync only)
+
+When the EPIC ID has been assigned for the first time during this
+RE phase, the handoff includes a promotion step that mirrors the
+artifacts to GitHub and renames the feature branch:
+
+```
+python3 tools/github-integration/flow.py promote-to-epic \
+  --item EPIC-NN --rename-branch
+```
+
+The promote-to-epic subcommand:
+
+- renames the parent issue to `EPIC-NN: <title>` and adds the
+  `epic` label
+- creates one sub-issue per FEAT and IMP that lives under the EPIC
+  in the BACKLOG (idempotent, skips existing sub-issues)
+- writes a tasklist into the parent body so GitHub tracks the
+  rollup automatically
+- renames the current feature branch from `feature/<provisional>`
+  to `feature/epic-NN-<slug>` if the user passes `--rename-branch`
+
+The subcommand is a no-op in `mode = "off"` and `mode = "git-only"`.
+Skip the call when the EPIC was already promoted in a previous
+session, the subcommand stays idempotent but emits noise.
+
 Skip the commit silently if the working tree has no changes.
 
 ### Part 4: Transition question
