@@ -34,7 +34,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-VALID_PHASES = ("ba", "re", "arch", "code", "test", "audit", "ready-for-review")
+VALID_PHASES = ("ba", "re", "arch", "code", "test", "sec", "ready-for-review")
+# `audit` is the v3 name for the security phase, kept as a tolerated
+# alias for repos that already carry `<id>/audit-done` tags from
+# earlier runs. New tags use `sec`.
+PHASE_ALIASES = {"audit": "sec"}
 ITEM_RE = re.compile(r"^(EPIC-\d{2}|FEAT-\d{2}-\d{2}|FIX-\d{2}-\d{2}-\d{2}|IMP-\d{2}-\d{2}-\d{2})$")
 
 # Subcommands that require GitHub to be reachable in mode = "github-sync".
@@ -107,6 +111,30 @@ def read_dia_github_config() -> dict:
             if m:
                 out[key] = m.group(2) if m.group(2) is not None else int(m.group(3))
         return out
+
+
+def read_source_branch() -> str:
+    """Return the project's source / target branch for feature PRs.
+
+    Read from `.dia/config.toml -> source_branch`. Default `develop`,
+    matching the team-workflow contract.
+    """
+    try:
+        cfg = repo_root() / ".dia" / "config.toml"
+    except subprocess.CalledProcessError:
+        return "develop"
+    if not cfg.exists():
+        return "develop"
+    text = cfg.read_text(encoding="utf-8")
+    try:
+        import tomllib  # type: ignore[import-not-found]
+
+        data = tomllib.loads(text)
+        sb = data.get("source_branch", "develop")
+        return str(sb) if sb else "develop"
+    except ModuleNotFoundError:
+        m = re.search(r'source_branch\s*=\s*"([^"]+)"', text)
+        return m.group(1) if m else "develop"
 
 
 def mode_active_or_skip(action: str) -> bool:
@@ -257,6 +285,46 @@ def find_issue_for_item(item: str) -> dict | None:
     return None
 
 
+def find_raw_issue_by_title(title: str) -> dict | None:
+    """Find a raw issue (still pre-EPIC) by approximate title match.
+
+    Used by promote-to-epic to locate the original intake issue
+    before its title was rewritten to `EPIC-NN: {slug}`. We compare
+    the BACKLOG title against issue titles after stripping any
+    leading `EPIC-NN: ` prefix.
+    """
+    if not gh_repo_configured():
+        return None
+    needle = title.strip().lower()
+    if not needle:
+        return None
+    # Use GitHub search on the title text. Fetch a small batch and
+    # filter client-side to be robust against ranking differences.
+    try:
+        out = run([
+            "gh", "issue", "list",
+            "--search", f"{title} in:title",
+            "--state", "all",
+            "--json", "number,title,url,state,body",
+            "--limit", "10",
+        ]).stdout
+    except subprocess.CalledProcessError:
+        return None
+    candidates = json.loads(out)
+    for issue in candidates:
+        candidate_title = issue.get("title", "")
+        normalised = re.sub(r"^EPIC-\d{2}:\s*", "", candidate_title).strip().lower()
+        if normalised == needle:
+            return issue
+    # Loose fallback: substring match.
+    for issue in candidates:
+        candidate_title = issue.get("title", "")
+        normalised = re.sub(r"^EPIC-\d{2}:\s*", "", candidate_title).strip().lower()
+        if needle in normalised or normalised in needle:
+            return issue
+    return None
+
+
 # ---------- Subcommand: create-issue ------------------------------------
 
 def cmd_create_issue(args: argparse.Namespace) -> int:
@@ -288,7 +356,35 @@ def cmd_create_issue(args: argparse.Namespace) -> int:
 
     print(f"[create-issue] created: {out}")
     write_issue_into_backlog(item, out)
+    add_issue_to_project(out)
     return 0
+
+
+def add_issue_to_project(issue_url: str) -> None:
+    """Add the freshly created issue to the configured GitHub Project.
+
+    Reads `[github] project_number` from .dia/config.toml. If absent,
+    silently does nothing. Idempotent: a second add is a no-op on
+    GitHub's side.
+    """
+    cfg = read_dia_github_config()
+    project_number = cfg.get("project_number")
+    if not project_number:
+        return
+    try:
+        repo_owner = json.loads(run([
+            "gh", "repo", "view", "--json", "owner",
+        ]).stdout)["owner"]["login"]
+    except (subprocess.CalledProcessError, KeyError, json.JSONDecodeError):
+        return
+    try:
+        run([
+            "gh", "project", "item-add", str(project_number),
+            "--owner", repo_owner, "--url", issue_url,
+        ], check=False)
+        print(f"[create-issue] added to project {project_number}")
+    except subprocess.CalledProcessError:
+        pass
 
 
 def build_issue_body(item: str) -> str:
@@ -349,7 +445,7 @@ PHASE_MESSAGES = {
     "arch": "Architecture complete: ADRs / arc42 / plan-context.",
     "code": "Coding complete: implementation committed, build green.",
     "test": "Testing complete: tests added, coverage check passed.",
-    "audit": "Security audit complete: report written, findings filed.",
+    "sec": "Security audit complete: report written, findings filed.",
     "ready-for-review": "All required phases complete; PR ready for review.",
 }
 
@@ -357,6 +453,10 @@ PHASE_MESSAGES = {
 def cmd_tag_phase(args: argparse.Namespace) -> int:
     item = normalize_item(args.item)
     phase = args.phase
+    if phase in PHASE_ALIASES:
+        canonical = PHASE_ALIASES[phase]
+        print(f"[tag-phase] phase '{phase}' is deprecated; using '{canonical}'")
+        phase = canonical
     if phase not in VALID_PHASES:
         sys.exit(f"ERROR: invalid phase '{phase}'. Valid: {', '.join(VALID_PHASES)}")
     # tag-phase always sets the local git tag; only the GitHub-side
@@ -421,7 +521,7 @@ def update_issue_after_tag(item: str, phase: str) -> None:
         "arch": "phase:arch",
         "code": "phase:coding",
         "test": "phase:testing",
-        "audit": "phase:audit",
+        "sec": "phase:sec",
         "ready-for-review": "phase:review",
     }
     new_label = label_map.get(phase)
@@ -440,7 +540,7 @@ def tick_checklist(body: str, phase: str) -> str:
         "arch": r"- \[ \] Architecture",
         "code": r"- \[ \] Coding",
         "test": r"- \[ \] Testing",
-        "audit": r"- \[ \] Security-Audit",
+        "sec": r"- \[ \] Security-Audit",
         "ready-for-review": r"- \[ \] Ready for review",
     }
     rx = pattern_map.get(phase)
@@ -478,7 +578,7 @@ def cmd_open_draft_pr(args: argparse.Namespace) -> int:
         out = run([
             "gh", "pr", "create",
             "--draft",
-            "--base", "dev",
+            "--base", read_source_branch(),
             "--title", title,
             "--body", body,
         ]).stdout.strip()
@@ -496,13 +596,18 @@ def cmd_ready_for_review(args: argparse.Namespace) -> int:
     if not mode_active_or_skip("ready-for-review"):
         return 0
     required = ("code-done", "test-done")
-    if args.with_audit:
-        required = required + ("audit-done",)
+    if args.with_sec:
+        required = required + ("sec-done",)
     missing = []
     for r in required:
         tag = f"{item.lower()}/{r}"
         out = run(["git", "tag", "--list", tag]).stdout.strip()
         if not out:
+            # Backwards compat: accept legacy `audit-done` for `sec-done`.
+            if r == "sec-done":
+                legacy = f"{item.lower()}/audit-done"
+                if run(["git", "tag", "--list", legacy]).stdout.strip():
+                    continue
             missing.append(tag)
     if missing:
         print(f"[ready-for-review] missing required tags: {', '.join(missing)}", file=sys.stderr)
@@ -602,8 +707,10 @@ def write_claim_into_backlog(item: str, claim: str) -> bool:
         if old == claim:
             new_lines.append(raw_line)
             continue
-        # Preserve leading and trailing space style by minimal substitution.
-        cells[10] = f" {claim} "
+        # Preserve leading and trailing space style by minimal
+        # substitution. For an empty claim, leave a single space so
+        # the column structure stays a valid Markdown table.
+        cells[10] = f" {claim} " if claim else " "
         new_line = "|".join(cells) + ("\n" if raw_line.endswith("\n") else "")
         new_lines.append(new_line)
         changed = True
@@ -733,9 +840,16 @@ def cmd_sync_status(args: argparse.Namespace) -> int:
     else:
         print(f"[sync-status] project field not configured; mirrored only via issue state")
 
-    # Claim from assignee back to backlog.
+    # Claim from assignee back to backlog. Three cases:
+    #   1. Item is Done -> always clear the Claim (work is finished).
+    #   2. No assignee on GitHub -> clear the Claim (item is unowned).
+    #   3. Assignee present -> mirror to Claim with today's date.
     assignee = github_issue_assignee(issue_number)
-    if assignee:
+    if backlog_status == "Done" or not assignee:
+        if write_claim_into_backlog(item, ""):
+            reason = "status=Done" if backlog_status == "Done" else "no assignee"
+            print(f"[sync-status] claim cleared in backlog ({reason})")
+    else:
         from datetime import date
         claim = f"{assignee} @ {date.today().isoformat()}"
         if write_claim_into_backlog(item, claim):
@@ -772,8 +886,17 @@ def cmd_promote_to_epic(args: argparse.Namespace) -> int:
             return 1
     else:
         parent_issue = find_issue_for_item(item)
+        if not parent_issue:
+            # Raw-Issue case: the parent issue still has the original
+            # raw title (no EPIC-NN prefix). Try to match by the
+            # BACKLOG title instead.
+            parent_issue = find_raw_issue_by_title(title)
     if not parent_issue:
-        print(f"[promote-to-epic] no parent issue found; create one first or pass --parent-issue")
+        print(
+            f"[promote-to-epic] no parent issue found for {item}.\n"
+            f"  Tried EPIC-id title prefix and BACKLOG title match.\n"
+            f"  Pass --parent-issue <NN> to point at the raw issue."
+        )
         return 1
     parent_number = int(parent_issue["number"])
 
@@ -994,7 +1117,10 @@ def main() -> int:
 
     p2 = sub.add_parser("tag-phase", help="Set the phase-done tag")
     p2.add_argument("--item", required=True)
-    p2.add_argument("--phase", required=True, choices=VALID_PHASES)
+    p2.add_argument(
+        "--phase", required=True,
+        choices=VALID_PHASES + tuple(PHASE_ALIASES.keys()),
+    )
     p2.set_defaults(func=cmd_tag_phase)
 
     p3 = sub.add_parser("open-draft-pr", help="Open a draft PR for the item branch")
@@ -1003,8 +1129,9 @@ def main() -> int:
 
     p4 = sub.add_parser("ready-for-review", help="Mark PR ready for review")
     p4.add_argument("--item", required=True)
-    p4.add_argument("--with-audit", action="store_true",
-                    help="Require audit-done tag in addition to code/test")
+    p4.add_argument("--with-sec", "--with-audit", action="store_true",
+                    dest="with_sec",
+                    help="Require sec-done tag in addition to code/test (legacy --with-audit accepted)")
     p4.set_defaults(func=cmd_ready_for_review)
 
     p5 = sub.add_parser("status", help="Print state of the item")

@@ -7,6 +7,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (workflow review followups)
+
+- **PR target branch is now configurable.** `flow.py open-draft-pr`
+  reads `source_branch` from `.dia/config.toml` (default `develop`)
+  instead of hard-coding `dev`. Repos that follow the team-workflow
+  contract no longer land PRs on the wrong base. New helper
+  `read_source_branch()`.
+- **`promote-to-epic` now finds raw issues.** When the parent issue
+  still carries its original raw title (no `EPIC-NN:` prefix yet),
+  the lookup falls back to a title-based match against the BACKLOG
+  Title column. The standard documented call from
+  `requirements-engineering/SKILL.md` no longer requires an
+  explicit `--parent-issue`.
+- **`sync-status` is wired into every Handoff Ritual.** The phase
+  skills (`/business-analysis`, `/requirements-engineering`,
+  `/architecture`, `/coding`, `/testing`, `/security-audit`) now
+  call `flow.py sync-status --item <ID>` directly after `tag-phase`.
+  No-op outside `mode = "github-sync"`. Closes the drift gap where
+  BACKLOG Status, GitHub Project Status, and Claim diverged
+  between phase boundaries.
+- **Phase rename `audit` -> `sec`.** The canonical Security phase
+  identifier is `sec`. Tags use `<id>/sec-done`,
+  `flow.py tag-phase --phase sec`, and the project label is
+  `phase:sec`. The legacy value `audit` is accepted as a
+  deprecated alias on tag-phase and ready-for-review (`--with-sec`
+  with `--with-audit` as alias). Skill texts and team-workflow.md
+  use the new value; `dia-guide` accepts both tag forms during the
+  feature-complete read.
+- **Claim sync handles edge cases.** `sync-status` clears the
+  BACKLOG Claim column when status is `Done` or no GitHub
+  Assignee is set, instead of leaving stale claims behind.
+  `write_claim_into_backlog` accepts an empty claim and writes a
+  single space to keep the table valid.
+- **`create-issue` adds the issue to the configured Project.**
+  When `[github] project_number` is set, a `gh project item-add`
+  call follows the issue create. Previously, sub-issues from
+  `promote-to-epic` and feature/IMP issues from `create-issue` did
+  not appear on the Project board automatically.
+- **RE default status fixed.** RE Defaults section now reads
+  `status Ready` (was `status Planned`), aligned with the new
+  vocabulary.
+
+### Documentation
+
+- **flow.py README mapping table rewritten.** The pre-stage-3
+  translation block is replaced with the new identity-plus-legacy
+  picture: BACKLOG and GitHub now share one vocabulary, the
+  legacy table only resolves un-migrated repos.
+- **Plugin-repo CLAUDE.md / AGENTS.md (symlinked).** Picks up new
+  contributor-facing sections: workflow activation contract, three
+  modes, BACKLOG status vocabulary, hotfix lane, phase tag rename.
+- **`.dia/config.toml` for the plugin repo itself.** Set to
+  `mode = "off"`. The plugin does not apply itself to itself; the
+  hook stays silent during plugin development sessions.
+- **Doc sweep**: residual legacy status references (`Status:
+  Planned/Active/Review/Deferred`) in `skills/project-conventions/SKILL.md`,
+  `skills/reverse-engineering/SKILL.md`,
+  `tools/consistency-check.py` suggestions, and
+  `docs/tutorials/full-v-model-run.md` updated to the new
+  vocabulary. PLAN-internal status (Draft/Active/Done) and ADR
+  status (Proposed/Accepted/Superseded) deliberately untouched
+  because they are independent state machines.
+
 ### Added
 
 - **`/dia-setup` skill.** Activation, mode change, and deactivation

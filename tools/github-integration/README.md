@@ -76,7 +76,7 @@ python3 tools/github-integration/flow.py tag-phase --item FEAT-04-09 --phase tes
 python3 tools/github-integration/flow.py open-draft-pr --item FEAT-04-09
 
 # After all required phases
-python3 tools/github-integration/flow.py ready-for-review --item FEAT-04-09 --with-audit
+python3 tools/github-integration/flow.py ready-for-review --item FEAT-04-09 --with-sec
 
 # Anytime: where do we stand?
 python3 tools/github-integration/flow.py status --item FEAT-04-09
@@ -89,24 +89,34 @@ python3 tools/github-integration/flow.py promote-to-epic \
   --item EPIC-04 --rename-branch
 ```
 
-## sync-status: backlog -> GitHub status mapping
+## sync-status: backlog Status mirrored to GitHub
 
-The BACKLOG schema currently uses `Planned`, `Active`, `Review`,
-`Done`, `Waiting`, `Deferred`. GitHub project boards typically use
-`Backlog`, `Ready`, `In Progress`, `In Review`, `Done`. Until stage 3
-migrates BACKLOG to the GitHub vocabulary, `sync-status` translates:
+After the stage-3 migration, BACKLOG and GitHub Projects share one
+status vocabulary: `Backlog`, `Ready`, `In Progress`, `In Review`,
+`Done`. `sync-status` mirrors the BACKLOG Status column to:
 
-| BACKLOG status | GitHub status |
+- the GitHub issue state: `Done` closes the issue, every other
+  status reopens it
+- the configured GitHub Project Status field: same value, no
+  translation
+- the BACKLOG Claim column: `sync-status` reads the GitHub
+  Assignee and writes `{login} @ {YYYY-MM-DD}` back. When the
+  status is `Done` or no assignee is set, the Claim column is
+  cleared.
+
+For projects that did not yet run
+`tools/migration/migrate_status_vocabulary.py`, a legacy
+translation table resolves the old DIA values:
+
+| Legacy BACKLOG status | GitHub status |
 |---|---|
-| `Planned`  | `Backlog`     |
+| `Planned`  | `Ready`       |
 | `Active`   | `In Progress` |
 | `Review`   | `In Review`   |
-| `Done`     | `Done`        |
 | `Waiting`  | `Backlog`     |
 | `Deferred` | `Backlog`     |
 
-`Done` also closes the GitHub issue; any other status reopens it.
-The mapping table will collapse to identity once stage 3 lands.
+The legacy mapping disappears as soon as the migration runs.
 
 ## Project-level configuration
 
@@ -184,7 +194,7 @@ Idempotent. Safe to re-run.
 | `feat-04-09/arch-done`           | ADRs, arc42, plan-context                              |
 | `feat-04-09/code-done`           | Implementation committed, build green                  |
 | `feat-04-09/test-done`           | Tests added, coverage check passed                     |
-| `feat-04-09/audit-done`          | Audit report written, findings filed                   |
+| `feat-04-09/sec-done`            | Audit report written, findings filed (legacy `audit-done` still accepted) |
 | `feat-04-09/ready-for-review`    | All required phases complete, draft -> ready           |
 
 Tags are **annotated** (not lightweight), so they carry a one-line
@@ -202,7 +212,7 @@ name: DIA card sync
 on:
   push:
     tags: ['*/ba-done', '*/re-done', '*/arch-done', '*/code-done',
-           '*/test-done', '*/audit-done', '*/ready-for-review']
+           '*/test-done', '*/sec-done', '*/ready-for-review']
 jobs:
   move-card:
     runs-on: ubuntu-latest

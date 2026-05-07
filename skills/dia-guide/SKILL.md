@@ -176,7 +176,7 @@ Audit:
 1. Verify all required phase tags exist for the active item:
    - `<id>/code-done` (always)
    - `<id>/test-done` (always)
-   - `<id>/audit-done` (when item touches security-relevant surface)
+   - `<id>/sec-done` (when item touches security-relevant surface; legacy `<id>/audit-done` is also accepted)
 
 2. Run `flow.py status --item <ID>` and show the user the result.
 
@@ -185,7 +185,7 @@ Audit:
    Item '<ID>' phase status:
    - code-done: yes/no
    - test-done: yes/no
-   - audit-done: yes/no/n-a
+   - sec-done: yes/no/n-a
 
    Verdict: feature-complete | missing tags: <list>
    ```

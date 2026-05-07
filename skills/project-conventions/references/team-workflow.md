@@ -102,7 +102,7 @@ Auto-applied per item type and priority:
 - Type: `feature`, `fix`, `improvement`, `epic`
 - Priority: `p0`, `p1`, `p2`
 - Phase: `phase:planned`, `phase:ba`, `phase:re`, `phase:arch`,
-  `phase:coding`, `phase:testing`, `phase:audit`, `phase:review`
+  `phase:coding`, `phase:testing`, `phase:sec`, `phase:review`
 
 The phase label is updated by the guide when phase tags are
 set (see below). Only one phase label at a time.
@@ -172,7 +172,7 @@ the git tag. Phase tags do not change the BACKLOG Phase column.
 | `feat-04-09/arch-done`           | `/architecture`                | ADRs / arc42 updates / plan-context handed to coding |
 | `feat-04-09/code-done`           | `/coding`                      | Implementation committed, build green |
 | `feat-04-09/test-done`           | `/testing`                     | Tests added, coverage check passed |
-| `feat-04-09/audit-done`          | `/security-audit`              | Audit report written, findings filed |
+| `feat-04-09/sec-done`            | `/security-audit`              | Audit report written, findings filed (legacy `audit-done` still accepted) |
 | `feat-04-09/ready-for-review`    | `/dia-guide`            | All required phases complete, draft PR -> ready |
 
 ### Setting tags

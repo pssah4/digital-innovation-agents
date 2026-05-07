@@ -33,7 +33,7 @@ Security audits run in two modes:
 
 - **Per-item audit** (e.g. as part of /coding or before merging a
   feature): runs on the item's branch, alongside coding and testing.
-  The audit-done tag goes on the same branch.
+  The sec-done tag goes on the same branch.
 - **Periodic full-codebase audit** (no specific feature item): runs
   on a dedicated branch `feature/audit-<YYYY-MM-DD>` and produces a
   standalone AUDIT report that queues FIX/IMP follow-ups.
@@ -52,7 +52,7 @@ For per-item audit:
 4. At Handoff Ritual end, tag the phase:
 
    ```
-   python3 tools/github-integration/flow.py tag-phase --item <ID> --phase audit
+   python3 tools/github-integration/flow.py tag-phase --item <ID> --phase sec
    ```
 
 For periodic full-codebase audit: branch is
@@ -337,8 +337,13 @@ Refs: <ITEM-ID>[, FIX-..., FIX-...]
 After the commit lands, run:
 
 ```
-python3 tools/github-integration/flow.py tag-phase --item <ID> --phase audit
+python3 tools/github-integration/flow.py tag-phase --item <ID> --phase sec
+python3 tools/github-integration/flow.py sync-status --item <ID>
 ```
+
+`sync-status` mirrors the BACKLOG Status column to the GitHub
+issue and project (and the GitHub Assignee back into the BACKLOG
+Claim column). It is a no-op outside `mode = "github-sync"`.
 
 Skip the commit silently if the working tree has no changes.
 

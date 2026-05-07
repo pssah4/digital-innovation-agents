@@ -726,7 +726,7 @@ def check_backlog_completeness() -> list[Finding]:
                 line=None,
                 message=f"Artifact {aid} has no row in {BACKLOG.relative_to(ROOT)}",
                 suggestions=[
-                    f"Add backlog row for {aid} with default Status=Planned/Phase=Building",
+                    f"Add backlog row for {aid} with default Status=Ready/Phase=Building",
                     "Delete the artifact file if it is obsolete",
                 ],
             ))

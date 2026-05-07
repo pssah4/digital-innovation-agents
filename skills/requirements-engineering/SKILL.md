@@ -84,9 +84,9 @@ this skill. The row carries:
 
 **Defaults when no better value exists:**
 
-- Feature: status Planned, phase Building
+- Feature: status Ready, phase Building
 - Epic: phase Building (derived via worst-wins once features exist)
-- IMP: status Planned, phase Candidates
+- IMP: status Ready, phase Candidates
 
 **Sync chain (binding order):**
 
@@ -578,7 +578,12 @@ After the commit lands, run:
 
 ```
 python3 tools/github-integration/flow.py tag-phase --item <ID> --phase re
+python3 tools/github-integration/flow.py sync-status --item <ID>
 ```
+
+`sync-status` mirrors the BACKLOG Status column to the GitHub
+issue and project (and the GitHub Assignee back into the BACKLOG
+Claim column). It is a no-op outside `mode = "github-sync"`.
 
 For long RE phases that span days and produce many features,
 intermediate commits per cluster of features are encouraged. Each

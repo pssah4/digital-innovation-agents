@@ -200,7 +200,7 @@ Handoff: "Start `/security-audit` now?" -> yes.
 
 Findings are prioritised (`H-N` / `M-N` / `L-N`) and a fix-loop
 runs. Deferred findings land in the backlog with full traceability,
-each carrying `Status: Deferred` and a written reason.
+each carrying `Status: Backlog` and a written reason in the Notes column.
 
 Handoff: "Start the Closing Handoff now?" -> yes.
 

@@ -1,0 +1,20 @@
+# Digital Innovation Agents project configuration.
+# Plugin-repo self-config: managed manually, does not run /dia-setup
+# because the plugin repo is not a typical user project.
+
+# off keeps the plugin neutral on its own repo. The session-start
+# hook respects this and does not inject the bootstrap skill
+# context, which is the right call for plugin development sessions
+# where we work on the skills themselves.
+mode = "off"
+
+# anchor_files is empty in mode = off. If we ever switch this repo
+# to git-only or github-sync, populate it with the agent files we
+# want to anchor (CLAUDE.md, AGENTS.md, GEMINI.md, .cursorrules).
+anchor_files = []
+
+source_branch = "dev"
+
+[github]
+project_number = 0
+status_field = "Status"

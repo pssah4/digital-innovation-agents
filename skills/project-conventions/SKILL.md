@@ -278,7 +278,7 @@ Every feature goes through:
 
 ```
 1. BACKLOG ROW      -- Create row in _devprocess/context/BACKLOG.md
-                       FIRST. Status=Planned, Phase=Building, Refs={Epic}.
+                       FIRST. Status=Ready, Phase=Building, Refs={Epic}.
 2. CLAIM            -- Set Claim column to {pair-id} @ {date}
 3. FEATURE-SPEC     -- Write the substance (description, SC, NFRs)
                        AFTER the row exists. No status field in

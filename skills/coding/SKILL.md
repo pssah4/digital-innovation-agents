@@ -1330,7 +1330,12 @@ After the commit lands, run:
 
 ```
 python3 tools/github-integration/flow.py tag-phase --item <ID> --phase code
+python3 tools/github-integration/flow.py sync-status --item <ID>
 ```
+
+`sync-status` mirrors the BACKLOG Status column to the GitHub
+issue and project (and the GitHub Assignee back into the BACKLOG
+Claim column). It is a no-op outside `mode = "github-sync"`.
 
 Skip the commit silently if the working tree has no changes.
 

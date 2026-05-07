@@ -710,7 +710,7 @@ following the binding format in
 Reverse-engineered findings go into the **Standalone Items** section
 (no Epic yet, to be reassigned during BA/RE) with:
 
-- `Status = Planned`
+- `Status = Backlog`
 - `Prio = P2` (default, the team reprioritises during BA/RE)
 - `Source = REV`
 - `Evidence = path:line` or short description
