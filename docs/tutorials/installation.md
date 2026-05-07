@@ -52,7 +52,7 @@ claude
 ```
 
 Type `/` in any new session. The skills appear in autocomplete. The
-`using-digital-innovation-agents` skill loads automatically at session
+`dia-bootstrap` skill loads automatically at session
 start to give you an orientation of the workflow.
 
 ### VS Code, JetBrains, Cursor extensions
@@ -182,7 +182,8 @@ Copilot).
 Start a new session on your platform and try one of these:
 
 ```
-/dia-guide          Guide for the full cycle
+/dia-setup                 Activate the workflow in this project
+/dia-guide                 Guide for the full cycle
 /business-analysis         Problem exploration, ideation, validation
 /reverse-engineering       Brownfield entry for an existing codebase
 /dia-migration             Upgrade an older DIA project to v3 conventions
@@ -192,6 +193,32 @@ Or ask a natural-language question like "help me analyze this
 business problem" or "let's plan this feature". The agent should
 invoke the relevant skill.
 
+## Activate the workflow in your project
+
+`/dia-setup` is the first call in any new project. It asks for the
+mode (`off`, `git-only`, or `github-sync`), creates
+`.dia/config.toml`, and writes a managed anchor block into your
+agent files (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.cursorrules`,
+`.github/copilot-instructions.md`, `.windsurfrules`).
+
+```
+/dia-setup
+```
+
+Pick `git-only` if you work solo or your team does not use GitHub
+Issues / Projects. Pick `github-sync` for the full team layer
+(per-item GitHub issues, Project Status field mirroring,
+post-RE `promote-to-epic`). Pick `off` if you have the plugin
+installed globally but want this particular project to stay
+neutral.
+
+Re-run `/dia-setup` any time to change the mode or remove the
+anchor blocks.
+
+See [Three modes](../concepts/three-modes) for what each mode
+does and [dia-setup guide](../guides/dia-setup) for the full
+flow.
+
 ## What's next
 
 - [Run your first Business Analysis](./first-business-analysis): a
@@ -200,3 +227,4 @@ invoke the relevant skill.
   from raw idea to release closure
 - [V-Model workflow guide](../guides/dia-guide): how the
   guide treats phase transitions
+- [dia-setup guide](../guides/dia-setup): activation reference

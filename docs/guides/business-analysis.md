@@ -217,7 +217,10 @@ archives, not in the active Project-BA.
    hypotheses still open.
 2. Handoff context entry in `_devprocess/context/HANDOFFS.md`.
 3. Phase-end commit (`chore(ba): {ITEM-ID} BA complete`) plus
-   `tag-phase --phase ba`.
+   `tag-phase --phase ba` and `sync-status --item {ITEM-ID}`. The
+   sync-status step mirrors the BACKLOG Status to GitHub when the
+   project runs in `mode = "github-sync"`; it is a no-op in the
+   other modes.
 4. Transition question. "Shall I start `/requirements-engineering`
    now?"
 

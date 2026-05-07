@@ -8,6 +8,7 @@ backup/
 node_modules/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
+docs/.vitepress/.temp/
 
 # Claude Code (personal permissions, not for public sync)
 .claude/settings.json
@@ -20,3 +21,7 @@ __pycache__/
 
 # Internal scratchpad (spikes, exploration notes, drafts)
 spike/
+
+# Renumber retry plan written by scripts/merge-to-dev.sh on
+# apply-renumber failure. Workflow state, not configuration.
+.dia/last-renumber-plan.json

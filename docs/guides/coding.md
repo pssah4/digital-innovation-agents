@@ -10,7 +10,7 @@ write code itself. The Default agent in your coding tool does that.
 Instead, `/coding` acts as a briefing and review layer that
 structures how the Default agent approaches the task.
 
-## Two entry points
+## Two entry points (plus a fast lane)
 
 `/coding` has two ways in:
 
@@ -24,6 +24,13 @@ structures how the Default agent approaches the task.
 
 Both entries share the same writeback discipline: backlog row first,
 artifact body second.
+
+A third path, the **[Hotfix lane](../concepts/hotfix-lane)**, is
+allowed for trivial bug fixes that touch at most three files,
+introduce no breaking change, and fit an existing FEAT. There the
+fix runs first; the FIX-Row, detail file, commit, GitHub issue (in
+`github-sync`), and `flow.py validate-fix` happen right after to
+keep the work visible and the consistency graph intact.
 
 ## Four phases (implementation entry)
 
@@ -305,7 +312,7 @@ for the full pattern.
 artifact report, handoff context in `HANDOFFS.md` with references
 to the new FIX rows and PLAN ids, phase-end commit
 (`feat(code): {ITEM-ID} implementation complete`) plus
-`tag-phase --phase code`, transition question for `/testing`.
+`tag-phase --phase code` and `sync-status --item {ITEM-ID}` (no-op outside `mode = "github-sync"`), transition question for `/testing`.
 The guide runs `/consistency-check` Mode A on the changed
 artifacts at the boundary.
 

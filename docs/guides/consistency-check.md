@@ -96,7 +96,7 @@ automatically:
 
 - Frontmatter `status:` or `phase:` field present: removed.
 - Backlog row missing for an existing artifact: created with
-  `Status: Planned` defaults.
+  `Status: Ready` defaults.
 - Dashboard counts out of sync with computed totals: rewritten.
 
 Items that cannot be auto-fixed (orphan ADR, dead link, ADR

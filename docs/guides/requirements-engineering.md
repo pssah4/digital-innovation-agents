@@ -280,7 +280,7 @@ See [Verification Gates](../concepts/verification-gates) for the full gate mecha
 
 The final artifact is `architect-handoff.md`, a single document that `/architecture` will consume. It contains the Epic Hypothesis, the Feature summary table with priorities, the full list of Critical ASRs, the Technical NFRs with numbers, the open questions for the architect, and the Critical Hypotheses from the BA that are still unvalidated.
 
-The skill ends with the standard four-part [Handoff Ritual](../concepts/handoff-rituals): artifact report, handoff context appended to `HANDOFFS.md`, phase-end commit (`feat(re): {ITEM-ID} RE complete`) plus `tag-phase --phase re`, transition question. The guide runs `/consistency-check` Mode A on the changed artifacts at the boundary. The next phase is `/architecture`.
+The skill ends with the standard four-part [Handoff Ritual](../concepts/handoff-rituals): artifact report, handoff context appended to `HANDOFFS.md`, phase-end commit (`feat(re): {ITEM-ID} RE complete`) plus `tag-phase --phase re` and `sync-status --item {ITEM-ID}`, transition question. When the EPIC ID is freshly assigned, the handoff also runs `flow.py promote-to-epic --item EPIC-NN --rename-branch` to rewrite the parent issue, create sub-issues, and rename the feature branch. All flow.py calls are no-ops outside `mode = "github-sync"`. The guide runs `/consistency-check` Mode A on the changed artifacts at the boundary. The next phase is `/architecture`.
 
 ## Read the skill file
 

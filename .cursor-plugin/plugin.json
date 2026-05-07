@@ -2,7 +2,7 @@
   "name": "digital-innovation-agents",
   "displayName": "Digital Innovation Agents",
   "description": "V-Model workflow for AI-augmented innovation and development",
-  "version": "2.0.0",
+  "version": "3.4.0",
   "author": {
     "name": "Sebastian Hanke"
   },
@@ -16,5 +16,11 @@
     "innovation"
   ],
   "skills": "./skills/",
-  "hooks": "./hooks/hooks-cursor.json"
+  "hooks": "./hooks/hooks-cursor.json",
+  "includes": [
+    "./tools/",
+    "./scripts/",
+    "./.claude-plugin/",
+    "./.dia/"
+  ]
 }

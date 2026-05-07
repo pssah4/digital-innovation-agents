@@ -93,6 +93,7 @@ DIA repo:
 | `tools/migration/build_backlog.py`        | 5 | Regenerate BACKLOG.md from artefact scan.                |
 | `tools/migration/migrate_skill_names.py`  | 6 | Rewrite `/business-analyse` -> `/business-analysis`,
    `/v-model-workflow` -> `/dia-guide`. |
+| `tools/migration/migrate_status_vocabulary.py` | 5b | Rewrite BACKLOG status values to the GitHub-aligned vocabulary. |
 
 `/reverse-engineering` reuses the same scripts under Phase -1.5.
 Both skills share the canonical implementation; this one wraps it
@@ -328,6 +329,33 @@ Run via `tools/migration/build_backlog.py`. The script is parameterized
 through a small YAML config that the user can edit before the run
 (epic cutoffs, status overrides for known exceptions).
 
+### Phase 5b: Status vocabulary alignment
+
+After Phase 5 produces a fresh `BACKLOG.md`, this short phase brings
+the Status column from the legacy DIA vocabulary into the GitHub-
+aligned vocabulary so `flow.py sync-status` can mirror 1:1 without
+translation.
+
+Mapping:
+
+| Old (DIA legacy) | New (GitHub-aligned) |
+|------------------|----------------------|
+| `Planned`        | `Ready`              |
+| `Active`         | `In Progress`        |
+| `Review`         | `In Review`          |
+| `Done`           | `Done`               |
+| `Waiting`        | `Backlog`            |
+| `Deferred`       | `Backlog`            |
+
+Run via `tools/migration/migrate_status_vocabulary.py`. The script
+edits only the Status column. Other columns and the Phase column
+(Released / Building / Planned / Candidates) stay untouched. The
+migration is idempotent: a second run reports zero changes.
+
+After this phase, `flow.py sync-status` no longer needs the legacy
+mapping table; both BACKLOG.md and the GitHub project Status field
+share one vocabulary.
+
 ### Phase 6: Cross-skill rename support
 
 If the repo references the old skill names (`/business-analyse`,
@@ -383,6 +411,7 @@ The migration scripts live in the DIA repo at `tools/migration/` and are shared 
 | `tools/migration/migrate_naming.py`       | Phase 3. Renames files and updates references.           |
 | `tools/migration/flatten_analysis.py`     | Phase 4. Reduces analysis/ to four prefixes.             |
 | `tools/migration/build_backlog.py`        | Phase 5. Regenerates the backlog from all artifacts.     |
+| `tools/migration/migrate_status_vocabulary.py` | Phase 5b. Maps Status values to the GitHub vocabulary. |
 | `tools/migration/migrate_skill_names.py`  | Phase 6. Updates `/business-analyse` and `/v-model-workflow` references. |
 
 All scripts:
@@ -412,9 +441,12 @@ All scripts:
    execute. Commit after.
 7. **Phase 5**: backlog regeneration. Show backlog summary preview,
    confirm overwrite, execute. Commit after.
-8. **Phase 6**: skill name updates. Idempotent, commit after.
-9. **Phase 7**: consistency check. Run `/consistency-check` mode A
-   with `--fix`. Final report.
+8. **Phase 5b**: status vocabulary alignment. Run
+   `tools/migration/migrate_status_vocabulary.py`. Show counts per
+   mapping. Commit after.
+9. **Phase 6**: skill name updates. Idempotent, commit after.
+10. **Phase 7**: consistency check. Run `/consistency-check` mode A
+    with `--fix`. Final report.
 10. **Phase 8**: parallel-branch id alignment check. After the
     migration commits land, scan other active branches for ids that
     would collide with the migrated state. Report only, do not

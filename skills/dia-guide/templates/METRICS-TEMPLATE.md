@@ -10,8 +10,8 @@
 
 ## Cycle time per FEATURE
 
-> How long each FEATURE spent from `Status: Planned` to
-> `Status: Implemented`. Derived from commit timestamps using the
+> How long each FEATURE spent from `Status: Ready` to
+> `Status: Done`. Derived from commit timestamps using the
 > `Refs: FEAT-NN-NN` cite. The `/coding` skill updates this during
 > its Final synchronization block.
 

@@ -30,10 +30,10 @@ disable-model-invocation: false
 - Audits whether the last handoff carries the binding fields
   (`triage:`, `triage_kind:`, `epic:`, `feature:`)
 - Runs the Closing Handoff after a green `/security-audit`
-- Does the post-`/reverse-engineering` item promotion (the only
-  CRUD moment the guide owns, because it is a multi-item user
-  interaction at a workflow boundary that no single phase skill
-  covers)
+- Owns two narrow CRUD moments at workflow boundaries that no single
+  phase skill covers: (a) the **post-`/reverse-engineering` item
+  promotion** (described below), and (b) the **item-start branch
+  creation** when the user enters at A/B/C from a fresh repo
 
 What the guide does NOT do:
 
@@ -50,14 +50,68 @@ What the guide does NOT do:
   fires from the Closing Handoff, see below.
 - It does not call other skills. It recommends; the user invokes.
 
+## Item-start branch creation
+
+When the user picks entry-point A, B, or C in the hybrid entry-point
+detection (see "Start: Determine Phase" below), the guide creates a
+fresh feature branch from the configured source branch before the
+phase skill takes over. The phase skill itself does not own this
+because the branch must exist before the first artifact is written.
+
+Steps:
+
+1. **Read `.dia/config.toml`.** Extract the `source_branch`
+   (default `develop`) and the `mode`. If the file is missing, fall
+   back to `develop` and treat the mode as `git-only`.
+2. **Slug input.** Ask the user (single `AskUserQuestion`, short
+   plain-text "Other" slot) for a short kebab-case slug describing
+   the item. The slug is provisional. It becomes the suffix of the
+   feature branch name. Example: `auto-save-on-input`.
+3. **Branch creation.**
+   ```bash
+   git fetch origin <source_branch> --quiet || true
+   git checkout <source_branch>
+   git pull --ff-only origin <source_branch> 2>/dev/null || true
+   git checkout -b feature/<slug>
+   ```
+   If the branch already exists, switch to it and warn the user. Do
+   not overwrite work.
+4. **Mode-aware GitHub side-effect.** If `mode = "github-sync"` and
+   the user has an existing GitHub issue tracking this item, the
+   guide reminds the user to assign themselves on GitHub so that
+   `flow.py sync-status` can mirror the assignee into the BACKLOG
+   `Claim` column once the item gets a real ID. The guide does not
+   create an issue at this stage; the phase skill that first writes
+   a backlog row (typically `/business-analysis` or
+   `/requirements-engineering`) calls `flow.py create-issue` once
+   the ID is known.
+5. **Hand-off.** Print the branch name to the user, then recommend
+   the relevant phase skill: A -> `/business-analysis`,
+   B -> `/requirements-engineering`, C -> `/architecture`. The
+   phase skill takes over.
+
+Branch rename after RE: when `/requirements-engineering` finishes
+and the EPIC ID is known, the user (or `/dia-guide` on a later
+invocation) can run
+```
+python3 tools/github-integration/flow.py promote-to-epic --item EPIC-NN --rename-branch
+```
+to retitle the parent issue, create sub-issues, and rename the
+branch from `feature/<slug>` to `feature/epic-NN-<slug>`. The
+guide does not run this automatically; the user invokes it via
+the RE handoff or directly.
+
 ## Post-reverse-engineering item promotion (the only CRUD moment)
 
 `/reverse-engineering` finishes with a backlog seed: 20+ items at
-`Status: Anticipated, Source: REV` on a single
-`feature/reverse-engineer-<repo-name>` branch. Per-item branches
-and per-item GitHub issues kick in only after a user-driven triage:
-which seed items become real backlog candidates? `/reverse-engineering`
-explicitly defers this step to the guide (see RE's Pre-Phase 0).
+`Status: Backlog, Source: REV, Notes: anticipated` on a single
+`feature/reverse-engineer-<repo-name>` branch. The Status column
+uses the GitHub-aligned vocabulary; the "anticipated" flavour is
+recorded in the Notes column so the user can filter for it during
+triage. Per-item branches and per-item GitHub issues kick in only
+after a user-driven triage: which seed items become real backlog
+candidates? `/reverse-engineering` explicitly defers this step to
+the guide (see RE's Pre-Phase 0).
 
 This is the only place where the guide writes. It is a multi-item
 user interaction at a workflow boundary that no single phase skill
@@ -66,15 +120,19 @@ operations.
 
 Steps:
 
-1. Read `BACKLOG.md`, list items with `Status: Anticipated, Source: REV`.
-2. AskUserQuestion: which items should be promoted now (vs. left as
-   anticipated for later)?
+1. Read `BACKLOG.md`, list items with
+   `Status: Backlog, Source: REV` whose Notes column contains
+   `anticipated`.
+2. AskUserQuestion: which items should be promoted now (vs. left in
+   `Backlog` with the `anticipated` note for later)?
 3. For each promoted item:
    ```
-   python3 tools/github-integration/flow.py create-issue --item <ID>
+   python3 ${DIA_PLUGIN_ROOT:-.}/tools/github-integration/flow.py create-issue --item <ID>
    git tag -a <id-lower>/reverse-engineered -m "Item promoted from /reverse-engineering"
    ```
-4. Update BACKLOG row: `Status` -> `Planned` (or as appropriate).
+4. Update BACKLOG row: `Status` -> `Ready` (or `In Progress` if the
+   item already ships and only needs the inventory recorded).
+   Remove the `anticipated` note from the Notes column.
 5. Recommend the next skill: typically `/business-analysis` to
    validate the BA draft, or `/coding` for items that already
    ship and just need the inventory recorded.
@@ -102,9 +160,10 @@ Audited surfaces (full reference:
    after merge)? Discrepancies indicate the phase skill's handoff
    ritual did not write the row before the phase-end commit.
 4. **GitHub issue.** Does the issue exist and carry the right phase
-   label and ticked checklist? Each phase skill calls
-   `flow.py update-issue` in its handoff ritual; the guide reads
-   `flow.py status --item <ID>` and reports the snapshot.
+   label and ticked checklist? Each phase skill's `flow.py tag-phase`
+   call invokes `update_issue_after_tag` internally to keep the
+   issue in sync. The guide only reads `flow.py status --item <ID>`
+   and reports the snapshot.
 5. **HANDOFFS entry.** Does the latest entry have `triage:`,
    `triage_kind:`, and (for IMP/FIX) `epic:` + `feature:`? Missing
    fields are flagged with the responsible phase skill named.
@@ -125,7 +184,7 @@ Audit:
 1. Verify all required phase tags exist for the active item:
    - `<id>/code-done` (always)
    - `<id>/test-done` (always)
-   - `<id>/audit-done` (when item touches security-relevant surface)
+   - `<id>/sec-done` (when item touches security-relevant surface; legacy `<id>/audit-done` is also accepted)
 
 2. Run `flow.py status --item <ID>` and show the user the result.
 
@@ -134,7 +193,7 @@ Audit:
    Item '<ID>' phase status:
    - code-done: yes/no
    - test-done: yes/no
-   - audit-done: yes/no/n-a
+   - sec-done: yes/no/n-a
 
    Verdict: feature-complete | missing tags: <list>
    ```

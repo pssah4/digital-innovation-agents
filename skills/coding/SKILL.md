@@ -95,7 +95,7 @@ capture the bug without forcing the user into an immediate fix. Flow:
 
 1. Run the same Phase 0 triage. The user's prompt usually maps to FIX.
 2. Identify the affected `FEAT-{ee}-{ff}` (ask if unclear).
-3. Write the BACKLOG row first (status `Planned`, phase `Building`,
+3. Write the BACKLOG row first (status `Ready`, phase `Building`,
    priority from the user, Source `BUG`).
 4. Create the detail file at
    `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md` from
@@ -117,6 +117,105 @@ discovery trigger (Phase 4b later in this file), only the entry
 condition differs. Both converge on the same artefact shape: BACKLOG
 row + FIX detail file + branch.
 
+### Hotfix lane (fix-now, document-after)
+
+Some bugs are obvious and small enough that the standard
+capture-then-fix path adds friction without adding value. The
+hotfix lane lets `/coding` fix immediately, then create the FIX-Row
+and GitHub issue afterwards so the work is still visible in the
+backlog and on the team board.
+
+The hotfix lane is allowed only when **all five** criteria hold:
+
+1. The fix touches at most three files.
+2. No new feature, no new dependency.
+3. No breaking change to a public API or interface.
+4. The fix takes under 15 minutes.
+5. An existing FEAT covers the affected functionality, so the FIX
+   has a clear parent to attach to.
+
+If any single criterion fails, fall back to the standard
+bug-capture flow (FIX-Row first, fix later).
+
+When all five criteria hold, the flow is:
+
+1. **Fix immediately.** `/coding` analyses, fixes, and runs the
+   relevant tests in place. No FIX-Row yet.
+2. **Document right after the fix lands locally** (binding):
+   - Write the BACKLOG row for the FIX (status `Ready` or
+     `In Progress` depending on whether the commit already exists,
+     phase `Building`, Source `BUG`, Refs the parent FEAT).
+   - Create the FIX detail file under
+     `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`.
+   - Commit with the canonical message
+     `fix: FIX-{ee}-{ff}-{nn} <short description>` and the
+     standard `Refs:` trailer.
+   - When `mode = "github-sync"`: create the matching GitHub
+     issue (`gh issue create --title "FIX-{ee}-{ff}-{nn}: {slug}"
+     --label "fix,hotfix"`), then run
+     `python3 tools/github-integration/flow.py sync-status --item
+     FIX-{ee}-{ff}-{nn}`.
+   - **Always** (in any mode) close with
+     `python3 tools/github-integration/flow.py validate-fix --item
+     FIX-{ee}-{ff}-{nn}` to run the hotfix-scoped consistency check
+     described below.
+3. **Acknowledge** in chat: list the modified files, the FIX-ID,
+   the issue URL (if created), and the validate-fix verdict.
+
+The hotfix lane does **not** suspend the regression-test cycle
+(Phase 4b). If the bug is non-trivial enough to need a regression
+test, write it; the 15-minute budget includes the test.
+
+Four consistency mechanisms keep the hotfix lane safe even when
+the V-Model phases are skipped:
+
+1. **FIX-Row in `BACKLOG.md` (mandatory, even retroactively).**
+   Every fix gets a BACKLOG row with full ID `FIX-{ee}-{ff}-{nn}`,
+   either before the fix (standard lane) or right after
+   (hotfix lane). The row is the anchor that
+   `/consistency-check` mode A uses to find and validate the fix.
+2. **Commit cites the FIX-ID.** The commit message subject and
+   `Refs:` trailer both name the FIX, the parent FEAT, and any
+   other affected artifact:
+   ```
+   fix: FIX-05-02-01 button click handler null check
+
+   Refs: FIX-05-02-01, FEAT-05-02
+   ```
+   Git history and BACKLOG.md stay synchronized through the cite.
+3. **Deferred-stub marker (bidirectional binding).** If the fix
+   leaves a temporary stub, `/consistency-check` mode A enforces
+   the link in both directions:
+   - code marker `// FIXME(stub): <reason> -- see FIX-05-02-01`
+   - the FIX row points back at the stub via the Notes column
+   A missing pair triggers `stub-without-fix-row` or
+   `fix-without-stub-evidence`.
+4. **Regression-test cycle.** Hotfixes still run the Phase 4b
+   3-run cycle (write test, run passes, revert fix run fails,
+   restore fix run passes). The FIX detail file gets a
+   `## Regression test` entry confirming the cycle.
+
+The gap. `/consistency-check` mode A normally fires at the end of
+every phase. Hotfixes have no phase boundary, so the check has no
+automatic trigger. To close the gap, the hotfix flow runs
+`flow.py validate-fix --item FIX-{ee}-{ff}-{nn}` right after the
+GitHub issue is created. The subcommand performs a hotfix-scoped
+mode-A check:
+
+- FIX row exists in BACKLOG.md with the correct id and refs
+- at least one commit on the current branch cites the FIX id in
+  the subject or `Refs:` trailer
+- no `FIXME(stub):` referencing this FIX-id exists in the codebase
+  without a matching FIX row
+
+The validate-fix call is part of the hotfix lane's mandatory
+post-fix steps; it is not optional.
+
+Anti-misuse signal. The directions meeting reviews the share of
+hotfix-lane FIX items per iteration. If hotfixes account for more
+than 30% of the iteration's work, the lane is being misused as a
+process bypass and the backlog gets a quality-debt item.
+
 
 ## MANDATORY: Backlog as single source of truth (no asking)
 
@@ -126,14 +225,21 @@ IMP, or PLAN, it writes the backlog row in
 body. Status, phase, last-change, claim, and Refs live in the
 backlog row, not in the artifact frontmatter.
 
-**Defaults when no better value exists:**
+**Defaults when no better value exists.** The BACKLOG `Status`
+column uses the GitHub-aligned vocabulary (`Backlog | Ready |
+In Progress | In Review | Done`). ADR and PLAN files carry their
+own frontmatter status (`Proposed | Accepted | Superseded` for
+ADRs, `Draft | Active | Done` for PLANs); those values never land
+in the BACKLOG Status column.
 
-- Feature: status Planned, phase Building
-- Epic: phase Building (derived via worst-wins once features exist)
-- ADR: status Proposed, phase Building
-- PLAN: status Draft, phase Building
-- FIX: status Open, phase Building (or Released if shipped)
-- IMP: status Planned, phase Building
+| Item | BACKLOG Status default | Frontmatter status | BACKLOG Phase |
+|---|---|---|---|
+| Feature | `Ready` (or `In Progress` once code starts) | (none) | `Building` |
+| Epic | derived | (none) | `Building` |
+| ADR | `In Progress` | `Proposed` | `Building` |
+| PLAN | `In Progress` | `Draft` until plan-coverage gate passes, then `Active` | `Building` |
+| FIX | `Ready` (capture) or `In Progress` (active fix) | (none) | `Building` |
+| IMP | `Ready` (or `Backlog` if deferred) | (none) | `Building` |
 
 **Sync chain on every status or phase change (binding order):**
 
@@ -466,7 +572,7 @@ Flow:
  plan-mode. Do not edit the structure. If the agent is less
  capable and produced nothing usable, fall back to the minimal
  structure described in the template.
-5. Flip status to `Active` once implementation begins.
+5. Flip status to `In Progress` once implementation begins.
 6. Every mid-course trigger (see "Mid-course bug discovery" and
  "Mid-course design discovery" below) appends a dated entry to the
  plan's `## Change Log` section BEFORE the code edit. Never
@@ -480,7 +586,7 @@ Skip the plan file only for:
 
 The plan file is part of the artifact report in the Handoff Ritual.
 
-**Plan Coverage Gate (binding, runs before Status flips to Active).**
+**Plan Coverage Gate (binding, runs before Status flips to In Progress).**
 
 Regardless of which agent produced the plan, the skill checks four
 things against the source artifacts. The check happens AFTER the
@@ -1231,7 +1337,12 @@ After the commit lands, run:
 
 ```
 python3 tools/github-integration/flow.py tag-phase --item <ID> --phase code
+python3 tools/github-integration/flow.py sync-status --item <ID>
 ```
+
+`sync-status` mirrors the BACKLOG Status column to the GitHub
+issue and project (and the GitHub Assignee back into the BACKLOG
+Claim column). It is a no-op outside `mode = "github-sync"`.
 
 Skip the commit silently if the working tree has no changes.
 

@@ -29,7 +29,7 @@ requirements engineering, architecture, coding, testing, security
 audit). Two are entry-point skills for non-greenfield projects
 (reverse engineering, dia-migration). One is the on-demand workflow
 guide (`/dia-guide`). Four are foundation skills (project conventions,
-consistency check, humanizer, using-digital-innovation-agents). Every
+consistency check, humanizer, dia-bootstrap). Every
 phase skill owns one part of the V-Model, has its own quality gates,
 and hands off a structured artifact to the next phase. The guide is
 called separately whenever the user wants an orientation read.
@@ -97,7 +97,7 @@ claude
 ```
 
 Type `/` in any new session to see the skills in autocomplete. The
-`using-digital-innovation-agents` skill loads automatically at session
+`dia-bootstrap` skill loads automatically at session
 start as a brief orientation.
 
 **VS Code, JetBrains, and Cursor extensions cannot install plugins.**
@@ -106,22 +106,30 @@ extension returns `/plugin isn't available in this environment`.
 Install once through the CLI as above. The skills land under
 `~/.claude/skills/` and the IDE extension picks them up from the same
 global directory on the next session start. On Windows without WSL,
-the CLI is experimental; install through WSL or copy the skills
-manually:
+the CLI is experimental; install through WSL or copy the manually:
 
-Re-run the same block to update; it pulls the latest commit and rewrites
-each DIA skill in place. Skills renamed or removed in newer DIA versions
-(for example `dia-orchestrator` from v2) are deleted explicitly so no
-stale skill folders survive the upgrade.
+The manual install copies the **complete plugin bundle** (skills,
+tools, hooks, scripts) under a stable path and symlinks the skills
+into `~/.claude/skills/`. Skills invoke tooling at
+`${DIA_PLUGIN_ROOT}/tools/...`, so `DIA_PLUGIN_ROOT` is exported
+from the install location. Re-run the block to update; it pulls
+the latest commit and rewrites the bundle in place. Skills
+renamed or removed in newer DIA versions (for example
+`dia-orchestrator` from v2) are deleted explicitly so no stale
+skill folders survive the upgrade.
 
 ```bash
-# Clone or update the source checkout
-if [ -d /tmp/dia/.git ]; then
-  git -C /tmp/dia fetch --tags --prune
-  git -C /tmp/dia reset --hard origin/main
+# Stable plugin location. Override with DIA_PLUGIN_ROOT env if needed.
+DIA_PLUGIN_ROOT="${DIA_PLUGIN_ROOT:-$HOME/.local/share/dia-plugin}"
+
+# Clone or update the plugin bundle
+if [ -d "$DIA_PLUGIN_ROOT/.git" ]; then
+  git -C "$DIA_PLUGIN_ROOT" fetch --tags --prune
+  git -C "$DIA_PLUGIN_ROOT" reset --hard origin/main
 else
-  rm -rf /tmp/dia
-  git clone https://github.com/pssah4/digital-innovation-agents.git /tmp/dia
+  mkdir -p "$(dirname "$DIA_PLUGIN_ROOT")"
+  rm -rf "$DIA_PLUGIN_ROOT"
+  git clone https://github.com/pssah4/digital-innovation-agents.git "$DIA_PLUGIN_ROOT"
 fi
 
 mkdir -p ~/.claude/skills
@@ -131,15 +139,27 @@ for legacy in dia-orchestrator; do
   rm -rf "$HOME/.claude/skills/$legacy"
 done
 
-# Install the current DIA skill set (rm before cp avoids stale files)
+# Symlink the current DIA skill set (covers future renames automatically)
 for skill in project-conventions reverse-engineering business-analysis \
              requirements-engineering architecture coding testing \
              security-audit consistency-check humanizer dia-guide \
-             dia-migration using-digital-innovation-agents; do
+             dia-migration dia-setup dia-bootstrap; do
   rm -rf "$HOME/.claude/skills/$skill"
-  cp -r "/tmp/dia/skills/$skill" "$HOME/.claude/skills/$skill"
+  ln -sfn "$DIA_PLUGIN_ROOT/skills/$skill" "$HOME/.claude/skills/$skill"
 done
+
+# Persist DIA_PLUGIN_ROOT so skills can resolve tools/ at runtime
+shell_rc="$HOME/.zshrc"
+[ -f "$HOME/.bashrc" ] && shell_rc="$HOME/.bashrc"
+if ! grep -q "DIA_PLUGIN_ROOT=" "$shell_rc" 2>/dev/null; then
+  echo "export DIA_PLUGIN_ROOT=\"$DIA_PLUGIN_ROOT\"" >> "$shell_rc"
+fi
+export DIA_PLUGIN_ROOT
 ```
+
+After the first install, open a new shell so `DIA_PLUGIN_ROOT` is
+set, then start `claude`. Skills resolve their helper scripts at
+`$DIA_PLUGIN_ROOT/tools/...` regardless of the user-project cwd.
 
 ### Cursor
 
@@ -153,11 +173,15 @@ marketplace.
 ### GitHub Copilot (CLI and VS Code)
 
 GitHub Copilot has no marketplace command. Install by copying the
-`.github/` directory into your project root:
+`.github/` directory plus the helper tools into your project. The
+agents call `flow.py`, `anchor.py`, the migration scripts, and the
+consistency check, so `tools/` and `scripts/` must be available
+locally.
 
-Re-run the block to update; the source checkout is pulled to the latest
-commit and each target subfolder is wiped before copy, so no stale
-Copilot agents or chat modes survive an upgrade.
+Re-run the block to update; the source checkout is pulled to the
+latest commit and each target subfolder is wiped before copy, so
+no stale Copilot agents, chat modes, or helper scripts survive an
+upgrade.
 
 ```bash
 # Clone or update the source checkout
@@ -177,7 +201,23 @@ for sub in agents chatmodes instructions templates; do
   cp -r "/tmp/dia/.github/$sub" ".github/$sub"
 done
 cp /tmp/dia/.github/copilot-instructions.md .github/copilot-instructions.md
+
+# Install the helper tools (flow.py, anchor.py, migration, hooks)
+# at the project root so the agents can invoke them
+for sub in tools scripts hooks; do
+  rm -rf "$sub"
+  cp -r "/tmp/dia/$sub" "$sub"
+done
+
+# Skills resolve tools/ relative to the project root in this layout,
+# so DIA_PLUGIN_ROOT points at the project itself
+echo 'export DIA_PLUGIN_ROOT="$(pwd)"' >> .envrc 2>/dev/null || true
 ```
+
+The Copilot install brings the helper tools into the project rather
+than to a global location because Copilot agents run with the
+project as their working directory and have no plugin-bundle path
+to fall back on.
 
 Copilot Chat picks the agents up automatically on the next session. In
 Copilot Chat:
@@ -231,10 +271,18 @@ gemini extensions update digital-innovation-agents
 Start a session in your chosen platform and try one of these:
 
 ```
-/dia-guide          Full guided cycle from idea to security audit
-/business-analysis          Start a structured business analysis
+/dia-setup                 Activate the workflow in this project
+/dia-guide                 Full guided cycle from idea to security audit
+/business-analysis         Start a structured business analysis
 /reverse-engineering       Brownfield entry for an existing codebase
 ```
+
+`/dia-setup` is the first call in any new project. It asks for the
+mode (`off`, `git-only`, or `github-sync`), writes
+`.dia/config.toml`, and adds a managed anchor block to your
+existing `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.cursorrules`, or
+similar agent files. Re-run any time to change the mode or remove
+the anchor.
 
 Or ask a natural-language question like "help me analyse this business
 problem". The agent should invoke the matching skill.
@@ -276,7 +324,7 @@ innovation-agents` loads on session start to introduce the workflow).
 | **Project Conventions** | Three-layer documentation model (Wayfinder, Rule sets, Backlog, Detail artifacts), directory structure, naming standards, writing-style rules. | `/project-conventions` |
 | **Consistency Check** | Verifies the V-Model artifact graph: dead links, orphan features, status drift, missing references. Modes A (syntactic), B (semantic), C (full). Mandatory at every phase boundary. | `/consistency-check` |
 | **Humanizer** | Strips AI vocabulary, em dashes, negative parallelisms, and filler from every artifact. Enforces sentence case and active voice. | `/humanizer` |
-| **Using DIA** | Loads automatically on session start. Brief orientation page with skill set, entry points, opt-out behaviour. | `/using-digital-innovation-agents` |
+| **DIA Bootstrap** | Loads automatically on session start. Carries the entry-point catalog, helper-script path resolution rule, activation contract, opt-out behaviour. Not invoked manually. | `dia-bootstrap` |
 
 ## Scope levels
 

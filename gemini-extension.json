@@ -1,6 +1,13 @@
 {
   "name": "digital-innovation-agents",
   "description": "V-Model workflow for AI-augmented innovation and development",
-  "version": "3.2.0",
-  "contextFileName": "GEMINI.md"
+  "version": "3.4.0",
+  "contextFileName": "GEMINI.md",
+  "includes": [
+    "./skills/",
+    "./tools/",
+    "./hooks/",
+    "./scripts/",
+    "./.dia/"
+  ]
 }

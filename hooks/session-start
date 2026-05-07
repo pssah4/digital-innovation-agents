@@ -8,8 +8,33 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-# Read using-digital-innovation-agents content
-skill_content=$(cat "${PLUGIN_ROOT}/skills/using-digital-innovation-agents/SKILL.md" 2>&1 || echo "Error reading using-digital-innovation-agents skill")
+# Honor the project mode from .dia/config.toml.
+# Walk upwards from $PWD looking for the closest .dia/config.toml.
+# If found and mode = "off", emit an empty injection and exit.
+# If not found, fall through to the legacy behaviour (inject skill).
+project_dir="$PWD"
+while [ "$project_dir" != "/" ] && [ "$project_dir" != "" ]; do
+  if [ -f "${project_dir}/.dia/config.toml" ]; then
+    mode_line="$(grep -E '^[[:space:]]*mode[[:space:]]*=' "${project_dir}/.dia/config.toml" | head -1 || true)"
+    if echo "$mode_line" | grep -Eq '"off"|'\''off'\''' ; then
+      # Mode is off: do not inject. Emit a no-op JSON in the same
+      # shape the platforms below expect.
+      if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
+        printf '{"additional_context": ""}\n'
+      elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -z "${COPILOT_CLI:-}" ]; then
+        printf '{"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": ""}}\n'
+      else
+        printf '{"additionalContext": ""}\n'
+      fi
+      exit 0
+    fi
+    break
+  fi
+  project_dir="$(dirname "$project_dir")"
+done
+
+# Read dia-bootstrap content
+skill_content=$(cat "${PLUGIN_ROOT}/skills/dia-bootstrap/SKILL.md" 2>&1 || echo "Error reading dia-bootstrap skill")
 
 # Escape string for JSON embedding using bash parameter substitution.
 # Each ${s//old/new} is a single C-level pass - orders of magnitude
@@ -24,8 +49,16 @@ escape_for_json() {
     printf '%s' "$s"
 }
 
+# Resolve a stable DIA_PLUGIN_ROOT and tell the agent about it.
+# Skills reference helper scripts as "${DIA_PLUGIN_ROOT}/tools/...",
+# so the agent must know where the plugin bundle lives. Priority
+# order: pre-set DIA_PLUGIN_ROOT > CLAUDE_PLUGIN_ROOT > CURSOR_PLUGIN_ROOT
+# > the hook-relative PLUGIN_ROOT.
+RESOLVED_PLUGIN_ROOT="${DIA_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-${CURSOR_PLUGIN_ROOT:-${PLUGIN_ROOT}}}}"
+plugin_root_escaped=$(escape_for_json "$RESOLVED_PLUGIN_ROOT")
+
 skill_escaped=$(escape_for_json "$skill_content")
-session_context="<EXTREMELY_IMPORTANT>\nYou have Digital Innovation Agents skills.\n\n**Below is the full content of the 'digital-innovation-agents:using-digital-innovation-agents' skill - your introduction to the V-Model workflow. For all other skills, use the 'Skill' tool:**\n\n${skill_escaped}\n</EXTREMELY_IMPORTANT>"
+session_context="<EXTREMELY_IMPORTANT>\nYou have Digital Innovation Agents skills.\n\nDIA_PLUGIN_ROOT=${plugin_root_escaped}\nWhen a skill calls a helper at \\\"tools/...\\\" or \\\"\${DIA_PLUGIN_ROOT}/tools/...\\\", resolve the path against DIA_PLUGIN_ROOT above. Helper scripts live under \${DIA_PLUGIN_ROOT}/tools/, hook scripts under \${DIA_PLUGIN_ROOT}/hooks/, merge scripts under \${DIA_PLUGIN_ROOT}/scripts/.\n\n**Below is the full content of the 'digital-innovation-agents:dia-bootstrap' skill - your introduction to the V-Model workflow. For all other skills, use the 'Skill' tool:**\n\n${skill_escaped}\n</EXTREMELY_IMPORTANT>"
 
 # Output context injection as JSON.
 # Cursor hooks expect additional_context (snake_case).
