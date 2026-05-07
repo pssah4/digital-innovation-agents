@@ -94,7 +94,7 @@ types automatically, without asking:
   current value from the artifact into the backlog row only if no
   row exists yet; otherwise it just removes the duplicate.
 - Backlog row missing for an existing artifact file: create the row
-  with `status: Planned`, `phase: Building` defaults, place under
+  with `status: Ready`, `phase: Building` defaults, place under
   the matching Epic section.
 - Artifact file missing for a backlog row: leave the row, flag for
   human triage (the row may be a placeholder or outdated entry).

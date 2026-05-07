@@ -73,12 +73,21 @@ Every artifact this skill creates also lands as a backlog row in
 `_devprocess/context/BACKLOG.md`. Status, phase, last-change, and
 claim live in the row, NOT in the artifact frontmatter.
 
-**Defaults for reverse-engineered artifacts:**
+**Defaults for reverse-engineered artifacts.** The BACKLOG
+`Status` column uses the GitHub-aligned vocabulary
+(`Backlog | Ready | In Progress | In Review | Done`). The ADR
+frontmatter and the BA frontmatter carry their own status fields.
 
-- Feature observed in code: status Planned, phase Building (or
-  Released if there is evidence the capability is shipped to users)
-- ADR inferred: status Proposed, phase Building
-- BA draft: status `Draft (Reverse-Engineered)`, validation pending
+| Item | BACKLOG Status default | Frontmatter status | BACKLOG Phase |
+|---|---|---|---|
+| Feature observed in code (shipped) | `Done` | (none) | `Released` |
+| Feature observed in code (partial) | `In Progress` | (none) | `Building` |
+| ADR inferred | `In Progress` | `Proposed` (ADR / MADR) | `Building` |
+| BA draft | `Backlog` | `Draft (Reverse-Engineered)` | (n/a) |
+
+Reverse-engineered features marked `Done` go straight to phase
+`Released` so the post-RE BA validation walk picks them up
+correctly.
 
 **Sync chain (binding order):**
 

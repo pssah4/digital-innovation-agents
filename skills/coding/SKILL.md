@@ -225,11 +225,20 @@ IMP, or PLAN, it writes the backlog row in
 body. Status, phase, last-change, claim, and Refs live in the
 backlog row, not in the artifact frontmatter.
 
-**Defaults when no better value exists:**
+**Defaults when no better value exists.** The BACKLOG `Status`
+column uses the GitHub-aligned vocabulary (`Backlog | Ready |
+In Progress | In Review | Done`). ADR and PLAN files carry their
+own frontmatter status (`Proposed | Accepted | Superseded` for
+ADRs, `Draft | Active | Done` for PLANs); those values never land
+in the BACKLOG Status column.
 
-- Feature: status Planned, phase Building
-- Epic: phase Building (derived via worst-wins once features exist)
-- ADR: status Proposed, phase Building
+| Item | BACKLOG Status default | Frontmatter status | BACKLOG Phase |
+|---|---|---|---|
+| Feature | `Ready` (or `In Progress` once code starts) | (none) | `Building` |
+| Epic | derived | (none) | `Building` |
+| ADR | `In Progress` | `Proposed` | `Building` |
+| PLAN | `In Progress` | `Draft` until plan-coverage gate passes, then `Active` | `Building` |
+| FIX | `Ready` (capture) or `In Progress` (active fix) | (none) | `Building` |
 - PLAN: status Draft, phase Building
 - FIX: status Open, phase Building (or Released if shipped)
 - IMP: status Planned, phase Building

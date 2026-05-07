@@ -171,15 +171,27 @@ anchor_files = [
 source_branch = "develop"
 
 [github]
-project = ""
-repo = ""
+project_number = 7
+status_field = "Status"
+project_owner = ""
 ```
 
 `mode` is the only mandatory field. `anchor_files` defaults to the
 list of files that carry a managed anchor block. `source_branch`
 controls the base for new feature branches `/dia-guide` creates.
-The `[github]` section is read by stage-2 GitHub-sync features and
-is allowed to stay empty in `git-only` mode.
+
+The `[github]` section is honored only when `mode = "github-sync"`:
+
+- `project_number` is the GitHub ProjectV2 number (the integer at
+  the end of the project URL, e.g. 7 for
+  `github.com/users/X/projects/7`). Leave 0 to skip
+  project-status mirroring; the issue itself still syncs, only
+  the project Status field stays untouched.
+- `status_field` is the single-select field name on the project
+  that represents item status. Default `Status`.
+- `project_owner` is optional. When empty, flow.py resolves the
+  owner from the repository. Set explicitly when the project lives
+  under a different owner than the repo (org-level projects, etc.).
 
 ## Reference
 

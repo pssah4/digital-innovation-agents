@@ -57,7 +57,7 @@ Handoff Ritual; you can also invoke it directly.
 | Subcommand | What it does | Mode requirement |
 |---|---|---|
 | `create-issue --item ID` | Create a GitHub issue for the backlog item, add `gh project item-add` if `[github] project_number` is set in `.dia/config.toml` | `github-sync` |
-| `tag-phase --item ID --phase PHASE` | Set the local annotated git tag `<id-lower>/<phase>-done`. Phases: `ba`, `re`, `arch`, `code`, `test`, `sec`, `ready-for-review`. Legacy `audit` accepted as alias for `sec` | `git-only` or `github-sync` |
+| `tag-phase --item ID --phase PHASE` | Set the local annotated git tag for the phase. Phases `ba`, `re`, `arch`, `code`, `test`, `sec` produce `<id-lower>/<phase>-done`. The release-readiness marker `ready-for-review` is the single special case: it produces `<id-lower>/ready-for-review` without the `-done` suffix, matching the team-workflow contract. Legacy `audit` accepted as alias for `sec`. | `git-only` or `github-sync` |
 | `sync-status --item ID` | Mirror BACKLOG Status to the GitHub issue state and the configured Project Status field; pull GitHub Assignee back into the BACKLOG Claim column. Clears Claim on `Done` or when no Assignee is set | `github-sync` |
 | `promote-to-epic --item EPIC-NN [--rename-branch]` | After RE: rename the parent issue to `EPIC-NN: {title}`, create one sub-issue per FEAT and IMP under the EPIC, write a `## Sub-Issues` tasklist into the parent body, optionally rename the feature branch to `feature/epic-NN-<slug>` | `github-sync` |
 | `open-draft-pr --item ID` | Open a draft PR against the configured `source_branch` (default `develop`) | `github-sync` |

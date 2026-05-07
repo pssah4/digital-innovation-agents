@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (third review pass)
+
+- **Status vocabulary harmonized across all skill defaults.** The
+  "Defaults" blocks in `skills/coding/SKILL.md`,
+  `skills/architecture/SKILL.md`, and
+  `skills/reverse-engineering/SKILL.md` previously mixed BACKLOG
+  Status values with frontmatter status values for ADRs (Proposed)
+  and PLANs (Draft). Each block is now a two-column table that
+  separates the BACKLOG `Status` (always
+  `Backlog | Ready | In Progress | In Review | Done`) from the
+  artefact's own frontmatter status (Proposed / Accepted / Draft /
+  Active). Reverse-engineered features default to `Done` /
+  `Released` when there is shipping evidence, `In Progress` /
+  `Building` when partial. Stops the silent `Planned -> Ready`
+  rewrite that the legacy mapping in flow.py used to mask.
+- **`/dia-setup` Settings file format example** now shows
+  `project_number = 7`, `status_field = "Status"`, and
+  `project_owner = ""`. Previously the example listed `project = ""`
+  / `repo = ""`, which flow.py never reads. Manual config edits
+  done from the example produced silently broken Project sync.
+- **`/consistency-check` row-creation default** uses
+  `status: Ready` instead of `status: Planned` when it auto-fills
+  a missing backlog row.
+- **`scripts/merge-to-dev.sh` keeps the renumber plan on failure.**
+  Previously the tmp file was always deleted, so a failed
+  `apply-renumber` (gh / network / auth issue) dropped the
+  mapping needed for a clean retry. The plan now moves to
+  `.dia/last-renumber-plan.json` on failure with a clear
+  retry-instruction printed to stderr; the tmp file is removed
+  only on success.
+- **`docs/reference/commands.md` tag-phase row** documents the
+  special case: phases `ba`, `re`, `arch`, `code`, `test`, `sec`
+  produce `<id>/<phase>-done`; `ready-for-review` produces
+  `<id>/ready-for-review` without the suffix. Resolves the
+  reference drift flagged by the third review pass.
+
 ### Fixed (second review pass)
 
 - **`ready-for-review` tag is no longer named `-done`.**
