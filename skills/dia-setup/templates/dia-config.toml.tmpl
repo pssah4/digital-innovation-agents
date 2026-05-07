@@ -1,0 +1,27 @@
+# Digital Innovation Agents project configuration.
+# Managed by /dia-setup. Hand edits are allowed but be careful.
+
+# Mode controls how strongly the plugin participates in this project.
+#   off          plugin is neutral, no anchor blocks, hooks no-op
+#   git-only     anchor blocks active, pre-commit / pre-merge hooks
+#                active, scripts/merge-to-dev.sh recommended,
+#                no GitHub issue or PR sync
+#   github-sync  git-only plus flow.py-based GitHub issue and PR
+#                synchronization (sync-status, promote-to-epic)
+mode = "{{mode}}"
+
+# Files that carry the DIA anchor block. Refresh with /dia-setup
+# after a mode change.
+anchor_files = [
+{{anchor_files_list}}
+]
+
+# Source branch for new feature branches created by /dia-guide.
+# Default "develop" matches a Git Flow setup. Override per project.
+source_branch = "develop"
+
+# Feature flags that downstream stages may add. Stage 1 only writes
+# the keys above; later stages append here.
+[github]
+project = ""
+repo = ""

@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`/dia-setup` skill.** Activation, mode change, and deactivation
+  entry point for the plugin in a user project. Writes
+  `.dia/config.toml` with one of three modes (`off`, `git-only`,
+  `github-sync`) and manages anchor blocks in agent-facing files
+  (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.cursorrules`,
+  `.github/copilot-instructions.md`, `.windsurfrules`). Re-running
+  the skill changes the mode or removes the anchors cleanly.
+- **`tools/dia-setup/anchor.py`.** Idempotent helper that writes,
+  removes, lists, and verifies anchor blocks. Detects existing
+  blocks via stable marker pairs and replaces them in place.
+  Markdown comment markers for `.md` files, hash-comment markers
+  for `.cursorrules` and `.windsurfrules`.
+- **Anchor templates.** Per-tool templates under
+  `skills/dia-setup/templates/` so each agent file gets the
+  appropriate format (full block in CLAUDE.md / AGENTS.md, slim
+  pointer in GEMINI.md, YAML-frontmatter variant for `.cursorrules`,
+  Markdown for Copilot).
+
+### Changed
+
+- **`hooks/session-start`.** Reads `.dia/config.toml` from the
+  current working directory upwards. If `mode = "off"`, the hook
+  emits an empty injection so the bootstrap skill stays silent in
+  projects that opted out. Other modes preserve the legacy
+  injection behaviour.
+- **`skills/using-digital-innovation-agents/SKILL.md`.** Added an
+  Activation section that points new users to `/dia-setup` before
+  any other DIA skill, and explains the three modes.
+
 ## [3.3.0] - 2026-05-05
 
 Minor release. Two structural changes shipped together:

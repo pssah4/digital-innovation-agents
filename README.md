@@ -231,10 +231,18 @@ gemini extensions update digital-innovation-agents
 Start a session in your chosen platform and try one of these:
 
 ```
-/dia-guide          Full guided cycle from idea to security audit
-/business-analysis          Start a structured business analysis
+/dia-setup                 Activate the workflow in this project
+/dia-guide                 Full guided cycle from idea to security audit
+/business-analysis         Start a structured business analysis
 /reverse-engineering       Brownfield entry for an existing codebase
 ```
+
+`/dia-setup` is the first call in any new project. It asks for the
+mode (`off`, `git-only`, or `github-sync`), writes
+`.dia/config.toml`, and adds a managed anchor block to your
+existing `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.cursorrules`, or
+similar agent files. Re-run any time to change the mode or remove
+the anchor.
 
 Or ask a natural-language question like "help me analyse this business
 problem". The agent should invoke the matching skill.

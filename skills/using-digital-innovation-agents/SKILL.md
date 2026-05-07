@@ -10,8 +10,25 @@ and development. These skills guide projects from initial business concept
 through requirements engineering, architecture design, implementation,
 testing, and security audit.
 
+## Activation
+
+If this project does not yet have `.dia/config.toml`, run `/dia-setup`
+first. The setup skill asks for the mode (`off`, `git-only`,
+`github-sync`), creates `.dia/config.toml`, and writes anchor blocks
+into the agent files (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`,
+`.cursorrules`, ...). Re-run `/dia-setup` any time to change the
+mode or remove the anchors.
+
+When `mode = "off"`, the SessionStart hook stays silent and phase
+skills do not run. When `mode = "git-only"`, the workflow runs
+locally (commits, tags, merge scripts) without GitHub sync. When
+`mode = "github-sync"`, phase skills mirror backlog state to GitHub
+issues via `tools/github-integration/flow.py`.
+
 ## Entry points
 
+- `/dia-setup` -- Activation, mode change, deactivation. Run this
+  in a fresh project before any other DIA skill
 - `/dia-guide` -- Guided cycle through all phases (recommended for
   new projects or when unsure where to start)
 - `/reverse-engineering` -- Brownfield entry point: walk the V backwards
