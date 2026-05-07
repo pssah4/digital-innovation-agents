@@ -7,6 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (second review pass)
+
+- **`ready-for-review` tag is no longer named `-done`.**
+  `flow.py tag-phase --phase ready-for-review` previously created
+  `<id>/ready-for-review-done`, which broke the team-workflow
+  contract (tag should be `<id>/ready-for-review`) and any
+  GitHub-Actions automation that triggers on the documented tag.
+  cmd_tag_phase and cmd_status now branch on the special phase
+  name and emit the canonical tag.
+- **`.dia/config.toml` schema aligns with flow.py.** The template
+  in `skills/dia-setup/templates/dia-config.toml.tmpl` previously
+  shipped `project = ""` and `repo = ""`, while `flow.py
+  sync-status` looks up `project_number`, `status_field`, and
+  `project_owner`. The template now writes the keys flow.py
+  consumes, with helpful comments. `/dia-setup` gains a new step 4
+  that asks for `project_number` (and optional owner / status field
+  name) when the user picks `mode = "github-sync"`.
+- **`update-issue` is gone for good.** The dead subcommand was
+  still listed in `flow.py` docstring and `GITHUB_REQUIRED_ACTIONS`
+  even though the parser had no entry. team-workflow.md and
+  dia-guide/SKILL.md still cited it. Replaced docstring entries
+  with the live subcommands (sync-status, promote-to-epic,
+  validate-fix), removed the GITHUB_REQUIRED_ACTIONS entry, and
+  rewrote the cross-references to point at the actual mechanism
+  (`tag-phase` invokes `update_issue_after_tag` internally).
+- **`phase:planned` is removed once a real phase tag lands.**
+  `update_issue_after_tag` now treats `phase:planned` as part of
+  the phase-label set and removes it together with the other
+  obsolete labels when adding the new one.
+- **GitHub Project sync is more robust.**
+  `update_project_status_field` now reads
+  `[github] project_owner` from `.dia/config.toml` (falls back to
+  the repo owner), passes `--limit 200` to `gh project field-list`
+  and `--limit 1000` to `gh project item-list`, and caches the
+  field metadata per process so multiple sync-status calls in a
+  Handoff Ritual do not re-resolve the same project.
+- **`/dia-guide` is documented as read-only.**
+  team-workflow.md previously claimed the guide auto-fixes drift
+  and runs after every phase. The new section "Guide: post-phase
+  audit (read-only)" matches the actual SKILL.md contract: the
+  guide is invoked explicitly, reports rather than fixes, and
+  surfaces the responsible phase skill when something is missing.
+
+### Added (renumber sync)
+
+- **`tools/renumber-for-merge.py --plan-out FILE`** writes the
+  applied id mapping (epics, feats, imps, fixes) as JSON, so the
+  GitHub-side issue titles can be brought back in line with the
+  renumbered local ids.
+- **`flow.py apply-renumber --plan FILE`** reads such a plan and
+  renames every matching GitHub issue title from `OLD-NN: slug`
+  to `NEW-NN: slug`. Idempotent. Mode-aware (no-op outside
+  `github-sync`). Preserves the slug suffix.
+- **`scripts/merge-to-dev.sh`** writes the renumber plan to a tmp
+  file and calls `flow.py apply-renumber` after the merge so the
+  GitHub-issue view never drifts from the merged backlog.
+
 ### Renamed
 
 - **Bootstrap skill renamed**: `using-digital-innovation-agents` ->

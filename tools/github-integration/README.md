@@ -33,8 +33,8 @@ respects the `mode` setting:
 
 - `off`: every subcommand is a no-op with a clear message.
 - `git-only`: GitHub-only subcommands (`create-issue`,
-  `update-issue`, `open-draft-pr`, `ready-for-review`,
-  `sync-status`, `promote-to-epic`) are no-ops. `tag-phase` and
+  `open-draft-pr`, `ready-for-review`, `sync-status`,
+  `promote-to-epic`) are no-ops. `tag-phase` and
   `status` work locally so phase-end commits keep their tags.
 - `github-sync`: full behaviour. Issues, PRs, project field, tasklist
   rollups all sync.

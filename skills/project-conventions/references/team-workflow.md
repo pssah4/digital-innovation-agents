@@ -109,11 +109,13 @@ set (see below). Only one phase label at a time.
 
 ### GitHub Projects board
 
-A single "DIA workflow" project per repo, with columns matching the
-phases. Cards move via GitHub Actions triggered by phase tags or by
-`flow.py update-issue --phase X`. The DIA agent does not touch the
-GitHub API for project cards directly; it sets git tags and the
-GitHub-side automation moves the card.
+A single GitHub Project per repo, with a Status field that maps
+1:1 to the BACKLOG Status column (see below). Items are mirrored
+by `flow.py sync-status --item <ID>`, called from the Handoff
+Ritual at every phase end. `flow.py tag-phase --phase <X>` updates
+the issue's phase label and ticks its checklist via
+`update_issue_after_tag`. The DIA agent does not touch the GitHub
+API outside these two paths.
 
 Recommended project Status field setup. The status vocabulary
 matches the BACKLOG.md Status column 1:1 so `flow.py sync-status`
@@ -324,24 +326,40 @@ guide runs the feature-complete handoff:
    - Posts a final comment summarising the deliverables.
    - Suggests next step (request review, plan release, etc.).
 
-## Guide: post-phase consistency check
+## Guide: post-phase audit (read-only)
 
-`/dia-guide` is the conductor. After every entry-skill
-finishes a phase, the guide gets invoked (silently or
-explicitly) and runs:
+`/dia-guide` is the navigation layer, not an orchestrator. It is
+invoked **explicitly** by the user when orientation is needed
+("where do I start", "what comes next"). It does not run silently
+after every phase, does not set tags, does not auto-fix drift,
+and does not call other skills. Each phase skill is autonomous
+and owns its own Handoff Ritual (commit, tag-phase, sync-status).
 
-1. **Branch check:** is the current branch on an item-branch (per
-   the schema above)?
-2. **Tag check:** does the just-finished phase have its tag set?
-   If not, set it now.
-3. **Backlog check:** does the BACKLOG row's status reflect the
-   phase progress?
-4. **Issue check:** is the GitHub issue's checklist in sync with
-   the tags?
+When invoked, the guide reads the current project state and
+**reports** rather than fixes:
+
+1. **Branch:** is the current branch on an item-branch (per the
+   schema above)? If not, surface a warning naming the expected
+   pattern.
+2. **Phase tag:** did the just-finished phase set its
+   `<id>/<phase>-done` tag (or `<id>/ready-for-review` for the
+   release-readiness marker)? If missing, name the responsible
+   phase skill so the user can re-run its Handoff Ritual.
+3. **Backlog row:** does the BACKLOG row's Status reflect the
+   phase progress? Discrepancies indicate the phase skill's
+   handoff ritual did not write the row before the phase-end
+   commit.
+4. **GitHub issue:** does the issue exist and carry the right
+   phase label and ticked checklist? (`flow.py status --item <ID>`
+   provides the snapshot.)
 5. **Next-phase suggestion:** what is the natural next phase for
-   this item? Surface it as `AskUserQuestion`:
-   "Phase `<X>` complete for `<ID>`. Recommended next: `/{skill}`.
-    Continue now, pause, or pick a different next step?"
+   this item? Surface as plain text, the user invokes the skill
+   themselves.
+
+The guide owns two narrow CRUD moments at workflow boundaries
+that no single phase skill covers (item-start branch creation
+when the user enters at A/B/C, post-`/reverse-engineering` item
+promotion). Everything else is read-only.
 
 The guide is the consistency layer that prevents drift
 between Git tags, BACKLOG.md, GitHub issues, and project cards.

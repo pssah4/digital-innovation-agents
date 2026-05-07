@@ -59,17 +59,30 @@ the field `mode`:
    `develop` or use a different branch (`main`, `dev`, custom).
    This value goes into `.dia/config.toml` as `source_branch`.
 
-4. **Write configuration.** Create `.dia/` directory if missing and
+4. **GitHub Project question (only if mode = github-sync).** Ask
+   the user via `AskUserQuestion` whether they want backlog Status
+   mirrored to a GitHub Project Status field. If yes, ask for the
+   ProjectV2 number (the integer at the end of the project URL,
+   for example 7 for `github.com/users/X/projects/7`). Optionally
+   ask for the project owner login (when empty, flow.py resolves
+   it from the repository) and the status field name (default
+   `Status`). These values go into `.dia/config.toml` under
+   `[github]`. If the user skips, leave `project_number = 0`; the
+   issue itself still syncs, only the project Status field stays
+   untouched.
+
+5. **Write configuration.** Create `.dia/` directory if missing and
    write `.dia/config.toml` from the template
    `skills/dia-setup/templates/dia-config.toml.tmpl`, substituting
-   `{{mode}}`, the chosen `anchor_files`, and `source_branch`.
+   `{{mode}}`, the chosen `anchor_files`, `source_branch`, and the
+   `[github]` block.
 
-5. **Write anchor blocks (only if mode != off).** Run
+6. **Write anchor blocks (only if mode != off).** Run
    `python3 tools/dia-setup/anchor.py write --mode <mode> --files
    <selected list>`. The script is idempotent; it creates or
    replaces blocks in the selected files.
 
-6. **Confirmation.** Print a short confirmation to the user:
+7. **Confirmation.** Print a short confirmation to the user:
    - mode now active
    - which files received an anchor block
    - that `/dia-setup` can be re-run any time to change the mode

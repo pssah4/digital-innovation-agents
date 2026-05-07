@@ -10,7 +10,9 @@ script keeps the GitHub view in sync.
 Subcommands:
     create-issue     Create a GitHub issue for a backlog item.
     tag-phase        Set the `<item-id>/<phase>-done` annotated git tag.
-    update-issue     Update issue body checklist and phase label.
+    sync-status      Mirror BACKLOG Status to issue and project.
+    promote-to-epic  Rename parent, create sub-issues, tasklist.
+    validate-fix     Hotfix-scoped consistency check.
     open-draft-pr    Open a draft PR for the item branch.
     ready-for-review Flip the draft PR to ready and tag ready-for-review.
     status           Print state of the item (branch, tags, issue, PR).
@@ -46,11 +48,11 @@ ITEM_RE = re.compile(r"^(EPIC-\d{2}|FEAT-\d{2}-\d{2}|FIX-\d{2}-\d{2}-\d{2}|IMP-\
 # they remain available in git-only mode.
 GITHUB_REQUIRED_ACTIONS = (
     "create-issue",
-    "update-issue",
     "open-draft-pr",
     "ready-for-review",
     "sync-status",
     "promote-to-epic",
+    "apply-renumber",
 )
 
 
@@ -467,7 +469,14 @@ def cmd_tag_phase(args: argparse.Namespace) -> int:
     cur = current_branch()
     if not branch_matches_item(cur, item) and cur not in ("main", "master", "dev"):
         print(f"[tag-phase] WARNING: current branch '{cur}' does not match item '{item}'.")
-    tag_name = f"{item.lower()}/{phase}-done"
+    # Phase-end tags carry the "-done" suffix to mark a completed phase.
+    # ready-for-review is not a phase but a release-readiness marker, so
+    # it lives at <id>/ready-for-review without the suffix per the
+    # team-workflow contract.
+    if phase == "ready-for-review":
+        tag_name = f"{item.lower()}/ready-for-review"
+    else:
+        tag_name = f"{item.lower()}/{phase}-done"
     try:
         existing = run(["git", "tag", "--list", tag_name]).stdout.strip()
     except subprocess.CalledProcessError:
@@ -514,7 +523,9 @@ def update_issue_after_tag(item: str, phase: str) -> None:
             run(["gh", "issue", "edit", str(issue["number"]), "--body", new_body])
         except subprocess.CalledProcessError:
             pass
-    # Update phase label
+    # Update phase label. The full label set includes the initial
+    # "phase:planned" label set by create-issue, so it lands here
+    # too and gets removed when any real phase tag is set.
     label_map = {
         "ba": "phase:ba",
         "re": "phase:re",
@@ -524,10 +535,10 @@ def update_issue_after_tag(item: str, phase: str) -> None:
         "sec": "phase:sec",
         "ready-for-review": "phase:review",
     }
+    all_phase_labels = set(label_map.values()) | {"phase:planned"}
     new_label = label_map.get(phase)
     if new_label:
-        # Remove other phase labels, add the new one
-        for lbl in label_map.values():
+        for lbl in all_phase_labels:
             if lbl != new_label:
                 run(["gh", "issue", "edit", str(issue["number"]), "--remove-label", lbl], check=False)
         run(["gh", "issue", "edit", str(issue["number"]), "--add-label", new_label], check=False)
@@ -719,6 +730,29 @@ def write_claim_into_backlog(item: str, claim: str) -> bool:
     return changed
 
 
+# Cache for project field metadata: project_number -> (fields list, owner).
+# field-list and item-list are independent of the issue under sync, so
+# caching them within one process saves a round trip per Handoff Ritual
+# when several items get synced in sequence.
+_PROJECT_FIELD_CACHE: dict[int, tuple[list, str]] = {}
+
+
+def _resolve_project_owner(cfg: dict) -> str | None:
+    """Resolve the GitHub login that owns the configured project.
+
+    Priority: explicit cfg.project_owner > repo owner login.
+    """
+    explicit = cfg.get("project_owner")
+    if explicit:
+        return str(explicit)
+    try:
+        return json.loads(run([
+            "gh", "repo", "view", "--json", "owner",
+        ]).stdout)["owner"]["login"]
+    except (subprocess.CalledProcessError, KeyError, json.JSONDecodeError):
+        return None
+
+
 def update_project_status_field(issue_number: int, github_status: str) -> bool:
     """Update the Status field on the configured GitHub Project.
 
@@ -730,28 +764,34 @@ def update_project_status_field(issue_number: int, github_status: str) -> bool:
     project_number = cfg.get("project_number")
     if not project_number:
         return False
+    try:
+        project_number = int(project_number)
+    except (TypeError, ValueError):
+        return False
     field_name = cfg.get("status_field", "Status")
-    # gh project item-edit requires the project owner; we resolve via
-    # gh repo view -> nameWithOwner, then take the owner part.
-    try:
-        repo_owner = json.loads(run([
-            "gh", "repo", "view", "--json", "owner",
-        ]).stdout)["owner"]["login"]
-    except (subprocess.CalledProcessError, KeyError, json.JSONDecodeError):
-        print("[sync-status] could not resolve repo owner; project field skipped",
+    project_owner = _resolve_project_owner(cfg)
+    if not project_owner:
+        print("[sync-status] could not resolve project owner; project field skipped",
               file=sys.stderr)
         return False
-    # gh project list resolves ProjectV2 IDs by number.
-    try:
-        out = run([
-            "gh", "project", "field-list", str(project_number),
-            "--owner", repo_owner, "--format", "json",
-        ]).stdout
-    except subprocess.CalledProcessError:
-        print("[sync-status] gh project field-list failed; project field skipped",
-              file=sys.stderr)
-        return False
-    fields = json.loads(out).get("fields", [])
+
+    # Use the field cache when possible.
+    cached = _PROJECT_FIELD_CACHE.get(project_number)
+    if cached:
+        fields, _ = cached
+    else:
+        try:
+            out = run([
+                "gh", "project", "field-list", str(project_number),
+                "--owner", project_owner, "--format", "json", "--limit", "200",
+            ]).stdout
+        except subprocess.CalledProcessError:
+            print("[sync-status] gh project field-list failed; project field skipped",
+                  file=sys.stderr)
+            return False
+        fields = json.loads(out).get("fields", [])
+        _PROJECT_FIELD_CACHE[project_number] = (fields, project_owner)
+
     target_field = next((f for f in fields if f.get("name") == field_name), None)
     if not target_field:
         print(f"[sync-status] project field '{field_name}' not found; project field skipped")
@@ -764,11 +804,12 @@ def update_project_status_field(issue_number: int, github_status: str) -> bool:
     if not option_id:
         print(f"[sync-status] project field option '{github_status}' not found")
         return False
-    # Resolve item id (project item id) for the given issue.
+    # Resolve item id (project item id) for the given issue. We pass
+    # --limit 1000 so projects with many items still surface our row.
     try:
         items = json.loads(run([
             "gh", "project", "item-list", str(project_number),
-            "--owner", repo_owner, "--format", "json",
+            "--owner", project_owner, "--format", "json", "--limit", "1000",
         ]).stdout).get("items", [])
     except subprocess.CalledProcessError:
         return False
@@ -999,6 +1040,87 @@ def slugify(text: str) -> str:
     return text.strip("-") or "untitled"
 
 
+# ---------- Subcommand: apply-renumber ----------------------------------
+
+def cmd_apply_renumber(args: argparse.Namespace) -> int:
+    """Apply a renumber plan to GitHub issue titles.
+
+    Reads the JSON plan written by `tools/renumber-for-merge.py
+    --plan-out FILE`, then for every (old_id -> new_id) pair edits
+    the matching GitHub issue's title. Idempotent: a run on an
+    already-aligned plan is a no-op.
+
+    The plan format is:
+        {"target": "dev", "source": "feature/foo",
+         "mapping": {"epics": {"EPIC-05": "EPIC-12"},
+                     "feats": {"FEAT-05-01": "FEAT-12-01"},
+                     ...}}
+
+    The subcommand renames sub-issue titles (FEAT, IMP, FIX) and
+    parent epic titles. It does not touch the issue body, since
+    body references are kept by the renumber tool itself when the
+    repo lives inside the bundle.
+    """
+    if not mode_active_or_skip("apply-renumber"):
+        return 0
+    if not gh_repo_configured():
+        print("[apply-renumber] gh CLI / GitHub remote not configured -- skipping")
+        return 0
+    plan_path = Path(args.plan)
+    if not plan_path.exists():
+        print(f"[apply-renumber] plan file not found: {plan_path}", file=sys.stderr)
+        return 1
+    try:
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        print(f"[apply-renumber] plan file is not valid JSON: {e}", file=sys.stderr)
+        return 1
+    mapping = plan.get("mapping", {})
+    pairs: list[tuple[str, str]] = []
+    for category in ("epics", "feats", "imps", "fixes"):
+        cat_map = mapping.get(category, {})
+        if isinstance(cat_map, dict):
+            for old, new in cat_map.items():
+                pairs.append((old, new))
+    if not pairs:
+        print("[apply-renumber] mapping is empty, nothing to do")
+        return 0
+    changes: list[dict] = []
+    for old, new in pairs:
+        issue = find_issue_for_item(old)
+        if not issue:
+            changes.append({"old": old, "new": new, "status": "no-issue"})
+            continue
+        old_title = issue.get("title", "")
+        # Preserve the slug after the colon: "OLD-NN: slug" -> "NEW-NN: slug"
+        suffix = ""
+        if ": " in old_title:
+            suffix = old_title.split(": ", 1)[1]
+        new_title = f"{new}: {suffix}" if suffix else new
+        if old_title == new_title:
+            changes.append({"old": old, "new": new, "status": "unchanged"})
+            continue
+        try:
+            run([
+                "gh", "issue", "edit", str(issue["number"]),
+                "--title", new_title,
+            ])
+            changes.append({
+                "old": old, "new": new,
+                "issue": issue["number"],
+                "status": "renamed",
+            })
+        except subprocess.CalledProcessError as e:
+            changes.append({
+                "old": old, "new": new,
+                "issue": issue["number"],
+                "status": f"failed: {e.stderr}",
+            })
+    print(json.dumps({"plan": str(plan_path), "changes": changes}, indent=2))
+    failed = any("failed" in c["status"] for c in changes)
+    return 1 if failed else 0
+
+
 # ---------- Subcommand: validate-fix ------------------------------------
 
 FIX_ID_RE = re.compile(r"^FIX-\d{2}-\d{2}-\d{2}$")
@@ -1089,7 +1211,11 @@ def cmd_status(args: argparse.Namespace) -> int:
     print()
     print("Phase tags:")
     for phase in VALID_PHASES:
-        tag = f"{item.lower()}/{phase}-done"
+        # ready-for-review is not a phase, see cmd_tag_phase.
+        if phase == "ready-for-review":
+            tag = f"{item.lower()}/ready-for-review"
+        else:
+            tag = f"{item.lower()}/{phase}-done"
         out = run(["git", "tag", "--list", tag]).stdout.strip()
         marker = "x" if out else " "
         print(f"  [{marker}] {tag}")
@@ -1162,6 +1288,14 @@ def main() -> int:
     )
     p8.add_argument("--item", required=True, help="FIX-EE-FF-NN")
     p8.set_defaults(func=cmd_validate_fix)
+
+    p9 = sub.add_parser(
+        "apply-renumber",
+        help="Apply a renumber plan (from renumber-for-merge.py --plan-out) to GitHub issue titles",
+    )
+    p9.add_argument("--plan", required=True,
+                    help="path to the JSON plan file written by renumber-for-merge.py")
+    p9.set_defaults(func=cmd_apply_renumber)
 
     args = p.parse_args()
     return args.func(args)

@@ -694,6 +694,13 @@ def main() -> int:
                             "Used by pre-merge-commit hook because at "
                             "that stage MERGE_HEAD is not reliable."
                         ))
+    parser.add_argument("--plan-out", default=None,
+                        help=(
+                            "after applying the plan, write the "
+                            "old->new id mapping as JSON to this path. "
+                            "Consumed by 'flow.py apply-renumber' to "
+                            "sync GitHub issue titles."
+                        ))
     args = parser.parse_args()
 
     if not DEV.is_dir():
@@ -789,6 +796,17 @@ def main() -> int:
             f"\n{stats['text_files_changed']} files {action} (text refs), "
             f"{stats['files_renamed']} files renamed."
         )
+
+    if args.plan_out and not args.dry_run:
+        plan_out = Path(args.plan_out)
+        plan_out.parent.mkdir(parents=True, exist_ok=True)
+        plan_out.write_text(json.dumps({
+            "target": args.target,
+            "source": args.source,
+            "mapping": plan.to_json(),
+        }, indent=2), encoding="utf-8")
+        if not args.quiet:
+            print(f"renumber plan written to {plan_out}")
     return 0
 
 

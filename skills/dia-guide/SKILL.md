@@ -153,9 +153,10 @@ Audited surfaces (full reference:
    after merge)? Discrepancies indicate the phase skill's handoff
    ritual did not write the row before the phase-end commit.
 4. **GitHub issue.** Does the issue exist and carry the right phase
-   label and ticked checklist? Each phase skill calls
-   `flow.py update-issue` in its handoff ritual; the guide reads
-   `flow.py status --item <ID>` and reports the snapshot.
+   label and ticked checklist? Each phase skill's `flow.py tag-phase`
+   call invokes `update_issue_after_tag` internally to keep the
+   issue in sync. The guide only reads `flow.py status --item <ID>`
+   and reports the snapshot.
 5. **HANDOFFS entry.** Does the latest entry have `triage:`,
    `triage_kind:`, and (for IMP/FIX) `epic:` + `feature:`? Missing
    fields are flagged with the responsible phase skill named.

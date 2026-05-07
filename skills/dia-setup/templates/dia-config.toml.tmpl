@@ -20,8 +20,17 @@ anchor_files = [
 # Default "develop" matches a Git Flow setup. Override per project.
 source_branch = "develop"
 
-# Feature flags that downstream stages may add. Stage 1 only writes
-# the keys above; later stages append here.
+# GitHub Project synchronization. Honored only when mode = github-sync.
+#   project_number  ProjectV2 number (the integer at the end of the
+#                   project URL, not the project's display name).
+#                   Leave 0 to skip project-status mirroring; the
+#                   issue itself is still synced.
+#   status_field    Single-select field name on the project that
+#                   represents item status. Default "Status".
+#   project_owner   Optional: GitHub login that owns the project,
+#                   used by `gh project ...`. When empty, flow.py
+#                   resolves the owner from the repository.
 [github]
-project = ""
-repo = ""
+project_number = 0
+status_field = "Status"
+project_owner = ""
