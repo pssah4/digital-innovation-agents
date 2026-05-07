@@ -57,9 +57,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   GitHub-side issue titles can be brought back in line with the
   renumbered local ids.
 - **`flow.py apply-renumber --plan FILE`** reads such a plan and
-  renames every matching GitHub issue title from `OLD-NN: slug`
-  to `NEW-NN: slug`. Idempotent. Mode-aware (no-op outside
-  `github-sync`). Preserves the slug suffix.
+  performs two passes against GitHub:
+  - **Body sync** for every Epic that owns a renamed sub-item or
+    that was renamed itself: fetch the parent issue body, rewrite
+    every old id occurrence (with word boundaries so
+    `FEAT-05-011` is not matched when the key is `FEAT-05-01`,
+    and `MEGAFEAT-05-01` is left alone) to its new id, save. The
+    Sub-Issues tasklist and any other id mention inside the body
+    are kept in sync.
+  - **Title sync** for every (old -> new) pair: rename the issue
+    title from `OLD-NN: slug` to `NEW-NN: slug` while preserving
+    the slug suffix.
+  Body sync runs before title sync so the lookup by old id still
+  resolves the right issue. Idempotent. Mode-aware (no-op outside
+  `github-sync`). Two helpers extracted: `collect_affected_epics`
+  and `rewrite_ids_in_text`, plus `find_issue_for_item` gained
+  an `include_body` flag so the cheap path stays cheap.
 - **`scripts/merge-to-dev.sh`** writes the renumber plan to a tmp
   file and calls `flow.py apply-renumber` after the merge so the
   GitHub-issue view never drifts from the merged backlog.

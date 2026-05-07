@@ -266,16 +266,24 @@ def type_label(item: str) -> str:
 
 # ---------- GitHub issue lookup -----------------------------------------
 
-def find_issue_for_item(item: str) -> dict | None:
-    """Search open issues whose title starts with the item id."""
+def find_issue_for_item(item: str, include_body: bool = False) -> dict | None:
+    """Search open issues whose title starts with the item id.
+
+    When include_body is True, the returned dict carries the issue
+    body. Cheaper to skip the body when callers only need number /
+    title / url / state.
+    """
     if not gh_repo_configured():
         return None
+    fields = "number,title,url,state"
+    if include_body:
+        fields += ",body"
     try:
         out = run([
             "gh", "issue", "list",
             "--search", f"{item} in:title",
             "--state", "all",
-            "--json", "number,title,url,state",
+            "--json", fields,
             "--limit", "5",
         ]).stdout
     except subprocess.CalledProcessError:
@@ -1043,23 +1051,26 @@ def slugify(text: str) -> str:
 # ---------- Subcommand: apply-renumber ----------------------------------
 
 def cmd_apply_renumber(args: argparse.Namespace) -> int:
-    """Apply a renumber plan to GitHub issue titles.
+    """Apply a renumber plan to GitHub issue titles and parent bodies.
 
     Reads the JSON plan written by `tools/renumber-for-merge.py
-    --plan-out FILE`, then for every (old_id -> new_id) pair edits
-    the matching GitHub issue's title. Idempotent: a run on an
-    already-aligned plan is a no-op.
+    --plan-out FILE`, then performs two passes:
 
-    The plan format is:
-        {"target": "dev", "source": "feature/foo",
-         "mapping": {"epics": {"EPIC-05": "EPIC-12"},
-                     "feats": {"FEAT-05-01": "FEAT-12-01"},
-                     ...}}
+      1. **Body sync.** For every Epic that owns at least one
+         renamed sub-item (FEAT, IMP, FIX) or that was itself
+         renamed, fetch the parent issue body, rewrite every
+         old id occurrence (with word boundaries) to the new id,
+         and save the body. This catches the Sub-Issues tasklist
+         and any other id mention.
+      2. **Title sync.** For every (old_id -> new_id) pair in the
+         plan (epics, feats, imps, fixes), rename the matching
+         GitHub issue title from "OLD-NN: slug" to "NEW-NN: slug".
 
-    The subcommand renames sub-issue titles (FEAT, IMP, FIX) and
-    parent epic titles. It does not touch the issue body, since
-    body references are kept by the renumber tool itself when the
-    repo lives inside the bundle.
+    Body sync runs first because find_issue_for_item resolves by
+    the title prefix; the alt id is the title we still see at that
+    point. After the title sync, the new id becomes the lookup key.
+
+    Idempotent. Mode-aware (no-op outside `github-sync`).
     """
     if not mode_active_or_skip("apply-renumber"):
         return 0
@@ -1077,15 +1088,60 @@ def cmd_apply_renumber(args: argparse.Namespace) -> int:
         return 1
     mapping = plan.get("mapping", {})
     pairs: list[tuple[str, str]] = []
+    epic_map: dict[str, str] = {}
+    sub_maps: dict[str, dict[str, str]] = {}
     for category in ("epics", "feats", "imps", "fixes"):
         cat_map = mapping.get(category, {})
         if isinstance(cat_map, dict):
             for old, new in cat_map.items():
                 pairs.append((old, new))
+            if category == "epics":
+                epic_map = cat_map
+            else:
+                sub_maps[category] = cat_map
     if not pairs:
         print("[apply-renumber] mapping is empty, nothing to do")
         return 0
+
+    # Build a flat old->new lookup for body substitution.
+    flat_map: dict[str, str] = {}
+    for category in ("epics", "feats", "imps", "fixes"):
+        cat_map = mapping.get(category, {})
+        if isinstance(cat_map, dict):
+            flat_map.update(cat_map)
+
     changes: list[dict] = []
+
+    # ----- Pass 1: body sync for affected epics ----------------------
+    affected_epics = collect_affected_epics(epic_map, sub_maps)
+    for old_epic_id in affected_epics:
+        epic_issue = find_issue_for_item(old_epic_id, include_body=True)
+        if not epic_issue:
+            changes.append({"epic": old_epic_id, "status": "no-issue"})
+            continue
+        old_body = epic_issue.get("body") or ""
+        new_body = rewrite_ids_in_text(old_body, flat_map)
+        if new_body == old_body:
+            changes.append({"epic": old_epic_id, "issue": epic_issue["number"], "status": "body-unchanged"})
+            continue
+        try:
+            run([
+                "gh", "issue", "edit", str(epic_issue["number"]),
+                "--body", new_body,
+            ])
+            changes.append({
+                "epic": old_epic_id,
+                "issue": epic_issue["number"],
+                "status": "body-rewritten",
+            })
+        except subprocess.CalledProcessError as e:
+            changes.append({
+                "epic": old_epic_id,
+                "issue": epic_issue["number"],
+                "status": f"body-failed: {e.stderr}",
+            })
+
+    # ----- Pass 2: title sync ----------------------------------------
     for old, new in pairs:
         issue = find_issue_for_item(old)
         if not issue:
@@ -1119,6 +1175,55 @@ def cmd_apply_renumber(args: argparse.Namespace) -> int:
     print(json.dumps({"plan": str(plan_path), "changes": changes}, indent=2))
     failed = any("failed" in c["status"] for c in changes)
     return 1 if failed else 0
+
+
+def collect_affected_epics(
+    epic_map: dict[str, str],
+    sub_maps: dict[str, dict[str, str]],
+) -> list[str]:
+    """Return the OLD epic ids that need a body rewrite.
+
+    An epic is "affected" if its own id was renamed (in epic_map),
+    or if any of its sub-items (feats, imps, fixes) was renamed.
+    The OLD epic id is what we look up on GitHub, because the title
+    has not been rewritten yet at that point.
+    """
+    epic_old_ids: set[str] = set()
+    for old_epic in epic_map.keys():
+        epic_old_ids.add(old_epic)
+    # If a sub-item was renamed but the epic itself was not, the
+    # epic prefix in the OLD id matches what is still on GitHub.
+    # Example: FEAT-05-01 -> FEAT-05-02 means EPIC-05 still owns it.
+    for cat_map in sub_maps.values():
+        for old_sub in cat_map.keys():
+            parts = old_sub.split("-")
+            # FEAT-EE-FF or IMP-EE-FF-NN or FIX-EE-FF-NN
+            if len(parts) >= 2 and parts[1].isdigit():
+                epic_old_ids.add(f"EPIC-{parts[1]}")
+    # Stable order for deterministic output / tests
+    return sorted(epic_old_ids)
+
+
+def rewrite_ids_in_text(text: str, mapping: dict[str, str]) -> str:
+    """Replace old artefact ids with new ones using word boundaries.
+
+    Sorts keys by descending length so longer ids (e.g. FIX-EE-FF-NN)
+    are substituted before any contained shorter id (e.g. FEAT-EE-FF
+    that overlaps with the prefix). The boundary check ensures we do
+    not match an id that is a prefix of a longer id.
+    """
+    if not mapping or not text:
+        return text
+    # Sort by descending length to avoid prefix overlap.
+    keys = sorted(mapping.keys(), key=len, reverse=True)
+    pattern = re.compile(
+        r"(?<![A-Za-z0-9-])(" + "|".join(re.escape(k) for k in keys) + r")(?![0-9-])"
+    )
+
+    def replace(match: re.Match) -> str:
+        return mapping[match.group(1)]
+
+    return pattern.sub(replace, text)
 
 
 # ---------- Subcommand: validate-fix ------------------------------------
