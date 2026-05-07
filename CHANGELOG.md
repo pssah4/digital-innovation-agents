@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.1] - 2026-05-08
+
+Marketplace-manifest fix. No skill or tool changes.
+
+### Fixed
+
+- `.claude-plugin/marketplace.json` was not bumped during the 3.5.0
+  release, so Claude Code's plugin marketplace kept reporting 3.4.0
+  as the latest available version even though the repo and tag were
+  on 3.5.0. The manifest now matches `package.json`.
+
 ## [3.5.0] - 2026-05-07
 
 GitHub-sync follow-up to v3.4.0. Bug fixes around the
