@@ -95,7 +95,7 @@ capture the bug without forcing the user into an immediate fix. Flow:
 
 1. Run the same Phase 0 triage. The user's prompt usually maps to FIX.
 2. Identify the affected `FEAT-{ee}-{ff}` (ask if unclear).
-3. Write the BACKLOG row first (status `Planned`, phase `Building`,
+3. Write the BACKLOG row first (status `Ready`, phase `Building`,
    priority from the user, Source `BUG`).
 4. Create the detail file at
    `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md` from
@@ -116,6 +116,56 @@ The capture path is identical to the in-flight Mid-course bug
 discovery trigger (Phase 4b later in this file), only the entry
 condition differs. Both converge on the same artefact shape: BACKLOG
 row + FIX detail file + branch.
+
+### Hotfix lane (fix-now, document-after)
+
+Some bugs are obvious and small enough that the standard
+capture-then-fix path adds friction without adding value. The
+hotfix lane lets `/coding` fix immediately, then create the FIX-Row
+and GitHub issue afterwards so the work is still visible in the
+backlog and on the team board.
+
+The hotfix lane is allowed only when **all five** criteria hold:
+
+1. The fix touches at most three files.
+2. No new feature, no new dependency.
+3. No breaking change to a public API or interface.
+4. The fix takes under 15 minutes.
+5. An existing FEAT covers the affected functionality, so the FIX
+   has a clear parent to attach to.
+
+If any single criterion fails, fall back to the standard
+bug-capture flow (FIX-Row first, fix later).
+
+When all five criteria hold, the flow is:
+
+1. **Fix immediately.** `/coding` analyses, fixes, and runs the
+   relevant tests in place. No FIX-Row yet.
+2. **Document right after the fix lands locally** (binding):
+   - Write the BACKLOG row for the FIX (status `Ready` or
+     `In Progress` depending on whether the commit already exists,
+     phase `Building`, Source `BUG`, Refs the parent FEAT).
+   - Create the FIX detail file under
+     `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`.
+   - Commit with the canonical message
+     `fix: FIX-{ee}-{ff}-{nn} <short description>` and the
+     standard `Refs:` trailer.
+   - When `mode = "github-sync"`: create the matching GitHub
+     issue (`gh issue create --title "FIX-{ee}-{ff}-{nn}: {slug}"
+     --label "fix,hotfix"`), then run
+     `python3 tools/github-integration/flow.py sync-status --item
+     FIX-{ee}-{ff}-{nn}`.
+3. **Acknowledge** in chat: list the modified files, the FIX-ID,
+   and the issue URL (if created).
+
+The hotfix lane does **not** suspend the regression-test cycle
+(Phase 4b). If the bug is non-trivial enough to need a regression
+test, write it; the 15-minute budget includes the test.
+
+Anti-misuse signal. The directions meeting reviews the share of
+hotfix-lane FIX items per iteration. If hotfixes account for more
+than 30% of the iteration's work, the lane is being misused as a
+process bypass and the backlog gets a quality-debt item.
 
 
 ## MANDATORY: Backlog as single source of truth (no asking)

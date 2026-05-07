@@ -68,6 +68,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`skills/requirements-engineering/SKILL.md`.** Handoff ritual
   documents the `promote-to-epic` call after EPIC ID assignment.
   No-op outside `mode = "github-sync"`.
+- **Hotfix lane in `/coding`.** A new section in
+  `skills/coding/SKILL.md` defines a fast-path for small,
+  obvious bug fixes: maximum 3 files, no breaking change, fits an
+  existing FEAT, under 15 minutes. The fix runs first, the FIX-Row,
+  detail file, commit, and (in `github-sync` mode) GitHub issue are
+  created afterwards so the work stays visible. When any criterion
+  fails, the standard capture-then-fix path applies. Anti-misuse
+  signal: the directions meeting flags iterations where hotfixes
+  exceed 30% of the work as a quality-debt item.
 - **BACKLOG status vocabulary migrated to the GitHub-aligned set.**
   The Status column now reads `Backlog`, `Ready`, `In Progress`,
   `In Review`, `Done`, matching GitHub Project boards 1:1. The old
