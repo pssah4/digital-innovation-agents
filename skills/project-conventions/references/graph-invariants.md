@@ -411,8 +411,13 @@ erfragt): Eine Antwort auf die Frage
      via `/business-analysis` (Ausnahme: Feature ist vollstaendig
      durch die Epic-Item-BA gedeckt - Skill fragt einmal)
    - dann neues **FEATURE** anlegen, Pflicht-Bindung an ein Epic
-   - Frontmatter `phase: Candidates` oder `Planned`,
-     Backlog-Row mit `status: Ready, phase: Building`, `ba-ref:` zeigt auf die BA-Datei
+   - Frontmatter traegt nur Identitaet und Relations
+     (`id`, `epic`, `ba-ref`, optional `subtype` und
+     `depends-on`). Kein Lifecycle-`status:` und kein `phase:`
+     im Frontmatter (siehe N-10).
+   - Backlog-Row mit `status: Ready, phase: Building`,
+     `Prio: <P0|P1|P2|P3>`. Status, Phase und Priority leben
+     ausschliesslich in der BACKLOG-Row.
    - `/requirements-engineering` uebernimmt
 
 3. **Verbesserung an bestehendem Feature** (Refactor, Performance,
@@ -422,9 +427,13 @@ erfragt): Eine Antwort auf die Frage
      Scope unklar; sonst direkt das IMP-Artefakt
    - neues **IMP** unter
      `_devprocess/requirements/improvements/IMP-{ee}-{ff}-{nn}-{slug}.md`
-   - Frontmatter `feature:` + `epic:` PFLICHT, `ba-ref:` falls
-     BA existiert
-   - Frontmatter `phase:`, `status:`, `priority:`, optional `depends-on:`
+   - Frontmatter traegt nur Identitaet und Relations: `feature:`
+     und `epic:` sind PFLICHT, `ba-ref:` falls BA existiert,
+     optional `depends-on:`. Kein `status:`, kein `phase:`,
+     kein `priority:` im Frontmatter (siehe N-15).
+   - Backlog-Row mit `status: Ready, phase: Building`, plus
+     `Prio: <P0|P1|P2|P3>`-Spalte. Diese drei Felder leben
+     ausschliesslich in der BACKLOG-Row.
 
 4. **Fix fuer einen beobachteten Bug oder eine Drift** (Symptom: etwas
    funktioniert nicht wie spezifiziert):

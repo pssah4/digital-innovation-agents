@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (eighth review pass)
+
+- **graph-invariants triage decision tree aligned with N-10 / N-15.**
+  Step 2 ("new user-facing capability") still told the agent to set
+  `phase: Candidates` or `Planned` in the FEATURE frontmatter; step
+  3 ("improvement") still told it to write `phase:`, `status:`, and
+  `priority:` into the IMP frontmatter. Both contradicted the
+  refactor that moved lifecycle state out of artefact frontmatter
+  into the BACKLOG row. The decision tree now states explicitly
+  that FEATURE / IMP frontmatter carries identity and relations
+  only (`id`, `epic`, `feature`, `ba-ref`, `depends-on`,
+  `subtype`), and that Status, Phase, and Priority live in the
+  BACKLOG row.
+
 ### Fixed (seventh review pass)
 
 - **graph-invariants Edge-Invarianten now consistent with N-10/N-11.**
