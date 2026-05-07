@@ -1134,6 +1134,23 @@ def cmd_apply_renumber(args: argparse.Namespace) -> int:
         print("[apply-renumber] mapping is empty, nothing to do")
         return 0
 
+    # Validate every id pair against the canonical ITEM_RE before any
+    # gh issue edit fires. A hand-edited or tampered plan file could
+    # otherwise pass arbitrary strings as GitHub issue titles. ITEM_RE
+    # accepts only EPIC-NN, FEAT-EE-FF, IMP-EE-FF-NN, FIX-EE-FF-NN.
+    invalid: list[tuple[str, str]] = [
+        (old, new) for old, new in pairs
+        if not (ITEM_RE.match(old) and ITEM_RE.match(new))
+    ]
+    if invalid:
+        print(
+            "[apply-renumber] plan rejects invalid id pairs:",
+            file=sys.stderr,
+        )
+        for old, new in invalid:
+            print(f"  {old} -> {new}", file=sys.stderr)
+        return 2
+
     # Build a flat old->new lookup for body substitution.
     flat_map: dict[str, str] = {}
     for category in ("epics", "feats", "imps", "fixes"):

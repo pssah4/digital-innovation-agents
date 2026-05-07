@@ -7,6 +7,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (security audit, two reviewers)
+
+Two security audits ran against the branch (one auto-driven by the
+`/security-audit` skill, one external review). Their findings
+overlapped only partially because they covered different surfaces
+(CLI tooling vs. browser-based graph viewer). All five
+non-trivial findings from both reports are addressed in this
+commit; one low finding is deferred to backlog.
+
+- **M-1 Graph viewer XSS via innerHTML rewrite (CWE-79).**
+  `skills/dia-guide/tools/graph-viewer.html` previously built the
+  details panel via string concatenation of graph fields
+  (`raw.label`, `raw.id`, `raw.path`, ...) and assigned the result
+  to `info.innerHTML`. A malicious graph payload could inject
+  markup or script when a user pasted JSON or dropped a file. The
+  `showNodeInfo` and `clearInfo` functions now use `replaceChildren`,
+  `createElement`, and `textContent` exclusively. New helpers
+  `metaRow`, `edgeItem`, and `safeFileLink`. `safeFileLink` rejects
+  `javascript:`, `data:`, `vbscript:` schemes and paths containing
+  spaces, accepts `file://`, `http(s)://` and relative paths
+  (rendered as `file://`). Sandbox-tested with mock injection
+  payloads.
+- **M-2 apply-renumber id validation (CWE-20).** `flow.py`
+  `cmd_apply_renumber` now runs every `(old, new)` pair through
+  `ITEM_RE` before any `gh issue edit` fires. A hand-edited or
+  tampered plan file with strings like `"EPIC-12; rm -rf /"` is
+  rejected with exit code 2 and a clear error listing every
+  invalid pair. Three sandbox payloads (shell metacharacters,
+  HTML, path traversal) all rejected as expected.
+- **L-1 Graph viewer CDN script vendored locally (CWE-829).**
+  Previously: `<script src="https://unpkg.com/cytoscape@3.30.2/...">`.
+  Now: `<script src="cytoscape.min.js">`, with the file vendored
+  at `skills/dia-guide/tools/cytoscape.min.js` (cytoscape@3.30.2,
+  sha-384 in commit). HTML carries an update-procedure comment
+  block. Removes the runtime CDN dependency and the
+  supply-chain vector if unpkg or the cytoscape package were
+  compromised.
+- **L-2 last-renumber-plan.json gitignored (CWE-668).**
+  `.dia/last-renumber-plan.json` is now in `.gitignore`. The file
+  is workflow state that `scripts/merge-to-dev.sh` writes on
+  apply-renumber failure for retry; it should not enter the
+  branch history. Plus a comment in `.gitignore` explaining what
+  it is.
+- **L-3 Windows hook wrapper argument quoting (CWE-78).**
+  `hooks/run-hook.cmd` previously forwarded `%2 %3 %4 %5 %6 %7 %8
+  %9` without quoting. cmd.exe metacharacters in branch names,
+  file paths, or future hook arguments could be reinterpreted.
+  Forwarded args now use `"%~2" "%~3" ...`: the `%~N` form strips
+  any surrounding quotes from the original argument and we re-quote
+  cleanly. No attacker-controlled args are forwarded today; the
+  fix prevents the vector from opening if hooks ever pass file
+  paths or branch names.
+
+Deferred to backlog: L-4 (SessionStart hook leaks absolute home
+path in injected context). Privacy-only finding, no security
+exposure; `~/`-substitution lands in the next iteration.
+
+Verified:
+- consistency-check mode A green.
+- py_compile on flow.py.
+- bash -n on session-start and merge-to-dev.sh.
+- vitepress build green (4.3s).
+- ITEM_RE rejects three classes of injection (shell metachars,
+  HTML, path traversal).
+
 ### Fixed (eighth review pass)
 
 - **graph-invariants triage decision tree aligned with N-10 / N-15.**

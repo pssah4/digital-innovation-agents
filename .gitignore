@@ -21,3 +21,7 @@ __pycache__/
 
 # Internal scratchpad (spikes, exploration notes, drafts)
 spike/
+
+# Renumber retry plan written by scripts/merge-to-dev.sh on
+# apply-renumber failure. Workflow state, not configuration.
+.dia/last-renumber-plan.json

@@ -3,7 +3,15 @@
 <head>
 <meta charset="UTF-8" />
 <title>V-Model Graph Viewer</title>
-<script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
+<!--
+  Cytoscape is vendored locally to remove the runtime dependency on
+  unpkg.com. Update procedure: curl -fsSL the new pinned version
+  from unpkg.com to skills/dia-guide/tools/cytoscape.min.js, run
+  shasum -a 384 to record the new digest in CHANGELOG, commit the
+  binary file alongside the version note.
+  Vendored version: cytoscape@3.30.2
+-->
+<script src="cytoscape.min.js"></script>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; font: 14px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; background: #0f172a; color: #e2e8f0; height: 100vh; display: flex; flex-direction: column; }
@@ -259,47 +267,119 @@ function getLayoutFor(lens) {
   return { name: 'cose', animate: false, fit: true, padding: 30, idealEdgeLength: 80, nodeRepulsion: 50000 };
 }
 
+// Helper: meta row with bold label and a textContent value.
+// Builds the row with DOM APIs so graph fields cannot inject HTML.
+function metaRow(label, value, options) {
+  const row = document.createElement('div');
+  row.className = 'meta-row';
+  const strong = document.createElement('strong');
+  strong.textContent = label;
+  if (options && options.warn) strong.style.color = '#ef4444';
+  row.append(strong, ' ', document.createTextNode(value));
+  return row;
+}
+
+// Helper: edge list item with safe textContent.
+function edgeItem(targetId, label, type) {
+  const li = document.createElement('li');
+  li.dataset.target = targetId;
+  li.append(document.createTextNode(label + ' '));
+  const meta = document.createElement('span');
+  meta.style.color = '#64748b';
+  meta.textContent = '(' + type + ')';
+  li.append(meta);
+  return li;
+}
+
+// Helper: only allow file:// or relative path links. Reject anything
+// else (javascript:, data:, http(s):) to avoid script injection via
+// the path field. Returns null if the path is not safe.
+function safeFileLink(rawPath) {
+  if (!rawPath) return null;
+  if (typeof rawPath !== 'string') return null;
+  // Reject any URL scheme other than file. Relative paths are accepted
+  // and rendered as file:// by prepending the scheme below.
+  const lower = rawPath.toLowerCase().trim();
+  if (lower.startsWith('javascript:') || lower.startsWith('data:') ||
+      lower.startsWith('vbscript:') || lower.includes(' ')) {
+    return null;
+  }
+  const a = document.createElement('a');
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  // Build the href via URL constructor when possible to normalise.
+  if (lower.startsWith('file://') || lower.startsWith('http://') ||
+      lower.startsWith('https://')) {
+    a.href = rawPath;
+  } else {
+    a.href = 'file://' + encodeURI(rawPath);
+  }
+  a.textContent = rawPath;
+  return a;
+}
+
 function showNodeInfo(node) {
   const raw = node.data('raw');
   const connectedEdges = node.connectedEdges();
   const incoming = connectedEdges.filter(e => e.target().id() === node.id());
   const outgoing = connectedEdges.filter(e => e.source().id() === node.id());
 
-  const path = raw.path || '';
-  const pathLink = path ? `<a href="file://${encodeURI(path)}" target="_blank">${path}</a>` : '<em>kein Pfad</em>';
+  const info = document.getElementById('info');
+  info.replaceChildren();
 
-  let html = `<div class="node-info">`;
-  html += `<h3>${raw.label || raw.id}</h3>`;
-  html += `<div class="meta">`;
-  html += `<div class="meta-row"><strong>ID:</strong> ${raw.id}</div>`;
-  html += `<div class="meta-row"><strong>Typ:</strong> ${raw.type}</div>`;
-  if (raw.phase) html += `<div class="meta-row"><strong>Phase:</strong> ${raw.phase}</div>`;
-  if (raw.status) html += `<div class="meta-row"><strong>Status:</strong> ${raw.status}</div>`;
-  if (raw.epic) html += `<div class="meta-row"><strong>Epic:</strong> ${raw.epic}</div>`;
-  if (raw.orphan) html += `<div class="meta-row"><strong style="color:#ef4444;">Warnung:</strong> Orphan (keine Edge)</div>`;
-  html += `<div class="meta-row"><strong>Datei:</strong> ${pathLink}</div>`;
-  html += `</div>`;
+  const wrap = document.createElement('div');
+  wrap.className = 'node-info';
 
-  if (outgoing.length) {
-    html += `<div class="edges"><h4>Zeigt auf (${outgoing.length})</h4><ul>`;
-    outgoing.forEach(e => {
-      const t = e.target();
-      html += `<li data-target="${t.id()}">${t.data('label')} <span style="color:#64748b;">(${t.data('type')})</span></li>`;
-    });
-    html += `</ul></div>`;
+  const title = document.createElement('h3');
+  title.textContent = raw.label || raw.id || '';
+  wrap.append(title);
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  meta.append(metaRow('ID:', raw.id || ''));
+  meta.append(metaRow('Typ:', raw.type || ''));
+  if (raw.phase)  meta.append(metaRow('Phase:',  raw.phase));
+  if (raw.status) meta.append(metaRow('Status:', raw.status));
+  if (raw.epic)   meta.append(metaRow('Epic:',   raw.epic));
+  if (raw.orphan) meta.append(metaRow('Warnung:', 'Orphan (keine Edge)', { warn: true }));
+
+  const fileRow = document.createElement('div');
+  fileRow.className = 'meta-row';
+  const fileLabel = document.createElement('strong');
+  fileLabel.textContent = 'Datei:';
+  fileRow.append(fileLabel, ' ');
+  const link = safeFileLink(raw.path);
+  if (link) {
+    fileRow.append(link);
+  } else {
+    const em = document.createElement('em');
+    em.textContent = 'kein Pfad';
+    fileRow.append(em);
   }
-  if (incoming.length) {
-    html += `<div class="edges"><h4>Wird referenziert von (${incoming.length})</h4><ul>`;
-    incoming.forEach(e => {
-      const s = e.source();
-      html += `<li data-target="${s.id()}">${s.data('label')} <span style="color:#64748b;">(${s.data('type')})</span></li>`;
+  meta.append(fileRow);
+
+  wrap.append(meta);
+
+  function edgeBlock(headline, edges, pickNode) {
+    const block = document.createElement('div');
+    block.className = 'edges';
+    const h4 = document.createElement('h4');
+    h4.textContent = headline + ' (' + edges.length + ')';
+    block.append(h4);
+    const ul = document.createElement('ul');
+    edges.forEach(e => {
+      const n = pickNode(e);
+      ul.append(edgeItem(n.id(), n.data('label') || '', n.data('type') || ''));
     });
-    html += `</ul></div>`;
+    block.append(ul);
+    return block;
   }
 
-  html += `</div>`;
+  if (outgoing.length) wrap.append(edgeBlock('Zeigt auf', outgoing, e => e.target()));
+  if (incoming.length) wrap.append(edgeBlock('Wird referenziert von', incoming, e => e.source()));
 
-  document.getElementById('info').innerHTML = html;
+  info.append(wrap);
+
   document.querySelectorAll('#sidebar .edges li').forEach(li => {
     li.addEventListener('click', () => {
       const id = li.dataset.target;
@@ -314,7 +394,12 @@ function showNodeInfo(node) {
 }
 
 function clearInfo() {
-  document.getElementById('info').innerHTML = '<p class="empty">Klick auf einen Knoten, um Details zu sehen.</p>';
+  const info = document.getElementById('info');
+  info.replaceChildren();
+  const p = document.createElement('p');
+  p.className = 'empty';
+  p.textContent = 'Klick auf einen Knoten, um Details zu sehen.';
+  info.append(p);
 }
 
 function updateStats(data) {
