@@ -295,6 +295,53 @@ def type_label(item: str) -> str:
     return "feature"
 
 
+def detail_file_dir(item: str) -> Path | None:
+    """Return the requirements/{epics|features|fixes|improvements} dir
+    for an item id, or None when the type has no detail file convention.
+    """
+    base = repo_root() / "_devprocess" / "requirements"
+    if item.startswith("EPIC-"):
+        return base / "epics"
+    if item.startswith("FEAT-"):
+        return base / "features"
+    if item.startswith("FIX-"):
+        return base / "fixes"
+    if item.startswith("IMP-"):
+        return base / "improvements"
+    return None
+
+
+def find_detail_file(item: str) -> Path | None:
+    """Locate the detail file for an item. Slug is unknown, so we glob.
+
+    Convention: `_devprocess/requirements/{type}/{ID}-{slug}.md`.
+    Returns the first match (the convention guarantees uniqueness)
+    or None if no file exists.
+    """
+    d = detail_file_dir(item)
+    if d is None or not d.exists():
+        return None
+    for path in sorted(d.glob(f"{item}-*.md")):
+        return path
+    return None
+
+
+def read_detail_body(path: Path) -> str:
+    """Return the markdown body of a detail file, frontmatter stripped.
+
+    Strips a leading HTML comment block (template instructions) and the
+    YAML frontmatter delimited by `---`. Returns the remaining body
+    with normalised trailing whitespace.
+    """
+    text = path.read_text(encoding="utf-8")
+    text = re.sub(r"^<!--.*?-->\s*", "", text, count=1, flags=re.DOTALL)
+    if text.startswith("---"):
+        m = re.match(r"^---\n.*?\n---\n", text, flags=re.DOTALL)
+        if m:
+            text = text[m.end():]
+    return text.strip() + "\n"
+
+
 # ---------- GitHub issue lookup -----------------------------------------
 
 def find_issue_for_item(item: str, include_body: bool = False) -> dict | None:
@@ -366,6 +413,68 @@ def find_raw_issue_by_title(title: str) -> dict | None:
     return None
 
 
+# ---------- GitHub sub-issue linking ------------------------------------
+
+def gh_repo_slug() -> str | None:
+    """Return `owner/repo` for the current gh-configured remote."""
+    try:
+        out = run([
+            "gh", "repo", "view", "--json", "nameWithOwner",
+        ]).stdout
+        data = json.loads(out)
+        return data.get("nameWithOwner")
+    except (subprocess.CalledProcessError, json.JSONDecodeError):
+        return None
+
+
+def issue_database_id(issue_number: int) -> int | None:
+    """Resolve issue number -> issue database id (REST `id` field).
+
+    GitHub's sub_issues endpoint requires the database id, not the
+    issue number, so we fetch it via the REST API.
+    """
+    slug = gh_repo_slug()
+    if not slug:
+        return None
+    try:
+        out = run([
+            "gh", "api", f"repos/{slug}/issues/{issue_number}",
+            "--jq", ".id",
+        ]).stdout.strip()
+        return int(out) if out else None
+    except (subprocess.CalledProcessError, ValueError):
+        return None
+
+
+def link_sub_issue(parent_number: int, child_number: int) -> bool:
+    """Attach `child_number` as a GitHub sub-issue of `parent_number`.
+
+    Idempotent: if the relation already exists, returns True. Returns
+    False on unrecoverable errors (and prints to stderr).
+    """
+    slug = gh_repo_slug()
+    child_id = issue_database_id(child_number)
+    if not slug or child_id is None:
+        return False
+    try:
+        run([
+            "gh", "api", "-X", "POST",
+            f"repos/{slug}/issues/{parent_number}/sub_issues",
+            "-f", f"sub_issue_id={child_id}",
+        ])
+        return True
+    except subprocess.CalledProcessError as e:
+        stderr = (e.stderr or "").lower()
+        if "already" in stderr or "sub-issue" in stderr:
+            return True
+        print(
+            f"[link-sub-issue] failed: parent #{parent_number}, "
+            f"child #{child_number}: {e.stderr}",
+            file=sys.stderr,
+        )
+        return False
+
+
 # ---------- Subcommand: create-issue ------------------------------------
 
 def cmd_create_issue(args: argparse.Namespace) -> int:
@@ -377,13 +486,26 @@ def cmd_create_issue(args: argparse.Namespace) -> int:
         print(f"[create-issue] gh CLI / GitHub remote not configured -- skipping (local-only mode)")
         return 0
 
+    body = build_issue_body(item)
+    update_body = bool(getattr(args, "update_body", False))
+
     existing = find_issue_for_item(item)
     if existing:
-        print(f"[create-issue] issue exists: {existing['url']}")
+        if not update_body:
+            print(f"[create-issue] issue exists: {existing['url']}")
+            return 0
+        try:
+            run([
+                "gh", "issue", "edit", str(existing["number"]),
+                "--body", body,
+            ])
+            print(f"[create-issue] body updated: {existing['url']}")
+        except subprocess.CalledProcessError as e:
+            print(f"[create-issue] body update failed: {e.stderr}", file=sys.stderr)
+            return 1
         return 0
 
     title = f"{item}: {title_for_item(item)}"
-    body = build_issue_body(item)
     labels = [type_label(item), priority_for_item(item), "phase:planned"]
 
     cmd = ["gh", "issue", "create", "--title", title, "--body", body]
@@ -428,31 +550,32 @@ def add_issue_to_project(issue_url: str) -> None:
         pass
 
 
+BACKLOG_POINTER = (
+    "> Source of truth: "
+    "[`_devprocess/context/BACKLOG.md`](_devprocess/context/BACKLOG.md) "
+    "-- status, phase, claim live there.\n"
+)
+
+
 def build_issue_body(item: str) -> str:
+    """Build the GitHub issue body for a backlog item.
+
+    The body mirrors the artefact's detail file under
+    `_devprocess/requirements/`. Status, phase, priority are NOT
+    duplicated -- they live in the BACKLOG row and on GitHub via labels
+    and the project board. When no detail file exists yet (typical
+    during retro-sync of legacy projects), the body degrades to a single
+    backlog pointer.
+    """
+    detail = find_detail_file(item)
+    if detail is not None:
+        return BACKLOG_POINTER + "\n" + read_detail_body(detail)
     title = title_for_item(item)
-    epic = ""
-    if item.startswith("FEAT-"):
-        epic = f"EPIC-{item.split('-')[1]}"
-    return f"""**Backlog item:** [{item}](_devprocess/context/BACKLOG.md)
-**Type:** {type_label(item).title()}
-**Epic:** {epic}
-**Priority:** {priority_for_item(item).upper()}
-
-## Description
-{title}
-
-## V-Model phases (auto-tracked)
-- [ ] BA -- business-analysis
-- [ ] RE -- requirements-engineering
-- [ ] Architecture
-- [ ] Coding
-- [ ] Testing
-- [ ] Security-Audit
-- [ ] Ready for review
-
-The DIA agent updates this checklist as phase tags are set.
-Source of truth: `_devprocess/context/BACKLOG.md`. PR: TBD.
-"""
+    return (
+        BACKLOG_POINTER
+        + f"\n# {item}: {title}\n\n"
+        + "_No detail file under `_devprocess/requirements/` yet._\n"
+    )
 
 
 def write_issue_into_backlog(item: str, issue_url: str) -> None:
@@ -979,6 +1102,7 @@ def cmd_promote_to_epic(args: argparse.Namespace) -> int:
         )
         return 1
     parent_number = int(parent_issue["number"])
+    sync_bodies = bool(getattr(args, "sync_bodies", False))
 
     # Rename parent if needed.
     if parent_issue.get("title") != new_title:
@@ -991,22 +1115,49 @@ def cmd_promote_to_epic(args: argparse.Namespace) -> int:
     # Ensure epic label.
     run(["gh", "issue", "edit", str(parent_number), "--add-label", "epic"], check=False)
 
+    # Optional retro-sync: refresh epic body from the detail file. The
+    # tasklist injection further down still runs and re-adds the
+    # Sub-Issues section on top of the refreshed body.
+    if sync_bodies:
+        epic_body = build_issue_body(item)
+        try:
+            run(["gh", "issue", "edit", str(parent_number),
+                 "--body", epic_body])
+            print(f"[promote-to-epic] epic body refreshed from detail file")
+            parent_issue["body"] = epic_body
+        except subprocess.CalledProcessError as e:
+            print(f"[promote-to-epic] epic body refresh failed: {e.stderr}",
+                  file=sys.stderr)
+
     # Find sub-items in backlog.
     sub_items = find_backlog_sub_items(epic_nn)
     print(f"[promote-to-epic] found {len(sub_items)} sub-items for {item}")
 
-    # Create sub-issues if missing.
+    # Create sub-issues if missing; refresh existing ones when
+    # sync_bodies is set.
     sub_refs: list[tuple[str, dict]] = []
     for sub in sub_items:
         existing = find_issue_for_item(sub)
         if existing:
             sub_refs.append((sub, existing))
+            if sync_bodies:
+                cmd_create_issue(argparse.Namespace(
+                    item=sub, update_body=True,
+                ))
             continue
-        sub_args = argparse.Namespace(item=sub)
-        cmd_create_issue(sub_args)
+        cmd_create_issue(argparse.Namespace(
+            item=sub, update_body=False,
+        ))
         re_lookup = find_issue_for_item(sub)
         if re_lookup:
             sub_refs.append((sub, re_lookup))
+
+    # Establish the real GitHub parent-child relation. Idempotent:
+    # re-linking an already-linked sub-issue is a no-op.
+    for sub_id, issue in sub_refs:
+        if link_sub_issue(parent_number, int(issue["number"])):
+            print(f"[promote-to-epic] linked {sub_id} (#{issue['number']}) "
+                  f"as sub-issue of #{parent_number}")
 
     # Update parent body with tasklist.
     new_body = render_epic_body(parent_issue.get("body") or "", item, sub_refs)
@@ -1398,6 +1549,11 @@ def main() -> int:
 
     p1 = sub.add_parser("create-issue", help="Create a GitHub issue for the item")
     p1.add_argument("--item", required=True)
+    p1.add_argument(
+        "--update-body", action="store_true",
+        help="If the issue already exists, overwrite its body with the "
+             "current detail-file content (retro-sync).",
+    )
     p1.set_defaults(func=cmd_create_issue)
 
     p2 = sub.add_parser("tag-phase", help="Set the phase-done tag")
@@ -1439,6 +1595,11 @@ def main() -> int:
                     help="explicit GitHub issue number for the parent")
     p7.add_argument("--rename-branch", action="store_true",
                     help="rename the current feature branch to feature/epic-NN-<slug>")
+    p7.add_argument(
+        "--sync-bodies", action="store_true",
+        help="Also overwrite epic and sub-issue bodies with the current "
+             "detail-file content (retro-sync).",
+    )
     p7.set_defaults(func=cmd_promote_to_epic)
 
     p8 = sub.add_parser(
