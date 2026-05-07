@@ -1,9 +1,9 @@
 ---
-name: using-digital-innovation-agents
-description: Introduces the V-Model skill set and entry points. Advisory, not enforcing - user can always opt out.
+name: dia-bootstrap
+description: Bootstrap context for the Digital Innovation Agents V-Model workflow. Auto-loaded at session start by the SessionStart hook (unless mode = off). Carries the entry-point catalog, the helper-script path resolution rule, the activation contract, and opt-out behaviour. The user does not invoke this skill manually.
 ---
 
-# Using Digital Innovation Agents
+# DIA Bootstrap
 
 You have access to a structured V-Model workflow for AI-augmented innovation
 and development. These skills guide projects from initial business concept

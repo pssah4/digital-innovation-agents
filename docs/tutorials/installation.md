@@ -52,7 +52,7 @@ claude
 ```
 
 Type `/` in any new session. The skills appear in autocomplete. The
-`using-digital-innovation-agents` skill loads automatically at session
+`dia-bootstrap` skill loads automatically at session
 start to give you an orientation of the workflow.
 
 ### VS Code, JetBrains, Cursor extensions

@@ -129,5 +129,5 @@ The skill never touches files outside this set.
   picture
 - [Commands reference](../reference/commands) for the slash-
   command catalog
-- [Using DIA](./using-digital-innovation-agents) for the broader
+- [DIA Bootstrap](./dia-bootstrap) for the broader
   bootstrap context

@@ -76,12 +76,14 @@ issue check is gated on `github-sync`.
 | `/consistency-check` | Verifying the V-Model artifact graph at phase boundaries. Mode A (syntactic: links, IDs, refs), Mode B (semantic via agent), Mode C (full). Mandatory at every phase end and before release. |
 | `/humanizer` | Stripping AI vocabulary, em dashes, negative parallelisms, and filler from any artifact. Enforces sentence case and active voice. |
 
-## Orientation skill
+## Bootstrap skill
 
-The `using-digital-innovation-agents` skill loads automatically at
-session start via the SessionStart hook. You do not invoke it
-manually. It gives the agent a brief orientation of the workflow on
-every new session, including entry points and opt-out behaviour.
+The `dia-bootstrap` skill loads automatically at session start via
+the SessionStart hook (or the OpenCode plugin's transform). You do
+not invoke it manually. It carries the entry-point catalog, the
+helper-script path resolution rule, the activation contract, and
+the opt-out behaviour. See [DIA Bootstrap](../guides/dia-bootstrap)
+for the full text.
 
 ## Opt-out language
 

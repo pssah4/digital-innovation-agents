@@ -16,7 +16,7 @@ const guidesSidebar = [
   {
     text: 'Orientation',
     items: [
-      { text: 'Using DIA', link: '/guides/using-digital-innovation-agents' },
+      { text: 'DIA Bootstrap', link: '/guides/dia-bootstrap' },
     ],
   },
   {

@@ -33,8 +33,8 @@ while [ "$project_dir" != "/" ] && [ "$project_dir" != "" ]; do
   project_dir="$(dirname "$project_dir")"
 done
 
-# Read using-digital-innovation-agents content
-skill_content=$(cat "${PLUGIN_ROOT}/skills/using-digital-innovation-agents/SKILL.md" 2>&1 || echo "Error reading using-digital-innovation-agents skill")
+# Read dia-bootstrap content
+skill_content=$(cat "${PLUGIN_ROOT}/skills/dia-bootstrap/SKILL.md" 2>&1 || echo "Error reading dia-bootstrap skill")
 
 # Escape string for JSON embedding using bash parameter substitution.
 # Each ${s//old/new} is a single C-level pass - orders of magnitude
@@ -58,7 +58,7 @@ RESOLVED_PLUGIN_ROOT="${DIA_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-${CURSOR_PLUGIN_R
 plugin_root_escaped=$(escape_for_json "$RESOLVED_PLUGIN_ROOT")
 
 skill_escaped=$(escape_for_json "$skill_content")
-session_context="<EXTREMELY_IMPORTANT>\nYou have Digital Innovation Agents skills.\n\nDIA_PLUGIN_ROOT=${plugin_root_escaped}\nWhen a skill calls a helper at \\\"tools/...\\\" or \\\"\${DIA_PLUGIN_ROOT}/tools/...\\\", resolve the path against DIA_PLUGIN_ROOT above. Helper scripts live under \${DIA_PLUGIN_ROOT}/tools/, hook scripts under \${DIA_PLUGIN_ROOT}/hooks/, merge scripts under \${DIA_PLUGIN_ROOT}/scripts/.\n\n**Below is the full content of the 'digital-innovation-agents:using-digital-innovation-agents' skill - your introduction to the V-Model workflow. For all other skills, use the 'Skill' tool:**\n\n${skill_escaped}\n</EXTREMELY_IMPORTANT>"
+session_context="<EXTREMELY_IMPORTANT>\nYou have Digital Innovation Agents skills.\n\nDIA_PLUGIN_ROOT=${plugin_root_escaped}\nWhen a skill calls a helper at \\\"tools/...\\\" or \\\"\${DIA_PLUGIN_ROOT}/tools/...\\\", resolve the path against DIA_PLUGIN_ROOT above. Helper scripts live under \${DIA_PLUGIN_ROOT}/tools/, hook scripts under \${DIA_PLUGIN_ROOT}/hooks/, merge scripts under \${DIA_PLUGIN_ROOT}/scripts/.\n\n**Below is the full content of the 'digital-innovation-agents:dia-bootstrap' skill - your introduction to the V-Model workflow. For all other skills, use the 'Skill' tool:**\n\n${skill_escaped}\n</EXTREMELY_IMPORTANT>"
 
 # Output context injection as JSON.
 # Cursor hooks expect additional_context (snake_case).

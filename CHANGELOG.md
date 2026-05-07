@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Renamed
+
+- **Bootstrap skill renamed**: `using-digital-innovation-agents` ->
+  `dia-bootstrap`. The new name is shorter, follows the `dia-*`
+  convention (alongside `dia-setup`, `dia-guide`, `dia-migration`),
+  and clearly signals the skill's role: bootstrap context that
+  loads automatically at session start, not a user-invoked command.
+  The skill folder, its SKILL.md frontmatter, the SessionStart
+  hook reference, the OpenCode plugin path, the anchor templates,
+  the README install snippets, the docs page, and the VitePress
+  sidebar all point at the new name. Old references in earlier
+  CHANGELOG entries are left as historical record.
+
 ### Fixed (install paths)
 
 - **Manual install now ships the helper scripts.** The Claude Code

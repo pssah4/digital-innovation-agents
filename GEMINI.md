@@ -1,4 +1,4 @@
-@./skills/using-digital-innovation-agents/SKILL.md
+@./skills/dia-bootstrap/SKILL.md
 
 When a skill instructs you to call a helper at `tools/...`, resolve
 the path against the extension install directory. Gemini extensions

@@ -29,7 +29,7 @@ requirements engineering, architecture, coding, testing, security
 audit). Two are entry-point skills for non-greenfield projects
 (reverse engineering, dia-migration). One is the on-demand workflow
 guide (`/dia-guide`). Four are foundation skills (project conventions,
-consistency check, humanizer, using-digital-innovation-agents). Every
+consistency check, humanizer, dia-bootstrap). Every
 phase skill owns one part of the V-Model, has its own quality gates,
 and hands off a structured artifact to the next phase. The guide is
 called separately whenever the user wants an orientation read.
@@ -97,7 +97,7 @@ claude
 ```
 
 Type `/` in any new session to see the skills in autocomplete. The
-`using-digital-innovation-agents` skill loads automatically at session
+`dia-bootstrap` skill loads automatically at session
 start as a brief orientation.
 
 **VS Code, JetBrains, and Cursor extensions cannot install plugins.**
@@ -143,7 +143,7 @@ done
 for skill in project-conventions reverse-engineering business-analysis \
              requirements-engineering architecture coding testing \
              security-audit consistency-check humanizer dia-guide \
-             dia-migration dia-setup using-digital-innovation-agents; do
+             dia-migration dia-setup dia-bootstrap; do
   rm -rf "$HOME/.claude/skills/$skill"
   ln -sfn "$DIA_PLUGIN_ROOT/skills/$skill" "$HOME/.claude/skills/$skill"
 done
@@ -324,7 +324,7 @@ innovation-agents` loads on session start to introduce the workflow).
 | **Project Conventions** | Three-layer documentation model (Wayfinder, Rule sets, Backlog, Detail artifacts), directory structure, naming standards, writing-style rules. | `/project-conventions` |
 | **Consistency Check** | Verifies the V-Model artifact graph: dead links, orphan features, status drift, missing references. Modes A (syntactic), B (semantic), C (full). Mandatory at every phase boundary. | `/consistency-check` |
 | **Humanizer** | Strips AI vocabulary, em dashes, negative parallelisms, and filler from every artifact. Enforces sentence case and active voice. | `/humanizer` |
-| **Using DIA** | Loads automatically on session start. Brief orientation page with skill set, entry points, opt-out behaviour. | `/using-digital-innovation-agents` |
+| **DIA Bootstrap** | Loads automatically on session start. Carries the entry-point catalog, helper-script path resolution rule, activation contract, opt-out behaviour. Not invoked manually. | `dia-bootstrap` |
 
 ## Scope levels
 

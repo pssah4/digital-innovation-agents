@@ -270,7 +270,7 @@ template placeholders, technical terms such as `status`, `phase`,
 **Note:** Skills are written in English so they are portable across
 languages, but when a skill runs and talks to the user, the agent
 switches to the user's language. See
-`skills/using-digital-innovation-agents/SKILL.md`.
+`skills/dia-bootstrap/SKILL.md`.
 
 ## Feature Lifecycle
 

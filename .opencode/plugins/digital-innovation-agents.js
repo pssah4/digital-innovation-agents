@@ -65,7 +65,7 @@ export const DigitalInnovationAgentsPlugin = async ({ client, directory }) => {
 
   // Helper to generate bootstrap content
   const getBootstrapContent = () => {
-    const skillPath = path.join(skillsDir, 'using-digital-innovation-agents', 'SKILL.md');
+    const skillPath = path.join(skillsDir, 'dia-bootstrap', 'SKILL.md');
     if (!fs.existsSync(skillPath)) return null;
 
     const fullContent = fs.readFileSync(skillPath, 'utf8');
@@ -83,7 +83,7 @@ Use OpenCode's native \`skill\` tool to list and load skills.`;
     return `<EXTREMELY_IMPORTANT>
 You have Digital Innovation Agents skills.
 
-**IMPORTANT: The using-digital-innovation-agents skill content is included below. It is ALREADY LOADED - you are currently following it. Do NOT use the skill tool to load "using-digital-innovation-agents" again - that would be redundant.**
+**IMPORTANT: The dia-bootstrap skill content is included below. It is ALREADY LOADED - you are currently following it. Do NOT use the skill tool to load "dia-bootstrap" again - that would be redundant.**
 
 ${content}
 
