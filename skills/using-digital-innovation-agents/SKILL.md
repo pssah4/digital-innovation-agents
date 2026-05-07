@@ -10,6 +10,39 @@ and development. These skills guide projects from initial business concept
 through requirements engineering, architecture design, implementation,
 testing, and security audit.
 
+## Helper script paths (binding for every phase skill)
+
+Phase skills call helper scripts that ship with the plugin: `flow.py`
+under `tools/github-integration/`, `anchor.py` under `tools/dia-setup/`,
+the migration scripts under `tools/migration/`,
+`tools/consistency-check.py`, `tools/renumber-for-merge.py`, and the
+merge wrappers under `scripts/`. These scripts live in the plugin
+bundle, NOT in the user project, so the relative path `tools/...`
+that the skill text uses must be resolved against the plugin root,
+not against the user's working directory.
+
+Resolution priority:
+
+1. **`$DIA_PLUGIN_ROOT`** (preferred). The SessionStart hook prints
+   this value at session start, manual installs export it from
+   `~/.zshrc`, and the OpenCode plugin sets it on plugin load.
+2. **`$CLAUDE_PLUGIN_ROOT`** when running under Claude Code.
+3. **`$CURSOR_PLUGIN_ROOT`** when running under Cursor.
+4. **Working directory** as last resort. This only succeeds when the
+   user happens to run the agent from inside the plugin checkout.
+
+Concrete: when a phase skill writes
+`python3 tools/github-integration/flow.py create-issue --item FEAT-04-09`,
+expand it before invoking to
+`python3 "$DIA_PLUGIN_ROOT/tools/github-integration/flow.py" create-issue --item FEAT-04-09`.
+The same rule applies to every `tools/...` and `scripts/...` path
+in any skill text.
+
+If `$DIA_PLUGIN_ROOT` is unset and no platform variable resolves
+the path, surface a clear error to the user and link them to the
+[installation tutorial](https://pssah4.github.io/digital-innovation-agents/tutorials/installation).
+Do not guess.
+
 ## Activation
 
 If this project does not yet have `.dia/config.toml`, run `/dia-setup`

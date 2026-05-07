@@ -51,9 +51,17 @@ const normalizePath = (p, homeDir) => {
 
 export const DigitalInnovationAgentsPlugin = async ({ client, directory }) => {
   const homeDir = os.homedir();
-  const skillsDir = path.resolve(__dirname, '../../skills');
+  const pluginRoot = path.resolve(__dirname, '../..');
+  const skillsDir = path.resolve(pluginRoot, 'skills');
   const envConfigDir = normalizePath(process.env.OPENCODE_CONFIG_DIR, homeDir);
   const configDir = envConfigDir || path.join(homeDir, '.config/opencode');
+
+  // Export DIA_PLUGIN_ROOT so skills can resolve helper scripts under
+  // tools/, hooks/, scripts/. The skills reference these as
+  // ${DIA_PLUGIN_ROOT}/tools/... at runtime.
+  if (!process.env.DIA_PLUGIN_ROOT) {
+    process.env.DIA_PLUGIN_ROOT = pluginRoot;
+  }
 
   // Helper to generate bootstrap content
   const getBootstrapContent = () => {

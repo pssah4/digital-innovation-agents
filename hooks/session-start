@@ -49,8 +49,16 @@ escape_for_json() {
     printf '%s' "$s"
 }
 
+# Resolve a stable DIA_PLUGIN_ROOT and tell the agent about it.
+# Skills reference helper scripts as "${DIA_PLUGIN_ROOT}/tools/...",
+# so the agent must know where the plugin bundle lives. Priority
+# order: pre-set DIA_PLUGIN_ROOT > CLAUDE_PLUGIN_ROOT > CURSOR_PLUGIN_ROOT
+# > the hook-relative PLUGIN_ROOT.
+RESOLVED_PLUGIN_ROOT="${DIA_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-${CURSOR_PLUGIN_ROOT:-${PLUGIN_ROOT}}}}"
+plugin_root_escaped=$(escape_for_json "$RESOLVED_PLUGIN_ROOT")
+
 skill_escaped=$(escape_for_json "$skill_content")
-session_context="<EXTREMELY_IMPORTANT>\nYou have Digital Innovation Agents skills.\n\n**Below is the full content of the 'digital-innovation-agents:using-digital-innovation-agents' skill - your introduction to the V-Model workflow. For all other skills, use the 'Skill' tool:**\n\n${skill_escaped}\n</EXTREMELY_IMPORTANT>"
+session_context="<EXTREMELY_IMPORTANT>\nYou have Digital Innovation Agents skills.\n\nDIA_PLUGIN_ROOT=${plugin_root_escaped}\nWhen a skill calls a helper at \\\"tools/...\\\" or \\\"\${DIA_PLUGIN_ROOT}/tools/...\\\", resolve the path against DIA_PLUGIN_ROOT above. Helper scripts live under \${DIA_PLUGIN_ROOT}/tools/, hook scripts under \${DIA_PLUGIN_ROOT}/hooks/, merge scripts under \${DIA_PLUGIN_ROOT}/scripts/.\n\n**Below is the full content of the 'digital-innovation-agents:using-digital-innovation-agents' skill - your introduction to the V-Model workflow. For all other skills, use the 'Skill' tool:**\n\n${skill_escaped}\n</EXTREMELY_IMPORTANT>"
 
 # Output context injection as JSON.
 # Cursor hooks expect additional_context (snake_case).

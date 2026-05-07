@@ -14,9 +14,16 @@ Add to the `plugin` array in your `opencode.json` (global or project-level):
 }
 ```
 
-Restart OpenCode. The plugin auto-installs and registers all skills.
+Restart OpenCode. The plugin auto-installs and registers all
+skills, plus exports `DIA_PLUGIN_ROOT` so the skills can find the
+helper scripts under `tools/`, `hooks/`, and `scripts/`.
 
 Verify by asking: "Tell me about your digital innovation agents skills"
+
+If a skill calls a helper that fails with "tools/... not found",
+your shell environment did not pick up `DIA_PLUGIN_ROOT`. Restart
+OpenCode (kill the process, do not just close the window) so the
+plugin re-runs and exports the variable.
 
 ## Usage
 

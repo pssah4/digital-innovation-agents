@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (install paths)
+
+- **Manual install now ships the helper scripts.** The Claude Code
+  manual-install snippet in the README clones the full bundle to
+  `$DIA_PLUGIN_ROOT` (default `~/.local/share/dia-plugin`),
+  symlinks the skills into `~/.claude/skills/`, and persists
+  `DIA_PLUGIN_ROOT` in the user's shell rc. Previously only
+  `skills/` was copied, so every `python3 tools/...` call failed
+  the moment the agent ran from a project that did not contain
+  the helper scripts.
+- **Codex install** clones into `~/.codex/digital-innovation-agents`
+  and now exports `DIA_PLUGIN_ROOT` so the symlinked skills can
+  resolve `tools/`, `hooks/`, and `scripts/` at runtime.
+- **OpenCode plugin** sets `DIA_PLUGIN_ROOT` from the plugin
+  bundle path on plugin load. INSTALL.md mentions the variable in
+  the troubleshooting section.
+- **GitHub Copilot install** now copies `tools/`, `scripts/`, and
+  `hooks/` into the project alongside `.github/`. Copilot agents
+  run with the project as their working directory and have no
+  plugin-bundle path; the helpers must travel with the project.
+- **Cursor plugin manifest** declares `tools/`, `scripts/`,
+  `.claude-plugin/`, and `.dia/` under a new `includes` array so
+  the cursor marketplace ships them alongside skills and hooks.
+  Version bumped from 2.0.0 to 3.3.0.
+- **Gemini extension manifest** adds the same `includes` block and
+  version bump from 3.2.0 to 3.3.0. GEMINI.md tells the agent
+  where the helpers live and how to set `DIA_PLUGIN_ROOT`.
+- **SessionStart hook** resolves a stable plugin root and emits it
+  as `DIA_PLUGIN_ROOT=...` at the top of the bootstrap context.
+  The agent now sees the path in every session and can expand
+  `tools/...` references against it.
+- **`using-digital-innovation-agents` SKILL.md** documents the
+  helper-path resolution rule: priority `$DIA_PLUGIN_ROOT >
+  $CLAUDE_PLUGIN_ROOT > $CURSOR_PLUGIN_ROOT > cwd`. Skills must
+  expand `tools/...` against the resolved root before invoking,
+  surface a clear error when nothing resolves.
+
 ### Fixed (workflow review followups)
 
 - **PR target branch is now configurable.** `flow.py open-draft-pr`
