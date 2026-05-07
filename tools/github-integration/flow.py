@@ -1311,6 +1311,12 @@ def cmd_validate_fix(args: argparse.Namespace) -> int:
 
 def cmd_status(args: argparse.Namespace) -> int:
     item = normalize_item(args.item)
+    # Read-only command, but the three-modes contract pins it to
+    # git-only and github-sync. In off the plugin pretends not to be
+    # installed, so even the read-only status output stays silent.
+    if read_dia_mode() == "off":
+        print("[status] mode=off, skipping (run /dia-setup to change)")
+        return 0
     print(f"=== Status for {item} ===")
     cur = current_branch()
     print(f"Branch (current):       {cur}")

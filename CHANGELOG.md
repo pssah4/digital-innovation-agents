@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (fifth review pass)
+
+- **`consistency-check --fix` preserves reverse-engineering markers.**
+  The autofix previously removed every `status:` and `phase:` line
+  from Feature/Epic frontmatter. graph-invariants N-10 and N-11
+  explicitly allow `status: Anticipated (not yet validated)`,
+  `Observed (not validated)`, `Inferred`, and
+  `Draft (reverse-engineered, ...)` until `/business-analysis`
+  validates the artefact. Autofix would silently delete those.
+  New helper `is_reverse_engineering_marker` checks the value
+  against the tolerated prefixes; matching entries are kept,
+  everything else still gets removed. Sandbox-tested with three
+  files (Anticipated kept, Observed kept, Planned removed).
+- **OpenCode plugin honors `mode = "off"`.** The transform
+  previously injected the bootstrap on every session regardless
+  of the project setting, breaking the deactivation contract on
+  the OpenCode side. The plugin now reads `.dia/config.toml`
+  from the OpenCode session directory (walks upwards), and skips
+  both `config.skills.paths` registration and the bootstrap
+  injection when the project's mode is `off`. Default fallback
+  (no config) remains `git-only` so existing setups keep working.
+- **`flow.py status` is gated on mode.** The three-modes contract
+  pins `status` to `git-only` and `github-sync`; the code
+  previously ignored mode and printed the report even at
+  `mode = "off"`. Now it returns the standard "skipping
+  (mode=off)" message and exits 0 in `off`.
+- **`CLAUDE.md` Feature lifecycle example uses the new
+  vocabulary.** The introductory bullet at line 164 still listed
+  `Status: Planned`; rewritten to `Status: Ready` to match the
+  GitHub-aligned set declared at line 91.
+
 ### Fixed (fourth review pass)
 
 - **`project_owner` survives the Python 3.9 fallback parser.**

@@ -137,7 +137,26 @@ PURE_STATUS = re.compile(
     r"\s*(\([^)]*\))?\s*$"
 )
 ANY_STATUS = re.compile(r"^>\s*\*\*Status\*\*:\s*(.*)$")
-YAML_STATUS = re.compile(r"^(status|phase)\s*:\s*.+$", re.IGNORECASE)
+YAML_STATUS = re.compile(r"^(status|phase)\s*:\s*(.+)$", re.IGNORECASE)
+
+# Reverse-engineering markers that the autofix must keep. When
+# /reverse-engineering writes `status: Anticipated (not yet
+# validated)` or `status: Observed (not validated)` into Epic /
+# Feature frontmatter, that field is allowed by graph-invariants
+# N-10/N-11 until /business-analysis validates the artefact. The
+# autofix would otherwise silently delete them.
+RE_MARKER_RE = re.compile(
+    r"^\s*(Anticipated|Observed|Inferred|Draft\s*\(reverse-engineered)\b",
+    re.IGNORECASE,
+)
+
+
+def is_reverse_engineering_marker(yaml_status_match: re.Match) -> bool:
+    """True when a YAML status/phase line carries a reverse-engineering
+    marker that the autofix must preserve.
+    """
+    value = yaml_status_match.group(2).strip()
+    return bool(RE_MARKER_RE.match(value))
 
 
 def autofix_status_duplicates(files: Iterable[Path]) -> int:
@@ -161,9 +180,15 @@ def autofix_status_duplicates(files: Iterable[Path]) -> int:
                 in_yaml = False
                 out.append(line)
                 continue
-            if in_yaml and YAML_STATUS.match(stripped):
-                changed = True
-                continue
+            if in_yaml:
+                m_yaml = YAML_STATUS.match(stripped)
+                if m_yaml:
+                    if is_reverse_engineering_marker(m_yaml):
+                        # Preserve RE markers, see graph-invariants N-10/N-11.
+                        out.append(line)
+                    else:
+                        changed = True
+                    continue
             if PURE_STATUS.match(stripped):
                 changed = True
                 continue
