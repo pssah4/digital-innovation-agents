@@ -1185,15 +1185,16 @@ def cmd_promote_to_epic(args: argparse.Namespace) -> int:
 
 
 def find_backlog_sub_items(epic_nn: str) -> list[str]:
-    """Return ordered list of FEAT and IMP IDs that belong to EPIC-NN."""
+    """Return ordered list of FEAT, FIX, and IMP IDs that belong to EPIC-NN."""
     bl = backlog_path()
     if not bl.exists():
         return []
     feat_re = re.compile(rf"^\| (FEAT-{epic_nn}-\d{{2}}) ")
+    fix_re = re.compile(rf"^\| (FIX-{epic_nn}-\d{{2}}-\d{{2}}) ")
     imp_re = re.compile(rf"^\| (IMP-{epic_nn}-\d{{2}}-\d{{2}}) ")
     out: list[str] = []
     for line in bl.read_text(encoding="utf-8").splitlines():
-        m = feat_re.match(line) or imp_re.match(line)
+        m = feat_re.match(line) or fix_re.match(line) or imp_re.match(line)
         if m:
             out.append(m.group(1))
     return out
