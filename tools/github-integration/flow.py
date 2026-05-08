@@ -460,7 +460,7 @@ def link_sub_issue(parent_number: int, child_number: int) -> bool:
         run([
             "gh", "api", "-X", "POST",
             f"repos/{slug}/issues/{parent_number}/sub_issues",
-            "-f", f"sub_issue_id={child_id}",
+            "-F", f"sub_issue_id={child_id}",
         ])
         return True
     except subprocess.CalledProcessError as e:
