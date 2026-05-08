@@ -269,6 +269,17 @@ def title_for_item(item: str) -> str:
     row = find_backlog_row(item)
     if row and len(row["cells"]) > 2:
         return row["cells"][2]
+    if item.startswith("EPIC-"):
+        bl = backlog_path()
+        if bl.exists():
+            text = bl.read_text(encoding="utf-8")
+            m = re.search(
+                rf"^### {re.escape(item)}:\s*(.+?)$",
+                text,
+                flags=re.MULTILINE,
+            )
+            if m:
+                return m.group(1).strip()
     return item
 
 
