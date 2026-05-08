@@ -269,6 +269,17 @@ def title_for_item(item: str) -> str:
     row = find_backlog_row(item)
     if row and len(row["cells"]) > 2:
         return row["cells"][2]
+    if item.startswith("EPIC-"):
+        bl = backlog_path()
+        if bl.exists():
+            text = bl.read_text(encoding="utf-8")
+            m = re.search(
+                rf"^### {re.escape(item)}:\s*(.+?)$",
+                text,
+                flags=re.MULTILINE,
+            )
+            if m:
+                return m.group(1).strip()
     return item
 
 
@@ -460,7 +471,7 @@ def link_sub_issue(parent_number: int, child_number: int) -> bool:
         run([
             "gh", "api", "-X", "POST",
             f"repos/{slug}/issues/{parent_number}/sub_issues",
-            "-f", f"sub_issue_id={child_id}",
+            "-F", f"sub_issue_id={child_id}",
         ])
         return True
     except subprocess.CalledProcessError as e:
@@ -1185,15 +1196,16 @@ def cmd_promote_to_epic(args: argparse.Namespace) -> int:
 
 
 def find_backlog_sub_items(epic_nn: str) -> list[str]:
-    """Return ordered list of FEAT and IMP IDs that belong to EPIC-NN."""
+    """Return ordered list of FEAT, FIX, and IMP IDs that belong to EPIC-NN."""
     bl = backlog_path()
     if not bl.exists():
         return []
     feat_re = re.compile(rf"^\| (FEAT-{epic_nn}-\d{{2}}) ")
+    fix_re = re.compile(rf"^\| (FIX-{epic_nn}-\d{{2}}-\d{{2}}) ")
     imp_re = re.compile(rf"^\| (IMP-{epic_nn}-\d{{2}}-\d{{2}}) ")
     out: list[str] = []
     for line in bl.read_text(encoding="utf-8").splitlines():
-        m = feat_re.match(line) or imp_re.match(line)
+        m = feat_re.match(line) or fix_re.match(line) or imp_re.match(line)
         if m:
             out.append(m.group(1))
     return out

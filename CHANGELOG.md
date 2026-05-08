@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.2] - 2026-05-08
+
+`flow.py promote-to-epic` stability fixes. Three bugs surfaced
+during a live run on a downstream project blocked sub-issue links,
+mangled the parent title, and skipped FIX rows entirely. All three
+land together because they share the same code path. No skill
+changes.
+
+### Fixed
+
+- `link_sub_issue` now uses `gh api -F` (typed integer field) for
+  `sub_issue_id`. The previous `-f` form sent the value as a
+  string, so the GitHub Sub-Issues endpoint rejected every link
+  with HTTP 422 and `promote-to-epic --sync-bodies` produced zero
+  parent-child relations on a 47-item epic. Closes #6.
+- `title_for_item` resolves EPIC titles from the BACKLOG section
+  header (`### EPIC-NN: Title`) when no table row matches. Epics
+  live as section headers, not as table rows, so the previous
+  fallback returned the bare ID and `promote-to-epic` produced
+  parent issue titles like `EPIC-19: EPIC-19`. FEAT, FIX, and IMP
+  rows continue to resolve via the table. Closes #7.
+- `find_backlog_sub_items` now picks up `FIX-EE-FF-NN` rows in
+  addition to FEAT and IMP. The previous regex set skipped FIX
+  rows, so `promote-to-epic --sync-bodies` left every FIX issue
+  with the legacy V-Model checklist body and never linked it as a
+  sub-issue. Hotfix-lane work now flows through the same sync as
+  feature work. Closes #8.
+
 ## [3.5.1] - 2026-05-08
 
 Marketplace-manifest fix. No skill or tool changes.
