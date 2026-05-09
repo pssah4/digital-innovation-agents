@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.3] - 2026-05-09
+
+Follow-up patch to v3.5.2. Four bugs reported against the live run
+on a downstream project. Two close gaps in the
+`/consistency-check` Mode A invariant set, one extends GitHub
+Project sync to the Status field, and one hardens `migrate_naming`
+against legacy IDs in source code and unrelated thematic targets.
+
+### Fixed
+
+- `consistency-check` (N-19): detect duplicate `FEAT/FIX/IMP/ADR/PLAN`
+  IDs in `BACKLOG.md`. Mode A had no invariant on the inverse
+  direction of E-12, so duplicate rows for the same ID survived
+  silently and broke downstream issue lookup. The new check scans
+  the backlog row by row and reports any ID that appears more than
+  once with all line numbers and a renumber/merge/delete suggestion
+  set. Severity high. EPIC is exempt because epic IDs intentionally
+  appear both as section header and table row. Closes #11.
+- `consistency-check` (E-15): detect status drift between Epic
+  detail-file `## Features` / `## MVP Features` tables and the
+  corresponding `BACKLOG` row. The detail file could say `Geplant`
+  while the backlog said `Done | Released` and `/consistency-check`
+  reported zero findings. The new check parses the table, takes the
+  last pipe-cell as the Status column, and compares against a
+  backlog index. Compatibility is grouped by family (`Done` vs.
+  `Open`) so legitimate phrasing variants do not produce false
+  positives. Severity medium. Closes #13.
+- `migrate_naming.py`: source-tree sweep plus thematic-sanity
+  guard. The migration only rewrote IDs in `_devprocess/`, so
+  source comments still carried legacy `FEATURE-NNNN` references
+  after the run. The new Pass 3 walks `src/`, `tests/`, `docs/`
+  with a configurable extension allowlist and applies the same
+  rename map. The thematic-sanity guard skips renames that would
+  overwrite an existing BACKLOG row with a different title and
+  surfaces them via `report_thematic_conflicts` so the user can
+  renumber or merge manually. Closes #12.
+- `flow.py`: GitHub Project status field now syncs from BACKLOG.
+  `promote-to-epic` created issues but never refreshed the Project
+  Board status, so all rows landed at the project default
+  (`Backlog`) even when BACKLOG said `Active` or `Done`. Epic
+  parents themselves were also not added to the project on rename.
+  New `cmd_sync_project_status` maps `Status`/`Phase` to the
+  project's single-select Status field via `gh project item-edit`,
+  runs on `create-issue --update-body` and the `promote-to-epic`
+  body refresh, and is also exposed as a standalone subcommand
+  `sync-project-status [--epic ID | --all]` for one-shot
+  backfills. Closes #10.
+
+### Added
+
+- New invariants `N-19` (duplicate-backlog-id) and `E-15`
+  (status-drift-detail-vs-backlog) in
+  `skills/project-conventions/references/graph-invariants.md`.
+- New `flow.py` subcommand `sync-project-status [--epic ID | --all]`.
+
 ## [3.5.2] - 2026-05-08
 
 `flow.py promote-to-epic` stability fixes. Three bugs surfaced
