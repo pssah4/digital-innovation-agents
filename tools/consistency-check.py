@@ -867,6 +867,52 @@ def check_detail_file_status_drift() -> list[Finding]:
     return out
 
 
+BACKLOG_ID_ROW_RE = re.compile(
+    r"^\|\s*((?:FEAT|FIX|IMP|ADR|PLAN)-\d{2}(?:-\d{2}){0,2})\s*\|"
+)
+
+
+def check_backlog_id_uniqueness() -> list[Finding]:
+    """N-19: every FEAT/FIX/IMP/ADR/PLAN ID appears at most once in
+    BACKLOG.md. EPIC is exempt because epic IDs intentionally show up
+    both as table rows and as section headings.
+
+    Picks up legacy duplicates that survived migration sweeps because
+    no invariant covered the inverse direction of E-12.
+    """
+    if not BACKLOG.exists():
+        return []
+    rows: dict[str, list[tuple[int, str]]] = {}
+    for line_no, raw in enumerate(
+        BACKLOG.read_text(encoding="utf-8").splitlines(), start=1,
+    ):
+        m = BACKLOG_ID_ROW_RE.match(raw)
+        if not m:
+            continue
+        rows.setdefault(m.group(1), []).append((line_no, raw))
+    out: list[Finding] = []
+    for item_id, occurrences in rows.items():
+        if len(occurrences) <= 1:
+            continue
+        line_numbers = [ln for ln, _ in occurrences]
+        out.append(Finding(
+            type="duplicate-backlog-id",
+            severity=SEVERITY_HIGH,
+            file=str(BACKLOG.relative_to(ROOT)),
+            line=occurrences[0][0],
+            message=(
+                f"Backlog ID {item_id} appears {len(occurrences)}x; "
+                f"rows {line_numbers}"
+            ),
+            suggestions=[
+                "Renumber one of the duplicates to the next free ID under the same Epic",
+                "Merge the two rows if they describe the same feature",
+                "Delete the obsolete row if one of them is stale",
+            ],
+        ))
+    return out
+
+
 def check_backlog_completeness() -> list[Finding]:
     out: list[Finding] = []
     backlog_ids = parse_backlog_ids()
@@ -914,6 +960,7 @@ def run_checks() -> list[Finding]:
     findings.extend(check_dead_links(md_files(*artifact_dirs)))
     findings.extend(check_adr_abstraction(md_files(ARCHITECTURE)))
     findings.extend(check_backlog_completeness())
+    findings.extend(check_backlog_id_uniqueness())
     findings.extend(check_detail_file_status_drift())
     findings.extend(check_status_coherence())
     findings.extend(check_item_ba_frontmatter())
