@@ -732,6 +732,187 @@ def check_ba_ref_bidirectional() -> list[Finding]:
     return out
 
 
+_STATUS_DONE = {"done", "released", "implemented", "implementiert",
+                "vollstaendig implementiert", "vollständig implementiert"}
+_STATUS_OPEN = {"backlog", "ready", "in progress", "in review", "open",
+                "active", "planned", "geplant", "not started", "draft",
+                "in arbeit", "candidates", "candidate"}
+
+
+def _normalise_status(value: str) -> str:
+    """Lowercase + collapse whitespace + strip trailing parenthesis hints."""
+    if not value:
+        return ""
+    cleaned = re.sub(r"\s*\([^)]*\)\s*$", "", value).strip().lower()
+    return re.sub(r"\s+", " ", cleaned)
+
+
+def _status_compatible(backlog_status: str, detail_status: str) -> bool:
+    """True when the detail-file status is consistent with the backlog
+    Status/Phase pair.
+
+    Compatibility groups:
+      - "Done" family: backlog Done <-> detail Done | Released | Implemented
+      - "Open" family: everything else from the GitHub-aligned status set
+        plus the legacy detail-file phrasing (Geplant, Not Started,
+        Implementiert wenn backlog noch offen, etc.).
+    """
+    bl = _normalise_status(backlog_status)
+    df = _normalise_status(detail_status)
+    if not bl or not df:
+        return True
+    if df == bl:
+        return True
+    if bl in _STATUS_DONE and df in _STATUS_DONE:
+        return True
+    if bl in _STATUS_OPEN and df in _STATUS_OPEN:
+        return True
+    return False
+
+
+def _backlog_status_index() -> dict[str, dict[str, str]]:
+    """Map FEAT/IMP/FIX ID -> {status, phase} from the backlog row.
+
+    Best-effort parse: schema follows the BACKLOG-TEMPLATE column order
+    (ID | Type | Title | Status | Phase | ...). Rows that do not fit
+    the schema are skipped silently.
+    """
+    if not BACKLOG.exists():
+        return {}
+    out: dict[str, dict[str, str]] = {}
+    for raw in BACKLOG.read_text(encoding="utf-8").splitlines():
+        if not raw.startswith("|"):
+            continue
+        cells = [c.strip() for c in raw.strip("|").split("|")]
+        if len(cells) < 5:
+            continue
+        item_id = cells[0]
+        if not re.match(r"^(FEAT|FIX|IMP)-\d{2}(?:-\d{2}){1,2}$", item_id):
+            continue
+        out[item_id] = {"status": cells[3], "phase": cells[4]}
+    return out
+
+
+_DETAIL_FEATURES_HEADER_RE = re.compile(
+    r"^##\s+(MVP\s+Features|Features)\s*$", re.MULTILINE | re.IGNORECASE,
+)
+_DETAIL_ROW_ID_RE = re.compile(r"^\|\s*((?:FEAT|IMP|FIX)-\d{2}(?:-\d{2}){1,2})\s*\|")
+
+
+def _iter_detail_status_rows(text: str):
+    """Yield (item_id, status_value, line_no) tuples from a detail-file
+    Features/MVP-Features table. The Status column is taken as the last
+    pipe-cell on the row, matching the convention in the live obsilo-dev
+    Epic detail files.
+    """
+    header = _DETAIL_FEATURES_HEADER_RE.search(text)
+    if not header:
+        return
+    body_start = header.end()
+    next_h2 = re.search(r"\n##\s+\S", text[body_start:])
+    body_end = body_start + next_h2.start() if next_h2 else len(text)
+    base_line = text[:body_start].count("\n")
+    for offset, raw in enumerate(text[body_start:body_end].splitlines(), start=1):
+        m = _DETAIL_ROW_ID_RE.match(raw)
+        if not m:
+            continue
+        cells = [c.strip() for c in raw.strip("|").split("|")]
+        if len(cells) < 2:
+            continue
+        # Skip header separator rows like "| --- | --- |".
+        if all(set(c) <= set("-: ") for c in cells):
+            continue
+        status_value = cells[-1]
+        yield m.group(1), status_value, base_line + offset
+
+
+def check_detail_file_status_drift() -> list[Finding]:
+    """E-15: detail-file Features tables that name a backlog item must
+    show a Status compatible with the backlog row's Status. Catches
+    the live drift in obsilo-dev (Epic detail says 'Geplant', backlog
+    says 'Done | Released').
+    """
+    if not BACKLOG.exists() or not EPICS.exists():
+        return []
+    backlog_idx = _backlog_status_index()
+    if not backlog_idx:
+        return []
+    out: list[Finding] = []
+    for epic in sorted(EPICS.glob("EPIC-*.md")):
+        try:
+            text = epic.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        for item_id, detail_status, line_no in _iter_detail_status_rows(text):
+            row = backlog_idx.get(item_id)
+            if not row:
+                continue
+            if _status_compatible(row["status"], detail_status):
+                continue
+            out.append(Finding(
+                type="status-drift-detail-vs-backlog",
+                severity=SEVERITY_MEDIUM,
+                file=str(epic.relative_to(ROOT)),
+                line=line_no,
+                message=(
+                    f"{item_id}: detail-file says '{detail_status}', "
+                    f"BACKLOG says '{row['status']}/{row['phase']}'"
+                ),
+                suggestions=[
+                    "Update the detail-file row Status to match the backlog (when backlog is canonical)",
+                    "Update the backlog row Status to match the detail file (when work has not started)",
+                    "Remove the detail-file row if the feature was moved to a different epic",
+                ],
+            ))
+    return out
+
+
+BACKLOG_ID_ROW_RE = re.compile(
+    r"^\|\s*((?:FEAT|FIX|IMP|ADR|PLAN)-\d{2}(?:-\d{2}){0,2})\s*\|"
+)
+
+
+def check_backlog_id_uniqueness() -> list[Finding]:
+    """N-19: every FEAT/FIX/IMP/ADR/PLAN ID appears at most once in
+    BACKLOG.md. EPIC is exempt because epic IDs intentionally show up
+    both as table rows and as section headings.
+
+    Picks up legacy duplicates that survived migration sweeps because
+    no invariant covered the inverse direction of E-12.
+    """
+    if not BACKLOG.exists():
+        return []
+    rows: dict[str, list[tuple[int, str]]] = {}
+    for line_no, raw in enumerate(
+        BACKLOG.read_text(encoding="utf-8").splitlines(), start=1,
+    ):
+        m = BACKLOG_ID_ROW_RE.match(raw)
+        if not m:
+            continue
+        rows.setdefault(m.group(1), []).append((line_no, raw))
+    out: list[Finding] = []
+    for item_id, occurrences in rows.items():
+        if len(occurrences) <= 1:
+            continue
+        line_numbers = [ln for ln, _ in occurrences]
+        out.append(Finding(
+            type="duplicate-backlog-id",
+            severity=SEVERITY_HIGH,
+            file=str(BACKLOG.relative_to(ROOT)),
+            line=occurrences[0][0],
+            message=(
+                f"Backlog ID {item_id} appears {len(occurrences)}x; "
+                f"rows {line_numbers}"
+            ),
+            suggestions=[
+                "Renumber one of the duplicates to the next free ID under the same Epic",
+                "Merge the two rows if they describe the same feature",
+                "Delete the obsolete row if one of them is stale",
+            ],
+        ))
+    return out
+
+
 def check_backlog_completeness() -> list[Finding]:
     out: list[Finding] = []
     backlog_ids = parse_backlog_ids()
@@ -779,6 +960,8 @@ def run_checks() -> list[Finding]:
     findings.extend(check_dead_links(md_files(*artifact_dirs)))
     findings.extend(check_adr_abstraction(md_files(ARCHITECTURE)))
     findings.extend(check_backlog_completeness())
+    findings.extend(check_backlog_id_uniqueness())
+    findings.extend(check_detail_file_status_drift())
     findings.extend(check_status_coherence())
     findings.extend(check_item_ba_frontmatter())
     findings.extend(check_ba_ref_bidirectional())

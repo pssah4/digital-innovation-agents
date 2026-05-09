@@ -8,14 +8,15 @@ The backlog truth lives in `_devprocess/context/BACKLOG.md`; this
 script keeps the GitHub view in sync.
 
 Subcommands:
-    create-issue     Create a GitHub issue for a backlog item.
-    tag-phase        Set the `<item-id>/<phase>-done` annotated git tag.
-    sync-status      Mirror BACKLOG Status to issue and project.
-    promote-to-epic  Rename parent, create sub-issues, tasklist.
-    validate-fix     Hotfix-scoped consistency check.
-    open-draft-pr    Open a draft PR for the item branch.
-    ready-for-review Flip the draft PR to ready and tag ready-for-review.
-    status           Print state of the item (branch, tags, issue, PR).
+    create-issue        Create a GitHub issue for a backlog item.
+    tag-phase           Set the `<item-id>/<phase>-done` annotated git tag.
+    sync-status         Mirror BACKLOG Status to issue and project.
+    sync-project-status Bulk-sync BACKLOG Status to the project board.
+    promote-to-epic     Rename parent, create sub-issues, tasklist.
+    validate-fix        Hotfix-scoped consistency check.
+    open-draft-pr       Open a draft PR for the item branch.
+    ready-for-review    Flip the draft PR to ready and tag ready-for-review.
+    status              Print state of the item (branch, tags, issue, PR).
 
 All subcommands are idempotent. Re-running on an already-current
 state is a no-op with a clear status message.
@@ -51,6 +52,7 @@ GITHUB_REQUIRED_ACTIONS = (
     "open-draft-pr",
     "ready-for-review",
     "sync-status",
+    "sync-project-status",
     "promote-to-epic",
     "apply-renumber",
 )
@@ -514,6 +516,9 @@ def cmd_create_issue(args: argparse.Namespace) -> int:
         except subprocess.CalledProcessError as e:
             print(f"[create-issue] body update failed: {e.stderr}", file=sys.stderr)
             return 1
+        # Retro-sync: pre-existing issues frequently never made it onto
+        # the project board. add_issue_to_project is idempotent.
+        add_issue_to_project(existing["url"])
         return 0
 
     title = f"{item}: {title_for_item(item)}"
@@ -1126,6 +1131,13 @@ def cmd_promote_to_epic(args: argparse.Namespace) -> int:
     # Ensure epic label.
     run(["gh", "issue", "edit", str(parent_number), "--add-label", "epic"], check=False)
 
+    # Make sure the parent epic itself lands on the GitHub Project. The
+    # board-add for sub-items happens through cmd_create_issue below;
+    # the parent was previously the only thing that got renamed in
+    # place without ever being added to the project.
+    if parent_issue.get("url"):
+        add_issue_to_project(parent_issue["url"])
+
     # Optional retro-sync: refresh epic body from the detail file. The
     # tasklist injection further down still runs and re-adds the
     # Sub-Issues section on top of the refreshed body.
@@ -1191,6 +1203,14 @@ def cmd_promote_to_epic(args: argparse.Namespace) -> int:
                 print(f"[promote-to-epic] branch renamed '{cur}' -> '{target}'")
             except subprocess.CalledProcessError as e:
                 print(f"[promote-to-epic] branch rename failed: {e.stderr}", file=sys.stderr)
+
+    # Mirror BACKLOG Status to the project board for the epic and every
+    # sub-item we just touched. Without this step, freshly added items
+    # all keep the GitHub default status ("Backlog") regardless of what
+    # the BACKLOG row says.
+    cmd_sync_status(argparse.Namespace(item=item))
+    for sub_id, _ in sub_refs:
+        cmd_sync_status(argparse.Namespace(item=sub_id))
 
     return 0
 
@@ -1437,6 +1457,84 @@ def rewrite_ids_in_text(text: str, mapping: dict[str, str]) -> str:
     return pattern.sub(replace, text)
 
 
+# ---------- Subcommand: sync-project-status -----------------------------
+
+def list_all_backlog_items() -> list[str]:
+    """Return every actionable backlog item id (EPIC, FEAT, IMP, FIX) in
+    document order. Epic ids picked up from both the `### EPIC-NN:`
+    headings and any table rows that name them.
+    """
+    bl = backlog_path()
+    if not bl.exists():
+        return []
+    text = bl.read_text(encoding="utf-8")
+    out: list[str] = []
+    seen: set[str] = set()
+    row_re = re.compile(r"^\|\s*((?:EPIC|FEAT|FIX|IMP)-\d{2}(?:-\d{2}){0,2})\s*\|")
+    head_re = re.compile(r"^###\s+(EPIC-\d{2})", re.MULTILINE)
+    for line in text.splitlines():
+        m = row_re.match(line)
+        if m and m.group(1) not in seen:
+            seen.add(m.group(1))
+            out.append(m.group(1))
+    for m in head_re.finditer(text):
+        if m.group(1) not in seen:
+            seen.add(m.group(1))
+            out.append(m.group(1))
+    return out
+
+
+def cmd_sync_project_status(args: argparse.Namespace) -> int:
+    """Bulk-mirror BACKLOG Status onto the GitHub Project status field.
+
+    Three scope modes (mutually exclusive):
+      --item ID    sync exactly one backlog item.
+      --epic ID    sync the epic and every FEAT/IMP/FIX it owns.
+      --all        sync every actionable backlog item (EPIC/FEAT/IMP/FIX).
+
+    Each item is run through cmd_sync_status, which already covers the
+    GitHub status field, the issue open/close state, and the Claim
+    column. This subcommand exists so users can backfill an existing
+    project board after promote-to-epic ran without status sync.
+    """
+    if not mode_active_or_skip("sync-status"):
+        return 0
+    if not gh_repo_configured():
+        print("[sync-project-status] gh CLI / GitHub remote not configured -- skipping")
+        return 0
+
+    items: list[str] = []
+    if args.item:
+        items.append(normalize_item(args.item))
+    elif args.epic:
+        epic = normalize_item(args.epic)
+        if not epic.startswith("EPIC-"):
+            print(f"[sync-project-status] --epic must be EPIC-NN, got {epic}", file=sys.stderr)
+            return 1
+        items.append(epic)
+        epic_nn = epic.split("-", 1)[1]
+        items.extend(find_backlog_sub_items(epic_nn))
+    elif args.all:
+        items = list_all_backlog_items()
+    else:
+        print("[sync-project-status] one of --item, --epic, --all is required", file=sys.stderr)
+        return 1
+
+    if not items:
+        print("[sync-project-status] no items to sync")
+        return 0
+
+    print(f"[sync-project-status] syncing {len(items)} item(s)")
+    failed = 0
+    for item in items:
+        rc = cmd_sync_status(argparse.Namespace(item=item))
+        if rc != 0:
+            failed += 1
+    ok = len(items) - failed
+    print(f"[sync-project-status] done: {ok} synced, {failed} failed")
+    return 0 if failed == 0 else 1
+
+
 # ---------- Subcommand: validate-fix ------------------------------------
 
 FIX_ID_RE = re.compile(r"^FIX-\d{2}-\d{2}-\d{2}$")
@@ -1628,6 +1726,17 @@ def main() -> int:
     p9.add_argument("--plan", required=True,
                     help="path to the JSON plan file written by renumber-for-merge.py")
     p9.set_defaults(func=cmd_apply_renumber)
+
+    p10 = sub.add_parser(
+        "sync-project-status",
+        help="Bulk-mirror BACKLOG Status to the GitHub Project status field for one item, an epic and its sub-items, or every backlog item.",
+    )
+    p10_group = p10.add_mutually_exclusive_group(required=True)
+    p10_group.add_argument("--item", help="single backlog item id (EPIC-NN, FEAT-EE-FF, IMP-EE-FF-NN, FIX-EE-FF-NN)")
+    p10_group.add_argument("--epic", help="EPIC-NN -- sync the epic plus all its FEAT/IMP/FIX sub-items")
+    p10_group.add_argument("--all", action="store_true",
+                           help="sync every actionable backlog item")
+    p10.set_defaults(func=cmd_sync_project_status)
 
     args = p.parse_args()
     return args.func(args)
