@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 """DIA migration -- Phase 3: filename migration to v2 ID schemas.
 
-Renames artifact files and updates references in `_devprocess/` and
-`src/ARCHITECTURE.map`. Two-pass:
+Renames artifact files and updates references in `_devprocess/`,
+`src/ARCHITECTURE.map`, and source / test / doc trees. Three passes:
 
 Pass 1: file renames + reference replacement using the rename map.
 Pass 2: catch-all regex sweep for IDs that have no corresponding file
         (legacy in-prose references like EPIC-023 that was never
         materialized).
+Pass 3: source-tree sweep over `src/`, `tests/`, `docs/` (configurable)
+        so that code comments and out-of-_devprocess docs stop pointing
+        at legacy `FEATURE-NNNN` ids.
+
+Plus a thematic-sanity warning: when a `FEATURE-EE0F -> FEAT-EE-FF`
+rename collides with an existing FEAT-EE-FF row that already names a
+different feature, the rename is skipped and the conflict is surfaced.
 
 Idempotent. Run on a clean v2 repo -> zero changes.
 
@@ -23,13 +30,78 @@ import sys
 from pathlib import Path
 
 
-def collect_renames(root: Path) -> tuple[list[tuple[Path, Path]], dict[str, str]]:
+FEAT_BACKLOG_ROW_RE = re.compile(
+    r"^\|\s*(FEAT-\d{2}-\d{2}[a-z]?)\s*\|[^|]+\|\s*([^|]+?)\s*\|"
+)
+
+
+def parse_existing_feat_titles(root: Path) -> dict[str, str]:
+    """Map FEAT-EE-FF -> title from existing BACKLOG.md rows.
+
+    Used by the thematic-sanity warning. Empty when BACKLOG.md is
+    absent or no FEAT rows exist yet.
+    """
+    bl = root / "_devprocess" / "context" / "BACKLOG.md"
+    if not bl.is_file():
+        return {}
+    out: dict[str, str] = {}
+    for line in bl.read_text(encoding="utf-8").splitlines():
+        m = FEAT_BACKLOG_ROW_RE.match(line)
+        if not m:
+            continue
+        out[m.group(1)] = m.group(2).strip()
+    return out
+
+
+def slug_to_title(slug: str) -> str:
+    """Approximate reverse of slugification for fuzzy title compare."""
+    return re.sub(r"[-_]+", " ", slug).strip().lower()
+
+
+def title_match(slug_a: str, title_b: str) -> bool:
+    """Loose title comparison: token overlap of >= 50% counts as match.
+
+    Both inputs are normalised (lowercase, non-alphanumerics stripped)
+    and split into token sets. The cheap heuristic catches obvious
+    matches (`agent-sidebar-view` vs `Agent Sidebar View`) without
+    flagging cosmetic differences.
+    """
+    a_tokens = {t for t in re.split(r"[^a-z0-9]+", slug_to_title(slug_a)) if t}
+    b_tokens = {t for t in re.split(r"[^a-z0-9]+", title_b.strip().lower()) if t}
+    if not a_tokens or not b_tokens:
+        return False
+    overlap = a_tokens & b_tokens
+    return len(overlap) >= max(1, min(len(a_tokens), len(b_tokens)) // 2)
+
+
+def collect_renames(
+    root: Path,
+) -> tuple[list[tuple[Path, Path]], dict[str, str], list[tuple[str, str, str, str]]]:
     renames: list[tuple[Path, Path]] = []
     id_remap: dict[str, str] = {}
+    existing_titles = parse_existing_feat_titles(root)
+    skipped: list[tuple[str, str, str, str]] = []
 
     def add(old_fp: Path, new_name: str, old_id: str, new_id: str) -> None:
         renames.append((old_fp, old_fp.parent / new_name))
         id_remap[old_id] = new_id
+
+    def add_feature_safe(
+        old_fp: Path, new_name: str, old_id: str, new_id: str, source_slug: str,
+    ) -> None:
+        """Like add(), but skips the rename when new_id already names a
+        thematically different feature in the BACKLOG.
+
+        The legacy `FEATURE-EE0F -> FEAT-EE-FF` mapping is purely
+        positional. When two unrelated features share the same numeric
+        prefix (collision after EE/FF reshape), silently overwriting
+        loses the original feature. We surface the conflict instead.
+        """
+        existing = existing_titles.get(new_id)
+        if existing and not title_match(source_slug, existing):
+            skipped.append((old_id, new_id, source_slug, existing))
+            return
+        add(old_fp, new_name, old_id, new_id)
 
     devp = root / "_devprocess"
     if not devp.is_dir():
@@ -64,7 +136,12 @@ def collect_renames(root: Path) -> tuple[list[tuple[Path, Path]], dict[str, str]
             else:
                 ee, ff = 0, int(num)
             new_name = f"FEAT-{ee:02d}-{ff:02d}{suffix}-{slug}.md"
-            add(fp, new_name, f"FEATURE-{num}{suffix}", f"FEAT-{ee:02d}-{ff:02d}{suffix}")
+            add_feature_safe(
+                fp, new_name,
+                f"FEATURE-{num}{suffix}",
+                f"FEAT-{ee:02d}-{ff:02d}{suffix}",
+                slug,
+            )
 
     # FIXes
     fixes_dir = devp / "requirements/fixes"
@@ -190,7 +267,7 @@ def collect_renames(root: Path) -> tuple[list[tuple[Path, Path]], dict[str, str]
                         f"{prefix}-{ee:02d}-{ff:02d}-{nn:02d}",
                     )
 
-    return renames, id_remap
+    return renames, id_remap, skipped
 
 
 def warn_legacy_generic_ba(root: Path) -> None:
@@ -274,12 +351,59 @@ def apply_replacements_pass2(content: str) -> str:
     return content
 
 
+SOURCE_TREE_DIRS = ("src", "tests", "test", "docs", "lib", "app")
+SOURCE_TREE_EXTENSIONS = (
+    ".ts", ".tsx", ".js", ".jsx", ".py", ".go", ".rs",
+    ".java", ".kt", ".swift", ".cs", ".rb", ".sh", ".md",
+)
+
+
+def collect_source_tree_targets(root: Path) -> list[Path]:
+    """Files under src/, tests/, docs/, etc. that may carry legacy
+    `FEATURE-NNNN`-style IDs in code comments or out-of-_devprocess
+    docs. Excludes hidden dirs and common build artefact roots.
+    """
+    out: list[Path] = []
+    excluded = {".git", "node_modules", "dist", "build", ".venv", "venv", "__pycache__"}
+    for top in SOURCE_TREE_DIRS:
+        base = root / top
+        if not base.is_dir():
+            continue
+        for fp in base.rglob("*"):
+            if not fp.is_file():
+                continue
+            if any(part in excluded for part in fp.parts):
+                continue
+            if fp.suffix.lower() not in SOURCE_TREE_EXTENSIONS:
+                continue
+            out.append(fp)
+    return out
+
+
+def report_thematic_conflicts(skipped: list[tuple[str, str, str, str]]) -> None:
+    if not skipped:
+        return
+    print()
+    print(
+        "WARN thematic-mismatch (renames skipped, manual decision required):"
+    )
+    for old_id, new_id, source_slug, existing_title in skipped:
+        print(f"  - {old_id} -> {new_id}")
+        print(f"    Source slug:    {source_slug}")
+        print(f"    Existing title: {existing_title}")
+    print(
+        "  These pairs share a numeric prefix but appear to describe different "
+        "features. Renumber the source feature to a new unused FEAT-EE-FF "
+        "(under the correct epic) and rerun, or remove the existing row first."
+    )
+
+
 def main() -> int:
     root = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path.cwd().resolve()
 
     warn_legacy_generic_ba(root)
 
-    renames, id_remap = collect_renames(root)
+    renames, id_remap, skipped = collect_renames(root)
     sorted_remap = sorted(id_remap.items(), key=lambda x: -len(x[0]))
 
     print(f"Rename plan: {len(renames)} files")
@@ -320,6 +444,33 @@ def main() -> int:
             fp.write_text(updated, encoding="utf-8")
             pass2_count += 1
     print(f"Pass 2 (catch-all sweep) updated {pass2_count} files")
+
+    # Pass 3: source tree (src/, tests/, docs/, ...). Code comments
+    # and out-of-_devprocess docs were untouched before; legacy
+    # `FEATURE-NNNN` markers used to survive the migration silently.
+    pass3_count = 0
+    pass3_files: list[str] = []
+    for fp in collect_source_tree_targets(root):
+        try:
+            original = fp.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        updated = apply_replacements_pass1(original, sorted_remap)
+        updated = apply_replacements_pass2(updated)
+        if updated != original:
+            fp.write_text(updated, encoding="utf-8")
+            pass3_count += 1
+            try:
+                pass3_files.append(str(fp.relative_to(root)))
+            except ValueError:
+                pass3_files.append(str(fp))
+    print(f"Pass 3 (source-tree sweep) updated {pass3_count} files")
+    for path in pass3_files[:50]:
+        print(f"  - {path}")
+    if len(pass3_files) > 50:
+        print(f"  ... and {len(pass3_files) - 50} more")
+
+    report_thematic_conflicts(skipped)
 
     return 0
 
