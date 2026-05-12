@@ -33,18 +33,19 @@ respects the `mode` setting:
 
 - `off`: GitHub-only subcommands (`create-issue`, `open-draft-pr`,
   `ready-for-review`, `sync-status`, `promote-to-epic`,
-  `apply-renumber`) are no-ops. `tag-phase` and `status` are also
-  no-ops in `off` per the three-modes contract. Exception:
-  `validate-fix` runs its local checks (BACKLOG row, commit cite,
-  FIXME stub markers) in every mode; only the GitHub-issue check
-  is skipped in `off` and `git-only`.
+  `initial-sync`, `apply-renumber`) are no-ops. `tag-phase` and
+  `status` are also no-ops in `off` per the three-modes contract.
+  Exceptions: `validate-fix` runs its local checks (BACKLOG row,
+  commit cite, FIXME stub markers) in every mode; `preflight` is
+  read-only and runs in every mode (it warns when the mode is not
+  `github-sync`).
 - `git-only`: GitHub-only subcommands stay no-ops. `tag-phase` and
   `status` work locally so phase-end commits keep their tags.
   `validate-fix` runs the local checks; the GitHub-issue check is
-  skipped.
+  skipped. `preflight` runs.
 - `github-sync`: full behaviour. Issues, PRs, project field,
-  tasklist rollups, `validate-fix` GitHub-issue check, and the
-  post-merge `apply-renumber` all sync.
+  tasklist rollups, `initial-sync` bulk onboarding, `validate-fix`
+  GitHub-issue check, and the post-merge `apply-renumber` all sync.
 
 If `.dia/config.toml` is missing, the script falls back to
 `git-only` for backwards compatibility with setups created before
@@ -61,10 +62,13 @@ stage 1.
 | `status`             | `/dia-guide` post-phase audit, or user query                                |
 | `sync-status`        | After every Handoff Ritual; mirrors backlog Status to issue / project      |
 | `promote-to-epic`    | After RE finishes for a new EPIC; renames parent, creates sub-issues       |
+| `preflight`          | Before a bulk sync; read-only checks (project reachable, labels, vocab, ...) |
+| `initial-sync`       | Once after `/reverse-engineering` or `/dia-migration`; bulk-onboard the backlog |
 | `validate-fix`       | After a hotfix lands; hotfix-scoped consistency check                      |
 
-All subcommands take `--item <ID>` (e.g. `--item FEAT-04-09`) and
-are idempotent.
+Most subcommands take `--item <ID>` (e.g. `--item FEAT-04-09`) and
+are idempotent. `preflight` and `initial-sync` operate on the whole
+backlog and take no `--item`.
 
 ## Quick reference
 
@@ -94,6 +98,13 @@ python3 tools/github-integration/flow.py sync-status --item FEAT-04-09
 # Once per new EPIC after RE: rename parent, create sub-issues
 python3 tools/github-integration/flow.py promote-to-epic \
   --item EPIC-04 --rename-branch
+
+# Before a bulk sync of a migrated / reverse-engineered backlog
+python3 tools/github-integration/flow.py preflight
+
+# Bulk-onboard the whole backlog onto GitHub (runs preflight first)
+python3 tools/github-integration/flow.py initial-sync --dry-run   # preview
+python3 tools/github-integration/flow.py initial-sync             # execute
 ```
 
 ## sync-status: backlog Status mirrored to GitHub
@@ -104,8 +115,13 @@ status vocabulary: `Backlog`, `Ready`, `In Progress`, `In Review`,
 
 - the GitHub issue state: `Done` closes the issue, every other
   status reopens it
-- the configured GitHub Project Status field: same value, no
-  translation
+- the configured GitHub Project Status field: same value, matched
+  case-insensitively against the project's option names so a
+  backlog `In Progress` lands on GitHub's built-in `In progress`.
+  When the project field cannot be set, `sync-status` prints the
+  precise reason (`reason=option_missing`, `reason=item_list_failed`,
+  ...) instead of a blanket "not configured", so a rate-limited or
+  mis-scoped run is not mistaken for an unconfigured one.
 - the BACKLOG Claim column: `sync-status` reads the GitHub
   Assignee and writes `{login} @ {YYYY-MM-DD}` back. When the
   status is `Done` or no assignee is set, the Claim column is
@@ -172,21 +188,92 @@ or more FEATs / IMPs.
 
 ```
 python3 tools/github-integration/flow.py promote-to-epic \
-  --item EPIC-NN [--parent-issue 42] [--rename-branch]
+  --item EPIC-NN [--parent-issue 42] [--rename-branch] \
+  [--no-sync-bodies] [--dry-run]
 ```
 
 Steps:
 
 1. Renames the parent issue title to `EPIC-NN: <title>`. Adds the
-   `epic` label.
-2. Creates sub-issues for every `FEAT-NN-*` and `IMP-NN-*-*` row in
-   the BACKLOG (skips already-existing ones).
-3. Writes a `## Sub-Issues` tasklist into the parent body so GitHub
-   tracks the rollup automatically.
-4. With `--rename-branch`: renames the current feature branch to
+   `epic` label and puts the epic on the configured project board.
+2. Mirrors the epic body from `_devprocess/requirements/epics/EPIC-NN-*.md`
+   (default; `--no-sync-bodies` skips it). A detail file that is still
+   a reverse-engineering skeleton is replaced by a short stub instead
+   of pushing placeholder content, with a warning.
+3. Creates sub-issues for every `FEAT-NN-*`, `FIX-NN-*-*` and
+   `IMP-NN-*-*` row in the BACKLOG (skips already-existing ones), then
+   links them as real GitHub sub-issues. The freshly created issue
+   number is used directly, so a lagging search index never drops a
+   new sub-issue from the rollup.
+4. Refreshes a `## Sub-Issues` tasklist inside
+   `<!-- DIA:sub-issues -->` / `<!-- /DIA:sub-issues -->` markers at
+   the end of the parent body. Content outside the markers (the epic
+   description) is preserved verbatim, so a re-run can never leave the
+   epic body with only the tasklist.
+5. Mirrors the BACKLOG Status to the project board for the epic and
+   every sub-item (one project scan via the per-run cache, not one per
+   item).
+6. With `--rename-branch`: renames the current feature branch to
    `feature/epic-NN-<slug>`. No-op if it already matches.
 
+`--dry-run` prints what would happen using read-only lookups only.
 Idempotent. Safe to re-run.
+
+## preflight
+
+Read-only validation to run before a bulk sync (after
+`/reverse-engineering` or `/dia-migration` leaves a backlog with
+dozens of items). Makes no changes.
+
+```
+python3 tools/github-integration/flow.py preflight [--strict]
+```
+
+Checks:
+
+- `gh` reachable, a GitHub remote is configured, and the workflow
+  mode is `github-sync`.
+- The configured GitHub Project is reachable (`gh project view`),
+  including the `gh auth refresh -s project` scope hint.
+- The project Status field exists and has an option for every
+  BACKLOG status the backlog uses (case-insensitive: `In Progress`
+  matches GitHub's built-in `In progress`).
+- The repo labels `gh issue create` needs (`epic`, `phase:planned`,
+  the type and priority labels) exist, with `gh label create`
+  fix-it lines for any that are missing.
+- The BACKLOG Title column carries no doubled id prefix.
+- A small sample (<= 5) of items that already link an issue: backlog
+  status vs. issue open/closed state.
+- The GraphQL rate budget against a rough estimate of a full sync.
+
+Exit code is 1 on blockers (missing labels, project unreachable,
+unmapped status, no Status field). Warnings alone exit 0 unless
+`--strict`.
+
+## initial-sync
+
+Bulk-onboard an existing backlog onto GitHub in one resumable pass.
+flow.py is otherwise built for the incremental Handoff Ritual (one
+item per phase transition); `initial-sync` is the path for a backlog
+that never went through that ritual.
+
+```
+python3 tools/github-integration/flow.py initial-sync [--dry-run] [--skip-preflight]
+```
+
+What it does:
+
+1. Runs `preflight`; aborts on blockers unless `--skip-preflight`.
+2. For each EPIC: creates the epic issue if it does not exist, then
+   runs `promote-to-epic` (sub-issues created and linked, bodies
+   mirrored, status synced).
+3. For each standalone FEAT / FIX / IMP (one whose epic number has no
+   `EPIC-NN` row): `create-issue` then `sync-status`.
+
+`--dry-run` prints the full plan without touching GitHub. Idempotent
+and resumable: a re-run skips items that already have an issue. The
+per-run project caches keep the cost to a couple of project scans
+rather than one per item.
 
 ## Tag schema
 

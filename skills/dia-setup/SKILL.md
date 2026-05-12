@@ -9,7 +9,9 @@ This skill is the activation and configuration entry point for the
 Digital Innovation Agents plugin in a user project. It manages a
 single configuration file (`.dia/config.toml`) and a set of anchor
 blocks in agent-facing files. It does not run any phase skill, does
-not read or modify the backlog, and does not call flow.py.
+not read or modify the backlog, and does not invoke flow.py. The
+only external command it may run is a read-only `gh project view`
+reachability check when the user configures a GitHub Project number.
 
 The skill is split into two paths driven by a single check at the
 start: does `.dia/config.toml` already exist? If no, run the
@@ -71,6 +73,27 @@ the field `mode`:
    issue itself still syncs, only the project Status field stays
    untouched.
 
+   **Pre-flight (only when a project number was given).** Before
+   writing the config, verify the project is reachable:
+
+   ```
+   gh project view <N> --owner <owner-or-resolved-repo-owner> --format json
+   ```
+
+   - Success: continue, mention the project title back to the user.
+   - Failure mentioning a missing scope (`gh` says the token lacks
+     the `project` scope): tell the user to run
+     `gh auth refresh -s project`, then offer to retry or to write
+     the config anyway (the number is stored regardless; the sync
+     just stays a no-op until the scope is granted).
+   - Other failure (wrong number, no access, project under a
+     different owner): surface the `gh` error verbatim, ask whether
+     to correct the number / owner now or store it as-is.
+
+   Do not block on this check; its only job is to catch the
+   `gh auth refresh -s project` stumbling block at setup time
+   instead of at the first sync.
+
 5. **Write configuration.** Create `.dia/` directory if missing and
    write `.dia/config.toml` from the template
    `skills/dia-setup/templates/dia-config.toml.tmpl`, substituting
@@ -88,6 +111,12 @@ the field `mode`:
    - that `/dia-setup` can be re-run any time to change the mode
    - a hint that `/dia-guide` is the natural next step for actual
      work
+   - when `mode = github-sync` AND `_devprocess/context/BACKLOG.md`
+     already has rows (a brownfield project just migrated or
+     reverse-engineered): point at
+     `python3 tools/github-integration/flow.py preflight` (read-only
+     checks) and `... flow.py initial-sync` (bulk onboarding) rather
+     than syncing items one by one.
 
 ## Reconfigure flow (`.dia/config.toml` exists)
 
@@ -109,7 +138,10 @@ the field `mode`:
 
    - **Change mode**: ask new mode (Pro/Con per option), update
      `.dia/config.toml`, run
-     `python3 tools/dia-setup/anchor.py write --mode <new>`.
+     `python3 tools/dia-setup/anchor.py write --mode <new>`. When the
+     new mode is `github-sync` and a project number is configured (or
+     the user supplies one now), run the same `gh project view`
+     pre-flight as activation step 4 and surface the result.
    - **Refresh anchor blocks**: run anchor.py write with the
      existing mode and existing anchor_files list.
    - **Add or remove anchor files**: ask multiSelect with all known
