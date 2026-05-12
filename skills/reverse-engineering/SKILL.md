@@ -725,6 +725,33 @@ Reverse-engineered findings go into the **Standalone Items** section
 - `Evidence = path:line` or short description
 - `Typ = Chore` (or `Security` for audit findings, `Bug-Followup` for
  failing or skipped tests)
+- `Notes` carries `needs verification: code-vs-doc` for every REV
+ finding. Phase 7 clears this marker (it sets the finding to `Done`
+ if the target turns out to be already satisfied, or removes the
+ marker once it has confirmed the gap is real).
+
+**Title column = bare title only, NEVER an id prefix.** The ID lives
+in its own first column; `flow.py` builds the GitHub issue title as
+`<id>: <title>`, so a Title cell like `IMP-01-01-08: ensureColumn ...`
+would produce `IMP-01-01-08: IMP-01-01-08: ensureColumn ...` on the
+issue. Write `ensureColumn ...` in the Title cell. (`flow.py` strips a
+leading id prefix defensively, but the backlog must not rely on that.)
+
+**Verify before you file.** Do not create a REV finding for a target
+that the current repo already satisfies. For every candidate finding,
+check both the code AND the docs as they stand now:
+
+- "Add timeout table to arc42 §6" - first read arc42 §6. If the table
+ is already there, drop the finding.
+- "Add CI security scan" - first read the workflow files. If a scan
+ step exists, drop the finding.
+- "Document env var X" - first grep `.env.example` and the README. If
+ it is documented, drop the finding.
+
+A finding that survives this check still gets `needs verification:
+code-vs-doc` in Notes, because Phase 7 re-checks it once with fresh
+eyes; the in-line check here just keeps obvious non-issues out of the
+backlog in the first place.
 
 If this skill seeds the backlog file itself, copy the template
 headers (Dashboard, Legende, Standalone Items, Traceability) first
@@ -807,10 +834,30 @@ patterns:
  as Planned with `needs refinement: Scope-Entscheidung` and
  escalate to the PO via the User Interaction Protocol.
 
-The gate is non-destructive. It does not rewrite artifacts, it
-attaches verification evidence. After the gate, the Backlog
-Dashboard shows real Phase counts and the Handoff Ritual reports
-honest numbers.
+**Verify the Phase-5 findings too.** Every Standalone row with
+`Source = REV` carries `needs verification: code-vs-doc` from Phase 5.
+For each one, check whether the stated target is already met in the
+current repo (read the code AND the doc the finding points at, do not
+trust the Phase-5 note):
+
+- Target already satisfied -> set the row `Status = Done`,
+ `Phase = Released`, remove the `needs verification` marker, add a
+ one-line note `verified {date}: already present in <path/section>`.
+- Gap confirmed -> remove only the `needs verification: code-vs-doc`
+ marker; leave `Status = Backlog`. Add `verified {date}` to Notes.
+- Cannot decide without a product call -> keep the marker, append
+ `needs refinement: {reason}` and escalate via the User Interaction
+ Protocol.
+
+Do not let a finding reach GitHub (via `flow.py initial-sync` /
+`promote-to-epic`) while it still carries `needs verification:
+code-vs-doc`; that marker is the signal that Phase 7 has not run yet.
+
+The gate is non-destructive for FEATURE/ADR artifacts (it attaches
+verification evidence, it does not rewrite them) but it DOES update
+the Backlog rows of REV findings as described above. After the gate,
+the Backlog Dashboard shows real Phase counts and the Handoff Ritual
+reports honest numbers.
 
 ### Phase 8: Graph-Konsistenz-Check (added 2026-04-20)
 

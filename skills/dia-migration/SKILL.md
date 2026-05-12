@@ -306,6 +306,13 @@ status, phase, claim, and Refs.
 
 - One row per Feature, Fix, Improvement, ADR, Plan.
 - Epics are section headers, not rows.
+- The Title column holds the bare title only, never an id prefix. A
+  detail file whose H1 is `# IMP-01-01-08: ensureColumn ...` produces
+  Title `ensureColumn ...`, not `IMP-01-01-08: ensureColumn ...` (the
+  id already lives in the first column; `flow.py` would otherwise emit
+  a doubled `IMP-01-01-08: IMP-01-01-08: ...` issue title).
+  `build_backlog.py` strips the prefix for every type at one choke
+  point; do not hand-write prefixed titles either.
 - Status defaults from heuristics:
   - Features in epics 01-22 (or whatever ranges the user marks as
     "shipped") default to Done/Released.

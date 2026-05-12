@@ -29,6 +29,34 @@ def get_first_h1(content: str) -> str:
     return ""
 
 
+def strip_self_prefix(title: str, item_id: str) -> str:
+    """Drop a leading `<item_id>:` / `[<item_id>]` / `<item_id> -` prefix.
+
+    The BACKLOG Title column must hold the bare title only. flow.py
+    builds the GitHub issue title as `<id>: <title>`, so a Title cell
+    like `IMP-01-01-08: ensureColumn ...` would yield
+    `IMP-01-01-08: IMP-01-01-08: ensureColumn ...` on the issue.
+    """
+    if not title or not item_id:
+        return title
+    esc = re.escape(item_id)
+    patterns = (
+        re.compile(rf"^\s*\[\s*{esc}\s*\]\s*[:\-]?\s*"),
+        re.compile(rf"^\s*{esc}\s*[:\-]\s*"),
+        re.compile(rf"^\s*{esc}\s*$"),
+    )
+    cleaned = title
+    changed = True
+    while changed:
+        changed = False
+        for p in patterns:
+            new = p.sub("", cleaned, count=1)
+            if new != cleaned:
+                cleaned, changed = new, True
+                break
+    return cleaned.strip() or title
+
+
 def ba_ref_to_id(ref: str | list | None) -> str | None:
     """Extract a short BA id (`BA-EPIC-04`, `BA-FEAT-04-02`, ...) from a
     `ba-ref:` value. Returns None when the value is missing or unparseable.
@@ -183,6 +211,10 @@ def collect(root: Path, overrides: dict) -> list[dict]:
         return art
 
     def add(**kw):
+        # Single choke point: the Title column never carries an id
+        # prefix, whatever the per-type heuristics produced above.
+        if kw.get("title") and kw.get("id"):
+            kw["title"] = strip_self_prefix(kw["title"], kw["id"])
         art.append(kw)
 
     # EPICs
