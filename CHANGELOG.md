@@ -5,6 +5,22 @@ All notable changes to digital-innovation-agents are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- `tools/consistency-check.py`: ID-parsing regexes hardcoded two-digit
+  number components (`ADR-\d{2}`, `EPIC-\d{2}`, `FEAT-\d{2}-\d{2}`,
+  `FIX/IMP-\d{2}-...`, `PLAN-\d{2}`, the `BA-*` file-name patterns and
+  the backlog-row ID matchers). A downstream project with 100+ ADRs
+  (`ADR-100`..`ADR-117`) hit this: every three-digit ADR row was
+  flagged `orphan-backlog-row` ("no matching artifact file") even
+  though the files existed, because the row ID never parsed. Widened
+  the epic-number component to `\d{2,3}` everywhere. The pre-commit
+  hook copy (`.git/hooks-data/consistency-check.py`) has the same
+  patterns; the installer copies the fixed driver, but existing
+  installs should re-run `tools/install-git-hooks.sh`.
+
 ## [3.5.4] - 2026-05-12
 
 Live-run feedback against a downstream project (a downstream project): a
