@@ -226,8 +226,14 @@ Read-only validation to run before a bulk sync (after
 dozens of items). Makes no changes.
 
 ```
-python3 tools/github-integration/flow.py preflight [--strict]
+python3 tools/github-integration/flow.py preflight [--strict] \
+    [--owner LOGIN] [--project N] [--status-field NAME] [--repo owner/name]
 ```
+
+The `--owner` / `--project` / `--status-field` / `--repo` flags
+override the `[github]` config block for the run (same as on
+`initial-sync`), so you can validate a project before it is wired
+into `.dia/config.toml`.
 
 Checks:
 
@@ -258,7 +264,10 @@ item per phase transition); `initial-sync` is the path for a backlog
 that never went through that ritual.
 
 ```
-python3 tools/github-integration/flow.py initial-sync [--dry-run] [--skip-preflight]
+python3 tools/github-integration/flow.py initial-sync \
+    [--dry-run] [--skip-preflight] \
+    [--start-epic EPIC-NN] [--end-epic EPIC-NN] \
+    [--owner LOGIN] [--project N] [--status-field NAME] [--repo owner/name]
 ```
 
 What it does:
@@ -270,10 +279,31 @@ What it does:
 3. For each standalone FEAT / FIX / IMP (one whose epic number has no
    `EPIC-NN` row): `create-issue` then `sync-status`.
 
-`--dry-run` prints the full plan without touching GitHub. Idempotent
-and resumable: a re-run skips items that already have an issue. The
-per-run project caches keep the cost to a couple of project scans
-rather than one per item.
+`sync-status` closes the issue of any item at `Status: Done`, so a
+freshly onboarded backlog does not leave finished work in the open
+issue list (issue #18). `--dry-run` prints the full plan without
+touching GitHub. Idempotent and resumable: a re-run skips items that
+already have an issue. The per-run project caches keep the cost to a
+couple of project scans rather than one per item.
+
+`--start-epic` / `--end-epic` restrict the run to an inclusive epic
+range. A rate-limited account (the GitHub GraphQL budget is ~5000
+points/hour) can onboard a large backlog in batches:
+
+```
+python3 tools/github-integration/flow.py initial-sync --start-epic EPIC-01 --end-epic EPIC-04
+# wait for the hourly reset, then:
+python3 tools/github-integration/flow.py initial-sync --start-epic EPIC-05 --end-epic EPIC-08
+```
+
+With an epic range, standalone (epic-less) items are skipped; run
+once without a range to pick them up.
+
+`--owner` / `--project` / `--status-field` / `--repo` override the
+`[github]` config block for one run, so you can onboard a project you
+have not configured in `.dia/config.toml`. `--repo owner/name` sets
+`GH_REPO` for the process; `--owner` doubles as the project owner.
+The same four flags work on `preflight`.
 
 ## Tag schema
 
