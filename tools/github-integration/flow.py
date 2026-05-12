@@ -13,6 +13,8 @@ Subcommands:
     sync-status         Mirror BACKLOG Status to issue and project.
     sync-project-status Bulk-sync BACKLOG Status to the project board.
     promote-to-epic     Rename parent, create sub-issues, tasklist.
+    preflight           Read-only checks before a GitHub bulk sync.
+    initial-sync        Bulk-onboard an existing backlog onto GitHub.
     validate-fix        Hotfix-scoped consistency check.
     open-draft-pr       Open a draft PR for the item branch.
     ready-for-review    Flip the draft PR to ready and tag ready-for-review.
@@ -32,6 +34,7 @@ Usage:
 from __future__ import annotations
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -113,7 +116,42 @@ def _toml_string_fallback(key: str, text: str) -> str | None:
     return match.group(1) if match.group(1) is not None else match.group(2)
 
 
+# CLI overrides for the [github] config block. The bulk subcommands
+# (initial-sync, preflight) accept --owner / --project / --status-field
+# so a user can point at a different board without editing
+# .dia/config.toml. set_github_config_override() fills this; an empty
+# dict means "use the file as-is". A --repo override is applied
+# separately via the GH_REPO environment variable, which `gh` honours.
+_GITHUB_CONFIG_OVERRIDE: dict = {}
+
+
+def set_github_config_override(*, owner: str | None = None,
+                               project: int | None = None,
+                               status_field: str | None = None,
+                               repo: str | None = None) -> None:
+    """Layer CLI overrides on top of the [github] config block.
+
+    `repo` (owner/name) is exported as GH_REPO so every `gh` call in
+    this process targets it; `owner` doubles as the project owner when
+    no `--owner` of its own is given alongside a `--repo`.
+    """
+    if owner:
+        _GITHUB_CONFIG_OVERRIDE["project_owner"] = owner
+    if project is not None:
+        _GITHUB_CONFIG_OVERRIDE["project_number"] = project
+    if status_field:
+        _GITHUB_CONFIG_OVERRIDE["status_field"] = status_field
+    if repo:
+        slug = repo if "/" in repo else (f"{owner}/{repo}" if owner else repo)
+        os.environ["GH_REPO"] = slug
+
+
 def read_dia_github_config() -> dict:
+    """[github] config block, with any CLI overrides layered on top."""
+    return {**_read_dia_github_config_raw(), **_GITHUB_CONFIG_OVERRIDE}
+
+
+def _read_dia_github_config_raw() -> dict:
     """Read [github] section from .dia/config.toml. Returns {} on missing."""
     try:
         cfg = repo_root() / ".dia" / "config.toml"
@@ -267,10 +305,41 @@ def find_backlog_row(item: str) -> dict | None:
     return None
 
 
+def _strip_id_prefix(title: str, item: str) -> str:
+    """Drop a leading `ID:` / `[ID]` / `ID -` prefix from a title.
+
+    Defensive: the BACKLOG Title column must hold the bare title, but
+    /reverse-engineering and /dia-migration have been observed writing
+    `IMP-01-01-08: ensureColumn...` into it, which flow.py would then
+    expand into `IMP-01-01-08: IMP-01-01-08: ensureColumn...` on the
+    GitHub issue. Strip one or more such prefixes here as a backstop;
+    the writer skills carry the real fix. A bare title that merely
+    starts with the id text (no `:` / `-` / `[]` marker) is left alone.
+    """
+    if not title:
+        return title
+    esc = re.escape(item)
+    patterns = (
+        re.compile(rf"^\s*\[\s*{esc}\s*\]\s*[:\-]?\s*"),  # [ID] rest  /  [ID]: rest
+        re.compile(rf"^\s*{esc}\s*[:\-]\s*"),              # ID: rest   /  ID - rest
+        re.compile(rf"^\s*{esc}\s*$"),                     # ID  (alone)
+    )
+    cleaned = title
+    changed = True
+    while changed:
+        changed = False
+        for p in patterns:
+            stripped = p.sub("", cleaned, count=1)
+            if stripped != cleaned:
+                cleaned, changed = stripped, True
+                break
+    return cleaned.strip() or item
+
+
 def title_for_item(item: str) -> str:
     row = find_backlog_row(item)
     if row and len(row["cells"]) > 2:
-        return row["cells"][2]
+        return _strip_id_prefix(row["cells"][2], item)
     if item.startswith("EPIC-"):
         bl = backlog_path()
         if bl.exists():
@@ -281,7 +350,7 @@ def title_for_item(item: str) -> str:
                 flags=re.MULTILINE,
             )
             if m:
-                return m.group(1).strip()
+                return _strip_id_prefix(m.group(1).strip(), item)
     return item
 
 
@@ -417,13 +486,25 @@ def find_raw_issue_by_title(title: str) -> dict | None:
         normalised = re.sub(r"^EPIC-\d{2}:\s*", "", candidate_title).strip().lower()
         if normalised == needle:
             return issue
-    # Loose fallback: substring match.
+    # Loose fallback: substring match, but only when it is unambiguous.
+    # A short epic title that merely happens to be a substring of an
+    # unrelated issue must not cause that issue to be retitled. Require
+    # a minimum needle length and a >= 0.6 length-overlap ratio, and
+    # pick the best match rather than the first.
+    if len(needle) < 8:
+        return None
+    best: dict | None = None
+    best_ratio = 0.0
     for issue in candidates:
         candidate_title = issue.get("title", "")
         normalised = re.sub(r"^EPIC-\d{2}:\s*", "", candidate_title).strip().lower()
+        if not normalised:
+            continue
         if needle in normalised or normalised in needle:
-            return issue
-    return None
+            ratio = min(len(needle), len(normalised)) / max(len(needle), len(normalised))
+            if ratio > best_ratio:
+                best, best_ratio = issue, ratio
+    return best if best_ratio >= 0.6 else None
 
 
 # ---------- GitHub sub-issue linking ------------------------------------
@@ -490,6 +571,44 @@ def link_sub_issue(parent_number: int, child_number: int) -> bool:
 
 # ---------- Subcommand: create-issue ------------------------------------
 
+def _issue_number_from_url(url: str) -> int | None:
+    """Parse the trailing issue number out of a GitHub issue URL."""
+    m = re.search(r"/issues/(\d+)\b", url or "")
+    return int(m.group(1)) if m else None
+
+
+def create_issue_for_item(item: str) -> dict | None:
+    """Create the GitHub issue for `item`; return a minimal issue dict.
+
+    Returns {"number", "url", "title", "state"} on success, None on
+    failure. The caller must have checked that no issue exists yet.
+
+    Returning the freshly created issue lets callers (promote-to-epic,
+    initial-sync) skip a re-lookup via `gh issue list --search`, whose
+    index lags creation by a few seconds -- the cause of partial
+    sub-issue linking on a first bulk run.
+    """
+    title = f"{item}: {title_for_item(item)}"
+    body = build_issue_body(item)
+    labels = [type_label(item), priority_for_item(item), "phase:planned"]
+    cmd = ["gh", "issue", "create", "--title", title, "--body", body]
+    for lbl in labels:
+        cmd.extend(["--label", lbl])
+    try:
+        out = run(cmd).stdout.strip()
+    except subprocess.CalledProcessError as e:
+        print(f"[create-issue] gh issue create failed. stderr: {e.stderr}", file=sys.stderr)
+        return None
+    print(f"[create-issue] created: {out}")
+    write_issue_into_backlog(item, out)
+    add_issue_to_project(out)
+    number = _issue_number_from_url(out)
+    if number is None:
+        # URL did not parse; callers can still re-lookup by id later.
+        return None
+    return {"number": number, "url": out, "title": title, "state": "OPEN"}
+
+
 def cmd_create_issue(args: argparse.Namespace) -> int:
     item = normalize_item(args.item)
 
@@ -499,7 +618,6 @@ def cmd_create_issue(args: argparse.Namespace) -> int:
         print(f"[create-issue] gh CLI / GitHub remote not configured -- skipping (local-only mode)")
         return 0
 
-    body = build_issue_body(item)
     update_body = bool(getattr(args, "update_body", False))
 
     existing = find_issue_for_item(item)
@@ -510,7 +628,7 @@ def cmd_create_issue(args: argparse.Namespace) -> int:
         try:
             run([
                 "gh", "issue", "edit", str(existing["number"]),
-                "--body", body,
+                "--body", build_issue_body(item),
             ])
             print(f"[create-issue] body updated: {existing['url']}")
         except subprocess.CalledProcessError as e:
@@ -521,22 +639,7 @@ def cmd_create_issue(args: argparse.Namespace) -> int:
         add_issue_to_project(existing["url"])
         return 0
 
-    title = f"{item}: {title_for_item(item)}"
-    labels = [type_label(item), priority_for_item(item), "phase:planned"]
-
-    cmd = ["gh", "issue", "create", "--title", title, "--body", body]
-    for lbl in labels:
-        cmd.extend(["--label", lbl])
-    try:
-        out = run(cmd).stdout.strip()
-    except subprocess.CalledProcessError as e:
-        print(f"[create-issue] gh issue create failed. stderr: {e.stderr}", file=sys.stderr)
-        return 1
-
-    print(f"[create-issue] created: {out}")
-    write_issue_into_backlog(item, out)
-    add_issue_to_project(out)
-    return 0
+    return 0 if create_issue_for_item(item) else 1
 
 
 def add_issue_to_project(issue_url: str) -> None:
@@ -562,6 +665,11 @@ def add_issue_to_project(issue_url: str) -> None:
             "--owner", repo_owner, "--url", issue_url,
         ], check=False)
         print(f"[create-issue] added to project {project_number}")
+        # The per-run item-list cache no longer reflects the board.
+        try:
+            _invalidate_project_item_cache(int(project_number))
+        except (TypeError, ValueError):
+            _invalidate_project_item_cache()
     except subprocess.CalledProcessError:
         pass
 
@@ -573,6 +681,43 @@ BACKLOG_POINTER = (
 )
 
 
+# Markers that flag a detail file as a still-unfilled reverse-engineering
+# / pre-BA skeleton. Pushing such a body to GitHub looks like a broken
+# epic, so build_issue_body substitutes a short, honest stub instead and
+# the next sync (after /business-analysis filled the file) replaces it.
+_SKELETON_MARKERS = (
+    "[needs user input",
+    "[needs input]",
+    "> **status**: anticipated",
+    "anticipated (not yet validated)",
+    "needs-validation: true",
+    "**note**: skelett",
+    "kommt aus /business-analysis",
+    "kommen aus /business-analysis",
+    "/business-analysis will fill this in",
+    "awaiting validation in /business-analysis",
+)
+
+
+def _looks_like_skeleton(body: str) -> bool:
+    """True if the detail body still carries unfilled-skeleton markers."""
+    low = (body or "").lower()
+    return any(marker in low for marker in _SKELETON_MARKERS)
+
+
+def _skeleton_stub_body(item: str) -> str:
+    kind = type_label(item)
+    title = title_for_item(item)
+    return (
+        f"# {item}: {title}\n\n"
+        f"> The {kind} detail file under `_devprocess/requirements/` is "
+        f"still a reverse-engineering skeleton. Run `/business-analysis` "
+        f"(then `/requirements-engineering`) to fill in the real scope, "
+        f"hypothesis, and success criteria. The next `create-issue` / "
+        f"`promote-to-epic` run pushes the completed content here.\n"
+    )
+
+
 def build_issue_body(item: str) -> str:
     """Build the GitHub issue body for a backlog item.
 
@@ -580,12 +725,16 @@ def build_issue_body(item: str) -> str:
     `_devprocess/requirements/`. Status, phase, priority are NOT
     duplicated -- they live in the BACKLOG row and on GitHub via labels
     and the project board. When no detail file exists yet (typical
-    during retro-sync of legacy projects), the body degrades to a single
-    backlog pointer.
+    during retro-sync of legacy projects), or when the detail file is
+    still a reverse-engineering skeleton, the body degrades to a short
+    stub.
     """
     detail = find_detail_file(item)
     if detail is not None:
-        return BACKLOG_POINTER + "\n" + read_detail_body(detail)
+        body = read_detail_body(detail)
+        if _looks_like_skeleton(body):
+            return BACKLOG_POINTER + "\n" + _skeleton_stub_body(item)
+        return BACKLOG_POINTER + "\n" + body
     title = title_for_item(item)
     return (
         BACKLOG_POINTER
@@ -908,11 +1057,63 @@ def write_claim_into_backlog(item: str, claim: str) -> bool:
     return changed
 
 
-# Cache for project field metadata: project_number -> (fields list, owner).
-# field-list and item-list are independent of the issue under sync, so
-# caching them within one process saves a round trip per Handoff Ritual
-# when several items get synced in sequence.
+# Per-run caches for GitHub Project metadata. field-list and item-list
+# do not depend on the issue under sync, so caching them within one
+# process is the difference between O(items) and O(1) GraphQL scans
+# during a bulk onboarding -- promote-to-epic touches every sub-item of
+# an epic in one run, and initial-sync touches the whole backlog.
 _PROJECT_FIELD_CACHE: dict[int, tuple[list, str]] = {}
+_PROJECT_ITEM_CACHE: dict[int, list] = {}
+
+
+def _invalidate_project_item_cache(project_number: int | None = None) -> None:
+    """Drop the cached project item-list.
+
+    Call after the board membership changed (item-add). Without an
+    argument, clears every cached project.
+    """
+    if project_number is None:
+        _PROJECT_ITEM_CACHE.clear()
+    else:
+        _PROJECT_ITEM_CACHE.pop(project_number, None)
+
+
+def _project_fields(project_number: int, project_owner: str) -> list | None:
+    """Return the project's fields (cached per run), or None on failure."""
+    cached = _PROJECT_FIELD_CACHE.get(project_number)
+    if cached:
+        return cached[0]
+    try:
+        out = run([
+            "gh", "project", "field-list", str(project_number),
+            "--owner", project_owner, "--format", "json", "--limit", "200",
+        ]).stdout
+    except subprocess.CalledProcessError:
+        return None
+    fields = json.loads(out).get("fields", [])
+    _PROJECT_FIELD_CACHE[project_number] = (fields, project_owner)
+    return fields
+
+
+def _project_items(project_number: int, project_owner: str) -> list | None:
+    """Return the project's items (cached per run), or None on failure.
+
+    One `gh project item-list --limit 1000` per project per run. The
+    cache is invalidated by _invalidate_project_item_cache whenever an
+    issue is added to the board.
+    """
+    cached = _PROJECT_ITEM_CACHE.get(project_number)
+    if cached is not None:
+        return cached
+    try:
+        items = json.loads(run([
+            "gh", "project", "item-list", str(project_number),
+            "--owner", project_owner, "--format", "json", "--limit", "1000",
+        ]).stdout).get("items", [])
+    except subprocess.CalledProcessError:
+        return None
+    _PROJECT_ITEM_CACHE[project_number] = items
+    return items
 
 
 def _resolve_project_owner(cfg: dict) -> str | None:
@@ -931,77 +1132,83 @@ def _resolve_project_owner(cfg: dict) -> str | None:
         return None
 
 
-def update_project_status_field(issue_number: int, github_status: str) -> bool:
+# Reasons update_project_status_field can decline to touch the board.
+# Each is reported verbatim so a failed sync is never silently
+# misattributed to "not configured".
+_PROJECT_SKIP_REASONS = {
+    "not_configured": "no [github] project_number in .dia/config.toml",
+    "bad_project_number": "project_number in .dia/config.toml is not an integer",
+    "owner_unresolved": "could not resolve the project owner login",
+    "field_list_failed": "gh project field-list failed (auth scope? rate limit?)",
+    "field_missing": "the configured Status field does not exist on the project",
+    "option_missing": "the project Status field has no matching option for this status",
+    "item_list_failed": "gh project item-list failed (auth scope? rate limit?)",
+    "issue_not_in_project": "the issue is not a card on the project board",
+    "item_ids_missing": "could not resolve the project item / project id",
+    "item_edit_failed": "gh project item-edit failed",
+}
+
+
+def update_project_status_field(
+    issue_number: int, github_status: str,
+) -> tuple[bool, str | None]:
     """Update the Status field on the configured GitHub Project.
 
     Requires `[github] project_number = N` (and ideally
-    status_field = "Status") in .dia/config.toml. Returns True if the
-    project was touched, False if not configured.
+    status_field = "Status") in .dia/config.toml. The field name and
+    option name are matched case-insensitively so a backlog value like
+    "In Progress" maps onto GitHub's built-in "In progress" option.
+
+    Returns (True, None) on success, (False, reason) otherwise, where
+    reason is a key of _PROJECT_SKIP_REASONS. Callers turn the reason
+    into a single accurate log line.
     """
     cfg = read_dia_github_config()
     project_number = cfg.get("project_number")
     if not project_number:
-        return False
+        return False, "not_configured"
     try:
         project_number = int(project_number)
     except (TypeError, ValueError):
-        return False
+        return False, "bad_project_number"
     field_name = cfg.get("status_field", "Status")
     project_owner = _resolve_project_owner(cfg)
     if not project_owner:
-        print("[sync-status] could not resolve project owner; project field skipped",
-              file=sys.stderr)
-        return False
+        return False, "owner_unresolved"
 
-    # Use the field cache when possible.
-    cached = _PROJECT_FIELD_CACHE.get(project_number)
-    if cached:
-        fields, _ = cached
-    else:
-        try:
-            out = run([
-                "gh", "project", "field-list", str(project_number),
-                "--owner", project_owner, "--format", "json", "--limit", "200",
-            ]).stdout
-        except subprocess.CalledProcessError:
-            print("[sync-status] gh project field-list failed; project field skipped",
-                  file=sys.stderr)
-            return False
-        fields = json.loads(out).get("fields", [])
-        _PROJECT_FIELD_CACHE[project_number] = (fields, project_owner)
-
-    target_field = next((f for f in fields if f.get("name") == field_name), None)
+    fields = _project_fields(project_number, project_owner)
+    if fields is None:
+        return False, "field_list_failed"
+    target_field = next(
+        (f for f in fields
+         if str(f.get("name", "")).strip().casefold()
+         == field_name.strip().casefold()),
+        None,
+    )
     if not target_field:
-        print(f"[sync-status] project field '{field_name}' not found; project field skipped")
-        return False
+        return False, "field_missing"
     option_id = next(
         (o["id"] for o in target_field.get("options", [])
-         if o.get("name") == github_status),
+         if str(o.get("name", "")).strip().casefold()
+         == github_status.strip().casefold()),
         None,
     )
     if not option_id:
-        print(f"[sync-status] project field option '{github_status}' not found")
-        return False
-    # Resolve item id (project item id) for the given issue. We pass
-    # --limit 1000 so projects with many items still surface our row.
-    try:
-        items = json.loads(run([
-            "gh", "project", "item-list", str(project_number),
-            "--owner", project_owner, "--format", "json", "--limit", "1000",
-        ]).stdout).get("items", [])
-    except subprocess.CalledProcessError:
-        return False
+        return False, "option_missing"
+
+    items = _project_items(project_number, project_owner)
+    if items is None:
+        return False, "item_list_failed"
     matching = next(
         (i for i in items if i.get("content", {}).get("number") == issue_number),
         None,
     )
     if not matching:
-        print(f"[sync-status] issue #{issue_number} not in project {project_number}")
-        return False
+        return False, "issue_not_in_project"
     item_id = matching.get("id")
     project_id = matching.get("projectId") or target_field.get("projectId")
     if not (item_id and project_id):
-        return False
+        return False, "item_ids_missing"
     try:
         run([
             "gh", "project", "item-edit",
@@ -1010,10 +1217,10 @@ def update_project_status_field(issue_number: int, github_status: str) -> bool:
             "--field-id", target_field["id"],
             "--single-select-option-id", option_id,
         ])
-        return True
+        return True, None
     except subprocess.CalledProcessError as e:
         print(f"[sync-status] item-edit failed: {e.stderr}", file=sys.stderr)
-        return False
+        return False, "item_edit_failed"
 
 
 def cmd_sync_status(args: argparse.Namespace) -> int:
@@ -1053,11 +1260,18 @@ def cmd_sync_status(args: argparse.Namespace) -> int:
         except subprocess.CalledProcessError as e:
             print(f"[sync-status] gh issue {verb} failed: {e.stderr}", file=sys.stderr)
 
-    # Project field, if configured.
-    if update_project_status_field(issue_number, github_status):
+    # Project field, if configured. One accurate log line: either the
+    # field was set, or the precise reason it was skipped (so a
+    # rate-limited or mis-scoped run is never reported as
+    # "not configured").
+    ok, reason = update_project_status_field(issue_number, github_status)
+    if ok:
         print(f"[sync-status] project field set to '{github_status}'")
+    elif reason == "not_configured":
+        print("[sync-status] project field not configured; mirrored only via issue state")
     else:
-        print(f"[sync-status] project field not configured; mirrored only via issue state")
+        detail = _PROJECT_SKIP_REASONS.get(reason or "", reason or "unknown")
+        print(f"[sync-status] project field skipped: reason={reason} ({detail})")
 
     # Claim from assignee back to backlog. Three cases:
     #   1. Item is Done -> always clear the Claim (work is finished).
@@ -1078,6 +1292,68 @@ def cmd_sync_status(args: argparse.Namespace) -> int:
 
 # ---------- Subcommand: promote-to-epic ---------------------------------
 
+def _resolve_parent_epic_issue(item: str, title: str, parent_issue_arg: int | None) -> dict | None:
+    """Locate the GitHub issue that becomes the epic parent."""
+    if parent_issue_arg:
+        try:
+            out = run([
+                "gh", "issue", "view", str(parent_issue_arg),
+                "--json", "number,title,url,state,body",
+            ]).stdout
+            return json.loads(out)
+        except subprocess.CalledProcessError as e:
+            print(f"[promote-to-epic] parent-issue lookup failed: {e.stderr}", file=sys.stderr)
+            return None
+    parent = find_issue_for_item(item, include_body=True)
+    if parent:
+        return parent
+    # Raw-Issue case: the parent issue still has the original raw title
+    # (no EPIC-NN prefix). Try to match by the BACKLOG title instead.
+    return find_raw_issue_by_title(title)
+
+
+def _promote_to_epic_dry_run(item: str, parent_issue_arg: int | None) -> int:
+    """Print what `promote-to-epic` would do, without any API mutation.
+
+    Uses only read-only lookups. Handy before a bulk onboarding so the
+    operator sees the blast radius first.
+    """
+    title = title_for_item(item)
+    print(f"[promote-to-epic --dry-run] EPIC {item}: {title}")
+    parent = _resolve_parent_epic_issue(item, title, parent_issue_arg)
+    if parent:
+        cur_title = parent.get("title", "")
+        new_title = f"{item}: {title}"
+        if cur_title != new_title:
+            print(f"  parent issue #{parent['number']}: retitle '{cur_title}' -> '{new_title}'")
+        else:
+            print(f"  parent issue #{parent['number']}: title already '{new_title}'")
+    else:
+        print("  parent issue: NOT FOUND -- would fail (pass --parent-issue <NN>)")
+    detail = find_detail_file(item)
+    if detail is not None and _looks_like_skeleton(read_detail_body(detail)):
+        print("  epic body: detail file is still a skeleton -> would push a stub body")
+    elif detail is not None:
+        print(f"  epic body: would refresh from {detail.relative_to(repo_root())}")
+    else:
+        print("  epic body: no detail file -> would push a backlog-pointer stub")
+    epic_nn = item.split("-", 1)[1]
+    subs = find_backlog_sub_items(epic_nn)
+    print(f"  {len(subs)} sub-item(s) in BACKLOG: {', '.join(subs) or '(none)'}")
+    to_create = to_relink = 0
+    for sub in subs:
+        ex = find_issue_for_item(sub)
+        if ex:
+            print(f"    {sub}: issue #{ex['number']} exists -> would (re)link + refresh body")
+            to_relink += 1
+        else:
+            print(f"    {sub}: no issue -> would create + link")
+            to_create += 1
+    print(f"  summary: create {to_create}, relink {to_relink}, "
+          f"status-sync {len(subs) + 1} item(s)")
+    return 0
+
+
 def cmd_promote_to_epic(args: argparse.Namespace) -> int:
     item = normalize_item(args.item)
     if not item.startswith("EPIC-"):
@@ -1088,28 +1364,15 @@ def cmd_promote_to_epic(args: argparse.Namespace) -> int:
     if not gh_repo_configured():
         print("[promote-to-epic] gh CLI / GitHub remote not configured -- skipping")
         return 0
+
+    if bool(getattr(args, "dry_run", False)):
+        return _promote_to_epic_dry_run(item, args.parent_issue)
+
     epic_nn = item.split("-", 1)[1]  # "01"
     title = title_for_item(item)
     new_title = f"{item}: {title}"
 
-    parent_issue: dict | None = None
-    if args.parent_issue:
-        try:
-            out = run([
-                "gh", "issue", "view", str(args.parent_issue),
-                "--json", "number,title,url,state,body",
-            ]).stdout
-            parent_issue = json.loads(out)
-        except subprocess.CalledProcessError as e:
-            print(f"[promote-to-epic] parent-issue lookup failed: {e.stderr}", file=sys.stderr)
-            return 1
-    else:
-        parent_issue = find_issue_for_item(item)
-        if not parent_issue:
-            # Raw-Issue case: the parent issue still has the original
-            # raw title (no EPIC-NN prefix). Try to match by the
-            # BACKLOG title instead.
-            parent_issue = find_raw_issue_by_title(title)
+    parent_issue = _resolve_parent_epic_issue(item, title, args.parent_issue)
     if not parent_issue:
         print(
             f"[promote-to-epic] no parent issue found for {item}.\n"
@@ -1118,7 +1381,10 @@ def cmd_promote_to_epic(args: argparse.Namespace) -> int:
         )
         return 1
     parent_number = int(parent_issue["number"])
-    sync_bodies = bool(getattr(args, "sync_bodies", False))
+    # The epic body and sub-issue bodies are mirrored from the detail
+    # files by default -- the detail file is the source of truth and
+    # mirroring is the whole point. --no-sync-bodies opts out.
+    sync_bodies = bool(getattr(args, "sync_bodies", True))
 
     # Rename parent if needed.
     if parent_issue.get("title") != new_title:
@@ -1132,16 +1398,21 @@ def cmd_promote_to_epic(args: argparse.Namespace) -> int:
     run(["gh", "issue", "edit", str(parent_number), "--add-label", "epic"], check=False)
 
     # Make sure the parent epic itself lands on the GitHub Project. The
-    # board-add for sub-items happens through cmd_create_issue below;
-    # the parent was previously the only thing that got renamed in
-    # place without ever being added to the project.
+    # board-add for sub-items happens through create_issue_for_item
+    # below; the parent was previously the only thing that got renamed
+    # in place without ever being added to the project.
     if parent_issue.get("url"):
         add_issue_to_project(parent_issue["url"])
 
-    # Optional retro-sync: refresh epic body from the detail file. The
-    # tasklist injection further down still runs and re-adds the
-    # Sub-Issues section on top of the refreshed body.
+    # Refresh the epic body from the detail file. build_issue_body
+    # already swaps a still-skeleton detail file for a short stub; warn
+    # so the operator knows /business-analysis still owes content.
     if sync_bodies:
+        detail = find_detail_file(item)
+        if detail is not None and _looks_like_skeleton(read_detail_body(detail)):
+            print(f"[promote-to-epic] note: {item} detail file is still a "
+                  f"reverse-engineering skeleton; pushing a stub body. "
+                  f"Run /business-analysis to fill it in.")
         epic_body = build_issue_body(item)
         try:
             run(["gh", "issue", "edit", str(parent_number),
@@ -1157,7 +1428,8 @@ def cmd_promote_to_epic(args: argparse.Namespace) -> int:
     print(f"[promote-to-epic] found {len(sub_items)} sub-items for {item}")
 
     # Create sub-issues if missing; refresh existing ones when
-    # sync_bodies is set.
+    # sync_bodies is set. Use the create-time return value rather than
+    # a re-lookup so a lagging search index never drops a fresh issue.
     sub_refs: list[tuple[str, dict]] = []
     for sub in sub_items:
         existing = find_issue_for_item(sub)
@@ -1168,12 +1440,13 @@ def cmd_promote_to_epic(args: argparse.Namespace) -> int:
                     item=sub, update_body=True,
                 ))
             continue
-        cmd_create_issue(argparse.Namespace(
-            item=sub, update_body=False,
-        ))
-        re_lookup = find_issue_for_item(sub)
-        if re_lookup:
-            sub_refs.append((sub, re_lookup))
+        created = create_issue_for_item(sub) or find_issue_for_item(sub)
+        if created:
+            sub_refs.append((sub, created))
+        else:
+            print(f"[promote-to-epic] WARNING: could not create or locate "
+                  f"issue for {sub}; it will be missing from the tasklist",
+                  file=sys.stderr)
 
     # Establish the real GitHub parent-child relation. Idempotent:
     # re-linking an already-linked sub-issue is a no-op.
@@ -1182,7 +1455,8 @@ def cmd_promote_to_epic(args: argparse.Namespace) -> int:
             print(f"[promote-to-epic] linked {sub_id} (#{issue['number']}) "
                   f"as sub-issue of #{parent_number}")
 
-    # Update parent body with tasklist.
+    # Update parent body: refresh the Sub-Issues marker block. Content
+    # outside the markers (the epic description) is preserved verbatim.
     new_body = render_epic_body(parent_issue.get("body") or "", item, sub_refs)
     if new_body and new_body != (parent_issue.get("body") or ""):
         try:
@@ -1205,9 +1479,8 @@ def cmd_promote_to_epic(args: argparse.Namespace) -> int:
                 print(f"[promote-to-epic] branch rename failed: {e.stderr}", file=sys.stderr)
 
     # Mirror BACKLOG Status to the project board for the epic and every
-    # sub-item we just touched. Without this step, freshly added items
-    # all keep the GitHub default status ("Backlog") regardless of what
-    # the BACKLOG row says.
+    # sub-item we just touched. The per-run item-list cache keeps this
+    # to one project scan instead of one per item.
     cmd_sync_status(argparse.Namespace(item=item))
     for sub_id, _ in sub_refs:
         cmd_sync_status(argparse.Namespace(item=sub_id))
@@ -1231,29 +1504,56 @@ def find_backlog_sub_items(epic_nn: str) -> list[str]:
     return out
 
 
+_SUBISSUES_BEGIN = "<!-- DIA:sub-issues -->"
+_SUBISSUES_END = "<!-- /DIA:sub-issues -->"
+
+
+def _join_body_parts(*parts: str) -> str:
+    """Join non-empty body fragments with a blank line, trailing newline."""
+    kept = [p.strip("\n") for p in parts if p and p.strip("\n")]
+    return "\n\n".join(kept) + "\n" if kept else ""
+
+
 def render_epic_body(existing: str, epic_id: str, sub_refs: list[tuple[str, dict]]) -> str:
-    """Insert or replace a 'Sub-Issues' section in the parent body."""
-    section_header = "## Sub-Issues"
-    lines: list[str] = [section_header, ""]
+    """Return the epic body with an up-to-date Sub-Issues tasklist.
+
+    The tasklist lives inside `<!-- DIA:sub-issues -->` /
+    `<!-- /DIA:sub-issues -->` markers appended to the end of the body.
+    Everything outside the markers (the epic description from the detail
+    file) is preserved verbatim, so a re-run can never overwrite it --
+    the failure mode where a second `promote-to-epic` left only the
+    tasklist behind.
+
+    Migration: an older body with a bare `## Sub-Issues` section (no
+    markers) has that section replaced by the marker block.
+    """
+    lines: list[str] = ["## Sub-Issues", ""]
     for sub_id, issue in sub_refs:
-        check = "x" if issue.get("state", "OPEN").lower() == "closed" else " "
+        check = "x" if str(issue.get("state", "OPEN")).lower() == "closed" else " "
         title = issue.get("title", sub_id)
         lines.append(f"- [{check}] #{issue['number']} {title}")
-    section = "\n".join(lines) + "\n"
+    block = _SUBISSUES_BEGIN + "\n" + "\n".join(lines) + "\n" + _SUBISSUES_END
+    body = existing or ""
 
-    # Replace existing section if present.
-    if section_header in existing:
-        before, _, rest = existing.partition(section_header)
-        # rest may contain the previous list and possibly other content.
-        # We replace until the next "## " heading or end of string.
-        next_heading = re.search(r"\n## ", rest)
-        if next_heading:
-            tail = rest[next_heading.start():]
-        else:
-            tail = ""
-        return before + section + tail
-    sep = "\n\n" if existing and not existing.endswith("\n\n") else ""
-    return existing + sep + section
+    # 1. Marker block already present -> replace it in place, keep the
+    #    surrounding description untouched.
+    if _SUBISSUES_BEGIN in body and _SUBISSUES_END in body:
+        head, _, rest = body.partition(_SUBISSUES_BEGIN)
+        _, _, tail = rest.partition(_SUBISSUES_END)
+        return _join_body_parts(head, block, tail)
+
+    # 2. Legacy bare "## Sub-Issues" section -> replace it with the
+    #    marker block (one-time migration). Keep any heading section
+    #    that follows it.
+    legacy_header = "## Sub-Issues"
+    if legacy_header in body:
+        before, _, rest = body.partition(legacy_header)
+        next_heading = re.search(r"\n#{1,6} ", rest)
+        tail = rest[next_heading.start():] if next_heading else ""
+        return _join_body_parts(before, block, tail)
+
+    # 3. No tasklist yet -> append the marker block to the body.
+    return _join_body_parts(body, block)
 
 
 def slugify(text: str) -> str:
@@ -1651,6 +1951,342 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+# ---------- Subcommands: preflight + initial-sync -----------------------
+
+_BACKLOG_ROW_RE = re.compile(r"^\|\s*((?:EPIC|FEAT|FIX|IMP)-\d{2}(?:-\d{2}){0,2})\s*\|")
+
+
+def parse_all_backlog_rows() -> list[dict]:
+    """Return every actionable backlog row as parsed columns.
+
+    Each dict carries the column names from parse_backlog_columns plus
+    a `raw` key with the original line. One read of BACKLOG.md.
+    """
+    bl = backlog_path()
+    if not bl.exists():
+        return []
+    rows: list[dict] = []
+    for line in bl.read_text(encoding="utf-8").splitlines():
+        if not _BACKLOG_ROW_RE.match(line):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        cols = parse_backlog_columns({"cells": cells})
+        cols["raw"] = line
+        rows.append(cols)
+    return rows
+
+
+def _graphql_rate_remaining() -> int | None:
+    """GraphQL points remaining for the gh token, or None if unknown."""
+    try:
+        out = run([
+            "gh", "api", "rate_limit",
+            "--jq", ".resources.graphql.remaining",
+        ]).stdout.strip()
+        return int(out) if out else None
+    except (subprocess.CalledProcessError, ValueError):
+        return None
+
+
+def cmd_preflight(args: argparse.Namespace) -> int:
+    """Read-only validation before a GitHub bulk sync.
+
+    Checks gh reachability, the workflow mode, project reachability and
+    whether its Status options cover the backlog vocabulary, that the
+    repo labels create-issue needs exist, that the BACKLOG Title column
+    carries no doubled id prefix, a small sample of issue states against
+    the backlog, and whether the GraphQL rate budget covers a full sync.
+
+    Exits 1 on blockers; warnings alone exit 0 unless --strict.
+    """
+    set_github_config_override(
+        owner=getattr(args, "owner", None),
+        project=getattr(args, "project", None),
+        status_field=getattr(args, "status_field", None),
+        repo=getattr(args, "repo", None),
+    )
+    strict = bool(getattr(args, "strict", False))
+    blockers: list[str] = []
+    warnings: list[str] = []
+    notes: list[str] = []
+
+    if not has_gh():
+        print("[preflight] gh CLI not installed -- nothing to check (local-only mode)")
+        return 0
+    if not gh_repo_configured():
+        print("[preflight] no GitHub remote configured -- nothing to check (local-only mode)")
+        return 0
+    mode = read_dia_mode()
+    if mode != "github-sync":
+        warnings.append(
+            f"mode is '{mode}' in .dia/config.toml; create-issue / promote-to-epic "
+            f"/ sync-status stay no-ops until mode = 'github-sync'"
+        )
+
+    cfg = read_dia_github_config()
+    project_number = cfg.get("project_number")
+    project_owner = _resolve_project_owner(cfg)
+    project_options: list[str] = []
+
+    if project_number:
+        try:
+            pn: int | None = int(project_number)
+        except (TypeError, ValueError):
+            blockers.append(f"project_number = {project_number!r} in .dia/config.toml is not an integer")
+            pn = None
+        if pn is not None and not project_owner:
+            blockers.append("could not resolve the project owner login (set [github] project_owner)")
+        elif pn is not None:
+            try:
+                run(["gh", "project", "view", str(pn), "--owner", project_owner, "--format", "json"])
+                notes.append(f"project #{pn} reachable (owner {project_owner})")
+            except subprocess.CalledProcessError as e:
+                err = (e.stderr or "").lower()
+                if "scope" in err or "auth refresh" in err:
+                    blockers.append(f"project #{pn}: token missing the 'project' scope -- run `gh auth refresh -s project`")
+                else:
+                    blockers.append(f"project #{pn} not reachable as {project_owner}: {(e.stderr or '').strip()}")
+            fields = _project_fields(pn, project_owner)
+            if fields is None:
+                blockers.append("gh project field-list failed (auth scope? rate limit?)")
+            else:
+                field_name = cfg.get("status_field", "Status")
+                tf = next(
+                    (f for f in fields
+                     if str(f.get("name", "")).strip().casefold() == field_name.strip().casefold()),
+                    None,
+                )
+                if not tf:
+                    blockers.append(f"project has no '{field_name}' field")
+                else:
+                    project_options = [str(o.get("name", "")) for o in tf.get("options", [])]
+                    notes.append(f"project Status options: {', '.join(project_options) or '(none)'}")
+    else:
+        warnings.append("no [github] project_number in .dia/config.toml; status mirroring runs via issue open/close only")
+
+    rows = parse_all_backlog_rows()
+    if not rows:
+        warnings.append("BACKLOG.md has no actionable rows")
+
+    # Status vocabulary vs project options.
+    for s in sorted({r.get("status", "").strip() for r in rows if r.get("status", "").strip()}):
+        gh_status = map_status_to_github(s)
+        if gh_status is None:
+            blockers.append(f"BACKLOG status '{s}' has no GitHub mapping (allowed: {', '.join(ALLOWED_STATUSES)})")
+        elif project_options and not any(o.strip().casefold() == gh_status.strip().casefold() for o in project_options):
+            blockers.append(
+                f"BACKLOG status '{s}' maps to '{gh_status}', which is not an option on the project "
+                f"Status field (has: {', '.join(project_options)})"
+            )
+
+    # Required labels.
+    needed_labels: set[str] = {"phase:planned", "epic"}
+    for r in rows:
+        needed_labels.add(type_label(r["id"]))
+        for p in ("P0", "P1", "P2", "P3"):
+            if p in r.get("raw", ""):
+                needed_labels.add(p.lower())
+    try:
+        out = run(["gh", "label", "list", "--limit", "300", "--json", "name"]).stdout
+        existing_labels = {str(x.get("name", "")).casefold() for x in json.loads(out)}
+    except (subprocess.CalledProcessError, json.JSONDecodeError):
+        existing_labels = set()
+        warnings.append("could not list repo labels (gh label list failed)")
+    if existing_labels:
+        missing = sorted(l for l in needed_labels if l.casefold() not in existing_labels)
+        if missing:
+            blockers.append("missing repo labels (gh issue create will fail): " + ", ".join(missing))
+            for l in missing:
+                notes.append(f"  fix: gh label create {l}")
+
+    # Title column: doubled id prefix.
+    bad_titles = [r["id"] for r in rows if _strip_id_prefix(r.get("title", ""), r["id"]) != r.get("title", "").strip()]
+    if bad_titles:
+        sample = ", ".join(bad_titles[:10]) + (" ..." if len(bad_titles) > 10 else "")
+        warnings.append(
+            f"{len(bad_titles)} BACKLOG row(s) carry an id prefix in the Title column; flow.py strips "
+            f"it defensively but the writer skill should not emit it: {sample}"
+        )
+
+    # Sample issue-state drift (<= 5 items that already link an issue).
+    sampled = 0
+    for r in rows:
+        if sampled >= 5:
+            break
+        m = re.search(r"https://github\.com/[^\s)\]]+/issues/(\d+)", r.get("notes", ""))
+        if not m:
+            continue
+        sampled += 1
+        num = int(m.group(1))
+        try:
+            st = json.loads(run(["gh", "issue", "view", str(num), "--json", "state"]).stdout).get("state", "").lower()
+        except (subprocess.CalledProcessError, json.JSONDecodeError):
+            continue
+        gh_status = map_status_to_github(r.get("status", "").strip()) or ""
+        if (gh_status == "Done") != (st == "closed"):
+            warnings.append(f"{r['id']}: BACKLOG status '{r.get('status', '')}' but issue #{num} is {st}")
+
+    # GraphQL rate budget.
+    n_epics = len([i for i in list_all_backlog_items() if i.startswith("EPIC-")])
+    n_subs = len([r for r in rows if not r["id"].startswith("EPIC-")])
+    estimate = n_epics * 8 + n_subs * 5 + 20
+    remaining = _graphql_rate_remaining()
+    if remaining is not None:
+        notes.append(
+            f"GraphQL budget: ~{remaining} points left; a full sync of {n_epics} epic(s) "
+            f"+ {n_subs} sub-item(s) is roughly ~{estimate} calls"
+        )
+        if remaining < estimate:
+            warnings.append(
+                f"GraphQL budget (~{remaining}) is below the rough estimate (~{estimate}); "
+                f"run initial-sync in batches or wait for the hourly reset"
+            )
+
+    print("=== flow.py preflight ===")
+    for n in notes:
+        print(f"  - {n}")
+    for w in warnings:
+        print(f"  WARN: {w}")
+    for b in blockers:
+        print(f"  BLOCKER: {b}")
+    if not blockers and not warnings:
+        print("  all checks passed")
+    if blockers:
+        print(f"\n{len(blockers)} blocker(s) -- fix before running initial-sync / promote-to-epic.")
+        return 1
+    if warnings and strict:
+        print(f"\n{len(warnings)} warning(s) and --strict -- treating as failure.")
+        return 1
+    if warnings:
+        print(f"\n{len(warnings)} warning(s) -- review, then proceed.")
+    return 0
+
+
+def cmd_initial_sync(args: argparse.Namespace) -> int:
+    """Bulk-onboard an existing backlog onto GitHub in one pass.
+
+    flow.py is built for the incremental Handoff Ritual (one item per
+    phase transition). A fresh /reverse-engineering or /dia-migration
+    leaves a backlog with dozens of items that never went through that
+    ritual. initial-sync walks the whole backlog once:
+
+      1. preflight (skippable with --skip-preflight)
+      2. per epic: create the epic issue if missing, then promote-to-epic
+         (sub-issues created + linked, bodies mirrored, status synced)
+      3. per standalone item (FEAT/FIX/IMP with no matching EPIC row):
+         create-issue + sync-status
+
+    Idempotent and resumable: re-running skips items that already have an
+    issue. --dry-run prints the plan without touching GitHub. The per-run
+    project caches keep the GraphQL cost to a couple of project scans.
+    --start-epic / --end-epic restrict the run to an inclusive epic range
+    so a rate-limited account can onboard the backlog in batches; with a
+    range, standalone (epic-less) items are left for a full run.
+    Done items get their issue closed (via sync-status), so a freshly
+    onboarded backlog does not leave finished work cluttering the issue
+    list (issue #18).
+    """
+    set_github_config_override(
+        owner=getattr(args, "owner", None),
+        project=getattr(args, "project", None),
+        status_field=getattr(args, "status_field", None),
+        repo=getattr(args, "repo", None),
+    )
+    if not mode_active_or_skip("promote-to-epic"):
+        return 0
+    if not gh_repo_configured():
+        print("[initial-sync] gh CLI / GitHub remote not configured -- skipping")
+        return 0
+
+    dry = bool(getattr(args, "dry_run", False))
+    rows = parse_all_backlog_rows()
+    if not rows:
+        print("[initial-sync] BACKLOG.md has no actionable rows")
+        return 0
+
+    def _epic_num(epic_id: str) -> int:
+        try:
+            return int(epic_id.split("-")[1])
+        except (IndexError, ValueError):
+            return -1
+
+    start_epic = getattr(args, "start_epic", None)
+    end_epic = getattr(args, "end_epic", None)
+    lo = _epic_num(normalize_item(start_epic)) if start_epic else None
+    hi = _epic_num(normalize_item(end_epic)) if end_epic else None
+    has_range = lo is not None or hi is not None
+
+    if not dry and not bool(getattr(args, "skip_preflight", False)):
+        rc = cmd_preflight(argparse.Namespace(strict=False))
+        if rc != 0:
+            print("[initial-sync] preflight reported blockers -- aborting. "
+                  "Fix them, or re-run with --skip-preflight to override.")
+            return 1
+        print()
+
+    # Epics live as `### EPIC-NN:` headings (and sometimes also as a
+    # table row); list_all_backlog_items picks up both forms.
+    all_epics = [i for i in list_all_backlog_items() if i.startswith("EPIC-")]
+    epics = [
+        e for e in all_epics
+        if (lo is None or _epic_num(e) >= lo) and (hi is None or _epic_num(e) <= hi)
+    ]
+    epic_nums = {e.split("-", 1)[1] for e in all_epics}
+    sub_rows = [r["id"] for r in rows if not r["id"].startswith("EPIC-")]
+    standalone = [] if has_range else [
+        rid for rid in sub_rows
+        if len(rid.split("-")) > 1 and rid.split("-")[1] not in epic_nums
+    ]
+    if has_range:
+        skipped = len(all_epics) - len(epics)
+        print(f"[initial-sync] epic range {start_epic or 'first'}..{end_epic or 'last'}: "
+              f"{len(epics)} of {len(all_epics)} epic(s) in scope, {skipped} skipped; "
+              f"standalone items left for a full run")
+    sub_in_scope = sum(
+        1 for r in sub_rows
+        if len(r.split("-")) > 1 and r.split("-")[1] in {e.split("-", 1)[1] for e in epics}
+    )
+    print(f"[initial-sync] {len(epics)} epic(s), {sub_in_scope} epic-bound sub-item(s), "
+          f"{len(standalone)} standalone item(s)")
+
+    if dry:
+        for e in epics:
+            _promote_to_epic_dry_run(e, None)
+        for s in standalone:
+            ex = find_issue_for_item(s)
+            print(f"[initial-sync --dry-run] standalone {s}: "
+                  + (f"issue #{ex['number']} exists -> would refresh body + status"
+                     if ex else "no issue -> would create + status-sync"))
+        return 0
+
+    failed = 0
+    for e in epics:
+        created_epic = None
+        if not find_issue_for_item(e) and not find_raw_issue_by_title(title_for_item(e)):
+            created_epic = create_issue_for_item(e)
+            if not created_epic:
+                print(f"[initial-sync] WARNING: could not create epic issue for {e}; skipping",
+                      file=sys.stderr)
+                failed += 1
+                continue
+        rc = cmd_promote_to_epic(argparse.Namespace(
+            item=e,
+            parent_issue=created_epic["number"] if created_epic else None,
+            rename_branch=False, sync_bodies=True, dry_run=False,
+        ))
+        if rc != 0:
+            failed += 1
+    for s in standalone:
+        rc1 = cmd_create_issue(argparse.Namespace(item=s, update_body=True))
+        rc2 = cmd_sync_status(argparse.Namespace(item=s))
+        if rc1 != 0 or rc2 != 0:
+            failed += 1
+
+    total = len(epics) + len(standalone)
+    print(f"[initial-sync] done: {total} top-level item(s) processed, {failed} with errors")
+    return 0 if failed == 0 else 1
+
+
 # ---------- Argparse ----------------------------------------------------
 
 def main() -> int:
@@ -1706,11 +2342,18 @@ def main() -> int:
     p7.add_argument("--rename-branch", action="store_true",
                     help="rename the current feature branch to feature/epic-NN-<slug>")
     p7.add_argument(
-        "--sync-bodies", action="store_true",
-        help="Also overwrite epic and sub-issue bodies with the current "
-             "detail-file content (retro-sync).",
+        "--sync-bodies", dest="sync_bodies", action="store_true", default=True,
+        help="Mirror epic and sub-issue bodies from the detail files (default).",
     )
-    p7.set_defaults(func=cmd_promote_to_epic)
+    p7.add_argument(
+        "--no-sync-bodies", dest="sync_bodies", action="store_false",
+        help="Do not touch epic / sub-issue bodies (only titles, links, tasklist).",
+    )
+    p7.add_argument(
+        "--dry-run", dest="dry_run", action="store_true",
+        help="Print what would happen (read-only lookups only); make no changes.",
+    )
+    p7.set_defaults(func=cmd_promote_to_epic, sync_bodies=True, dry_run=False)
 
     p8 = sub.add_parser(
         "validate-fix",
@@ -1737,6 +2380,45 @@ def main() -> int:
     p10_group.add_argument("--all", action="store_true",
                            help="sync every actionable backlog item")
     p10.set_defaults(func=cmd_sync_project_status)
+
+    def _add_github_override_flags(parser: argparse.ArgumentParser) -> None:
+        # Bulk subcommands accept overrides so a user can target a board
+        # without editing .dia/config.toml.
+        parser.add_argument("--owner",
+                            help="override the GitHub Project owner login from .dia/config.toml")
+        parser.add_argument("--project", type=int,
+                            help="override the GitHub Project number from .dia/config.toml")
+        parser.add_argument("--status-field", dest="status_field",
+                            help="override the Project status field name (default: Status)")
+        parser.add_argument("--repo",
+                            help="override the target repo as owner/name (sets GH_REPO for this run)")
+
+    p11 = sub.add_parser(
+        "preflight",
+        help="Read-only validation before a GitHub bulk sync (project reachable, "
+             "labels exist, status vocabulary matches, title schema, rate budget).",
+    )
+    p11.add_argument("--strict", action="store_true",
+                     help="treat warnings as failures (exit 1)")
+    _add_github_override_flags(p11)
+    p11.set_defaults(func=cmd_preflight, strict=False)
+
+    p12 = sub.add_parser(
+        "initial-sync",
+        help="Bulk-onboard an existing backlog onto GitHub: epics + sub-issues + "
+             "standalone items in one resumable pass (runs preflight first).",
+    )
+    p12.add_argument("--dry-run", dest="dry_run", action="store_true",
+                     help="print the plan; make no changes")
+    p12.add_argument("--skip-preflight", dest="skip_preflight", action="store_true",
+                     help="do not run preflight before syncing")
+    p12.add_argument("--start-epic", dest="start_epic", metavar="EPIC-NN",
+                     help="only onboard epics from this one onward (inclusive)")
+    p12.add_argument("--end-epic", dest="end_epic", metavar="EPIC-NN",
+                     help="only onboard epics up to this one (inclusive)")
+    _add_github_override_flags(p12)
+    p12.set_defaults(func=cmd_initial_sync, dry_run=False, skip_preflight=False,
+                     start_epic=None, end_epic=None)
 
     args = p.parse_args()
     return args.func(args)

@@ -5,7 +5,109 @@ All notable changes to digital-innovation-agents are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.5.4] - 2026-05-12
+
+Live-run feedback against a downstream project (a downstream project): a
+batch of `flow.py` bugs that surface during a bulk GitHub onboarding,
+plus the missing bulk-onboarding workflow itself. flow.py was built
+for the incremental Handoff Ritual (one item per phase transition);
+onboarding a freshly reverse-engineered or migrated backlog of 100+
+items was never a designed path. This release adds that path and
+fixes the bugs it exposed.
+
+### Added
+
+- `flow.py preflight`: read-only validation before a bulk sync.
+  Checks `gh`/remote/mode, GitHub Project reachability (with the
+  `gh auth refresh -s project` scope hint), Status-field options vs.
+  the backlog status vocabulary, required repo labels (with
+  `gh label create` fix-it lines), the Title column for doubled id
+  prefixes, a small sample of issue states against the backlog, and
+  the GraphQL rate budget. Exit 1 on blockers; warnings exit 0
+  unless `--strict`. (W4)
+- `flow.py initial-sync`: one-pass, resumable bulk onboarding of an
+  existing backlog onto GitHub. Runs `preflight` first, then per
+  epic creates the epic issue if missing and runs `promote-to-epic`,
+  then per standalone item runs `create-issue` + `sync-status`.
+  `--dry-run` prints the plan without touching GitHub;
+  `--skip-preflight` overrides the gate; `--start-epic EPIC-NN` /
+  `--end-epic EPIC-NN` restrict the run to an inclusive epic range so
+  a rate-limited account can onboard the backlog in batches (with a
+  range, standalone items are left for a full run). Backlog items at
+  `Status: Done` get their issue closed in the same pass via
+  `sync-status`, so a freshly onboarded backlog does not leave
+  finished work cluttering the issue list. (W1, #18)
+- `flow.py initial-sync` / `flow.py preflight` accept `--owner`,
+  `--project`, `--status-field`, and `--repo` to target a board
+  without editing `.dia/config.toml`. `--repo owner/name` sets
+  `GH_REPO` for the run; the other three layer onto the `[github]`
+  config block. (#19)
+- `flow.py promote-to-epic --dry-run`: prints the full plan (parent
+  retitle, body refresh, sub-issues to create/relink, status syncs)
+  using read-only lookups only. (F7)
+- `flow.py promote-to-epic --no-sync-bodies`: opt out of mirroring
+  epic / sub-issue bodies from the detail files.
+
+### Fixed
+
+- `flow.py promote-to-epic` no longer destroys the epic issue body.
+  The Sub-Issues tasklist now lives inside `<!-- DIA:sub-issues -->`
+  / `<!-- /DIA:sub-issues -->` markers appended at the end of the
+  body; everything outside the markers (the epic description) is
+  preserved verbatim. An older body with a bare `## Sub-Issues`
+  section is migrated to the marker block in place. Body mirroring
+  from the detail file is now the default (was opt-in via
+  `--sync-bodies`), so a previously damaged epic recovers its
+  description from `_devprocess/` on the next run. (F1)
+- `flow.py` GraphQL cost on bulk runs: the project `item-list` is now
+  cached per run (keyed by project number, invalidated on
+  `item-add`), the same way the field list already was.
+  `promote-to-epic` over an epic with N sub-items now does ~1 project
+  scan instead of ~N. (F2)
+- `flow.py promote-to-epic` sub-issue linking is no longer
+  incomplete on the first run. `create-issue` returns the freshly
+  created issue number/URL and `promote-to-epic` uses it directly
+  instead of a `gh issue list --search` re-lookup, whose index lags
+  creation by a few seconds. (F6)
+- `flow.py sync-status` project-field log line: each failure mode now
+  reports its own reason (`reason=option_missing`,
+  `reason=item_list_failed`, `reason=issue_not_in_project`, ...)
+  instead of a blanket "project field not configured", so a
+  rate-limited or mis-scoped run is no longer misattributed. (F5)
+- `flow.py` project Status option matching is case-insensitive, so a
+  backlog status `In Progress` maps onto GitHub's built-in
+  `In progress` option instead of silently failing. The field name
+  is matched case-insensitively too. (latent bug behind F5)
+- `flow.py title_for_item` strips a leading `<id>:` / `[<id>]` /
+  `<id> -` prefix from the BACKLOG Title cell, so a row whose Title
+  column accidentally carries the id no longer produces a doubled
+  `IMP-01-01-08: IMP-01-01-08: ...` issue title. The writer side is
+  fixed too: `tools/migration/build_backlog.py` strips the prefix
+  for every artifact type at one choke point, and
+  `/reverse-engineering` / `/dia-migration` are explicit that the
+  Title column holds the bare title only. (F4)
+- `flow.py find_raw_issue_by_title` loose fallback no longer retitles
+  an unrelated issue that merely shares a substring with a short epic
+  title. It now requires a minimum needle length and a >= 0.6
+  length-overlap ratio, and picks the best match rather than the
+  first. (A3)
+
+### Changed
+
+- `/reverse-engineering` Phase 5: REV backlog findings carry a
+  `needs verification: code-vs-doc` marker in Notes; the skill must
+  not file a finding whose target the current repo already satisfies
+  (read the code AND the doc the finding points at first). Phase 7
+  resolves the marker: target already met -> `Status = Done`,
+  `Phase = Released`; gap confirmed -> drop the marker; undecidable
+  -> keep it and escalate. A finding may not reach GitHub while it
+  still carries the marker. (F3, W5, W6)
+- `/dia-setup`: when a GitHub Project number is configured (during
+  activation or a mode change to `github-sync`), the skill runs a
+  read-only `gh project view` pre-flight and surfaces the
+  `gh auth refresh -s project` scope hint at setup time instead of
+  at the first sync. The confirmation step points brownfield
+  projects at `flow.py preflight` / `flow.py initial-sync`. (W3)
 
 ## [3.5.3] - 2026-05-09
 
