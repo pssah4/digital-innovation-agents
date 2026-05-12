@@ -34,6 +34,7 @@ Usage:
 from __future__ import annotations
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -115,7 +116,42 @@ def _toml_string_fallback(key: str, text: str) -> str | None:
     return match.group(1) if match.group(1) is not None else match.group(2)
 
 
+# CLI overrides for the [github] config block. The bulk subcommands
+# (initial-sync, preflight) accept --owner / --project / --status-field
+# so a user can point at a different board without editing
+# .dia/config.toml. set_github_config_override() fills this; an empty
+# dict means "use the file as-is". A --repo override is applied
+# separately via the GH_REPO environment variable, which `gh` honours.
+_GITHUB_CONFIG_OVERRIDE: dict = {}
+
+
+def set_github_config_override(*, owner: str | None = None,
+                               project: int | None = None,
+                               status_field: str | None = None,
+                               repo: str | None = None) -> None:
+    """Layer CLI overrides on top of the [github] config block.
+
+    `repo` (owner/name) is exported as GH_REPO so every `gh` call in
+    this process targets it; `owner` doubles as the project owner when
+    no `--owner` of its own is given alongside a `--repo`.
+    """
+    if owner:
+        _GITHUB_CONFIG_OVERRIDE["project_owner"] = owner
+    if project is not None:
+        _GITHUB_CONFIG_OVERRIDE["project_number"] = project
+    if status_field:
+        _GITHUB_CONFIG_OVERRIDE["status_field"] = status_field
+    if repo:
+        slug = repo if "/" in repo else (f"{owner}/{repo}" if owner else repo)
+        os.environ["GH_REPO"] = slug
+
+
 def read_dia_github_config() -> dict:
+    """[github] config block, with any CLI overrides layered on top."""
+    return {**_read_dia_github_config_raw(), **_GITHUB_CONFIG_OVERRIDE}
+
+
+def _read_dia_github_config_raw() -> dict:
     """Read [github] section from .dia/config.toml. Returns {} on missing."""
     try:
         cfg = repo_root() / ".dia" / "config.toml"
@@ -1963,6 +1999,12 @@ def cmd_preflight(args: argparse.Namespace) -> int:
 
     Exits 1 on blockers; warnings alone exit 0 unless --strict.
     """
+    set_github_config_override(
+        owner=getattr(args, "owner", None),
+        project=getattr(args, "project", None),
+        status_field=getattr(args, "status_field", None),
+        repo=getattr(args, "repo", None),
+    )
     strict = bool(getattr(args, "strict", False))
     blockers: list[str] = []
     warnings: list[str] = []
@@ -2137,7 +2179,19 @@ def cmd_initial_sync(args: argparse.Namespace) -> int:
     Idempotent and resumable: re-running skips items that already have an
     issue. --dry-run prints the plan without touching GitHub. The per-run
     project caches keep the GraphQL cost to a couple of project scans.
+    --start-epic / --end-epic restrict the run to an inclusive epic range
+    so a rate-limited account can onboard the backlog in batches; with a
+    range, standalone (epic-less) items are left for a full run.
+    Done items get their issue closed (via sync-status), so a freshly
+    onboarded backlog does not leave finished work cluttering the issue
+    list (issue #18).
     """
+    set_github_config_override(
+        owner=getattr(args, "owner", None),
+        project=getattr(args, "project", None),
+        status_field=getattr(args, "status_field", None),
+        repo=getattr(args, "repo", None),
+    )
     if not mode_active_or_skip("promote-to-epic"):
         return 0
     if not gh_repo_configured():
@@ -2150,6 +2204,18 @@ def cmd_initial_sync(args: argparse.Namespace) -> int:
         print("[initial-sync] BACKLOG.md has no actionable rows")
         return 0
 
+    def _epic_num(epic_id: str) -> int:
+        try:
+            return int(epic_id.split("-")[1])
+        except (IndexError, ValueError):
+            return -1
+
+    start_epic = getattr(args, "start_epic", None)
+    end_epic = getattr(args, "end_epic", None)
+    lo = _epic_num(normalize_item(start_epic)) if start_epic else None
+    hi = _epic_num(normalize_item(end_epic)) if end_epic else None
+    has_range = lo is not None or hi is not None
+
     if not dry and not bool(getattr(args, "skip_preflight", False)):
         rc = cmd_preflight(argparse.Namespace(strict=False))
         if rc != 0:
@@ -2160,15 +2226,27 @@ def cmd_initial_sync(args: argparse.Namespace) -> int:
 
     # Epics live as `### EPIC-NN:` headings (and sometimes also as a
     # table row); list_all_backlog_items picks up both forms.
-    epics = [i for i in list_all_backlog_items() if i.startswith("EPIC-")]
-    epic_nums = {e.split("-", 1)[1] for e in epics}
+    all_epics = [i for i in list_all_backlog_items() if i.startswith("EPIC-")]
+    epics = [
+        e for e in all_epics
+        if (lo is None or _epic_num(e) >= lo) and (hi is None or _epic_num(e) <= hi)
+    ]
+    epic_nums = {e.split("-", 1)[1] for e in all_epics}
     sub_rows = [r["id"] for r in rows if not r["id"].startswith("EPIC-")]
-    standalone = [
+    standalone = [] if has_range else [
         rid for rid in sub_rows
         if len(rid.split("-")) > 1 and rid.split("-")[1] not in epic_nums
     ]
-    epic_bound = len(sub_rows) - len(standalone)
-    print(f"[initial-sync] {len(epics)} epic(s), {epic_bound} epic-bound sub-item(s), "
+    if has_range:
+        skipped = len(all_epics) - len(epics)
+        print(f"[initial-sync] epic range {start_epic or 'first'}..{end_epic or 'last'}: "
+              f"{len(epics)} of {len(all_epics)} epic(s) in scope, {skipped} skipped; "
+              f"standalone items left for a full run")
+    sub_in_scope = sum(
+        1 for r in sub_rows
+        if len(r.split("-")) > 1 and r.split("-")[1] in {e.split("-", 1)[1] for e in epics}
+    )
+    print(f"[initial-sync] {len(epics)} epic(s), {sub_in_scope} epic-bound sub-item(s), "
           f"{len(standalone)} standalone item(s)")
 
     if dry:
@@ -2303,6 +2381,18 @@ def main() -> int:
                            help="sync every actionable backlog item")
     p10.set_defaults(func=cmd_sync_project_status)
 
+    def _add_github_override_flags(parser: argparse.ArgumentParser) -> None:
+        # Bulk subcommands accept overrides so a user can target a board
+        # without editing .dia/config.toml.
+        parser.add_argument("--owner",
+                            help="override the GitHub Project owner login from .dia/config.toml")
+        parser.add_argument("--project", type=int,
+                            help="override the GitHub Project number from .dia/config.toml")
+        parser.add_argument("--status-field", dest="status_field",
+                            help="override the Project status field name (default: Status)")
+        parser.add_argument("--repo",
+                            help="override the target repo as owner/name (sets GH_REPO for this run)")
+
     p11 = sub.add_parser(
         "preflight",
         help="Read-only validation before a GitHub bulk sync (project reachable, "
@@ -2310,6 +2400,7 @@ def main() -> int:
     )
     p11.add_argument("--strict", action="store_true",
                      help="treat warnings as failures (exit 1)")
+    _add_github_override_flags(p11)
     p11.set_defaults(func=cmd_preflight, strict=False)
 
     p12 = sub.add_parser(
@@ -2321,7 +2412,13 @@ def main() -> int:
                      help="print the plan; make no changes")
     p12.add_argument("--skip-preflight", dest="skip_preflight", action="store_true",
                      help="do not run preflight before syncing")
-    p12.set_defaults(func=cmd_initial_sync, dry_run=False, skip_preflight=False)
+    p12.add_argument("--start-epic", dest="start_epic", metavar="EPIC-NN",
+                     help="only onboard epics from this one onward (inclusive)")
+    p12.add_argument("--end-epic", dest="end_epic", metavar="EPIC-NN",
+                     help="only onboard epics up to this one (inclusive)")
+    _add_github_override_flags(p12)
+    p12.set_defaults(func=cmd_initial_sync, dry_run=False, skip_preflight=False,
+                     start_epic=None, end_epic=None)
 
     args = p.parse_args()
     return args.func(args)

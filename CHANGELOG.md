@@ -30,7 +30,18 @@ fixes the bugs it exposed.
   epic creates the epic issue if missing and runs `promote-to-epic`,
   then per standalone item runs `create-issue` + `sync-status`.
   `--dry-run` prints the plan without touching GitHub;
-  `--skip-preflight` overrides the gate. (W1)
+  `--skip-preflight` overrides the gate; `--start-epic EPIC-NN` /
+  `--end-epic EPIC-NN` restrict the run to an inclusive epic range so
+  a rate-limited account can onboard the backlog in batches (with a
+  range, standalone items are left for a full run). Backlog items at
+  `Status: Done` get their issue closed in the same pass via
+  `sync-status`, so a freshly onboarded backlog does not leave
+  finished work cluttering the issue list. (W1, #18)
+- `flow.py initial-sync` / `flow.py preflight` accept `--owner`,
+  `--project`, `--status-field`, and `--repo` to target a board
+  without editing `.dia/config.toml`. `--repo owner/name` sets
+  `GH_REPO` for the run; the other three layer onto the `[github]`
+  config block. (#19)
 - `flow.py promote-to-epic --dry-run`: prints the full plan (parent
   retitle, body refresh, sub-issues to create/relink, status syncs)
   using read-only lookups only. (F7)
