@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Claude Code plugins by Sebastian Hanke. Digital Innovation Agents and more.",
-    "version": "3.5.3"
+    "version": "3.5.4"
   },
   "plugins": [
     {
@@ -15,7 +15,7 @@
         "url": "https://github.com/pssah4/digital-innovation-agents.git"
       },
       "description": "V-Model workflow: skills for AI-augmented innovation and development",
-      "version": "3.5.3",
+      "version": "3.5.4",
       "strict": true
     }
   ]

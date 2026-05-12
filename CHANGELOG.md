@@ -5,7 +5,7 @@ All notable changes to digital-innovation-agents are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.5.4] - 2026-05-12
 
 Live-run feedback against a downstream project (a downstream project): a
 batch of `flow.py` bugs that surface during a bulk GitHub onboarding,
