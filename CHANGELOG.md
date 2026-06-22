@@ -5,6 +5,123 @@ All notable changes to digital-innovation-agents are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.0] - 2026-06-22
+
+Artifact shrink: every output template, every owning SKILL.md, and the
+operating instructions inside them collapse to a 2-minute reader budget.
+Total skill-set diff: -2.975 lines net across 31 files. Verbosity went
+into shared `project-conventions/SKILL.md` once; downstream files link
+to it instead of restating. Locked all anchors that `tools/` parse so
+flow.py and consistency-check keep working unchanged. New N-20 and N-21
+rules enforce the caps and prevent the dropped sections from creeping
+back. Migration script lifts legacy verbose artefacts in existing user
+projects to the new shape, idempotent.
+
+### Added
+
+- `skills/project-conventions/SKILL.md` Canonical Specs section (single
+  home, 8 subsections): Reader budget with hard caps per artifact type,
+  Frontmatter spec (identity + relations only), Backlog vocabulary,
+  Writing style, Activation Path format, Priority/Effort legend,
+  Three-layer model boundaries, Section policy.
+- `tools/internal/anchor-lock.json`: inventory of every heading,
+  frontmatter key, inline marker, and filename pattern that any tool
+  parses. Refactors that touch templates must check this file first.
+- `tools/migration/shrink_artifacts_v3.py`: 7 subcommands (audit,
+  fix-headers, fix-frontmatter, fix-sections, warn-caps, warn-duplicates,
+  all). Strips leading meta-instruction HTML blocks, forbidden
+  frontmatter keys (status, phase, last_updated, author, deciders), empty
+  refs arrays, dropped `## Status` / `## Next Steps` sections; warns on
+  cap-overshoots and on style/vocabulary blocks that should now live in
+  project-conventions. Default mode is dry-run; `--apply` writes.
+- `tools/consistency-check.py` N-20 (artefact-cap-exceeded, warn at
+  > cap + 10% tolerance, suppressed by `## Reasoned exception`) and
+  N-21 (forbidden-section-resurfaced) with `ARTIFACT_CAPS` dict
+  hand-aligned to the canonical caps table.
+- `tools/tests/test_artifact_caps.py`: smoke test for both new rules.
+- `skills/business-analysis/references/anti-patterns.md`,
+  `skills/requirements-engineering/references/status-promotion-prompt.md`,
+  `skills/requirements-engineering/references/handoff-snippets.md`,
+  `skills/coding/references/mid-course-triggers.md`,
+  `skills/coding/references/verification-gate-subtypes.md`: long-form
+  details moved out of SKILL.md to keep the owning skill scannable.
+
+### Changed
+
+- All 22 output templates shrunk to their target line counts (-59% on
+  templates):
+  - BA-TEMPLATE 352 -> 75, FEATURE-TEMPLATE 232 -> 64,
+    BACKLOG-TEMPLATE 228 -> 66, EXPLORATION-BOARD 171 -> 74,
+    arc42-TEMPLATE 152 -> 55, plan-context-TEMPLATE 134 -> 55,
+    ADR-TEMPLATE 122 -> 57 (includes German-variant translation note),
+    PLAN-TEMPLATE 113 -> 43, ARCHITECT-HANDOFF-TEMPLATE 101 -> 63,
+    AUDIT-TEMPLATE 95 -> 63, METRICS-TEMPLATE 91 -> 49,
+    BA-MINI-TEMPLATE 86 -> 43, EPIC-TEMPLATE 78 -> 39,
+    RULES-TECHNICAL/DESIGN/DOMAIN trimmed by 25-40%,
+    JSDOC-HEADER 39 -> 15, MODULE-README 39 -> 25,
+    ARCHITECTURE-MAP 31 -> 12, FIX-TEMPLATE 57 -> 31,
+    IMP-TEMPLATE 48 -> 29.
+- 7 SKILL.md files compressed (-57% on skill instructions, excluding
+  project-conventions which grew because it absorbed shared content):
+  business-analysis 837 -> 394, requirements-engineering 671 -> 326,
+  architecture 549 -> 201, coding -73%, security-audit -41%,
+  testing -41%, reverse-engineering -33%.
+- `business-analysis/SKILL.md`: hard caps replace "typical 500-900
+  lines" anchor; Quality Gate #13 (feature prioritization is RE work)
+  dropped; "Detailed solution idea and object model" bullet removed
+  (violated WHY/HOW boundary).
+- `requirements-engineering/SKILL.md`: 7-slot ALL-CAPS hypothesis
+  scaffold removed (contradicted the MANDATORY full-prose rule above
+  it); JTBD-to-three-stories translation replaced with a single
+  job-type column on the user-stories table; 100-line status-promotion
+  prompt and 113-line Handoff Ritual compressed to ~15 lines each with
+  full text in references/.
+- `architecture/SKILL.md`: 10 MANDATORY blocks collapsed into one Hard
+  Rules checklist; per-ADR time budgets replaced with line budgets;
+  arc42 reframed from "MVP -> all 12 sections" to "always-required
+  1.2/4/9 plus what carries a decision".
+- ADR-TEMPLATE gained a German-variant translation note documenting
+  which English headings have German aliases recognised by the
+  abstraction check.
+- ARTIFACT_CAPS table calibrated after first-pass shrink: EPIC 35 -> 40,
+  ADR 50 -> 60, FIX 28 -> 32, IMP 26 -> 30, AUDIT 55 -> 65 (template
+  structure costs more lines than initial estimate).
+
+### Removed
+
+- Leading HTML `<!-- Instructions for the agent: ... -->` blocks (12-20
+  lines each) from FEATURE/BACKLOG/ADR/PLAN/FIX/IMP/MODULE-README/
+  JSDOC/ARCHITECTURE-MAP/PLAN-CONTEXT/RULES-* templates. Author
+  guidance now lives only in the owning SKILL.md.
+- `## Status` and "Backlog row pointer" sections from detail artefact
+  templates. Three-layer model: state lives in the BACKLOG row only.
+- Empty stub sections (`Related decisions: ADR-{nn}`,
+  `References: external 1`, empty NFR sub-headings, empty Dependencies
+  arrays). Optional sections are omitted by default.
+- Duplicate writing-style blocks and backlog-vocabulary blocks scattered
+  across 4-7 SKILL.md files; now in `project-conventions/SKILL.md`
+  Canonical Specs.
+
+### Migration
+
+Existing user projects upgrade with one command (default dry-run):
+
+```bash
+python3 tools/migration/shrink_artifacts_v3.py --root <project> --dry-run all
+# review output, then:
+python3 tools/migration/shrink_artifacts_v3.py --root <project> --apply all
+```
+
+Cap overshoots in legacy artefacts are warnings, not failures. Add a
+top-of-file `## Reasoned exception` block (2-3 lines explaining why)
+to suppress the warning permanently.
+
+### Not in this release
+
+- No semantic change to flow.py, GitHub sync, or marketplace structure.
+- No changes to existing rule numbering (N-1 through N-19 unchanged).
+- No new V-Model phase skills.
+
 ## [3.5.4] - 2026-05-12
 
 Live-run feedback against a downstream project (a downstream project): a

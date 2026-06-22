@@ -1,17 +1,4 @@
-<!--
-Instructions for the agent: produce this file as
-`_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md` when a bug surfaces in
-shipped code. Write the prose in the user's working language. Keep
-keywords (Symptom, Root cause, etc.) in English so the file greps
-consistently.
-
-Status, phase, claim, and last-change live in the backlog row, not in
-this file's frontmatter. The frontmatter only carries identity and
-relations.
-
-Cap: 30 lines of prose. The deeper analysis lives in
-`_devprocess/analysis/` and is linked from here.
--->
+<!-- See skills/coding/SKILL.md for how to fill. Reader budget and section policy: skills/project-conventions/SKILL.md#canonical-specs -->
 
 ---
 id: FIX-{ee}-{ff}-{nn}
@@ -27,11 +14,9 @@ created: {YYYY-MM-DD}
 
 ## Symptom
 
-{What is the observable bad behavior? One paragraph.}
+{One sentence: observable bad behavior.}
 
 ## Root cause
-
-{Why does it happen? Causal chain.}
 
 ```
 step 1 -> step 2 -> ... -> error
@@ -39,19 +24,8 @@ step 1 -> step 2 -> ... -> error
 
 ## Fix
 
-{What changed in the code, in business terms (not file paths).}
-
-Implementation pointer: see PLAN-{nn} or commit `<sha>` in the
-backlog row. ARCHITECTURE.map carries the canonical path for the
-affected concept.
+{One line: what changed, in business terms. See PLAN-{nn} or commit `<sha>` in the backlog row; ARCHITECTURE.map carries the canonical path.}
 
 ## Regression test
 
-{Which test reproduces the bug and locks the fix? Reference the test
-file by path; the path may go stale, the backlog row carries the
-current commit SHA.}
-
-## Status
-
-See the backlog row for FIX-{ee}-{ff}-{nn} in `_devprocess/context/BACKLOG.md`
-(status, phase, claim, commit SHA).
+{Test file path that reproduces the bug and locks the fix.}

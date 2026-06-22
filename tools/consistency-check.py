@@ -65,6 +65,40 @@ DEFAULTS = {
 }
 
 
+# N-20 line caps. Source of truth:
+# skills/project-conventions/SKILL.md#canonical-specs (Reader budget).
+# Hand-aligned with that table; update both together.
+ARTIFACT_CAPS: dict[str, int] = {
+    "project-ba": 200,
+    "epic-ba": 120,
+    "feat-ba": 60,
+    "ba-mini": 40,
+    "exploration-board": 70,
+    "epic": 40,
+    "feature": 65,
+    "backlog-header": 80,     # header + vocab + pointers; rows uncapped
+    "architect-handoff": 60,
+    "adr": 60,                # includes 7-line German-variant translation note
+    "arc42-poc": 65,
+    "arc42-mvp": 100,
+    "plan-context": 55,
+    "plan": 50,               # excludes uncapped Change Log tail
+    "fix": 32,
+    "imp": 30,
+    "audit": 65,
+    "metrics": 50,
+}
+
+# N-20 tolerance: warn only above cap * (1 + N20_TOLERANCE).
+N20_TOLERANCE = 0.10
+
+# N-21 forbidden frontmatter keys (state lives in the BACKLOG row).
+N21_FORBIDDEN_FRONTMATTER_KEYS = (
+    "status", "phase", "last_updated", "last-updated",
+    "lastUpdated", "author", "deciders",
+)
+
+
 def find_repo_root() -> Path:
     try:
         out = subprocess.check_output(
@@ -951,6 +985,248 @@ def check_backlog_completeness() -> list[Finding]:
     return out
 
 
+# ---------- N-20: artefact cap exceeded ------------------------------------
+
+REASONED_EXCEPTION_RE = re.compile(r"^##\s+Reasoned exception\s*$", re.MULTILINE)
+PLAN_CHANGE_LOG_RE = re.compile(r"^##\s+Change Log\s*$", re.MULTILINE)
+BACKLOG_ACTIVE_EPICS_RE = re.compile(r"^##\s+Active Epics\s*$", re.MULTILINE)
+
+
+def _arc42_cap_key(path: Path, fm: dict[str, str]) -> str:
+    """Pick arc42-poc vs arc42-mvp based on a `scope:` frontmatter hint
+    or a fallback path heuristic. Defaults to mvp (the looser cap).
+    """
+    scope = fm.get("scope", "").lower()
+    if "poc" in scope:
+        return "arc42-poc"
+    return "arc42-mvp"
+
+
+def classify_artifact(path: Path, fm: dict[str, str]) -> str | None:
+    """Map an artefact file to an ARTIFACT_CAPS key, or None if the
+    file is not a capped artefact. Classification key order:
+    frontmatter target-type/type/id, then path glob.
+    """
+    name = path.name
+    rel = str(path.relative_to(ROOT)) if path.is_absolute() else str(path)
+    target_type = fm.get("target-type", "").lower()
+    fm_type = fm.get("type", "").lower()
+    fm_id = fm.get("id", "")
+
+    # BAs are classified by target-type (Project / Epic / Feat / Mini).
+    if name.startswith("BA-") or fm_type == "ba" or target_type:
+        if target_type == "project" or name == "BA-{PROJECT}.md" or fm_id.startswith("BA-{PROJECT"):
+            return "project-ba"
+        if target_type == "epic" or re.match(r"^BA-EPIC-", name):
+            return "epic-ba"
+        if target_type == "feat" or re.match(r"^BA-FEAT-", name):
+            return "feat-ba"
+        if target_type in ("imp", "fix") or re.match(r"^BA-(IMP|FIX)-", name):
+            return "ba-mini"
+
+    if name.startswith("EXPLORE-") or fm_id.startswith("EXPLORE-"):
+        return "exploration-board"
+
+    if name == "BACKLOG.md":
+        return "backlog-header"
+    if name == "METRICS.md":
+        return "metrics"
+    if name == "architect-handoff.md":
+        return "architect-handoff"
+    if name == "arc42-snapshot.md" or name == "arc42.md":
+        return _arc42_cap_key(path, fm)
+    if name == "plan-context.md":
+        return "plan-context"
+
+    if re.match(r"^EPIC-\d{2}", name):
+        return "epic"
+    if re.match(r"^FEAT-\d{2}-\d{2}", name):
+        return "feature"
+    if re.match(r"^FIX-\d{2}-\d{2}-\d{2}", name):
+        return "fix"
+    if re.match(r"^IMP-\d{2}-\d{2}-\d{2}", name):
+        return "imp"
+    if re.match(r"^PLAN-\d{2}", name):
+        return "plan"
+    if re.match(r"^ADR-\d{2}", name):
+        return "adr"
+    if re.match(r"^AUDIT-", name):
+        return "audit"
+    return None
+
+
+def _effective_line_count(text: str, key: str) -> int:
+    """Lines counted against the cap. `backlog-header` counts header+vocab
+    up to '## Active Epics'; `plan` excludes the Change Log tail. All
+    other keys count the full file.
+    """
+    if key == "backlog-header":
+        m = BACKLOG_ACTIVE_EPICS_RE.search(text)
+        body = text[:m.start()] if m else text
+        return body.count("\n") + (0 if body.endswith("\n") else 1)
+    if key == "plan":
+        m = PLAN_CHANGE_LOG_RE.search(text)
+        body = text[:m.start()] if m else text
+        return body.count("\n") + (0 if body.endswith("\n") else 1)
+    return text.count("\n") + (0 if text.endswith("\n") else 1)
+
+
+def check_artifact_cap(files: Iterable[Path]) -> list[Finding]:
+    """N-20: warn when an artefact exceeds its cap by more than 10%,
+    unless a `## Reasoned exception` section is present at the top.
+    """
+    out: list[Finding] = []
+    for f in files:
+        try:
+            text = f.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        fm = parse_frontmatter(f)
+        key = classify_artifact(f, fm)
+        if key is None or key not in ARTIFACT_CAPS:
+            continue
+        if REASONED_EXCEPTION_RE.search(text):
+            continue
+        cap = ARTIFACT_CAPS[key]
+        actual = _effective_line_count(text, key)
+        threshold = int(cap * (1 + N20_TOLERANCE))
+        if actual <= threshold:
+            continue
+        out.append(Finding(
+            type="artefact-cap-exceeded",
+            severity=SEVERITY_LOW,
+            file=str(f.relative_to(ROOT)),
+            line=None,
+            message=(
+                f"{key}: {actual} lines exceeds cap {cap} "
+                f"(threshold {threshold} = cap + 10%)"
+            ),
+            suggestions=[
+                "Shrink the artefact to within the cap",
+                f"Add a '## Reasoned exception' section at the top with the rationale",
+                "Move detail to a child artefact (e.g. FEATURE -> PLAN, BA -> Mini-BA)",
+            ],
+        ))
+    return out
+
+
+# ---------- N-21: forbidden sections / frontmatter resurfaced --------------
+
+FORBIDDEN_STATUS_HEADING_RE = re.compile(r"^##\s+Status\s*$", re.MULTILINE)
+FORBIDDEN_NEXT_STEPS_RE = re.compile(r"^##\s+Next Steps\s*$", re.MULTILINE)
+FORBIDDEN_BACKLOG_ROW_POINTER_RE = re.compile(
+    r"(^>\s*Backlog row pointer)|(^##\s+Backlog row pointer\s*$)",
+    re.MULTILINE | re.IGNORECASE,
+)
+AGENT_INSTRUCTION_COMMENT_RE = re.compile(
+    r"<!--(.*?)-->", re.DOTALL,
+)
+
+N21_NEXT_STEPS_KEYS = {"project-ba", "epic-ba", "feat-ba", "ba-mini",
+                       "exploration-board", "fix", "imp"}
+
+
+def check_forbidden_sections(files: Iterable[Path]) -> list[Finding]:
+    """N-21: sections and frontmatter keys removed by the v3.6.0 shrink
+    must not resurface. State lives in the BACKLOG row.
+    """
+    out: list[Finding] = []
+    for f in files:
+        try:
+            text = f.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        rel = str(f.relative_to(ROOT))
+        is_backlog = f.name == "BACKLOG.md"
+        fm = parse_frontmatter(f)
+        key = classify_artifact(f, fm)
+
+        # `## Status` heading in any detail artefact (BACKLOG.md exempt).
+        if not is_backlog:
+            m = FORBIDDEN_STATUS_HEADING_RE.search(text)
+            if m:
+                out.append(Finding(
+                    type="forbidden-section-resurfaced",
+                    severity=SEVERITY_MEDIUM,
+                    file=rel,
+                    line=text[:m.start()].count("\n") + 1,
+                    message="'## Status' section in a detail artefact; state belongs in the BACKLOG row.",
+                    suggestions=[
+                        "Remove the '## Status' section",
+                        "Mirror any substance into the BACKLOG row notes",
+                    ],
+                ))
+
+        # Backlog row pointer blockquote / section.
+        m = FORBIDDEN_BACKLOG_ROW_POINTER_RE.search(text)
+        if m:
+            out.append(Finding(
+                type="forbidden-section-resurfaced",
+                severity=SEVERITY_MEDIUM,
+                file=rel,
+                line=text[:m.start()].count("\n") + 1,
+                message="'Backlog row pointer' block; the BACKLOG row stands on its own.",
+                suggestions=["Remove the Backlog row pointer block"],
+            ))
+
+        # '## Next Steps' in BA / EXPLORATION-BOARD / FIX / IMP.
+        if key in N21_NEXT_STEPS_KEYS:
+            m = FORBIDDEN_NEXT_STEPS_RE.search(text)
+            if m:
+                out.append(Finding(
+                    type="forbidden-section-resurfaced",
+                    severity=SEVERITY_MEDIUM,
+                    file=rel,
+                    line=text[:m.start()].count("\n") + 1,
+                    message=f"'## Next Steps' section in {key}; capture follow-ups as BACKLOG rows.",
+                    suggestions=[
+                        "Remove the '## Next Steps' section",
+                        "File each follow-up as a backlog row (FIX/IMP/FEAT)",
+                    ],
+                ))
+
+        # HTML comment that contains 'Instructions for the agent' with more than 3 lines.
+        for m in AGENT_INSTRUCTION_COMMENT_RE.finditer(text):
+            body = m.group(1)
+            if "Instructions for the agent" not in body:
+                continue
+            if body.count("\n") <= 3:
+                continue
+            out.append(Finding(
+                type="forbidden-section-resurfaced",
+                severity=SEVERITY_LOW,
+                file=rel,
+                line=text[:m.start()].count("\n") + 1,
+                message=(
+                    "'Instructions for the agent' HTML comment exceeds 3 lines; "
+                    "instructions belong in the producing SKILL.md."
+                ),
+                suggestions=[
+                    "Collapse the comment to a one-line pointer to the SKILL.md",
+                    "Move the instructions into the SKILL.md proper",
+                ],
+            ))
+
+        # Forbidden frontmatter keys.
+        for key_name in N21_FORBIDDEN_FRONTMATTER_KEYS:
+            if key_name in fm:
+                out.append(Finding(
+                    type="forbidden-section-resurfaced",
+                    severity=SEVERITY_MEDIUM,
+                    file=rel,
+                    line=None,
+                    message=(
+                        f"Frontmatter key '{key_name}' is forbidden; "
+                        f"state lives in the BACKLOG row."
+                    ),
+                    suggestions=[
+                        f"Remove `{key_name}:` from the frontmatter",
+                        "Run `python3 tools/migration/strip_frontmatter_status.py` if multiple files affected",
+                    ],
+                ))
+    return out
+
+
 # ---------- Orchestration --------------------------------------------------
 
 
@@ -967,6 +1243,9 @@ def run_checks() -> list[Finding]:
     findings.extend(check_ba_ref_bidirectional())
     findings.extend(check_feature_activation_path())
     findings.extend(check_stub_fix_binding())
+    cap_files = md_files(*artifact_dirs, ANALYSIS, HANDOFF_DIR)
+    findings.extend(check_artifact_cap(cap_files))
+    findings.extend(check_forbidden_sections(cap_files))
     return findings
 
 

@@ -19,359 +19,232 @@ disable-model-invocation: false
 # Security Auditor
 
 You perform a comprehensive security audit covering dependency analysis
-through to code review. Your output is a prioritized security report
-with a concrete remediation plan.
+through code review. Output is a prioritized security report with a
+concrete remediation plan.
 
-**Input:** Codebase (`src/`), dependencies (`package.json`/`pyproject.toml`), configuration
-**Output:** Security Audit Report in `_devprocess/analysis/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`
+**Input:** Codebase (`src/`), dependencies, configuration.
+**Output:** `_devprocess/analysis/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`.
 
-**Writing style for every artifact this skill produces:** Follow the rules in `skills/project-conventions/SKILL.md` under "Writing style for every artifact". Zero em dashes of any form. No Unicode em dash (U+2014), no en dash (U+2013), no double-hyphen substitute. No AI vocabulary, no negative parallelisms. Every finding description, every causal chain, every remediation step, and every prioritisation rationale is written in that style. Before you save an artifact, scan it for U+2014 and U+2013 and fix any hit.
+See `skills/project-conventions/SKILL.md#canonical-specs` (Writing style)
+and (Frontmatter spec). Both apply to every artifact this skill produces.
 
-## MANDATORY Pre-Phase 0: Branch and item check
+## Pre-Phase 0: Branch and item check
 
-Security audits run in two modes:
+Two modes:
 
-- **Per-item audit** (e.g. as part of /coding or before merging a
-  feature): runs on the item's branch, alongside coding and testing.
-  The sec-done tag goes on the same branch.
-- **Periodic full-codebase audit** (no specific feature item): runs
-  on a dedicated branch `feature/audit-<YYYY-MM-DD>` and produces a
-  standalone AUDIT report that queues FIX/IMP follow-ups.
+- **Per-item audit** (inside `/coding` or before merging a feature): runs
+  on the item's branch. `sec-done` tag goes on the same branch.
+- **Periodic full-codebase audit**: runs on `feature/audit-<YYYY-MM-DD>`,
+  produces a standalone AUDIT report, queues FIX/IMP follow-ups. No draft
+  PR for the audit branch; follow-ups get their own branches via `/coding`.
 
-For per-item audit:
-
-1. Identify the active item from the prompt or via AskUserQuestion.
-2. Verify the branch matches the item-branch.
-3. Skill-triggered GitHub integration (idempotent):
-
-   ```
-   python3 tools/github-integration/flow.py create-issue --item <ID>
-   python3 tools/github-integration/flow.py open-draft-pr --item <ID>
-   ```
-
-4. At Handoff Ritual end, tag the phase:
-
-   ```
-   python3 tools/github-integration/flow.py tag-phase --item <ID> --phase sec
-   ```
-
-For periodic full-codebase audit: branch is
-`feature/audit-<YYYY-MM-DD>` (no item ID). The AUDIT report acts as
-its own deliverable; FIX/IMP follow-ups land in the BACKLOG, each
-with its own branch later. No draft PR is opened for the audit
-branch itself; the audit report is a deliverable, the FIX/IMP
-follow-ups are the actionable work and they get their own branches
-later via `/coding`.
+Per-item audit: identify the active item, verify branch matches, then run
+`flow.py create-issue` and `flow.py open-draft-pr` (idempotent). At the
+Handoff Ritual end, run `flow.py tag-phase --item <ID> --phase sec`.
 
 Full rules: `skills/project-conventions/references/team-workflow.md`.
 
-## What you do
+## Scope
 
-- **SAST** -- Static code analysis (CWE-based)
-- **OWASP Top 10** -- Web security patterns
-- **OWASP LLM Top 10** -- AI/LLM-specific risks (when applicable)
-- **SCA** -- Software Composition Analysis (dependencies, licenses)
-- **Zero Trust Validation** -- Trust boundaries, input validation
-- **Code Quality Security** -- SonarQube-equivalent patterns
+In scope: SAST (CWE-based), OWASP Top 10, OWASP LLM Top 10 (when AI/LLM
+is present), SCA (dependencies, licenses), Zero Trust (trust boundaries,
+input validation), code quality security patterns.
 
-## What you do NOT do
-
-- Penetration Testing (needs running infrastructure)
-- Compliance certification (needs a formal auditor)
-- Architecture design (done by `/architecture`)
+Out of scope: penetration testing, compliance certification, architecture
+design (done by `/architecture`).
 
 ## Audit Phases
 
-### Phase 1: Reconnaissance (5 min)
+| Phase | Activity | Reference |
+|---|---|---|
+| 1. Reconnaissance | Identify stack, framework, runtime, dependency count, existing measures. Internal analysis only; nothing from this phase appears as a standalone report section. | -- |
+| 2. SAST | Grep and analyze code per CWE patterns. | `references/cwe-patterns.md` |
+| 3. OWASP Top 10 | Check A01-A10. | `references/owasp-checklist.md` |
+| 4. OWASP LLM Top 10 | Only if LLM APIs are used. Check LLM01-LLM10. | `references/owasp-llm-checklist.md` |
+| 5. SCA | `npm audit --json` or `pip-audit --format json`; license check. Classify by Runtime / Dev / Transitive. | -- |
+| 6. Zero Trust + Quality | Input validation, least privilege, defense in depth, fail-closed defaults, audit trail, error handling, resource management, race conditions, hardcoded credentials, debug code. | -- |
 
-Read and understand the tech stack:
+## Finding format (binding)
+
+Each finding caps at five fields. Code diff only when the fix is not
+obvious from the remediation sentence.
 
 ```
-Project analysis:
-- Language(s): {identify}
-- Framework(s): {identify}
-- Runtime: {identify}
-- Dependencies: {count}
-- Code size: {files, LOC}
-- Existing security measures: {what's already in place}
+H-N: <title>
+- Severity: Critical | High | Medium | Low | Info
+- CWE-ID:   CWE-XXX
+- Location: <file:line>
+- Risk:     <one sentence>
+- Remediation: <one sentence with concrete action>
 ```
 
-### Phase 2: SAST -- Static Application Security Testing
+Status values: `Confirmed`, `Mitigated`, `False Positive`, `Resolved`.
+State the status, never leave a false positive silent. Consider context
+(DevDependency vs. Runtime).
 
-Systematically check the code. Read `references/cwe-patterns.md` for the
-full list of grep/analysis patterns per CWE category.
+**Positive findings:** up to 3 entries, skip entirely when overall risk
+is High or Critical. The team needs the negative list, not encouragement.
 
-For each finding, document according to the Finding format in
-`templates/AUDIT-TEMPLATE.md`: Severity, CWE-ID, Location (file:line),
-Risk, Remediation, Code diff.
+Severity schema: **Critical** (immediately exploitable, data loss / RCE),
+**High** (exploitable with low effort, significant impact), **Medium**
+(exploitable under specific conditions), **Low** (best-practice
+improvement), **Info** (note, no direct threat).
 
-### Phase 3: OWASP Top 10 Analysis
+## Audit summary block (canonical, define once)
 
-Check all 10 categories (A01-A10). Read `references/owasp-checklist.md`.
-
-### Phase 4: OWASP LLM Top 10 (when AI/LLM is in the project)
-
-Only relevant if the project uses LLM APIs. Check LLM01-LLM10.
-Read `references/owasp-llm-checklist.md`.
-
-### Phase 5: SCA -- Software Composition Analysis
-
-```bash
-# Dependency vulnerabilities
-npm audit --json 2>/dev/null || pip-audit --format json 2>/dev/null
-
-# License check
-npx license-checker --json 2>/dev/null || pip-licenses --format json 2>/dev/null
-```
-
-Classify by: Runtime Dependencies (critical), Dev Dependencies (lower risk),
-Transitive Dependencies (indirect risk).
-
-### Phase 6: Zero Trust & Code Quality
-
-Check: Input validation at trust boundaries, Least Privilege, Defense in
-Depth, Fail-Closed Defaults, Audit Trail, Error Handling, Resource
-Management, Race Conditions, Hardcoded Credentials, Debug code in production.
-
-## Create report
-
-Read `templates/AUDIT-TEMPLATE.md` and create the full report.
-
-Save to: `_devprocess/analysis/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`
-
-## Severity schema
-
-- **Critical**: Immediately exploitable, data loss / RCE possible
-- **High**: Exploitable with low effort, significant impact
-- **Medium**: Exploitable under specific conditions
-- **Low**: Low risk, best-practice improvement
-- **Info**: Note, no direct threat
-
-## Anti-patterns
-
-**Don't mark false positives silently:**
-- Always state the status: Confirmed / Mitigated / False Positive
-- Consider context: DevDependencies vs. Runtime
-
-**Remediation too vague:**
-- Wrong: "Fix the security issue"
-- Right: "In `src/api/handler.ts:42`, replace `JSON.parse(userInput)` with
-  schema validation using zod"
-
-**Don't forget positive findings:**
-- Document what is already well implemented
-- Shows codebase maturity and motivates the team
-
-## When to run an audit
-
-- Before every release (Full Audit)
-- After significant security-relevant changes
-- Periodically (at least monthly for active projects)
-- After dependency updates (SCA phase)
-
----
-
-## Fix-Loop: Findings -> Fix -> Re-Audit
-
-After the audit, a fix-loop starts. The user decides scope and approach.
-
-### Step 1: Summarize findings
+Defined here. Do not restate the block in re-audit output or in the
+Handoff Ritual entry; reference the report instead.
 
 ```
 === Security Audit Result ===
 
 Overall risk: {Critical / High / Medium / Low}
 
-P1 -- Must Fix (Critical + High): {N} findings
-- {H-1}: {title} -- {file:line} -- effort: {S/M/L}
-- {H-2}: {title} -- {file:line} -- effort: {S/M/L}
+P1 (Must Fix, Critical + High): {N} findings
+- {H-1}: {title}, {file:line}, effort {S/M/L}
 
-P2 -- Should Fix (Medium): {N} findings
-- {M-1}: {title} -- {file:line} -- effort: {S/M/L}
+P2 (Should Fix, Medium): {N} findings
+- {M-1}: {title}, {file:line}, effort {S/M/L}
 
-P3 -- Consider (Low + Info): {N} findings
-- {L-1}: {title} -- effort: {S/M/L}
+P3 (Consider, Low + Info): {N} findings
+- {L-1}: {title}, effort {S/M/L}
 
-Positive findings: {what is already well implemented}
+Positive findings: {up to 3, omitted when overall risk High or Critical}
 ```
 
-### Step 2: Ask user how to proceed
+## When to run
+
+Before every release, after significant security-relevant changes,
+periodically (monthly for active projects), after dependency updates
+(SCA phase).
+
+## Create the report
+
+Read `templates/AUDIT-TEMPLATE.md`, fill it, save to
+`_devprocess/analysis/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`.
+
+---
+
+## Fix-Loop
+
+After the audit, the user picks scope.
+
+### Step 1: Show the summary
+
+Render the audit summary block defined above. Once.
+
+### Step 2: Ask the user
 
 ```
 How should I handle the findings?
 
-A) Fix all findings (P1 + P2 + P3)
-   -> I fix everything and run a re-audit
-
-B) Fix only P1, defer P2/P3 to backlog
-   -> Critical/High fixed immediately, rest documented
-
-C) Approve fixes one by one
-   -> I show each fix before implementation
-
-D) Nothing to fix -- report only
-   -> All findings go to the backlog
+A) Fix all findings (P1 + P2 + P3), then re-audit.
+B) Fix only P1, defer P2/P3 to backlog.
+C) Approve fixes one by one.
+D) Nothing to fix, report only. All findings go to backlog.
 ```
 
 ### Step 3: Fix implementation
 
-For each finding to be fixed:
-
-1. Implement the concrete fix (code diff from remediation plan)
-2. Run affected tests (no regressions)
-3. Update finding status in the audit report: `Confirmed` -> `Resolved`
-4. On Option C: show the fix to the user before continuing
+For each finding to be fixed: implement the concrete remediation, run
+affected tests (no regressions), flip status `Confirmed -> Resolved` in
+the report. On Option C: show each fix before continuing.
 
 ### Step 4: Re-audit (automatic)
 
-After all fixes: re-run the affected audit phases.
+Re-run affected audit phases. Report deltas only:
 
 ```
-=== Re-Audit Result ===
+=== Re-Audit Delta ===
 
 Before: {N} P1, {N} P2, {N} P3
 After:  {N} P1, {N} P2, {N} P3
-
-Resolved: {list of fixed findings}
+Resolved: {list}
 New: {if a fix introduced new findings}
-
-{If P1 still open: back to step 2}
-{If P1 all resolved:}
-
-All Critical/High findings resolved!
 ```
 
-The loop repeats until all in-scope findings are resolved or the user aborts.
+Loop until all in-scope findings resolve or the user aborts. Do not
+re-render the full summary block.
 
 ### Step 5: Deferred findings -> Backlog
 
-Findings not fixed immediately (e.g. P2/P3 on Option B):
-
-1. **Backlog**: each open finding gets a row in
-   `_devprocess/context/BACKLOG.md` following the binding format
-   from `skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`.
-   Security findings live in the **Standalone Items** section with:
-   - `Typ = Security`
-   - `Source = SEC`
-   - `Prio` mapped from finding severity (H -> P1, M -> P2, L -> P3)
-   - `Status = Ready`
-   - `Evidence = path:line`
-   - `Notes` = finding ID (H-N / M-N / L-N) + short risk description
-   After adding rows, refresh the dashboard counts and "Letztes Update".
-
-2. **Audit report**: status stays `Confirmed` with note "Deferred to backlog"
+Each open finding becomes a row in `_devprocess/context/BACKLOG.md` per
+`skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md`. Place
+under **Standalone Items** with: `Typ = Security`, `Source = SEC`,
+priority from severity (H -> P1, M -> P2, L -> P3), `Status = Ready`,
+`Evidence = path:line`, `Notes = <H/M/L-ID> + short risk`. Refresh
+dashboard counts. Audit report keeps status `Confirmed` with note
+"Deferred to backlog".
 
 ### Step 6: Update artifacts
 
-- Audit report: save final version with all status updates
-- Feature specs: write back security-relevant changes
-- ADRs: when security fixes affect architecture decisions
-- Backlog: open findings documented
+Audit report (final version), feature specs (security-relevant changes),
+ADRs (when fixes affect decisions), backlog (open findings).
 
-### Step 7: Run `/consistency-check` mode A at the end of the skill phase
+### Step 7: Run `/consistency-check` mode A
 
 Catches deferred findings without backlog rows, FIX rows missing
-`feature:` / `epic:` frontmatter, dashboard counts that drifted from
-the new findings, and dead links between audit report and backlog.
-The Handoff Ritual reports the result.
-
-### Closing
-
-```
-Security Audit complete!
-
-Resolved: {N} findings fixed
-Deferred: {N} findings in backlog
-Report: _devprocess/analysis/AUDIT-{PROJECT}-{DATE}.md
-```
+`feature:`/`epic:` frontmatter, drifted dashboard counts, dead links.
 
 ---
 
-## Handoff Ritual (mandatory at end of phase)
-
-After the fix-loop is closed, this skill always runs the handoff ritual,
-regardless of how it was started (directly or via `/dia-guide`).
+## Handoff Ritual
 
 ### Part 1: Artifact report
 
 ```
 Produced / updated:
-- _devprocess/analysis/AUDIT-{PROJECT}-{DATE}.md: full report
-- Findings resolved: {N} (P1: {N}, P2: {N}, P3: {N})
-- Findings deferred: {N} (in backlog)
-- _devprocess/context/BACKLOG.md: deferred findings added
+- _devprocess/analysis/AUDIT-{PROJECT}-{DATE}.md
+- Findings resolved: {N}
+- Findings deferred: {N}
+- _devprocess/context/BACKLOG.md: deferred rows added
 ```
 
 ### Part 2: Handoff context
 
-Append a new entry to `_devprocess/context/HANDOFFS.md` with:
+Append a new entry to `_devprocess/context/HANDOFFS.md`. Reference the
+audit summary block by file path; do not restate it. Add:
 
-- **Overall risk verdict**: Critical / High / Medium / Low
-- **Unresolved P0/P1**: any high-severity findings still open and why
-- **Deferred items**: what went to backlog with reasons
-- **Architectural security concerns**: patterns that should be revisited
-  in a future `/architecture` cycle (e.g. trust-boundary issues that
-  require redesign, not patching)
-- **Release recommendation**: green / yellow / red verdict that gates
-  the Closing Handoff (`/consistency-check` mode B + optional release)
+- **Unresolved P0/P1**: open high-severity findings and why.
+- **Architectural concerns**: patterns for a future `/architecture`
+  cycle (trust-boundary issues that need redesign, not patching).
+- **Release recommendation**: green / yellow / red verdict.
 
 ### Part 3: Phase-end commit
 
-Run the phase-end commit per `skills/project-conventions/references/team-workflow.md`
-section "Phase-end commit (binding)". The block fires the binding
-branch-and-item check, stages every artefact this phase produced
-(audit report, BACKLOG rows for deferred findings, any FIX rows
-created from H/M findings), commits with the canonical message,
-sets the phase tag, and opens a draft PR if one does not exist yet.
-
-Canonical commit message for AUDIT:
+Per `skills/project-conventions/references/team-workflow.md` section
+"Phase-end commit (binding)". Canonical message:
 
 ```
 chore(audit): <ITEM-ID> audit complete
 
-<one-line summary: risk verdict, N findings (P1/P2/P3), release recommendation>
+<one-line: risk verdict, N findings (P1/P2/P3), release recommendation>
 
 Refs: <ITEM-ID>[, FIX-..., FIX-...]
 ```
 
-After the commit lands, run:
+After the commit:
 
 ```
 python3 tools/github-integration/flow.py tag-phase --item <ID> --phase sec
 python3 tools/github-integration/flow.py sync-status --item <ID>
 ```
 
-`sync-status` mirrors the BACKLOG Status column to the GitHub
-issue and project (and the GitHub Assignee back into the BACKLOG
-Claim column). It is a no-op outside `mode = "github-sync"`.
-
+`sync-status` mirrors BACKLOG Status to the GitHub issue and project
+(and Assignee back into Claim). No-op outside `mode = "github-sync"`.
 Skip the commit silently if the working tree has no changes.
 
-### Part 4: Transition question
+### Part 4: Transition
 
-Ask the user:
+> "Security audit complete. Report: `_devprocess/analysis/AUDIT-{PROJECT}-{DATE}.md`.
+> Release readiness: {green/yellow/red}.
+> Recommended next: `/consistency-check` mode B finalises the artifact
+> graph and returns a Release-Ready verdict.
+> Run `/consistency-check` mode B now, or review the audit first?"
 
-> "Security audit complete. Report saved to:
-> - `_devprocess/analysis/AUDIT-{PROJECT}-{DATE}.md`
->
-> Release readiness: {green/yellow/red}
->
-> Recommended next: `/consistency-check` mode B (semantic) -- finalises
-> the artifact graph (BA Validation, Feature/ADR statuses, arc42,
-> plan-context) and returns a Release-Ready verdict. After Release-
-> Ready: yes, the cycle is closed; you can run your private release
-> skill if one is configured.
->
-> Shall I invoke `/consistency-check` mode B now, or would you like to
-> review the audit first?"
-
-**On agreement** ("yes" / "go" / "next") or when running inside
-`/dia-guide`:
--> Run `/consistency-check` mode B; on Release-Ready: yes the
-   `/dia-guide` Closing Handoff fires
-
-**On rejection** ("no" / "stop" / "I want to check first"):
--> Pause and wait for user instruction
+On agreement (or when running inside `/dia-guide`): run
+`/consistency-check` mode B; on Release-Ready: yes the `/dia-guide`
+Closing Handoff fires. On rejection: pause.
 
 ## Keywords
 Security Audit, Security Review, OWASP, SAST, SCA, Vulnerability, CVE,

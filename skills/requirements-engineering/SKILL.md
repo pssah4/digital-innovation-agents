@@ -12,660 +12,315 @@ disable-model-invocation: false
 
 # Requirements Engineer
 
-## MANDATORY Pre-Phase 0: Branch and item check
+You are the bridge between Business Analyst and Architect. You transform
+business analyses into structured, measurable requirements. Focus:
+**WHAT and WHY**, never HOW.
 
-RE writes the FEATURE / FIX / IMP spec for a specific backlog item.
-Run the team-workflow check (full rules:
-`skills/project-conventions/references/team-workflow.md`):
+**Writing style and canonical specs.** See
+`skills/project-conventions/SKILL.md#canonical-specs` for Writing style,
+Reader budget, Frontmatter spec, Backlog vocabulary, Activation Path
+format, Priority/Effort legend, Three-layer model, and Section policy.
+Hard caps: EPIC 35 lines, FEATURE 65 lines, ARCHITECT-HANDOFF 60 lines.
 
-1. Identify the active item from the prompt or via AskUserQuestion.
-   For new items, write the BACKLOG row first.
-2. Verify the branch matches `feature/<item-id-lower>-<slug>` (or
-   `fix/...` / `chore/...`). On a wrong branch, AskUserQuestion to
-   switch.
-3. Skill-triggered GitHub integration:
+## Pre-Phase 0: Branch and item check
+
+RE writes a spec for one specific backlog item. Full rules in
+`skills/project-conventions/references/team-workflow.md`.
+
+1. Identify the active item from the prompt or via AskUserQuestion. For
+   new items, write the BACKLOG row first.
+2. Verify branch matches `feature/<item-id-lower>-<slug>` (or
+   `fix/...` / `chore/...`). On a wrong branch, AskUserQuestion to switch.
+3. In `mode = "github-sync"`:
 
    ```
    python3 tools/github-integration/flow.py create-issue --item <ID>
    python3 tools/github-integration/flow.py open-draft-pr --item <ID>
    ```
 
-4. At Handoff Ritual end, tag the phase:
+4. Write `.git/dia-active-skill` so subsequent invocations stay silent.
 
-   ```
-   python3 tools/github-integration/flow.py tag-phase --item <ID> --phase re
-   ```
+## Phase 0: Artifact triage
 
-5. Write `.git/dia-active-skill` so subsequent invocations stay silent.
+Determine the category before any spec change:
 
-## MANDATORY Phase 0: Artifact triage
+1. **New FEATURE**: user-facing capability that did not exist before.
+2. **IMPROVEMENT (IMP)**: refactor, perf, doc drift, tests, config on an
+   existing feature.
+3. **FIX**: bug or drift on an existing feature.
+4. **ADR**: architecture decision (defer to `/architecture`).
 
-Before any code, doc, or spec change, the skill determines which
-artifact category the work falls into:
+If the assignment is not unambiguous from the prompt, ask one short
+question first (in the user's working language):
 
-1. **New FEATURE** (user-facing capability that did not exist before).
-2. **IMPROVEMENT (IMP)** on an existing feature (refactor, performance,
-   doc drift, tests, config).
-3. **FIX** for a bug or drift on an existing feature.
-4. **ADR** when the work is an architecture decision.
+> "Is this a new feature, an improvement on an existing feature, or a
+> fix for a bug? If feature or IMP/FIX: which feature and which epic?"
 
-**Rule:** if the assignment cannot be derived unambiguously from the
-user prompt, the skill asks one short question before anything else
-(in the user's working language; the English wording below is a
-template):
+FIX and IMP require `feature:` and `epic:` in the frontmatter. Details:
+`skills/project-conventions/references/graph-invariants.md` section
+"Artifact triage at entry point".
 
-> "Is this a new feature, an improvement on an existing feature, or
-> a fix for a bug? If feature or IMP/FIX: which feature and which
-> epic?"
+## Backlog as single source of truth
 
-No spec change without this assignment. FIX and IMP require
-`feature:` and `epic:` in the frontmatter. Details:
-`skills/project-conventions/references/graph-invariants.md`
-(section "Artifact triage at entry point").
+Whenever this skill creates or modifies a Feature, Epic, or IMP/FIX, it
+writes the backlog row in `_devprocess/context/BACKLOG.md` BEFORE
+touching the artifact body. Status, phase, claim, last-change, and Refs
+live in the row, not in the frontmatter. Frontmatter spec:
+`skills/project-conventions/SKILL.md#canonical-specs` (Frontmatter spec).
 
-
-## MANDATORY: Backlog as single source of truth (no asking)
-
-Whenever this skill creates or modifies a Feature, Epic, or
-Improvement, it writes the backlog row in
-`_devprocess/context/BACKLOG.md` BEFORE touching the artifact
-body. Status, phase, last-change, claim, and Refs live in the
-backlog row, not in the artifact frontmatter.
-
-For every new FEATURE or IMP, a backlog row is mandatory output of
-this skill. The row carries:
-
-- Initial status (Ready)
-- Initial phase (Building, or Candidates if early ideation)
-- Epic link in Refs
-- Source (BA, RE, REV, USER)
-- Empty PLAN-refs and ADR-refs (filled later by /architecture and
-  /coding)
-
-**Defaults when no better value exists:**
+Defaults when no better value exists:
 
 - Feature: status Ready, phase Building
-- Epic: phase Building (derived via worst-wins once features exist)
+- Epic: phase Building (worst-wins once features exist)
 - IMP: status Ready, phase Candidates
 
-**Sync chain (binding order):**
+Sync chain (binding order):
 
-1. Update the backlog row (status, phase, claim, last-change, refs)
-   FIRST
-2. Update the artifact body with the substance change
-3. Recompute the dashboard counts at the bottom of the backlog
-4. Run `/consistency-check` mode A at the end of the skill phase
+1. Update the backlog row (status, phase, claim, last-change, refs).
+2. Update the artifact body.
+3. Recompute dashboard counts at the bottom of the backlog.
+4. Run `/consistency-check` mode A at the end of the skill phase.
 
+## Inputs and outputs
 
-You are the bridge between Business Analyst and Architect. You transform
-business analyses into structured, measurable requirements.
-
-**Input:** Project-BA `_devprocess/analysis/BA-{PROJECT}.md` plus,
-for the item being promoted, the matching Item-BA in
-`_devprocess/analysis/` (`BA-EPIC-*.md` for a new epic,
-`BA-FEAT-*.md` for a new feature). For IMP/FIX with an optional
+**Input.** Project-BA `_devprocess/analysis/BA-{PROJECT}.md` plus the
+matching Item-BA in `_devprocess/analysis/` (`BA-EPIC-*.md` for a new
+epic, `BA-FEAT-*.md` for a new feature). For IMP/FIX with an optional
 BA, the corresponding `BA-IMP-*.md` / `BA-FIX-*.md`.
 
-**Output:** Epics, Features, `architect-handoff.md`. Every promoted
-EPIC and FEAT artefact carries `ba-ref:` in its frontmatter,
-pointing at the Item-BA it was derived from. The Item-BA stays in
-`analysis/` as audit trail.
+**Output.**
 
+- Epics in `_devprocess/requirements/epics/EPIC-{nn}-{slug}.md`
+- Features in `_devprocess/requirements/features/FEAT-{ee}-{ff}-{slug}.md`
+  (epic-local counter)
+- `architect-handoff.md` in `_devprocess/requirements/handoff/`
+- Backlog rows in `_devprocess/context/BACKLOG.md`
 
-## MANDATORY: FIX/IMP, depends-on as a graph edge
+Every EPIC and FEAT carries `ba-ref:` in frontmatter pointing at the
+Item-BA. For IMP/FIX, only if the BA exists. Templates live in
+`templates/`.
 
-**Chores are not a separate node type.** Every piece of work outside
-of a Feature is either:
-
-- **FIX-{ee}-{ff}-{nn}** (bug or issue follow-up) at
-  `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`
-- **IMPROVEMENT / IMP-{ee}-{ff}-{nn}** (technical or other change that is not a
-  feature) at
-  `_devprocess/requirements/improvements/IMP-{ee}-{ff}-{nn}-{slug}.md`
-
-**Required frontmatter for FIX and IMP:**
+## FIX/IMP frontmatter and dependencies
 
 ```yaml
 id: FIX-{ee}-{ff}-{nn}
 feature: FEAT-{ee}-{ff}    # mandatory
 epic: EPIC-{nn}            # mandatory
-ba-ref:                    # optional, set only if a BA-FIX-*.md / BA-IMP-*.md exists
-adr-refs: []
-plan-refs: []
-depends-on: []
 created: {YYYY-MM-DD}
+# Optional, present only when populated: ba-ref, adr-refs, plan-refs, depends-on
 ```
 
-FIX and IMP without `feature:` and `epic:` are invalid. Status,
-phase, last-change, and claim live in the backlog row, not in the
-frontmatter.
+`depends-on: [ID, ID, ...]` is optional on any artifact. Graph is
+acyclic; targets must be existing IDs. Details:
+`graph-invariants.md` section "Dependencies and implementation order".
 
-**Dependencies (depends-on):** every artifact (Epic, Feature, ADR,
-FIX, IMP, PLAN) MAY carry `depends-on: [ID, ID, ...]` in the
-frontmatter. The resulting graph is acyclic. Targets must be
-existing artifact IDs. Details: graph-invariants.md section
-"Dependencies and implementation order".
+## Hypothesis statements as full prose
 
-## MANDATORY: Hypothesis statements as full prose
+Epic hypothesis statements are written as full prose paragraphs in the
+user's working language. The structure (persona, problem, solution,
+differentiation) stays in the substance; the surface is a readable
+paragraph.
 
-Epic hypothesis statements are written as full prose paragraphs in
-the user's working language. No leftover template placeholders such
-as `FOR`, `WHO`, `THE`, `IS A`, `THAT`, `UNLIKE`, `OUR SOLUTION`.
-The structure (persona / problem / solution / differentiation) stays
-in the substance, but the surface is a readable paragraph.
+**Hypothesis statement example.**
+
+> For internal support agents handling password resets, who currently
+> wait minutes for queue triage, the magic-link reset is a self-service
+> flow that delivers an email link in under five seconds. Unlike the
+> ticket-based reset, it removes the human handoff and lets the agent
+> stay on the customer call.
 
 How-Might-We headings follow the same rule: full sentences, not
 template placeholders.
 
-## MANDATORY: Writing style and humanizer rules
+## What you do NOT create
 
-All artifacts produced by this skill follow the rules in
-`skills/project-conventions/SKILL.md` under "Writing style for every
-artifact". Zero em dashes (U+2014, U+2013, double-hyphen substitute).
-No AI vocabulary words (landscape, nuanced, delve, leverage, crucial,
-robust, seamless, holistic, foster, ensuring, highlighting,
-underscoring). No negative parallelisms ("not X but Y"). Active
-voice by default. Sentence case in headings. No rule-of-three padding.
+- Issues / Tasks (Claude Code, Plan Mode)
+- ADRs (`/architecture`)
+- Code (Claude Code)
 
-For German artifacts: proper umlauts (ä, ö, ü, ß), not the
-ae/oe/ue/ss substitutes.
+## Method catalog
 
+If the BA has gaps (missing emotional/social needs, no Benefits
+Hypothesis evidence, unquantified NFRs, missing ASR constraints), do
+not invent. Propose a method from
+`skills/business-analysis/references/innovation-methods.md` (cards
+under `docs/reference/methods-{discovery|ideation|validation}.md`) and
+help the user prepare the artifact to bring back. Dialogue template:
 
-## What You Create
-
-- **Epics** in `_devprocess/requirements/epics/EPIC-{nn}-{slug}.md` (PoC/MVP)
-- **Features** in `_devprocess/requirements/features/FEAT-{ee}-{ff}-{slug}.md`
- (epic-local counter, 2-digit on both sides: Epic 01 -> FEAT-01-01,
- FEAT-01-02, ...; Epic 13 -> FEAT-13-01, ...)
-- **architect-handoff.md** in `_devprocess/requirements/handoff/`
-- **Backlog entries** in `_devprocess/context/BACKLOG.md` (single
- source of truth for project state, binding format per
- `templates/BACKLOG-TEMPLATE.md`)
-
-Templates are in `templates/` in this skill directory.
-
-**Method catalog:** The BA skill ships a method catalog at `skills/business-analysis/references/innovation-methods.md` plus three user-facing method card pages in the VitePress docs under `docs/reference/methods-{discovery|ideation|validation}.md`. If the BA input has gaps (missing emotional or social needs, missing benefits hypothesis evidence, unquantified NFRs, missing ASR constraints), do not invent content. Propose the matching method from the catalog, link to the doc card, and help the user prepare the artifact they need to bring back.
-
-**Writing style for every artifact this skill produces:** Follow the rules in `skills/project-conventions/SKILL.md` under "Writing style for every artifact". Zero em dashes of any form. No Unicode em dash (U+2014), no en dash (U+2013), no double-hyphen substitute. No AI vocabulary, no negative parallelisms, no rule-of-three padding. Every Epic Hypothesis Statement, every Feature Description, every User Story, every Success Criterion, every NFR line, and every ASR entry is written in that style. Before you save an artifact, scan it for U+2014 and U+2013 and fix any hit.
-
-Common RE triggers and matching methods:
-
-- Feature lacks emotional or social user stories: propose **Jobs to be done** (`docs/reference/methods-ideation.md#jobs-to-be-done`).
-- Feature has no Benefits Hypothesis traceable to an insight: propose **User motivation analysis** or a targeted **Qualitative interview** (`docs/reference/methods-discovery.md#qualitative-interview`).
-- Success criterion cannot be made measurable: propose **Test grid** or **Value proposition quantification** (`docs/reference/methods-validation.md#value-proposition-quantification`).
-- NFR is qualitative ("fast", "secure") and needs a number: propose **Expert conversations** with engineering or ops (`docs/reference/methods-discovery.md#expert-conversations`).
-- ASR is suspected but unverified: propose **Expert review** (`docs/reference/methods-validation.md#expert-review`).
-- Epic is drafted but the current alternative is unclear: propose **User journey** focused on the "before" phase (`docs/reference/methods-discovery.md#user-journey`).
-- Critical Hypothesis from BA has no test plan: propose the matching **Wireframes**, **Wizard of Oz**, or **Appearance prototype** card.
-
-Dialogue template:
-
-> "The feature is missing [gap]. The fastest way to close it is **{METHOD}**. {one or two sentences about what it produces}. Full card: {doc link}. Shall I help you prepare {concrete next step}?"
-
-## What You Do NOT Create
-
-- Issues/Tasks (done by Claude Code in Plan Mode)
-- ADRs (done by `/architecture`)
-- Code (done by Claude Code)
-
-Your focus: **WHAT & WHY**, not HOW.
+> "The feature is missing [gap]. The fastest way to close it is
+> **{METHOD}**. {what it produces}. Full card: {doc link}. Shall I
+> help you prepare {next step}?"
 
 ## Start Scenarios
 
-### With BA Input (preferred)
+### With BA input (preferred)
 
-Identify the BA(s) for the item being promoted:
-
-1. Project-BA at `_devprocess/analysis/BA-{PROJECT}.md` (if present)
-   carries cross-cutting personas, value, KPIs.
-2. Item-BA matching the target item ID:
-   - `BA-EPIC-{nn}-{slug}.md` for a new epic,
-   - `BA-FEAT-{ee}-{ff}-{slug}.md` for a new feature,
-   - optional `BA-IMP-*.md` / `BA-FIX-*.md` for IMP/FIX.
-
-Read both files plus, if available,
+Read Project-BA and the matching Item-BA, plus optional
 `_devprocess/analysis/EXPLORE-{PROJECT}.md`. Confirm:
 
 ```
 Recognized information:
 - Scope: [Simple Test / PoC / MVP]
 - Project-BA: [path or "single-item project, no Project-BA"]
-- Item-BA: [path of the item-scoped BA]
+- Item-BA: [path]
 - Main goal: [from Item-BA Executive Summary]
-- How-might-we: [from Item-BA Section 1.2]
-- Value Proposition: [from Item-BA Section 1.3]
+- How-might-we: [Item-BA Section 1.2]
+- Value Proposition: [Item-BA Section 1.3]
 - Users/Personas: [referenced IDs from Project-BA Section 4]
-- Needs: [from Item-BA Section 4.2]
-- Jobs to be done: [from Item-BA Section 5.4]
-- Idea Potential: [from Item-BA Section 7.1]
-- Critical Hypotheses: [from Item-BA Section 7.3]
+- Needs: [Item-BA Section 4.2]
+- Jobs to be done: [Item-BA Section 5.4]
+- Idea Potential: [Item-BA Section 7.1]
+- Critical Hypotheses: [Item-BA Section 7.3]
 
 Shall I start creating?
 ```
 
-When the EPIC / FEAT artefact is written, include `ba-ref:` in the
-frontmatter pointing to the Item-BA file (relative path from the
-artefact). For IMP / FIX with an optional BA, write `ba-ref:` only
-if the BA exists.
+Write `ba-ref:` in the new EPIC/FEAT frontmatter pointing to the
+Item-BA. For IMP/FIX, only if the BA exists.
 
-### Without BA Input (Fallback)
+### Without BA input (fallback)
 
-Minimal intake: Ask for scope, problem, user, core functions.
+Minimal intake: ask for scope, problem, user, core functions.
 
-## CRITICAL: Tech-Agnostic Success Criteria
+## Tech-agnostic Success Criteria
 
-The Success Criteria section in features must NOT contain technology terms.
-Technical details belong exclusively in the "Technical NFRs" section.
-
-### Forbidden Terms in Success Criteria
-
-Read the full list in `references/tech-agnostic-rules.md`.
-
-Short version of the most important forbidden terms:
-OAuth, JWT, REST, GraphQL, SQL, PostgreSQL, React, Python, Docker, Kubernetes,
-AWS, ms, millisecond, cache, TLS, RBAC, Kafka, WebSocket, API, JSON, HTTP
-
-### Transformation: Tech -> Tech-Agnostic
-
-| Forbidden in Success Criteria | Allowed |
-|-------------------------------|---------|
-| Response time < 200ms | Users experience sub-second response |
-| OAuth 2.0 authentication | Secure authentication using industry standards |
-| PostgreSQL with indexes | System efficiently handles 100K+ records |
-| REST API with JSON | Machine-readable interface for integrations |
-| 99.9% uptime SLA | System available during business hours |
-| Redis caching | Frequently accessed data loads instantly |
-| RBAC authorization | Users only see data relevant to their role |
-| WebSocket real-time | Users see updates without refreshing |
-
-Technical details go into **Technical NFRs** -> `architect-handoff.md` -> Architect -> Claude Code.
+Success Criteria must NOT contain technology terms (OAuth, JWT, REST,
+SQL, PostgreSQL, React, Docker, ms, cache, TLS, RBAC, API, JSON, HTTP,
+...). Full list: `references/tech-agnostic-rules.md`. Rewrite to user
+outcome ("Response time < 200ms" -> "Users experience sub-second
+response"; "OAuth 2.0" -> "Secure authentication using industry
+standards"). Tech details belong in **Technical NFRs** ->
+`architect-handoff.md` -> Architect -> Claude Code.
 
 ## Workflow
 
-### 1. Input Analysis (10min)
-- Read BA document, identify scope, extract key features
+### 1. Input analysis (10min)
 
-### 2. Epic Creation (20min, for PoC/MVP)
-- Read `templates/EPIC-TEMPLATE.md`
-- **HMW -> Hypothesis:** Transform the HMW question from the BA into the
- Epic Hypothesis Statement. The HMW names user, need, and obstacle,
- from which you derive FOR/WHO/IS THE/A/THAT.
-- **Idea Potential -> Prioritization:** The 3 axes (Value, Transferability,
- Feasibility) from the BA flow into feature prioritization.
-- **Critical Hypotheses -> Leading Indicators:** The critical hypotheses from
- the BA become testable leading indicators in the epic.
-- Quantify business outcomes, prioritize features
+Read BA, identify scope, extract key features.
 
-### 3. Feature Definition (30-45min per feature)
-- Read `templates/FEATURE-TEMPLATE.md`
-- Feature Description, User Stories
-- **Needs -> User Stories:** The needs (functional/emotional/social) from the BA
- are transformed into user stories. Each prioritized need should be addressed
- in at least one user story.
-- **Jobs to be Done -> User Stories:** The three job levels (functional, emotional,
- social) from the BA complement user stories with user motivation.
- - Functional Job -> "As [role] I want [function] to accomplish [job]"
- - Emotional Job -> Story describes the desired feeling as outcome
- - Social Job -> Story addresses external perception
-- **Critical Hypotheses -> Validation Criteria:** Features based on critical
- hypotheses receive an additional "Validation" section.
-- **Tech-agnostic Success Criteria** (no tech terms!)
-- **Subtype** (frontmatter): `subtype: user-facing | library`. Default
- `user-facing` if missing. `library` for FEATUREs that ship a public
- API only and have no end-user trigger.
-- **Activation Path** in Definition of Done: every FEATURE MUST list at
- least one entry under `## Activation Path` describing how the FEATURE
- is reached. See section "Activation Path requirement" below.
-- Technical NFRs (tech details ARE allowed here)
-- Identify ASRs (Critical/Moderate)
-- Definition of Done
+### 2. Epic creation (20min, for PoC/MVP)
+
+Read `templates/EPIC-TEMPLATE.md`.
+
+- **HMW -> Hypothesis:** transform the HMW question from the BA into
+  the prose Epic Hypothesis (see example above).
+- **Idea Potential -> Prioritization:** the 3 axes (Value,
+  Transferability, Feasibility) flow into feature prioritization.
+- **Critical Hypotheses -> Leading Indicators:** become testable
+  leading indicators in the epic.
+- Quantify business outcomes, prioritize features.
+
+### 3. Feature definition (30-45min per feature)
+
+Read `templates/FEATURE-TEMPLATE.md`.
+
+**User stories as table rows with a job-type column.** One row per
+distinct job, never pad to three. Job types: `functional`, `emotional`,
+`social`. Rows that have no story are omitted.
+
+| Job type | Story |
+|----------|-------|
+| functional | As [role] I want [function] to accomplish [job]. |
+| emotional | (only if the BA names an emotional outcome worth a story) |
+| social | (only if the BA names a social outcome worth a story) |
+
+Other ingredients:
+
+- **Tech-agnostic Success Criteria** (no tech terms).
+- **Subtype** in frontmatter: `subtype: user-facing | library`. Default
+  `user-facing`. `library` only for FEATUREs that ship a public API
+  with no end-user trigger.
+- **Activation Path** in Definition of Done. Format and rules:
+  `skills/project-conventions/SKILL.md#canonical-specs` (Activation
+  Path format). Every FEATURE MUST list at least one entry under
+  `## Activation Path`.
+- **Technical NFRs** (tech details allowed here).
+- **ASRs** (Critical / Moderate).
+- **Definition of Done.**
 
 ### 4. Create architect-handoff.md (15min)
-- Read `templates/ARCHITECT-HANDOFF-TEMPLATE.md` for the format
-- Aggregate all ASRs, summarize NFRs
-- Document constraints, list open questions
-- Keep the `## Dialog` section empty at creation time. The Architect
- and any later return passes fill it. Rows never get deleted.
+
+Read `templates/ARCHITECT-HANDOFF-TEMPLATE.md`. Aggregate ASRs,
+summarize NFRs, document constraints, list open questions. Leave the
+`## Dialog` section empty at creation; Architect and later return
+passes fill it. Rows never get deleted.
 
 ### 5. Validation
-- All features have tech-agnostic SC?
-- NFRs are quantified (with numbers)?
-- ASRs are marked?
 
-## Quality Gates
+**Render-what-exists rule.** Rows that exist render; rows that do not
+exist are omitted. No completeness MUST list. The Section policy
+applies: `skills/project-conventions/SKILL.md#canonical-specs`
+(Section policy).
 
-### Feature-Level Validation
+Spot-check before handoff:
 
-Each feature MUST have:
-1. Feature Description (1-2 paragraphs)
-2. Benefits Hypothesis (complete)
-3. User Stories (at least 1-3)
-4. Success Criteria (tech-free, measurable, user-outcome focused)
-5. Technical NFRs with numbers (Performance, Security, Scalability, Availability)
-6. ASRs identified (Critical/Moderate)
-7. Definition of Done (complete)
+- Success Criteria stay tech-free (run the forbidden-terms grep).
+- NFRs that exist carry numbers.
+- ASRs that exist are marked Critical or Moderate.
+- Every FEATURE has at least one Activation Path entry.
 
-### Epic-Level Validation (PoC/MVP)
+## FEATURE subtype and Activation Path
 
-1. Hypothesis Statement (all 7 components)
-2. Business Outcomes quantified
-3. Features prioritized (P0/P1/P2)
-4. Out-of-Scope explicit
-5. Technical Debt documented (PoC only)
+Every FEATURE carries `subtype: user-facing` (default) or
+`subtype: library`. `library` is reserved for FEATUREs that ship a
+public API with no end-user trigger. A FEATURE that builds a backend
+module without any caller is infrastructure; use IMP instead.
 
-## Anti-Patterns
+Activation Path format (one canonical spec):
+`skills/project-conventions/SKILL.md#canonical-specs` (Activation Path
+format). `/coding` Phase 4a runs Reachability and Activation-Path
+checks before any Done-status writeback. Both are subtype-aware.
 
-**Tech in Success Criteria:**
-- Wrong: "OAuth 2.0 authentication with JWT tokens"
-- Right: "Secure user authentication"
+## Parent BA status promotion on successful handoff
 
-**Non-measurable Criteria:**
-- Wrong: "Good user experience"
-- Right: "95% task completion rate in UAT"
-
-## FEATURE subtype and Activation Path requirement
-
-Every FEATURE belongs to one of two subtypes. The subtype shapes the
-Definition of Done and the verification that `/coding` performs before
-allowing a Done-status writeback.
-
-| Subtype | Frontmatter | When to use | Activation Path entry |
-|---------|-------------|-------------|------------------------|
-| `user-facing` (default) | `subtype: user-facing` | Anything an end user reaches: UI, CLI command, API endpoint, scheduled job, agent tool, plugin command, hotkey | A documented trigger: route, command name, UI element, endpoint URL, schedule, tool name, etc. |
-| `library` | `subtype: library` | Public API consumed by other code (function, class, module, package). No direct end-user trigger. | Public symbol(s) and the documentation entry that describes them. The public symbol IS the activation path. |
-
-### Why this matters
-
-A FEATURE that builds a backend module without any caller is not a
-FEATURE -- it is infrastructure. It belongs as an IMP, not a FEAT
-with status Done. The Activation Path entry forces the question
-"how does anyone reach this code?" before the FEATURE moves out of
-specification.
-
-### Format inside the FEATURE document
-
-```markdown
-## Activation Path
-
-- Type: command | route | UI-element | endpoint | scheduled-job | tool | hotkey | public-API
-- Identifier: <command name | route path | URL | symbol name>
-- Where it lives: <file or section pointer>
-- How a user (or caller) reaches it: <one sentence>
-```
-
-For `subtype: library`:
-
-```markdown
-## Activation Path
-
-- Type: public-API
-- Identifier: `<exported function or class name>`
-- Where it lives: <module path or package export>
-- How a caller reaches it: imported and called as documented in <doc reference>
-```
-
-### Backwards compatibility
-
-FEATURE files written before this RFC stay valid without `subtype:` in
-their frontmatter. The new Reachability and Activation-Path checks in
-`/coding` only fire when the FEATURE has `subtype:` set or was created
-after the convention shipped. Existing projects can adopt the new
-contract per FEATURE without forced migration.
-
-### Companion: `/coding` Reachability and Activation-Path checks
-
-`/coding` Phase 4a Verification Gate runs two new checks before any
-Done-status writeback: Reachability (caller exists outside definition
-file and outside tests) and Activation-Path (the documented trigger
-actually exists in code). Both are subtype-aware. See
-`skills/coding/SKILL.md` Phase 4a for the binding rules.
-
-## MANDATORY: Parent BA status promotion on successful handoff
-
-After Quality Gates pass and before the Handoff Ritual runs, the skill
-promotes the parent BA status if the BA is still at a draft marker. RE
-just produced Epics, Features, and an architect-handoff from this BA,
-so the BA has been exercised end-to-end. Leaving it at `Draft (...)`
-makes the next reader wonder whether the BA is raw or content-bearing.
-
-The check runs every time, but the promotion is gated and asks the
-user once. On `Validated` it is silent.
-
-### Trigger
-
-Locate the parent BA. Resolution order:
-
-1. `ba-ref:` field in the new EPIC / FEAT artefact frontmatter
-   (preferred, written by RE during this run).
-2. `source-ba:` field in
-   `_devprocess/requirements/handoff/architect-handoff.md`.
-3. The matching Item-BA file in `analysis/` whose ID corresponds to
-   the new item (`BA-EPIC-{nn}-{slug}.md` for `EPIC-{nn}`,
-   `BA-FEAT-{ee}-{ff}-{slug}.md` for `FEAT-{ee}-{ff}`).
-4. The Project-BA `_devprocess/analysis/BA-{PROJECT}.md` if it is
-   the only BA in the project (single-Item project without item-
-   scoped BA files).
-
-If no parent BA can be located unambiguously, skip silently and log a
-one-line notice in the Handoff Ritual artifact report
-(`Parent BA: not located, status promotion skipped`). Do not block
-the handoff.
-
-### Status promotion gate
-
-Read the parent BA frontmatter `status:` field:
-
-- **`status: Draft (reverse-engineered, ...)` or `status: Draft`**: ask
-  one confirmation turn via `AskUserQuestion`:
-
-  > Title: "Promote parent BA status?"
-  > Question: "RE derived Epics, Features, and an architect-handoff
-  > from `BA-{NAME}.md`. The BA is still marked Draft. Promote it to
-  > Validated as part of this handoff?"
-  >
-  > Options (each with Pro/Con per User Interaction Protocol):
-  > 1. (Recommended) Promote to Validated
-  >    + Pro: BA exercised end-to-end through RE, status reflects
-  >      reality, downstream readers see a content-bearing artifact.
-  >    - Con: marks the BA as validated even if you have not personally
-  >      walked every section since the co-creation dialog.
-  > 2. Keep Draft
-  >    + Pro: explicit walkthrough via `/business-analysis` Validation
-  >      Mode happens later; status change stays manual.
-  >    - Con: BA stays at Draft while its derived Epics and Features
-  >      are already in flight; later readers must guess the BA's
-  >      reliability.
-  > 3. Other (free text)
-
-  On option 1: update the BA frontmatter:
-
-  ```yaml
-  status: Validated
-  validated-by: /requirements-engineering on {YYYY-MM-DD}
-  validated-via: handoff (Epics + Features + architect-handoff)
-  ```
-
-  Append a row to the BA's `## Validation Log` section (create the
-  section if it does not exist, place it after the Executive Summary):
-
-  ```
-  | {YYYY-MM-DD} | /requirements-engineering | Validated through RE handoff: {N} epics, {M} features, architect-handoff at `_devprocess/requirements/handoff/architect-handoff.md` |
-  ```
-
-  Keep `created-by:` and `reverse-engineering-provenance:` (if set)
-  in place as historical record.
-
-  On option 2 or 3: leave the BA frontmatter untouched. Note the
-  decline in the Handoff Ritual artifact report
-  (`Parent BA status: kept at Draft per user request`).
-
-- **`status: Validated` or any other non-Draft value**: skip silently.
-  No prompt, no edit. The BA already passed validation through some
-  other path (`/business-analysis` Validation Mode, manual edit, or a
-  prior RE pass). Idempotent on the second and later runs.
-
-### Output for the Handoff Ritual report
-
-The artifact report (Part 1 of the Handoff Ritual) carries one of
-three lines depending on what happened:
-
-- `Parent BA: BA-{NAME}.md, promoted Draft -> Validated`
-- `Parent BA: BA-{NAME}.md, kept at {status} per user request`
-- `Parent BA: BA-{NAME}.md, already at status {status} (no change)`
-- `Parent BA: not located, status promotion skipped`
-
-This makes the promotion auditable in the phase-end commit.
-
-### Companion: status-coherence invariant N-17
-
-`/consistency-check` Mode A enforces N-17 (status coherence between
-parent artifacts and their downstream evidence). The RE-side promotion
-is the proactive path that prevents the breach in the first place; N-17
-is the safety net that flags the breach if RE-side promotion was
-declined or skipped, or if the BA was edited out-of-band. The two
-checks are complementary, not redundant.
+Before the Handoff Ritual runs, promote the parent BA if its status is
+`Draft` or `Draft (reverse-engineered, ...)`. On `Validated` or other
+non-Draft values, skip silently (idempotent). Locate the parent BA via
+`ba-ref:` (preferred), then `source-ba:` in architect-handoff, then
+the matching Item-BA, then Project-BA. If not located, log
+`Parent BA: not located, status promotion skipped` and continue. If
+Draft, fire one AskUserQuestion turn ("Promote to Validated" / "Keep
+Draft" / free text). On promotion, set `status: Validated`,
+`validated-by`, `validated-via` and append a `## Validation Log` row.
+Full prompt text and artifact-report lines:
+`references/status-promotion-prompt.md`.
 
 ## Handoff Ritual (mandatory at end of phase)
 
-This skill always runs the following ritual at the end, regardless of how
-it was started (directly or via `/dia-guide`).
+Run regardless of how the skill was started. Full verbatim text for
+each part lives in `references/handoff-snippets.md`.
 
-### Part 1: Artifact report
+1. **Artifact report.** List produced/updated files (epics, features,
+   architect-handoff, BACKLOG rows, ASR counts) plus one Parent-BA
+   status line from the promotion step above.
+2. **HANDOFFS.md entry.** Append NFR summary, critical ASRs, open
+   architecture questions, constraints, forbidden-terms check
+   confirmation.
+3. **Phase-end commit.** Per
+   `skills/project-conventions/references/team-workflow.md`. Message
+   starts `chore(re): <ITEM-ID> RE complete`. After commit:
+   `flow.py tag-phase --phase re` and `flow.py sync-status`. In
+   `github-sync`, optionally run `flow.py promote-to-epic` for a
+   freshly assigned EPIC.
+4. **Transition question.** Ask whether to start `/architecture` now
+   or pause for review.
 
-```
-Produced / updated:
-- _devprocess/requirements/epics/EPIC-*.md: {count} epics
-- _devprocess/requirements/features/FEATURE-*.md: {count} features
-- _devprocess/requirements/handoff/architect-handoff.md: aggregated input for architect
-- _devprocess/context/BACKLOG.md: {count} FIX-{ee}-{ff}-{nn} oder IMP-{ee}-{ff}-{nn} entries added, dashboard updated
-- ASRs identified: {critical count}, {moderate count}
-```
+## Project structure and backlog ownership
 
-### Part 2: Handoff context
+Follows `/project-conventions`. Ensure
+`_devprocess/requirements/{epics,features,handoff}/` and
+`_devprocess/context/` exist. Filenames: `EPIC-{nn}-{slug}.md` and
+`FEAT-{ee}-{ff}-{slug}.md` (epic-local counter).
 
-Append a new entry to `_devprocess/context/HANDOFFS.md` with:
-
-- **NFR summary**: key non-functional requirements (Performance, Security,
- Scalability, Availability) with quantified targets
-- **Critical ASRs**: architecturally significant requirements that must
- each have an ADR
-- **Open architecture questions**: uncertainties the architect should
- resolve (e.g. "should auth be federated or centralized?")
-- **Constraints**: budget, timeline, compliance (GDPR, ISO 27001, etc.)
-- **Forbidden-terms check**: confirmation that no tech terms leaked into
- Success Criteria (OAuth, REST, PostgreSQL, etc.)
-
-### Part 3: Phase-end commit
-
-Run the phase-end commit per `skills/project-conventions/references/team-workflow.md`
-section "Phase-end commit (binding)". The block fires the binding
-branch-and-item check, stages every artefact this phase produced
-(epics, features, architect-handoff, BACKLOG row updates), commits
-with the canonical message, sets the phase tag, and opens a draft PR
-if one does not exist yet.
-
-Canonical commit message for RE:
-
-```
-chore(re): <ITEM-ID> RE complete
-
-<one-line summary: N epics, M features, K success criteria>
-
-Refs: <ITEM-ID>[, additional epic/feature IDs touched]
-```
-
-After the commit lands, run:
-
-```
-python3 tools/github-integration/flow.py tag-phase --item <ID> --phase re
-python3 tools/github-integration/flow.py sync-status --item <ID>
-```
-
-`sync-status` mirrors the BACKLOG Status column to the GitHub
-issue and project (and the GitHub Assignee back into the BACKLOG
-Claim column). It is a no-op outside `mode = "github-sync"`.
-
-For long RE phases that span days and produce many features,
-intermediate commits per cluster of features are encouraged. Each
-intermediate commit follows the same template; only the final
-phase-end commit gets the `<id>/re-done` tag.
-
-### Promote to Epic (mode = github-sync only)
-
-When the EPIC ID has been assigned for the first time during this
-RE phase, the handoff includes a promotion step that mirrors the
-artifacts to GitHub and renames the feature branch:
-
-```
-python3 tools/github-integration/flow.py promote-to-epic \
-  --item EPIC-NN --rename-branch
-```
-
-The promote-to-epic subcommand:
-
-- renames the parent issue to `EPIC-NN: <title>` and adds the
-  `epic` label
-- creates one sub-issue per FEAT and IMP that lives under the EPIC
-  in the BACKLOG (idempotent, skips existing sub-issues)
-- writes a tasklist into the parent body so GitHub tracks the
-  rollup automatically
-- renames the current feature branch from `feature/<provisional>`
-  to `feature/epic-NN-<slug>` if the user passes `--rename-branch`
-
-The subcommand is a no-op in `mode = "off"` and `mode = "git-only"`.
-Skip the call when the EPIC was already promoted in a previous
-session, the subcommand stays idempotent but emits noise.
-
-Skip the commit silently if the working tree has no changes.
-
-### Part 4: Transition question
-
-Ask the user:
-
-> "Requirements are ready. Saved to:
-> - Epics: `_devprocess/requirements/epics/`
-> - Features: `_devprocess/requirements/features/`
-> - Handoff: `_devprocess/requirements/handoff/architect-handoff.md`
->
-> Recommended next: `/architecture` -- creates ADR proposals,
-> arc42 documentation, and plan-context.md.
->
-> Shall I start `/architecture` now, or would you like to review the
-> requirements first?"
-
-**On agreement** ("yes" / "go" / "next") or when running inside
-`/dia-guide`:
--> Start `/architecture` and pass the handoff context
-
-**On rejection** ("no" / "stop" / "I want to check first"):
--> Pause and wait for user instruction
-
-## Project Structure
-
-This skill follows the conventions from `/project-conventions`.
-Ensure that `_devprocess/requirements/{epics,features,handoff}/` and
-`_devprocess/context/` exist.
-
-Filenames:
-
-- `EPIC-{nn}-{slug}.md` (2-digit epic number, kebab-case slug)
-- `FEAT-{ee}-{ff}-{slug}.md` (epic-local; `{ee}` is the 2-digit
- epic number identical to the parent epic's filename number, `NNN`
- is the 2-digit feature counter local to that epic)
-
-## Backlog Ownership
-
-This skill owns `_devprocess/context/BACKLOG.md`. On first run in a
-project, seed the file from `templates/BACKLOG-TEMPLATE.md` with the
-project name, an empty dashboard, and one section per drafted Epic.
-
-After every Epic or Feature created or modified, update the backlog
-in the same edit pass: add the new row to the matching Epic
-section, set status (typically `Ready` for fresh entries), link the
-Feature-Spec filename, and refresh the dashboard counts. The backlog
-MUST reflect the project state before the Handoff Ritual runs.
+This skill owns `_devprocess/context/BACKLOG.md`. On first run, seed
+from `templates/BACKLOG-TEMPLATE.md`. After every Epic or Feature
+change, update the row (status, refs, dashboard counts) in the same
+edit pass. The backlog MUST reflect project state before the Handoff
+Ritual runs.
 
 ## Keywords
-Requirements, RE, Features, Epics, User Stories, Requirements, Success Criteria,
-NFRs, ASRs, Acceptance Criteria, Definition of Done, Handoff, How Might We,
-Jobs to be Done, Critical Hypotheses, Needs, Value Proposition
+
+Requirements, RE, Features, Epics, User Stories, Success Criteria,
+NFRs, ASRs, Acceptance Criteria, Definition of Done, Handoff, How
+Might We, Jobs to be Done, Critical Hypotheses, Needs, Value
+Proposition
