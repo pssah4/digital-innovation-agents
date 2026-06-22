@@ -1,28 +1,8 @@
-<!--
-Instructions for the agent: produce this file as
-`_devprocess/architecture/ADR-{nn}-{slug}.md`. Write the prose in the
-user's working language. Keep section names (Context, Decision,
-Consequences, etc.) in English so the file greps consistently across
-projects.
-
-Hard rule: NO code paths in the core sections (Context, Decision
-Drivers, Considered Options, Decision, Consequences). Code paths,
-file names, line numbers, and method signatures belong in the
-optional `## Implementation Notes` appendix at the bottom, which is
-explicitly allowed to go stale. The wayfinder
-(`src/ARCHITECTURE.map` plus JSDoc headers) is the source of truth
-for current paths.
-
-Status, phase, last-change, and claim live in the backlog row for
-this ADR in `_devprocess/context/BACKLOG.md`. The frontmatter
-below carries identity and relations only.
--->
-
+<!-- See skills/architecture/SKILL.md for how to fill -->
 ---
 id: ADR-{nn}
 title: {short title}
 date: {YYYY-MM-DD}
-deciders: [{stakeholder1}, {stakeholder2}]
 asr-refs: []
 feature-refs: []
 related-adrs: []
@@ -32,91 +12,46 @@ superseded-by: null
 
 # ADR-{nn}: {Title}
 
+<!--
+German heading variants recognized by tools/consistency-check.py (A-1 ADR abstraction check):
+  ## Context           = ## Kontext
+  ## Decision          = ## Entscheidung
+  ## Consequences      = ## Konsequenzen
+  ## Decision drivers  = ## Begruendung  (also ## Begründung)
+  ## Considered Options, ## Implementation Notes: no German variant.
+Use either language consistently within one ADR; both are LOCKED anchors.
+-->
+
 ## Context
 
-{Description of the problem and its context. State the architectural
-question, not the implementation.}
-
-**Triggering ASR:**
-- {ASR reference from a feature spec}
-- Quality attribute: {Performance / Security / Scalability / etc.}
+{Two to three sentences: the architectural question, the trigger, the constraint. No code paths. Triggering ASR: {ref}, quality attribute {Performance / Security / Scalability / ...}.}
 
 ## Decision drivers
 
-- {Driver 1}: {description}
-- {Driver 2}: {description}
-- {Driver 3}: {description}
+{Driver 1}, {Driver 2}, {Driver 3}.
 
-## Considered options
+## Considered Options
 
-### Option 1: {Name}
-
-{Description.}
-
-- Pro: {advantage}
-- Pro: {advantage}
-- Con: {disadvantage}
-
-### Option 2: {Name}
-
-{Description.}
-
-- Pro: {advantage}
-- Con: {disadvantage}
-- Con: {disadvantage}
-
-### Option 3: {Name}
-
-{Description.}
-
-- Pro: {advantage}
-- Con: {disadvantage}
+| Option | Pros | Cons |
+| --- | --- | --- |
+| {Option 1} | {pro} | {con} |
+| {Option 2} | {pro} | {con} |
+| {Option 3} | {pro} | {con} |
 
 ## Decision
 
-**Proposed option:** {Option Name}
-
-**Reasoning:**
-{Why this option is the best fit. One to three sentences.}
-
-**Note:** This is a PROPOSAL. The /coding skill makes the final call
-based on the real codebase state.
+Chosen option: {Option Name}. {One to three sentences on why this fits the drivers.}
 
 ## Consequences
 
-### Positive
-
-- {positive consequence 1}
-- {positive consequence 2}
-
-### Negative
-
-- {negative consequence 1}
-- {trade-off 1}
-
-### Risks
-
-- {risk 1}: {mitigation}
-
-## Related decisions
-
-- ADR-{nn}: {related decision}
-
-## References
-
-- {external reference 1}
-- {feature reference}
+- Positive: {effect}
+- Negative: {trade-off}
+- Risk: {risk} -> {mitigation}
 
 ---
 
-## Implementation Notes (optional, may go stale)
+## Implementation Notes
 
-> This appendix is allowed to go stale after refactoring. The
-> wayfinder (`src/ARCHITECTURE.map` plus the JSDoc header of the
-> entry-point file) is the source of truth for current paths. The
-> /consistency-check skill does NOT verify the contents of this
-> section.
+<!-- Optional appendix. Allowed to go stale. Wayfinder (src/ARCHITECTURE.map + JSDoc headers) is the source of truth for current paths. consistency-check does NOT verify this section. Omit the entire section if you have nothing to add. -->
 
-{First rough hint at where the implementation will land. File paths,
-module names, or sketch code can appear here. The PLAN-{nn} file
-carries the real, currently-valid task list with up-to-date paths.}
+{First rough hint at where the implementation will land. The PLAN-{nn} file carries the current task list.}

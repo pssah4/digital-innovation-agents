@@ -240,6 +240,8 @@ fix patterns based on the finding's `type` field:
 | `feature-activation-path-missing` | Open `/requirements-engineering` to add the Activation Path entry, Demote FEATURE backlog status from Done to In Progress, Defer (file as backlog item with Source=CONSISTENCY-CHECK), Skip with reason. No direct edit option: subtype-aware contract is owned by `/requirements-engineering`. |
 | `stub-without-fix-row` | Open `/coding` to create the missing FIX-row, Remove the stale FIXME marker (only if the stub has been resolved in code), Skip with reason. |
 | `fix-without-stub-evidence` | Open `/coding` to add the FIXME marker at the stubbed code location, Resolve the FIX (mark Done if the stub is gone), Defer, Skip with reason. |
+| `artefact-cap-exceeded` | Shrink the artefact to within the cap, Move detail to a child artefact (BA -> Mini-BA, FEATURE -> PLAN), Add a `## Reasoned exception` block at the top, Skip with reason. |
+| `forbidden-section-resurfaced` | Remove the section / frontmatter key, Move substance into the BACKLOG row, Open the owning phase skill, Skip with reason. |
 
 **Output of the loop.** The loop writes a single audit row in
 `_devprocess/context/METRICS.md` under "Consistency-Check Runs"
@@ -286,6 +288,39 @@ The syntactic checker (Mode A) and the pre-commit hook live in
 
 Mode B (semantic) and Mode C (interactive fix-loop) are orchestrated
 inside Claude Code by this skill, not by the script.
+
+## Caps
+
+N-20 reads the per-artefact line caps from this table. The single
+source of truth is
+`skills/project-conventions/SKILL.md#canonical-specs` (Reader
+budget); the table below is a mirror and must be kept hand-aligned
+with the source. The script holds the same values in
+`ARTIFACT_CAPS` near the top of `tools/consistency-check.py`.
+
+| Cap key | Cap (lines) | Counting boundary |
+|---|---|---|
+| project-ba | 200 | full file |
+| epic-ba | 120 | full file |
+| feat-ba | 60 | full file |
+| ba-mini | 40 | full file |
+| exploration-board | 70 | full file |
+| epic | 35 | full file |
+| feature | 65 | full file |
+| backlog-header | 80 | up to `## Active Epics` |
+| architect-handoff | 60 | full file |
+| adr | 50 | full file (Implementation Notes appendix exempt by convention) |
+| arc42-poc | 65 | full file |
+| arc42-mvp | 100 | full file |
+| plan-context | 55 | full file |
+| plan | 50 | up to `## Change Log` |
+| fix | 28 | full file |
+| imp | 26 | full file |
+| audit | 55 | full file (finding tables exempt by convention) |
+| metrics | 50 | full file |
+
+Tolerance: a file is flagged only when it exceeds `cap * 1.10`. A
+top-level `## Reasoned exception` heading suppresses the finding.
 
 ## Viewer tool (for team meetings and navigation)
 
@@ -365,6 +400,8 @@ Findings:
 - Activation path missing:  {n} (warn, fail under --strict)
 - Stub without FIX-row:     {n} (warn)
 - FIX without stub evidence: {n} (warn)
+- Artefact cap exceeded:    {n} (warn)
+- Forbidden section resurfaced: {n} (warn)
 {if Mode B:}
 - Feature-ADR semantic:     {n}
 - BA-Feature semantic:      {n}
@@ -490,6 +527,29 @@ of truth for all V-Model skills).
   through the canonical path. Detail rule and match semantics live in
   `skills/project-conventions/references/graph-invariants.md` under
   "Status-Coherence-Pairs".
+- `N-20` (NEW) `artefact-cap-exceeded`: an artefact exceeds its line
+  cap by more than 10%. Severity `warn`. Cap source: see the Caps
+  section below (mirrors
+  `skills/project-conventions/SKILL.md#canonical-specs`, Reader
+  budget). A top-level `## Reasoned exception` section suppresses the
+  finding for that file. Counting rules: `backlog-header` counts lines
+  up to `## Active Epics`; `plan` excludes everything from `## Change
+  Log` onwards; all other artefacts count the full file. Auto-fix is
+  NOT performed; shrink the artefact or add a `## Reasoned exception`
+  block.
+- `N-21` (NEW) `forbidden-section-resurfaced`: a section or
+  frontmatter key removed by the v3.6.0 shrink has come back. Covers
+  `## Status` in any detail artefact (BACKLOG.md exempt),
+  `Backlog row pointer` blockquote / section,
+  `## Next Steps` in BA / EXPLORATION-BOARD / FIX / IMP,
+  `Instructions for the agent` HTML comments with more than 3 lines,
+  and the forbidden frontmatter keys `status`, `phase`,
+  `last_updated`, `last-updated`, `lastUpdated`, `author`, `deciders`.
+  Severity `warn` (`medium` for the section findings, `low` for the
+  oversized agent-instruction comment). Auto-fix is NOT performed in
+  the script; the existing
+  `tools/migration/strip_frontmatter_status.py` handles the
+  frontmatter keys when run explicitly.
 - `N-18` (NEW) Every FEATURE with backlog status `Done` carries an
   `## Activation Path` section in its Definition of Done with at
   least one filled entry (Type and Identifier non-empty). FEATUREs

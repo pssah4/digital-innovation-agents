@@ -1,0 +1,1144 @@
+{
+  "heading_anchors": [
+    {
+      "anchor": "## Activation Path",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "ACTIVATION_PATH_HEADER_RE matches '^## Activation Path\\s*$' (multiline). Used in check_feature_activation_path (N-18). Sub-bullets 'Type:' and 'Identifier:' within this section are also parsed."
+    },
+    {
+      "anchor": "## Implementation Notes",
+      "used_by": [
+        "tools/consistency-check.py",
+        "skills/consistency-check/SKILL.md"
+      ],
+      "context": "ADR appendix where code paths are allowed. Documented as exempt from ADR abstraction check. Mentioned in fix suggestions for adr-abstraction-violation. Not regex-matched directly but the header label appears in suggestion strings."
+    },
+    {
+      "anchor": "## Kontext",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "ADR_CORE_HEADERS tuple member. Code paths inside this section trigger adr-abstraction-violation."
+    },
+    {
+      "anchor": "## Context",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "ADR_CORE_HEADERS tuple member."
+    },
+    {
+      "anchor": "## Entscheidung",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "ADR_CORE_HEADERS tuple member."
+    },
+    {
+      "anchor": "## Decision",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "ADR_CORE_HEADERS tuple member."
+    },
+    {
+      "anchor": "## Konsequenzen",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "ADR_CORE_HEADERS tuple member."
+    },
+    {
+      "anchor": "## Consequences",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "ADR_CORE_HEADERS tuple member."
+    },
+    {
+      "anchor": "## Begruendung",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "ADR_CORE_HEADERS tuple member (ASCII variant)."
+    },
+    {
+      "anchor": "## Begründung",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "ADR_CORE_HEADERS tuple member (Unicode variant)."
+    },
+    {
+      "anchor": "## Considered Options",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "ADR_CORE_HEADERS tuple member."
+    },
+    {
+      "anchor": "## MVP Features",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "_DETAIL_FEATURES_HEADER_RE matches '^##\\s+(MVP\\s+Features|Features)\\s*$'. Detects the detail-file Features/MVP-Features table to compare detail-row status against BACKLOG (E-15)."
+    },
+    {
+      "anchor": "## Features",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "Same _DETAIL_FEATURES_HEADER_RE alternative branch."
+    },
+    {
+      "anchor": "## Sub-Issues",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "Legacy bare 'Sub-Issues' heading in epic body. render_epic_body migrates a legacy '## Sub-Issues' section to the DIA:sub-issues marker block."
+    },
+    {
+      "anchor": "## Active Epics",
+      "used_by": [
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Rendered as a fixed H2 in build_backlog.render. Anchors the epic listing section in the regenerated BACKLOG.md."
+    },
+    {
+      "anchor": "## Cross-cutting (ADRs, Plans, no Epic)",
+      "used_by": [
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Rendered as the standalone-items section header in build_backlog.render."
+    },
+    {
+      "anchor": "## Dashboard",
+      "used_by": [
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Fixed H2 rendered by build_backlog.render before the status/phase/type counts table."
+    },
+    {
+      "anchor": "### EPIC-NN",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/github-integration/flow.py",
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "BACKLOG_EPIC_HEADER_RE = '^###\\s+(EPIC-\\d{2})' extracts epic IDs from H3 headings in BACKLOG.md. flow.py uses '### EPIC-NN:' to look up an epic title (find_backlog_row fallback) and list_all_backlog_items. build_backlog renders epics exactly as '### EPIC-NN: title'."
+    },
+    {
+      "anchor": "## Graph-Health",
+      "used_by": [
+        "skills/consistency-check/SKILL.md"
+      ],
+      "context": "RESERVED. Aspirational section that a future consistency-check run will append to BACKLOG.md (not METRICS) to record the last graph-health summary. Not parsed by any tool today. Templates do NOT need to ship this heading; consistency-check will write it on first run when implemented.",
+      "status": "reserved-not-yet-parsed"
+    }
+  ],
+  "frontmatter_keys": [
+    {
+      "key": "status",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/migration/strip_frontmatter_status.py",
+        "tools/migration/detect_state.py",
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Forbidden in artifact frontmatter (N-15). YAML_STATUS regex '^(status|phase)\\s*:' detects and (in --fix) strips. parse_frontmatter reads it for N-17 status-coherence checks (Draft BA detection). strip_frontmatter_status.STRIP_KEYS removes it. detect_state counts it as drift."
+    },
+    {
+      "key": "phase",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/migration/strip_frontmatter_status.py",
+        "tools/migration/detect_state.py"
+      ],
+      "context": "Same forbidden-in-frontmatter handling as 'status'. Stripped by migration scripts, flagged by consistency-check."
+    },
+    {
+      "key": "last_updated",
+      "used_by": [
+        "tools/migration/strip_frontmatter_status.py",
+        "tools/migration/detect_state.py"
+      ],
+      "context": "STRIP_KEYS member; removed during migration phase 2a. detect_state pattern includes it as drift signal."
+    },
+    {
+      "key": "last-updated",
+      "used_by": [
+        "tools/migration/strip_frontmatter_status.py",
+        "tools/migration/detect_state.py"
+      ],
+      "context": "STRIP_KEYS member (alternate spelling)."
+    },
+    {
+      "key": "lastUpdated",
+      "used_by": [
+        "tools/migration/strip_frontmatter_status.py",
+        "tools/migration/detect_state.py"
+      ],
+      "context": "STRIP_KEYS member (camelCase variant)."
+    },
+    {
+      "key": "ba-ref",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/migration/build_backlog.py",
+        "tools/renumber-for-merge.py"
+      ],
+      "context": "Bidirectional binding between EPIC/FEAT artefacts and Item-BA files (N-9). consistency-check reads it; build_backlog inserts it via insert_ba_ref; renumber rewrites BA paths via the id remap."
+    },
+    {
+      "key": "project-ba-ref",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "Required on every Item-BA per N-8. parse_frontmatter looks for key 'project-ba-ref'; absence triggers item-ba-missing-project-ba-ref."
+    },
+    {
+      "key": "subtype",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "Indicates user-facing vs. library feature. N-18 only enforces Activation Path when 'subtype' is present (backwards compat)."
+    },
+    {
+      "key": "id",
+      "used_by": [
+        "tools/renumber-for-merge.py"
+      ],
+      "context": "Listed in docstring as a frontmatter field whose value gets rewritten by id remap (collision renumber)."
+    },
+    {
+      "key": "epic",
+      "used_by": [
+        "tools/renumber-for-merge.py",
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Frontmatter field rewritten by renumber. build_backlog reads frontmatter 'epic' key as one source for PLAN refs."
+    },
+    {
+      "key": "feature",
+      "used_by": [
+        "tools/renumber-for-merge.py"
+      ],
+      "context": "Frontmatter field rewritten during renumber."
+    },
+    {
+      "key": "depends-on",
+      "used_by": [
+        "tools/renumber-for-merge.py"
+      ],
+      "context": "Frontmatter field rewritten during renumber; also referenced by E-10/E-11 in skill docs."
+    },
+    {
+      "key": "feature-refs",
+      "used_by": [
+        "tools/renumber-for-merge.py",
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Frontmatter list of FEAT-IDs. Rewritten by renumber; build_backlog scans for ADR/PLAN related-refs."
+    },
+    {
+      "key": "adr-refs",
+      "used_by": [
+        "tools/renumber-for-merge.py",
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Frontmatter list of ADR-IDs. Rewritten by renumber; build_backlog scans for ADR/PLAN related-refs."
+    },
+    {
+      "key": "supersedes",
+      "used_by": [
+        "tools/renumber-for-merge.py",
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Frontmatter field. Rewritten by renumber. build_backlog reads it for ADR related-list."
+    },
+    {
+      "key": "superseded-by",
+      "used_by": [
+        "tools/renumber-for-merge.py",
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Frontmatter field. Rewritten by renumber. build_backlog reads it for ADR related-list."
+    },
+    {
+      "key": "target-id",
+      "used_by": [
+        "tools/renumber-for-merge.py"
+      ],
+      "context": "Frontmatter field rewritten by renumber."
+    },
+    {
+      "key": "parent-feat",
+      "used_by": [
+        "tools/renumber-for-merge.py"
+      ],
+      "context": "Frontmatter field rewritten by renumber."
+    },
+    {
+      "key": "related",
+      "used_by": [
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Frontmatter key scanned for ADR/PLAN cross-references."
+    },
+    {
+      "key": "anchor_files",
+      "used_by": [
+        "tools/dia-setup/anchor.py"
+      ],
+      "context": "Top-level key in .dia/config.toml. parse_anchor_files reads it via tomllib or regex fallback to know which agent files to verify."
+    },
+    {
+      "key": "mode",
+      "used_by": [
+        "tools/github-integration/flow.py",
+        "tools/dia-setup/anchor.py"
+      ],
+      "context": "Top-level key in .dia/config.toml; values off | git-only | github-sync. read_dia_mode reads it (tomllib or regex fallback)."
+    },
+    {
+      "key": "source_branch",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "Top-level .dia/config.toml key for PR base branch. Default 'develop'."
+    },
+    {
+      "key": "github",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "TOML section header for project_number, project_owner, status_field."
+    },
+    {
+      "key": "project_number",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "Int under [github] in .dia/config.toml."
+    },
+    {
+      "key": "project_owner",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "String under [github]."
+    },
+    {
+      "key": "status_field",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "String under [github]; default 'Status'."
+    }
+  ],
+  "inline_markers": [
+    {
+      "marker": "<!-- DIA:sub-issues -->",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "_SUBISSUES_BEGIN marker. render_epic_body inserts/replaces the sub-issues tasklist between this and _SUBISSUES_END."
+    },
+    {
+      "marker": "<!-- /DIA:sub-issues -->",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "_SUBISSUES_END marker (closing pair)."
+    },
+    {
+      "marker": "<!-- DIA-WORKFLOW-START (managed by digital-innovation-agents) -->",
+      "used_by": [
+        "tools/dia-setup/anchor.py"
+      ],
+      "context": "MD_START. Anchor block opener in CLAUDE.md/AGENTS.md/GEMINI.md/copilot. MD_BLOCK_RE matches between start and end."
+    },
+    {
+      "marker": "<!-- DIA-WORKFLOW-END -->",
+      "used_by": [
+        "tools/dia-setup/anchor.py"
+      ],
+      "context": "MD_END. Anchor block closer."
+    },
+    {
+      "marker": "# === DIA-WORKFLOW-START (managed by digital-innovation-agents) ===",
+      "used_by": [
+        "tools/dia-setup/anchor.py"
+      ],
+      "context": "HASH_START. Anchor opener for .cursorrules/.windsurfrules."
+    },
+    {
+      "marker": "# === DIA-WORKFLOW-END ===",
+      "used_by": [
+        "tools/dia-setup/anchor.py"
+      ],
+      "context": "HASH_END. Anchor closer for hash-comment files."
+    },
+    {
+      "marker": "> **Status**:",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "PURE_STATUS / ANY_STATUS regexes detect blockquote status lines for auto-fix removal/conversion to '> **Note**:'."
+    },
+    {
+      "marker": "> **Note**:",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "Replacement target for substantive Status lines after autofix."
+    },
+    {
+      "marker": "**Status:**",
+      "used_by": [
+        "tools/migration/strip_body_status.py",
+        "tools/migration/detect_state.py"
+      ],
+      "context": "STATUS_PATTERNS regex; first-25-line body status line removed by migration. detect_state body_pat scans for it."
+    },
+    {
+      "marker": "**Last Updated:**",
+      "used_by": [
+        "tools/migration/strip_body_status.py",
+        "tools/migration/detect_state.py"
+      ],
+      "context": "LASTUPDATED_PATTERNS regex; removed by migration. body_pat picks it up as drift."
+    },
+    {
+      "marker": "**Last Modified:**",
+      "used_by": [
+        "tools/migration/strip_body_status.py"
+      ],
+      "context": "Variant matched by LASTUPDATED_PATTERNS."
+    },
+    {
+      "marker": "**Letztes Update:**",
+      "used_by": [
+        "tools/migration/strip_body_status.py"
+      ],
+      "context": "German Last Updated variant matched by LASTUPDATED_PATTERNS."
+    },
+    {
+      "marker": "Status: ",
+      "used_by": [
+        "tools/migration/strip_body_status.py",
+        "tools/migration/detect_state.py"
+      ],
+      "context": "Bare 'Status: <value>' body line; STATUS_PATTERNS removes it when value is a known lifecycle word."
+    },
+    {
+      "marker": "> Source of truth:",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "BACKLOG_POINTER constant prepended to every GitHub issue body so the issue links back to BACKLOG.md."
+    },
+    {
+      "marker": "Issue: <url>",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "write_issue_into_backlog appends 'Issue: <url>' to the Notes column of the backlog row. Used by initial-sync / create-issue and read again to detect already-linked rows."
+    },
+    {
+      "marker": "FIXME(stub):",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/github-integration/flow.py"
+      ],
+      "context": "FIXME_STUB_RE = '(?://|#)\\s*FIXME\\(stub\\)\\s*:\\s*(.+?)(?:\\s+--\\s+see\\s+(FIX-\\d{2}-\\d{2}-\\d{2}))?'. E-14 bidirectional binding. flow.py validate-fix greps for it; consistency-check matches it."
+    },
+    {
+      "marker": "Wiring offen",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "One of three markers in a FIX-row's notes that flags a stub-bound FIX (E-14 fix-without-stub-evidence)."
+    },
+    {
+      "marker": "stub",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "Case-insensitive substring match in FIX-row to detect stub-bound fix."
+    },
+    {
+      "marker": "deferred-stub",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "Substring marker in FIX-row notes."
+    },
+    {
+      "marker": "Done",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/github-integration/flow.py",
+        "tools/migration/migrate_status_vocabulary.py"
+      ],
+      "context": "Canonical status value. flow.py ALLOWED_STATUSES + closes/opens issues; consistency-check _STATUS_DONE family; migrate_status maps it identity."
+    },
+    {
+      "marker": "Backlog",
+      "used_by": [
+        "tools/github-integration/flow.py",
+        "tools/migration/migrate_status_vocabulary.py"
+      ],
+      "context": "Canonical status value in ALLOWED_STATUSES. Migration mapping target for Waiting/Deferred."
+    },
+    {
+      "marker": "Ready",
+      "used_by": [
+        "tools/github-integration/flow.py",
+        "tools/migration/migrate_status_vocabulary.py",
+        "tools/consistency-check.py"
+      ],
+      "context": "Canonical status value in ALLOWED_STATUSES. Migration target for legacy 'Planned'."
+    },
+    {
+      "marker": "In Progress",
+      "used_by": [
+        "tools/github-integration/flow.py",
+        "tools/migration/migrate_status_vocabulary.py"
+      ],
+      "context": "Canonical status value (allows both 'In progress' and 'In Progress' casefold-matched against GitHub project options)."
+    },
+    {
+      "marker": "In Review",
+      "used_by": [
+        "tools/github-integration/flow.py",
+        "tools/migration/migrate_status_vocabulary.py"
+      ],
+      "context": "Canonical status value. Migration target for legacy 'Review'."
+    },
+    {
+      "marker": "Planned",
+      "used_by": [
+        "tools/migration/migrate_status_vocabulary.py",
+        "tools/migration/build_backlog.py",
+        "tools/consistency-check.py"
+      ],
+      "context": "Legacy status. migrate_status_vocabulary maps to 'Ready'. build_backlog still emits as default for IMP. consistency-check _STATUS_OPEN family includes it."
+    },
+    {
+      "marker": "Active",
+      "used_by": [
+        "tools/migration/migrate_status_vocabulary.py",
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Legacy status; mapped to 'In Progress'."
+    },
+    {
+      "marker": "Review",
+      "used_by": [
+        "tools/migration/migrate_status_vocabulary.py"
+      ],
+      "context": "Legacy status; mapped to 'In Review'."
+    },
+    {
+      "marker": "Waiting",
+      "used_by": [
+        "tools/migration/migrate_status_vocabulary.py"
+      ],
+      "context": "Legacy status; mapped to 'Backlog'."
+    },
+    {
+      "marker": "Deferred",
+      "used_by": [
+        "tools/migration/migrate_status_vocabulary.py"
+      ],
+      "context": "Legacy status; mapped to 'Backlog'."
+    },
+    {
+      "marker": "Released",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Canonical phase value. consistency-check _STATUS_DONE family. build_backlog emits as default for Feature/Fix/ADR phase."
+    },
+    {
+      "marker": "Building",
+      "used_by": [
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Canonical phase value. Default for Epic/IMP/PLAN."
+    },
+    {
+      "marker": "Candidates",
+      "used_by": [
+        "tools/migration/build_backlog.py",
+        "tools/consistency-check.py"
+      ],
+      "context": "Phase value. build_backlog dashboard. _STATUS_OPEN family member."
+    },
+    {
+      "marker": "Draft",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "DRAFT_STATUS_RE matches Draft / Draft (...) for BA status coherence (N-17). build_backlog default for PLAN."
+    },
+    {
+      "marker": "Anticipated",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "RE_MARKER_RE preserves status fields that begin with this token (reverse-engineering exception, N-10/N-11)."
+    },
+    {
+      "marker": "Observed",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "RE_MARKER_RE preserved value."
+    },
+    {
+      "marker": "Inferred",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "RE_MARKER_RE preserved value."
+    },
+    {
+      "marker": "Draft (reverse-engineered",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "RE_MARKER_RE preserved value prefix."
+    },
+    {
+      "marker": "P0",
+      "used_by": [
+        "tools/github-integration/flow.py",
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Priority token detected in BACKLOG row 'raw'. priority_for_item / preflight needed_labels."
+    },
+    {
+      "marker": "P1",
+      "used_by": [
+        "tools/github-integration/flow.py",
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Priority token."
+    },
+    {
+      "marker": "P2",
+      "used_by": [
+        "tools/github-integration/flow.py",
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Priority token; default fallback."
+    },
+    {
+      "marker": "P3",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "Priority token recognised in preflight needed_labels."
+    },
+    {
+      "marker": "phase:planned",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "Initial label set by create-issue. Removed by update_issue_after_tag when a real phase tag lands. preflight checks the label exists in the repo."
+    },
+    {
+      "marker": "phase:ba/re/arch/coding/testing/sec/review",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "label_map values applied to the issue after each tag-phase. Phase labels are all checked for existence."
+    },
+    {
+      "marker": "epic",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "Issue label added by promote-to-epic. preflight requires it to exist."
+    },
+    {
+      "marker": "- [ ] BA / RE / Architecture / Coding / Testing / Security-Audit / Ready for review",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "tick_checklist regex pattern_map. Marks corresponding box as [x] after tag-phase fires."
+    },
+    {
+      "marker": "| ID | Type | Title | Status | Phase | Prio | Refs | Source | Commit | Claim | Last change | Notes |",
+      "used_by": [
+        "tools/github-integration/flow.py",
+        "tools/migration/build_backlog.py",
+        "tools/migration/migrate_status_vocabulary.py",
+        "tools/consistency-check.py"
+      ],
+      "context": "BACKLOG table column schema. parse_backlog_columns uses this order (status=index 3, phase=4, claim=10). migrate_status_vocabulary STATUS_COLUMN_INDEX=4 (after leading empty cell from split('|')). build_backlog renders rows in this order."
+    },
+    {
+      "marker": "| --- |",
+      "used_by": [
+        "tools/migration/migrate_status_vocabulary.py"
+      ],
+      "context": "is_data_row skips lines containing '---' as header separator."
+    },
+    {
+      "marker": "Source: CONSISTENCY-CHECK",
+      "used_by": [
+        "skills/consistency-check/SKILL.md"
+      ],
+      "context": "Documented source-column value attached to auto-filed backlog entries from consistency-check."
+    },
+    {
+      "marker": "[AWAITING BA]",
+      "used_by": [
+        "skills/consistency-check/SKILL.md"
+      ],
+      "context": "Placeholder text recognised in Success Criterion entries (N-4)."
+    },
+    {
+      "marker": "[AWAITING RE]",
+      "used_by": [
+        "skills/consistency-check/SKILL.md"
+      ],
+      "context": "Same placeholder family for SC entries."
+    }
+  ],
+  "filename_patterns": [
+    {
+      "pattern": "_devprocess/context/BACKLOG.md",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/github-integration/flow.py",
+        "tools/renumber-for-merge.py",
+        "tools/migration/build_backlog.py",
+        "tools/migration/migrate_status_vocabulary.py",
+        "tools/migration/detect_state.py",
+        "scripts/merge-to-dev.sh",
+        "skills/consistency-check/SKILL.md"
+      ],
+      "context": "Single source of truth. Hard-coded path. consistency-check BACKLOG constant; flow.py backlog_path(); renumber BACKLOG; merge-to-dev reads via git show."
+    },
+    {
+      "pattern": "_devprocess/context/HANDOFFS.md",
+      "used_by": [
+        "tools/renumber-for-merge.py",
+        "tools/migration/migrate_skill_names.py"
+      ],
+      "context": "Append-only audit log. Explicitly skipped by renumber and skill-rename migration to preserve history."
+    },
+    {
+      "pattern": "_devprocess/context/METRICS.md",
+      "used_by": [
+        "skills/consistency-check/SKILL.md"
+      ],
+      "context": "Documented as the file where consistency-check writes an audit row per run."
+    },
+    {
+      "pattern": "_devprocess/context/20_bugs.md",
+      "used_by": [
+        "tools/migration/detect_state.py"
+      ],
+      "context": "Legacy v1 signal file. Presence flags repo as needing migration."
+    },
+    {
+      "pattern": "_devprocess/analysis/BA-{PROJECT}.md",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "Project-BA singleton; excluded from N-8 Item-BA enforcement by literal filename match."
+    },
+    {
+      "pattern": "_devprocess/analysis/BA-EPIC-NN-{slug}.md",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/renumber-for-merge.py",
+        "tools/migration/build_backlog.py",
+        "tools/migration/migrate_naming.py",
+        "tools/migration/flatten_analysis.py"
+      ],
+      "context": "Item-BA file for an epic. ITEM_BA_PATTERNS regex 'BA-EPIC-(\\d{2})-(.+)\\.md'. flatten_analysis relocates legacy 'EPIC-NN-ba.md' into this shape."
+    },
+    {
+      "pattern": "_devprocess/analysis/BA-FEAT-EE-FF[suffix]-{slug}.md",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/renumber-for-merge.py",
+        "tools/migration/build_backlog.py",
+        "tools/migration/migrate_naming.py"
+      ],
+      "context": "Item-BA for a feature. ITEM_BA_PATTERNS regex 'BA-FEAT-(\\d{2})-(\\d{2})([a-z]?)-(.+)\\.md'."
+    },
+    {
+      "pattern": "_devprocess/analysis/BA-IMP-EE-FF-NN-{slug}.md",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/renumber-for-merge.py",
+        "tools/migration/build_backlog.py",
+        "tools/migration/migrate_naming.py"
+      ],
+      "context": "Item-BA for an improvement."
+    },
+    {
+      "pattern": "_devprocess/analysis/BA-FIX-EE-FF-NN-{slug}.md",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/renumber-for-merge.py",
+        "tools/migration/build_backlog.py",
+        "tools/migration/migrate_naming.py"
+      ],
+      "context": "Item-BA for a fix."
+    },
+    {
+      "pattern": "_devprocess/analysis/EXPLORE-NN-*.md",
+      "used_by": [
+        "tools/migration/migrate_naming.py"
+      ],
+      "context": "Renumbered in migrate_naming pass."
+    },
+    {
+      "pattern": "_devprocess/analysis/RESEARCH-NN-*.md",
+      "used_by": [
+        "tools/migration/migrate_naming.py",
+        "tools/migration/flatten_analysis.py"
+      ],
+      "context": "Target prefix for flatten_analysis (everything that is not BA/EXPLORE/AUDIT becomes RESEARCH)."
+    },
+    {
+      "pattern": "_devprocess/analysis/AUDIT-{PROJECT}-{DATE}.md",
+      "used_by": [
+        "tools/migration/flatten_analysis.py",
+        "skills/security-audit"
+      ],
+      "context": "Security audit report. flatten_analysis moves analysis/security/AUDIT-* to analysis/ root."
+    },
+    {
+      "pattern": "_devprocess/requirements/epics/EPIC-NN-{slug}.md",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/github-integration/flow.py",
+        "tools/renumber-for-merge.py",
+        "tools/migration/build_backlog.py",
+        "tools/migration/migrate_naming.py",
+        "tools/migration/detect_state.py",
+        "tools/migration/flatten_analysis.py"
+      ],
+      "context": "Epic detail file. ID_PATTERNS '^(EPIC-\\d{2})(?:-|$)'. consistency-check check_detail_file_status_drift parses status table inside."
+    },
+    {
+      "pattern": "_devprocess/requirements/features/FEAT-EE-FF[suffix]-{slug}.md",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/github-integration/flow.py",
+        "tools/renumber-for-merge.py",
+        "tools/migration/build_backlog.py",
+        "tools/migration/migrate_naming.py",
+        "tools/migration/detect_state.py",
+        "tools/migration/strip_frontmatter_status.py",
+        "tools/migration/strip_body_status.py"
+      ],
+      "context": "Feature detail file. ID_PATTERNS '^(FEAT-\\d{2}-\\d{2})(?:-|$)'. detail-file mirror for GitHub issue body."
+    },
+    {
+      "pattern": "_devprocess/requirements/features/FEATURE-*.md",
+      "used_by": [
+        "tools/migration/build_backlog.py",
+        "tools/migration/migrate_naming.py",
+        "tools/migration/detect_state.py",
+        "tools/migration/strip_frontmatter_status.py",
+        "tools/migration/strip_body_status.py"
+      ],
+      "context": "Legacy v1 feature filename; migrate_naming converts FEATURE-EE0F to FEAT-EE-FF."
+    },
+    {
+      "pattern": "_devprocess/requirements/fixes/FIX-EE-FF-NN-{slug}.md",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/github-integration/flow.py",
+        "tools/renumber-for-merge.py",
+        "tools/migration/build_backlog.py",
+        "tools/migration/migrate_naming.py"
+      ],
+      "context": "Fix detail file. FIX_ID_RE = '^FIX-\\d{2}-\\d{2}-\\d{2}$'."
+    },
+    {
+      "pattern": "_devprocess/requirements/improvements/IMP-EE-FF-NN-{slug}.md",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/github-integration/flow.py",
+        "tools/renumber-for-merge.py",
+        "tools/migration/build_backlog.py",
+        "tools/migration/migrate_naming.py"
+      ],
+      "context": "Improvement detail file."
+    },
+    {
+      "pattern": "_devprocess/architecture/ADR-NN-{slug}.md",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/migration/build_backlog.py",
+        "tools/migration/migrate_naming.py"
+      ],
+      "context": "ADR file. ID_PATTERNS '^(ADR-\\d{2})(?:-|$)'. check_adr_abstraction iterates this glob."
+    },
+    {
+      "pattern": "_devprocess/architecture/arc42.md",
+      "used_by": [
+        "skills/consistency-check/SKILL.md"
+      ],
+      "context": "Documented but not directly regex-matched by tools/. Skill parses Par. 9 table for ADR refs."
+    },
+    {
+      "pattern": "_devprocess/architecture/legacy-tech-docs/",
+      "used_by": [
+        "tools/migration/detect_state.py"
+      ],
+      "context": "Legacy v1 signal dir."
+    },
+    {
+      "pattern": "_devprocess/implementation/plans/PLAN-NN-{slug}.md",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/migration/build_backlog.py",
+        "tools/migration/migrate_naming.py"
+      ],
+      "context": "Plan file. ID_PATTERNS '^(PLAN-\\d{2})(?:-|$)'."
+    },
+    {
+      "pattern": "_devprocess/requirements/handoff/architect-handoff.md",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "ARCHITECT_HANDOFF constant; presence triggers N-17 BA-Draft check."
+    },
+    {
+      "pattern": "_devprocess/rules/technical.md",
+      "used_by": [
+        "skills/consistency-check/SKILL.md",
+        "CLAUDE.md three-layer model"
+      ],
+      "context": "Rule set file. Documented but not regex-parsed in tools/."
+    },
+    {
+      "pattern": "_devprocess/rules/design.md",
+      "used_by": [
+        "CLAUDE.md three-layer model"
+      ],
+      "context": "Rule set file."
+    },
+    {
+      "pattern": "_devprocess/rules/domain.md",
+      "used_by": [
+        "CLAUDE.md three-layer model"
+      ],
+      "context": "Rule set file."
+    },
+    {
+      "pattern": "src/ARCHITECTURE.map",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/renumber-for-merge.py",
+        "tools/migration/migrate_naming.py",
+        "tools/migration/detect_state.py"
+      ],
+      "context": "Wayfinder file. consistency-check ARCH_MAP constant; renumber rewrites ids in it; detect_state v2 signal."
+    },
+    {
+      "pattern": "EPIC-NN-ba.md",
+      "used_by": [
+        "tools/migration/flatten_analysis.py",
+        "tools/migration/detect_state.py",
+        "tools/renumber-for-merge.py"
+      ],
+      "context": "Legacy mini-BA filename next to epic. flatten_analysis moves to analysis/BA-EPIC-NN-{slug}.md. renumber explicitly skips '-ba.md' files when parsing artifact paths."
+    },
+    {
+      "pattern": "BUG-*.md",
+      "used_by": [
+        "tools/migration/detect_state.py",
+        "tools/migration/strip_frontmatter_status.py",
+        "tools/migration/strip_body_status.py"
+      ],
+      "context": "Legacy v1 bug filename in context/fixes/ or requirements/fixes/."
+    },
+    {
+      "pattern": "_devprocess/context/fixes/",
+      "used_by": [
+        "tools/migration/detect_state.py",
+        "tools/migration/strip_frontmatter_status.py",
+        "tools/migration/strip_body_status.py"
+      ],
+      "context": "Legacy v1 dir for FIX/BUG. v1 signal."
+    },
+    {
+      "pattern": "_devprocess/context/improvements/",
+      "used_by": [
+        "tools/migration/detect_state.py",
+        "tools/migration/strip_frontmatter_status.py",
+        "tools/migration/strip_body_status.py"
+      ],
+      "context": "Legacy v1 dir for IMP."
+    },
+    {
+      "pattern": "_devprocess/analysis/security/",
+      "used_by": [
+        "tools/migration/flatten_analysis.py",
+        "tools/migration/detect_state.py"
+      ],
+      "context": "Legacy security subdir, flattened into analysis/ root."
+    },
+    {
+      "pattern": "_devprocess/analysis/archive/",
+      "used_by": [
+        "tools/migration/flatten_analysis.py",
+        "tools/migration/detect_state.py"
+      ],
+      "context": "Legacy archive dir; removed if empty after migration."
+    },
+    {
+      "pattern": ".dia/config.toml",
+      "used_by": [
+        "tools/github-integration/flow.py",
+        "tools/dia-setup/anchor.py"
+      ],
+      "context": "DIA mode + GitHub config. read_dia_mode and read_dia_github_config."
+    },
+    {
+      "pattern": ".dia/last-renumber-plan.json",
+      "used_by": [
+        "scripts/merge-to-dev.sh"
+      ],
+      "context": "Stable path for persisted renumber plan when apply-renumber fails."
+    },
+    {
+      "pattern": ".git/consistency-check.last-run.json",
+      "used_by": [
+        "tools/consistency-check.py",
+        "tools/git-hooks/pre-commit",
+        "skills/consistency-check/SKILL.md"
+      ],
+      "context": "LAST_RUN payload {schema, git_branch, findings:[{type,severity,file,line,message,suggestions,status}]} read by Mode C fix-loop."
+    },
+    {
+      "pattern": ".git/hooks-data/consistency-check.py",
+      "used_by": [
+        "tools/git-hooks/pre-commit",
+        "tools/install-git-hooks.sh"
+      ],
+      "context": "Installed copy of Mode A driver."
+    },
+    {
+      "pattern": ".git/hooks-data/renumber-for-merge.py",
+      "used_by": [
+        "tools/git-hooks/pre-merge-commit",
+        "tools/install-git-hooks.sh",
+        "scripts/merge-to-dev.sh"
+      ],
+      "context": "Installed copy of renumber tool."
+    },
+    {
+      "pattern": "dia.config.json",
+      "used_by": [
+        "tools/consistency-check.py"
+      ],
+      "context": "Optional per-project consistency-check config (devprocess_dir, src_dir, skip_dead_link_paths)."
+    },
+    {
+      "pattern": "dia-migration.yml",
+      "used_by": [
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Optional YAML overrides for the migration backlog rebuild."
+    },
+    {
+      "pattern": "BACKLOG.md.preMigration",
+      "used_by": [
+        "tools/migration/build_backlog.py"
+      ],
+      "context": "Snapshot backup written before regeneration."
+    },
+    {
+      "pattern": ".renumber-tmp.{idx}",
+      "used_by": [
+        "tools/renumber-for-merge.py"
+      ],
+      "context": "Two-phase rename intermediate suffix used by two_phase_rename to avoid id-swap collisions."
+    },
+    {
+      "pattern": "anchor-claude.md.tmpl / anchor-gemini.md.tmpl / anchor-cursor.tmpl / anchor-copilot.md.tmpl / anchor-windsurf.tmpl",
+      "used_by": [
+        "tools/dia-setup/anchor.py"
+      ],
+      "context": "Anchor block templates referenced by KNOWN_TARGETS. Path resolved under skills/dia-setup/templates/."
+    },
+    {
+      "pattern": "CLAUDE.md / AGENTS.md / GEMINI.md / .cursorrules / .github/copilot-instructions.md / .windsurfrules",
+      "used_by": [
+        "tools/dia-setup/anchor.py"
+      ],
+      "context": "KNOWN_TARGETS relative paths. Anchor block written/removed/verified."
+    },
+    {
+      "pattern": "feature/<item-id>-<slug>, fix/<item-id>-<slug>, chore/<item-id>-<slug>",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "Branch-name convention; item_branch_prefix maps EPIC/FEAT->feature, FIX->fix, IMP->chore. branch_matches_item checks '/<id>-' or '/<id>$'."
+    },
+    {
+      "pattern": "<item-id>/<phase>-done git tag (e.g. feat-04-09/code-done)",
+      "used_by": [
+        "tools/github-integration/flow.py"
+      ],
+      "context": "tag-phase creates annotated tags '<id>/<phase>-done'. ready-for-review uses '<id>/ready-for-review' without -done suffix. Legacy 'audit-done' alias accepted for 'sec-done'."
+    }
+  ],
+  "tool_files_scanned": [
+    "/Users/sebastianhanke/projects/digital-innovation-agents/tools/consistency-check.py",
+    "/Users/sebastianhanke/projects/digital-innovation-agents/tools/renumber-for-merge.py",
+    "/Users/sebastianhanke/projects/digital-innovation-agents/tools/github-integration/flow.py",
+    "/Users/sebastianhanke/projects/digital-innovation-agents/tools/dia-setup/anchor.py",
+    "/Users/sebastianhanke/projects/digital-innovation-agents/tools/migration/detect_state.py",
+    "/Users/sebastianhanke/projects/digital-innovation-agents/tools/migration/build_backlog.py",
+    "/Users/sebastianhanke/projects/digital-innovation-agents/tools/migration/strip_frontmatter_status.py",
+    "/Users/sebastianhanke/projects/digital-innovation-agents/tools/migration/strip_body_status.py",
+    "/Users/sebastianhanke/projects/digital-innovation-agents/tools/migration/flatten_analysis.py",
+    "/Users/sebastianhanke/projects/digital-innovation-agents/tools/migration/migrate_naming.py",
+    "/Users/sebastianhanke/projects/digital-innovation-agents/tools/migration/migrate_skill_names.py",
+    "/Users/sebastianhanke/projects/digital-innovation-agents/tools/migration/migrate_status_vocabulary.py",
+    "/Users/sebastianhanke/projects/digital-innovation-agents/tools/git-hooks/pre-commit",
+    "/Users/sebastianhanke/projects/digital-innovation-agents/tools/git-hooks/pre-merge-commit",
+    "/Users/sebastianhanke/projects/digital-innovation-agents/tools/install-git-hooks.sh",
+    "/Users/sebastianhanke/projects/digital-innovation-agents/scripts/merge-to-dev.sh",
+    "/Users/sebastianhanke/projects/digital-innovation-agents/skills/consistency-check/SKILL.md"
+  ],
+  "risk_notes": [
+    "HIGHEST RISK -- '## Activation Path' heading: appears only in FEATURE templates. Renaming or translating it silently breaks consistency-check N-18 (check_feature_activation_path). ACTIVATION_PATH_HEADER_RE is anchored to that exact string.",
+    "HIGHEST RISK -- '## MVP Features' / '## Features': only headings detected by _DETAIL_FEATURES_HEADER_RE inside Epic detail files. Translating to German (e.g. '## MVP-Funktionen') silently disables E-15 detail-vs-backlog status drift check.",
+    "HIGHEST RISK -- ADR_CORE_HEADERS tuple (## Kontext, ## Context, ## Entscheidung, ## Decision, ## Konsequenzen, ## Consequences, ## Begruendung, ## Begründung, ## Considered Options): adding a new translation or renaming any of them turns the ADR abstraction check (A-1) silently off for that section.",
+    "HIGHEST RISK -- '### EPIC-NN: Title' heading: hard-anchored '^###\\s+(EPIC-NN)' in three tools (consistency-check, flow.py, build_backlog). Changing the heading level or the colon prefix breaks epic discovery and title lookup.",
+    "HIGHEST RISK -- BACKLOG table column order (ID|Type|Title|Status|Phase|Prio|Refs|Source|Commit|Claim|Last change|Notes): four tools rely on index positions (status=3, phase=4, claim=10 in flow.py; STATUS_COLUMN_INDEX=4 in migrate_status_vocabulary using split('|') with leading empty cell). Inserting/removing/reordering any column silently corrupts every parse.",
+    "HIGH RISK -- '<!-- DIA:sub-issues -->' / '<!-- /DIA:sub-issues -->' markers: only used in GitHub epic bodies; touching either string strands the tasklist render. Pair is matched literally.",
+    "HIGH RISK -- DIA-WORKFLOW-START/END markers (MD and HASH variants): renaming, dropping the parenthetical, or changing spacing breaks anchor.py replace/remove/verify across CLAUDE.md/AGENTS.md/GEMINI.md/.cursorrules/.windsurfrules/copilot.",
+    "HIGH RISK -- FIXME(stub) marker: exact 'FIXME(stub):' string with optional 'see FIX-EE-FF-NN' suffix drives E-14 bidirectional binding. Whitespace tolerant but the keyword string is fixed.",
+    "HIGH RISK -- '> Source of truth:' and 'Issue: <url>' lines in GitHub issue body / backlog Notes column: rewriting them breaks write_issue_into_backlog (idempotence test) and preflight issue-state sample which greps Notes for 'https://github.com/.../issues/N'.",
+    "MEDIUM RISK -- Status vocabulary strings (Backlog/Ready/In Progress/In Review/Done plus legacy Planned/Active/Review/Waiting/Deferred): casefold-matched in flow.py against GitHub project options. Adding new states or renaming requires updating ALLOWED_STATUSES, LEGACY_STATUS_MAPPING, _STATUS_DONE/_STATUS_OPEN, STATUS_MAP in migrate_status_vocabulary, and the project field on GitHub.",
+    "MEDIUM RISK -- 'Wiring offen' / 'stub' / 'deferred-stub' substring scan in BACKLOG row notes (E-14 fix-without-stub-evidence). 'stub' is short enough to false-positive on unrelated text; renaming/translating breaks the inverse check.",
+    "MEDIUM RISK -- Issue checklist line patterns ('- [ ] BA', '- [ ] RE', '- [ ] Architecture', '- [ ] Coding', '- [ ] Testing', '- [ ] Security-Audit', '- [ ] Ready for review'): tick_checklist relies on these exact labels in the issue body. Translating breaks phase ticks.",
+    "MEDIUM RISK -- '## Active Epics', '## Cross-cutting (ADRs, Plans, no Epic)', '## Dashboard': rendered verbatim by build_backlog but the BACKLOG-TEMPLATE the skill writes must mirror them so a hand-edited BACKLOG round-trips. Renaming the template heading without updating build_backlog drifts the next regenerate.",
+    "MEDIUM RISK -- ADR core-section translation matrix: removing one of the German variants (## Kontext, ## Entscheidung, ## Konsequenzen, ## Begruendung/Begründung) silently disables the abstraction check for German-only ADR templates.",
+    "MEDIUM RISK -- '## Sub-Issues' legacy heading: only a one-time migration path in flow.render_epic_body. If a new template introduces '## Sub-Issues' for unrelated content, render_epic_body will rewrite it.",
+    "LOW RISK -- 'BA-{PROJECT}.md' literal filename check in consistency-check N-8. Project-BA must keep this exact placeholder shape, otherwise it gets misclassified as a generic legacy BA.",
+    "LOW RISK -- ID schema regexes are duplicated across tools (ITEM_RE in flow.py, FIX_ID_RE, ID_PATTERNS in consistency-check, EPIC_RE/FEAT_RE/IMP_RE/FIX_RE in renumber, ITEM_ID_RE in migrate_status_vocabulary). Any change to id format (e.g. allowing 3-digit suffixes) must update every copy.",
+    "LOW RISK -- HANDOFFS.md and BACKLOG.md.preMigration filenames are skipped by renumber/migration tooling by literal path. Renaming HANDOFFS.md loses the append-only protection."
+  ]
+}

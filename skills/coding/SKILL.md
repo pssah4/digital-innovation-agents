@@ -119,145 +119,64 @@ row + FIX detail file + branch.
 
 ### Hotfix lane (fix-now, document-after)
 
-Some bugs are obvious and small enough that the standard
-capture-then-fix path adds friction without adding value. The
-hotfix lane lets `/coding` fix immediately, then create the FIX-Row
-and GitHub issue afterwards so the work is still visible in the
-backlog and on the team board.
+Trivial bugs may fix first, document after, when **all five** hold:
+at most 3 files; no new feature or dependency; no breaking change to
+a public API; under 15 minutes; existing FEAT as parent. Any miss ->
+standard bug-capture flow.
 
-The hotfix lane is allowed only when **all five** criteria hold:
+Flow when allowed:
 
-1. The fix touches at most three files.
-2. No new feature, no new dependency.
-3. No breaking change to a public API or interface.
-4. The fix takes under 15 minutes.
-5. An existing FEAT covers the affected functionality, so the FIX
-   has a clear parent to attach to.
+1. Fix immediately; run relevant tests.
+2. Write the FIX BACKLOG row and detail file. Commit
+   `fix: FIX-{ee}-{ff}-{nn} <desc>` with `Refs:` trailer.
+3. In `github-sync` mode: `gh issue create --title "FIX-{ee}-{ff}-{nn}: {slug}" --label "fix,hotfix"`,
+   then `python3 tools/github-integration/flow.py sync-status --item FIX-{ee}-{ff}-{nn}`.
+4. Always close with `python3 tools/github-integration/flow.py validate-fix --item FIX-{ee}-{ff}-{nn}`.
+5. Acknowledge in chat: modified files, FIX-ID, issue URL, validate-fix verdict.
 
-If any single criterion fails, fall back to the standard
-bug-capture flow (FIX-Row first, fix later).
+The regression-test cycle (Phase 4b) still runs; the 15-minute budget
+includes the test.
 
-When all five criteria hold, the flow is:
+Four safety nets keep the lane honest:
 
-1. **Fix immediately.** `/coding` analyses, fixes, and runs the
-   relevant tests in place. No FIX-Row yet.
-2. **Document right after the fix lands locally** (binding):
-   - Write the BACKLOG row for the FIX (status `Ready` or
-     `In Progress` depending on whether the commit already exists,
-     phase `Building`, Source `BUG`, Refs the parent FEAT).
-   - Create the FIX detail file under
-     `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`.
-   - Commit with the canonical message
-     `fix: FIX-{ee}-{ff}-{nn} <short description>` and the
-     standard `Refs:` trailer.
-   - When `mode = "github-sync"`: create the matching GitHub
-     issue (`gh issue create --title "FIX-{ee}-{ff}-{nn}: {slug}"
-     --label "fix,hotfix"`), then run
-     `python3 tools/github-integration/flow.py sync-status --item
-     FIX-{ee}-{ff}-{nn}`.
-   - **Always** (in any mode) close with
-     `python3 tools/github-integration/flow.py validate-fix --item
-     FIX-{ee}-{ff}-{nn}` to run the hotfix-scoped consistency check
-     described below.
-3. **Acknowledge** in chat: list the modified files, the FIX-ID,
-   the issue URL (if created), and the validate-fix verdict.
+- **FIX-Row** in BACKLOG.md (mandatory, even retroactively).
+- **Commit cites FIX-ID** in subject and `Refs:` trailer.
+- **Deferred-stub markers** bind `// FIXME(stub): ... -- see FIX-{id}` to
+  the FIX row's Notes column.
+- **Regression-test cycle** writes a `## Regression test` entry.
 
-The hotfix lane does **not** suspend the regression-test cycle
-(Phase 4b). If the bug is non-trivial enough to need a regression
-test, write it; the 15-minute budget includes the test.
+`validate-fix` runs the hotfix-scoped consistency check: FIX row
+exists with correct id and refs; at least one commit cites the id;
+no orphan `FIXME(stub):` references.
 
-Four consistency mechanisms keep the hotfix lane safe even when
-the V-Model phases are skipped:
-
-1. **FIX-Row in `BACKLOG.md` (mandatory, even retroactively).**
-   Every fix gets a BACKLOG row with full ID `FIX-{ee}-{ff}-{nn}`,
-   either before the fix (standard lane) or right after
-   (hotfix lane). The row is the anchor that
-   `/consistency-check` mode A uses to find and validate the fix.
-2. **Commit cites the FIX-ID.** The commit message subject and
-   `Refs:` trailer both name the FIX, the parent FEAT, and any
-   other affected artifact:
-   ```
-   fix: FIX-05-02-01 button click handler null check
-
-   Refs: FIX-05-02-01, FEAT-05-02
-   ```
-   Git history and BACKLOG.md stay synchronized through the cite.
-3. **Deferred-stub marker (bidirectional binding).** If the fix
-   leaves a temporary stub, `/consistency-check` mode A enforces
-   the link in both directions:
-   - code marker `// FIXME(stub): <reason> -- see FIX-05-02-01`
-   - the FIX row points back at the stub via the Notes column
-   A missing pair triggers `stub-without-fix-row` or
-   `fix-without-stub-evidence`.
-4. **Regression-test cycle.** Hotfixes still run the Phase 4b
-   3-run cycle (write test, run passes, revert fix run fails,
-   restore fix run passes). The FIX detail file gets a
-   `## Regression test` entry confirming the cycle.
-
-The gap. `/consistency-check` mode A normally fires at the end of
-every phase. Hotfixes have no phase boundary, so the check has no
-automatic trigger. To close the gap, the hotfix flow runs
-`flow.py validate-fix --item FIX-{ee}-{ff}-{nn}` right after the
-GitHub issue is created. The subcommand performs a hotfix-scoped
-mode-A check:
-
-- FIX row exists in BACKLOG.md with the correct id and refs
-- at least one commit on the current branch cites the FIX id in
-  the subject or `Refs:` trailer
-- no `FIXME(stub):` referencing this FIX-id exists in the codebase
-  without a matching FIX row
-
-The validate-fix call is part of the hotfix lane's mandatory
-post-fix steps; it is not optional.
-
-Anti-misuse signal. The directions meeting reviews the share of
-hotfix-lane FIX items per iteration. If hotfixes account for more
-than 30% of the iteration's work, the lane is being misused as a
-process bypass and the backlog gets a quality-debt item.
+Anti-misuse: if hotfixes exceed 30% of an iteration, the lane is being
+abused as a process bypass; file a quality-debt item.
 
 
 ## MANDATORY: Backlog as single source of truth (no asking)
 
 Whenever this skill creates or modifies a Feature, Epic, ADR, FIX,
 IMP, or PLAN, it writes the backlog row in
-`_devprocess/context/BACKLOG.md` BEFORE touching the artifact
-body. Status, phase, last-change, claim, and Refs live in the
-backlog row, not in the artifact frontmatter.
+`_devprocess/context/BACKLOG.md` BEFORE touching the artifact body.
 
-**Defaults when no better value exists.** The BACKLOG `Status`
-column uses the GitHub-aligned vocabulary (`Backlog | Ready |
-In Progress | In Review | Done`). ADR and PLAN files carry their
-own frontmatter status (`Proposed | Accepted | Superseded` for
-ADRs, `Draft | Active | Done` for PLANs); those values never land
-in the BACKLOG Status column.
-
-| Item | BACKLOG Status default | Frontmatter status | BACKLOG Phase |
-|---|---|---|---|
-| Feature | `Ready` (or `In Progress` once code starts) | (none) | `Building` |
-| Epic | derived | (none) | `Building` |
-| ADR | `In Progress` | `Proposed` | `Building` |
-| PLAN | `In Progress` | `Draft` until plan-coverage gate passes, then `Active` | `Building` |
-| FIX | `Ready` (capture) or `In Progress` (active fix) | (none) | `Building` |
-| IMP | `Ready` (or `Backlog` if deferred) | (none) | `Building` |
+Status vocabulary, defaults per artifact type, and frontmatter status
+fields for ADR/PLAN: see
+`skills/project-conventions/SKILL.md#canonical-specs` (Backlog
+vocabulary, Frontmatter spec).
 
 **Sync chain on every status or phase change (binding order):**
 
-1. Update the backlog row (status, phase, claim, last-change, refs)
-   FIRST
-2. Update the artifact body with the substance change
-3. Record commit SHA in the backlog row after the commit lands
-4. Recompute the dashboard counts at the bottom of the backlog
+1. Update the backlog row (status, phase, claim, last-change, refs) FIRST
+2. Update the artifact body
+3. Record commit SHA after the commit lands
+4. Recompute dashboard counts
 5. Run `/consistency-check` mode A at the end of the skill phase
 
-The backlog-first order matters: it prevents the most common drift
-class observed in the field (status fields stuck at "Planned" while
-the code shipped). If the backlog write fails, the artifact write
-does not run.
-
-Full rules and enum values:
-`skills/project-conventions/references/graph-invariants.md`,
-section "Backlog row format".
+Backlog-first order prevents the dominant drift class (status stuck at
+"Ready" while code shipped). If the backlog write fails, the artifact
+write does not run. Full rules:
+`skills/project-conventions/references/graph-invariants.md` (section
+"Backlog row format").
 
 
 ## MANDATORY: Wayfinder maintenance
@@ -303,54 +222,23 @@ below) so the agent's work is structured, verified, and documented.
 
 ## MANDATORY: FIX/IMP, depends-on as a graph edge
 
-**Chores are not a separate node type.** Every piece of work outside
-of a Feature is either:
+Chores are not a separate node type. Every piece of work outside of a
+Feature is either a **FIX-{ee}-{ff}-{nn}** at
+`_devprocess/requirements/fixes/` (seeded from `templates/FIX-TEMPLATE.md`)
+or an **IMP-{ee}-{ff}-{nn}** at
+`_devprocess/requirements/improvements/` (seeded from
+`templates/IMP-TEMPLATE.md`).
 
-- **FIX-{ee}-{ff}-{nn}** (bug or issue follow-up) at
-  `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md`,
-  seeded from `templates/FIX-TEMPLATE.md`.
-- **IMPROVEMENT / IMP-{ee}-{ff}-{nn}** (technical or other change that is not a
-  feature) at
-  `_devprocess/requirements/improvements/IMP-{ee}-{ff}-{nn}-{slug}.md`,
-  seeded from `templates/IMP-TEMPLATE.md`.
+Frontmatter spec (required keys, forbidden keys, `feature:` / `epic:`
+mandatory for FIX and IMP, `depends-on` semantics): see
+`skills/project-conventions/SKILL.md#canonical-specs` (Frontmatter
+spec). Details on dependency graph acyclicity:
+`graph-invariants.md` (section "Dependencies and implementation order").
 
-**Required frontmatter for FIX and IMP:**
+## MANDATORY: Writing style
 
-```yaml
-id: FIX-{ee}-{ff}-{nn}
-feature: FEAT-{ee}-{ff}    # mandatory
-epic: EPIC-{nn}                    # mandatory
-adr-refs: []
-plan-refs: []
-depends-on: []
-created: {YYYY-MM-DD}
-```
-
-FIX and IMP without `feature:` and `epic:` are invalid. Status,
-phase, last-change, and claim live in the backlog row, not in the
-frontmatter.
-
-**Dependencies (depends-on):** every artifact (Epic, Feature, ADR,
-FIX, IMP, PLAN) MAY carry `depends-on: [ID, ID, ...]` in the
-frontmatter. The resulting graph is acyclic. Targets must be
-existing artifact IDs. Details: graph-invariants.md section
-"Dependencies and implementation order".
-
-## MANDATORY: Writing style and humanizer rules
-
-All artifacts produced by this skill follow the rules in
-`skills/project-conventions/SKILL.md` under "Writing style for every
-artifact". Zero em dashes (U+2014, U+2013, double-hyphen substitute).
-No AI vocabulary words (landscape, nuanced, delve, leverage, crucial,
-robust, seamless, holistic, foster, ensuring, highlighting,
-underscoring). No negative parallelisms ("not X but Y"). Active
-voice by default. Sentence case in headings. No rule-of-three
-padding. Before saving, scan the artifact for the forbidden vocabulary
-and fix any hit.
-
-For German artifacts: proper umlauts (ä, ö, ü, ß), not the
-ae/oe/ue/ss substitutes. Hypothesis and How-Might-We statements are
-written as full prose paragraphs, not template placeholder lines.
+See `skills/project-conventions/SKILL.md#canonical-specs` (Writing
+style). Same rules apply to every artifact this skill produces.
 
 
 ## Phase 1: Load Context
@@ -454,35 +342,19 @@ Read the existing codebase and check:
 === Critical Review: {project/feature} ===
 
 Tech Stack: {from plan-context.md, with corrections if needed}
-ADRs: {count} reviewed
-Features: {count} reviewed
-Success Criteria: {count} to verify
+ADRs: {count} reviewed | Features: {count} | Success Criteria: {count}
 
---- Codebase reconciliation ---
+| Category        | Item                       | Action                        |
+|-----------------|----------------------------|-------------------------------|
+| CHANGES NEEDED  | ADR-02: {title}            | {recommendation}              |
+| MISSING         | {module/pattern}           | {what to add}                 |
+| RISKS           | {risk}                     | {mitigation}                  |
 
-CONFIRMED (matches codebase):
-- ADR-01: {title} -- proposal fits, {justification}
-- FEAT-01-01 SC-01: {criterion} -- realistic
-
-CHANGES NEEDED (divergence from codebase):
-- ADR-02: {title} -- proposal: {original}
- Problem: {what doesn't fit}
- Recommendation: {what to do instead}
-- FEAT-02-03 SC-02: {criterion}
- Problem: {why not as specified}
- Recommendation: {alternative}
-
-MISSING (not addressed in designs):
-- {module/pattern affected but not addressed}
-
-RISKS:
-- {risk 1}: {description and mitigation}
-
---- Decisions ---
-
-Please confirm or correct the change proposals before I create the
-implementation plan.
+Please confirm or correct before I create the implementation plan.
 ```
+
+CONFIRMED items are omitted; absence from the table means "matches the
+codebase". Only divergence, gaps, and risks are listed.
 
 ### 2c: Write changes back
 
@@ -507,22 +379,16 @@ After writing back: emit a summary of the changed files.
 ### 2d: Signal writeback (drift count)
 
 Append a row to `_devprocess/context/METRICS.md` under the
-"Drift count (plan-context.md vs. real code)" table:
+"Drift count (plan-context.md vs. real code)" table with three columns:
 
-- Date: today
-- ADR count: how many ADRs were reviewed
-- arc42 section count: how many arc42 sections were reviewed
-- plan-context item count: how many plan-context entries were checked
-- Drift flagged: count of CHANGES NEEDED + MISSING items from the review
-- Drift resolved: count of items actually written back in step 2c
-- Open: count that remained unresolved (for example because the user
- wanted to discuss first)
+| Date | Drift flagged | Drift resolved |
+|------|---------------|----------------|
 
-If `METRICS.md` does not yet exist, copy
-`skills/dia-guide/templates/METRICS-TEMPLATE.md` into the
-file first, then append. A rising drift count over multiple
-reconciliation runs signals that the ADRs or plan-context are losing
-touch with reality.
+Drift flagged = count of CHANGES NEEDED + MISSING items. Drift
+resolved = items actually written back in step 2c. If `METRICS.md`
+does not yet exist, copy `skills/dia-guide/templates/METRICS-TEMPLATE.md`
+first, then append. Rising drift means the ADRs or plan-context are
+losing touch with reality.
 
 ---
 
@@ -628,51 +494,6 @@ edits), the Coverage Gate runs again on that PLAN before the next
 code edit. Log the re-run as a Change Log entry with trigger=coverage
 and the amended artifact ID. This is the writeback loop that keeps
 the plan honest when upstream artifacts move.
-
-### Phase 3a-bis: Guidance for agents without a native planning mode
-
-The rules below are a fallback. If the coding agent is Claude Code (or
-any agent with its own mature planning conventions), its plan-mode
-output supersedes this guidance. The skill persists that plan verbatim
-(per Phase 3a above). Do not rewrite the agent's plan to match the
-rules below. The point of the rules is to prevent an underpowered
-agent from producing a plan that is too vague to execute; they are
-not a ceiling on what a stronger agent can do.
-
-Use the rules when:
-- the coding agent has no native planning step, or
-- its plan is visibly thin (no file paths, no test strategy, no
- verification gates) and needs to be repaired before implementation.
-
-**Bite-size tasks (2-5 minutes per step):**
-
-Every task decomposes into:
-1. Write the failing test (one test, one behavior)
-2. Run the test -- it MUST fail with the expected reason
-3. Write the minimal implementation to make it pass
-4. Run the test -- it MUST pass
-5. Commit with a conventional prefix (feat/fix/chore/docs/refactor)
-
-**Every task has a file list:**
-- Create: `exact/path/to/file.py`
-- Modify: `exact/path/to/existing.py:123-145`
-- Test: `tests/exact/path/to/test.py`
-
-**No placeholders in the plan:**
-- Forbidden: "TBD", "TODO", "implement later", "fill in details"
-- Forbidden: "Add appropriate error handling", "handle edge cases" (without concrete cases)
-- Forbidden: "Write tests for the above" (without actual test code)
-- Forbidden: "Similar to Task N" (repeat the code -- tasks may be read out of order)
-- Forbidden: Steps that describe WHAT without showing HOW
-
-**Self-review after plan creation:**
-
-The agent re-reads the plan and checks:
-1. **Spec Coverage:** Does every requirement from plan-context.md map to at least one task?
-2. **Placeholder Scan:** Does the plan contain any red-flag patterns from the list above?
-3. **Type Consistency:** Do function/type/property names match across tasks?
-
-Fix gaps and placeholders inline before implementation starts.
 
 ### Phase 3b: TDD Mode (optional)
 
@@ -809,65 +630,19 @@ confident the agent is.
 If the agent hasn't run the verification command in this message, it cannot
 claim the task is successful.
 
-**The gate function (7 steps, all mandatory):**
+**The gate (4 rows, all mandatory):**
 
-1. **Identify:** Which command proves the claim?
- - "Tests pass" -> concrete test command with path
- - "Build works" -> concrete build command
- - "Bug fixed" -> test that reproduces the original symptom
-2. **Run:** Execute the command fully -- not cached, not partial
-3. **Read:** Read the complete output, check exit code, count failures
-4. **Verify:** Does the output confirm the claim?
- - No -> report actual status with evidence
- - Yes -> formulate the claim with evidence
-5. **Claim:** Only now state the status
-6. **Reachability check (subtype-aware):** for every new top-level
- symbol introduced this session (class, function, module, command,
- route, handler, tool registration), verify a caller exists outside
- the definition file and outside test files. Fall through to the
- stack-specific tooling defined in `references/reachability-by-stack.md`
- (or run the project's `dia.config.json -> reachability_check`
- hook script if configured). Subtype-aware:
- - `subtype: user-facing` (default): caller MUST exist outside
- definition file and outside tests. A symbol that compiles but is
- never called fails the check.
- - `subtype: library`: caller MUST exist OR the symbol is exported
- as a public API entry point and documented as such.
- On fail, the FEATURE Done-status is locked. Options: wire it up,
- demote `subtype:` to `library` with public API documentation, or
- open a `FIX-{ee}-{ff}-{nn}` row "Wiring offen" and keep the FEATURE
- at `Active` in the backlog.
-7. **Activation-path check:** for every FEATURE moving to Done in this
- session, read the `## Activation Path` section in the FEATURE spec
- and verify each entry exists in the code:
- - `command` -> command name registered in command registry
- - `route` -> route path registered in router
- - `UI-element` -> element rendered in component tree or template
- - `endpoint` -> handler registered with the framework
- - `scheduled-job` -> schedule registered with the scheduler
- - `tool` -> tool name registered in the agent tool registry
- - `hotkey` -> hotkey registered with the platform
- - `public-API` -> symbol exported in the package's public surface
- The check is a grep or AST query. The activation path string in the
- FEATURE spec MUST match an actual identifier in the code. On fail,
- the FEATURE Done-status is locked.
+| Claim                      | Required proof                                                    | Pass / Fail                          |
+|----------------------------|-------------------------------------------------------------------|--------------------------------------|
+| Tests / build / bug-fix    | Run the concrete command in this message; read full output        | Exit code 0 and 0 failures           |
+| New symbol is reachable    | Caller exists outside definition file and outside tests           | Subtype-aware (see references)       |
+| FEATURE Activation Path    | Every entry in `## Activation Path` matches an identifier in code | Grep or AST query returns a hit      |
+| Wayfinder consistent       | `src/ARCHITECTURE.map` reflects new/renamed/removed entry-points  | Row matches the codebase             |
 
-**Forbidden language without fresh verification:**
-- "should work", "probably okay", "looks good"
-- "tests should be green now"
-- "the change should fix the bug"
-- Any statement implying success without running the command
-
-**Common failures -- what is not enough:**
-
-| Claim | Sufficient proof |
-|---|---|
-| Tests pass | Test command output with 0 failures |
-| Linter clean | Linter output with 0 errors |
-| Build works | Build command with exit code 0 |
-| Bug fixed | Test reproducing the original symptom passes |
-| Subagent done | VCS diff shows the expected changes |
-| Requirements met | Line-by-line checklist against the plan |
+Subtype rules for reachability and activation-path entry types
+(command / route / UI-element / endpoint / scheduled-job / tool /
+hotkey / public-API), forbidden language list, and "what is not enough"
+table: `references/verification-gate-subtypes.md`.
 
 ### Phase 4b: Regression test cycle (for bug fixes)
 
@@ -932,349 +707,56 @@ backlog level; nobody plans to remove it. A FIX-row without a marker
 is stale paperwork; nobody can find the actual code to remove. The
 bidirectional binding turns silent deferrals into auditable items.
 
-### Mid-course bug discovery (binding trigger)
+### Mid-course triggers (binding)
 
-If a NEW bug surfaces while implementing the current plan (not in
-the original feature specs, ADRs, or FIX-list), the coding flow
-MUST pause and route through the artefact layer BEFORE writing the
-fix. Skipping this step leaks code changes without backlog trace.
+Four conditions interrupt coding and route through the artefact layer
+BEFORE the next code edit. The common pattern: STOP, route, append a
+Change Log entry to the active PLAN with the right `trigger=` tag,
+THEN resume. Commit cites every artefact touched.
 
-```
-Mid-course handling, do NOT fix the bug silently:
+| Trigger        | Fires when                                       | Routes through               |
+|----------------|--------------------------------------------------|------------------------------|
+| `bug`          | New bug surfaces, not in any spec or FIX list    | New FIX or amended ADR       |
+| `design`       | ADR no longer matches the codebase               | Amend or supersede ADR       |
+| `requirement`  | FEATURE SC is ambiguous, missing, wrong, or scoped wrong | Amend FEATURE, re-run Coverage Gate |
+| `capability`   | New user-facing capability has no FEATURE yet    | Capture FEATURE + BA-Nachtrag via user dialog |
 
-1. STOP the current code edit. Do not write the fix yet.
-2. Triage:
- - Is this a BUG in shipped code? -> create BUG-NNN
- - Is this a missing requirement in plan? -> create FEAT-NN-NN
- - Is this a design gap? -> amend ADR / arc42
-3. Write a minimal root-cause analysis in _devprocess/analysis/
- (3-10 lines is fine: problem, cause, fix direction, risk)
-4. Add the new item to _devprocess/context/BACKLOG.md under
- the active Epic so it appears in the backlog before any code
- touches disk
-5. Append a Change Log entry to the active PLAN-{nn} file with
- trigger=bug, the new BUG-NNN reference, and a one-line summary
- of what the fix changes. Never rewrite past tasks in place.
-6. NOW write the fix. Commit message cites BOTH the in-progress
- FEAT-NN-NN and the new BUG-NNN (e.g.
- `Refs: FEAT-05-07, BUG-018, PLAN-12`)
-7. After the fix: run the standard Final synchronization block
- below, marking the new BUG-NNN as resolved
-```
+Full step lists, detection signals for `capability`, BA-Nachtrag
+options (Project-wide vs. Item-scoped), and the `[no-capture: scratch]`
+bypass: `references/mid-course-triggers.md`.
 
-Why this matters: bugs surfaced during beta testing of a real
-downstream project got fixed in code first and documented only
-after release, so the backlog drifted from the code state for
-days. This trigger closes that gap.
-
-### Mid-course design discovery (binding trigger)
-
-If the implementation reveals that an architectural decision does not
-match reality (ADR says X, the codebase proves Y works better, or the
-constraints the ADR relied on turned out to be wrong), pause the
-coding flow and route through the architecture layer BEFORE continuing
-the feature. Silent design drift is worse than a bug: the ADR keeps
-claiming a state of the world that no longer exists.
-
-```
-Mid-course handling for a design finding, do NOT silently deviate:
-
-1. STOP the current code edit. Do not keep coding around the
- mismatched ADR.
-2. Triage:
- - Can the ADR be amended with a small correction?
- -> update ADR, keep status "Accepted (modified)"
- - Is the original decision wrong at the root?
- -> supersede ADR: old one becomes "Superseded by ADR-{nn}",
- new ADR captures the actual decision
- - Does the discovery only clarify wording, not decision?
- -> update ADR Context or Consequences in place
-3. Write a root-cause entry in _devprocess/analysis/ADR-{nn}-review.md
- (3-10 lines: what the ADR claimed, what the code proves, what
- changes, what still holds)
-4. Update arc42.md and plan-context.md if the discovery affects
- either. Keep them consistent with the ADR change.
-5. Append a Change Log entry to the active PLAN-{nn} file with
- trigger=design, the affected ADR(s), and a one-line summary of
- how the plan pivots. If the pivot invalidates remaining tasks,
- mark the plan as Superseded and create PLAN-{NNN+1} with the
- revised task list; the old plan stays for traceability.
-6. Only NOW resume or rewrite the code. Commit message cites the ADR
- change alongside the in-progress FEATURE and the plan
- (e.g. `Refs: FEAT-05-07, ADR-12 (amended), PLAN-12`)
-7. After the fix: run the standard Final synchronization block
- below. The amended or superseded ADR is part of the writeback.
-```
-
-Why this matters: an ADR that silently diverges from the code stops
-being a decision record and becomes a historical fiction. The next
-reviewer who consults it makes worse decisions because they trust a
-document that no longer reflects reality.
-
-### Mid-course requirements discovery (binding trigger)
-
-If the implementation reveals that a FEATURE spec is ambiguous,
-incomplete, or contradicts what the codebase needs (a Success
-Criterion cannot be met as written, an SC is missing, or an SC turns
-out to mean something different than intended), pause the coding flow
-and route through the requirements layer BEFORE continuing. Coding
-around a broken FEATURE spec produces code that tests cannot verify
-against the spec and a spec that stops describing the product.
-
-```
-Mid-course handling for a requirements finding, do NOT silently reinterpret:
-
-1. STOP the current code edit. Do not paper over the spec gap with
- code that "should work".
-2. Triage:
- - Is the SC only ambiguous (wording unclear)?
- -> update the FEATURE: rewrite the SC, keep its number, add a
- one-line comment with the clarification rationale
- - Is an SC missing (feature behavior exists in the codebase need
- but not in the spec)?
- -> add a new SC to the FEATURE with the next number
- - Is an SC wrong (impossible, contradicts another SC, or the user
- no longer wants it)?
- -> either amend the SC or mark it "Removed: {reason}". Do not
- delete the line; removal is an append-only event
- - Is the scope wrong at the root (FEATURE splits into two, or
- merges into another)?
- -> open the decision with the user via AskUserQuestion; do not
- re-shape the feature graph unilaterally
-3. Update plan-context.md if the FEATURE change affects the tech
- stack or integration assumptions.
-4. Re-run the Plan Coverage Gate on the active PLAN-{nn}. Every SC
- that was amended must re-map to a task or be marked Deferred.
- Append a Change Log entry to the plan with trigger=requirement,
- the amended SC IDs, and a one-line summary of how tasks changed.
-5. Only NOW resume or rewrite the code. Commit message cites the
- FEATURE change alongside the plan
- (e.g. `Refs: FEAT-05-07 (SC-03 amended), PLAN-12`)
-6. After the fix: run the standard Final synchronization block below.
- The amended FEATURE is part of the writeback.
-```
-
-Why this matters: a FEATURE that the code no longer matches is not a
-spec anymore. Tests that pass against it prove nothing. The Coverage
-Gate re-run is what closes the loop: the plan stays aligned with the
-post-amendment spec, and a future reviewer can see, via the Change
-Log trigger=requirement entry, that the gap was caught and closed in
-the right order.
-
-### Mid-course capability discovery (binding trigger, added 2026-04-20)
-
-The prior trigger covers amendments to **existing** FEATUREs. This
-one covers the other case: the implementation is about to introduce
-a **new user-facing capability** that no FEATURE in the repository
-describes yet. Agents that code without spec catch-up create exactly
-the drift the consistency-check (see `/consistency-check`) flags as
-orphan code. The fix is to pause and capture the capability with a
-short user dialog, then resume.
-
-**Detection.** A new capability is discovered when any of these
-happen:
-
-- A new route, handler, or command is added that was not in
- `plan-context.md` or in any existing FEATURE's
- `Source (Implementation):` list.
-- A new Sidebar entry, Settings tab, or top-level UI surface is
- introduced.
-- A new CLI flag or public API endpoint that changes the user-facing
- contract.
-
-Tech-only changes (helpers, refactors, private utilities, bugfixes,
-documentation, test additions) do NOT trigger this dialog.
-
-```
-Mid-course capability handling, do NOT silently add new features:
-
-1. STOP the current code edit. A new FEATURE entry is needed
- before the code lands.
-2. Triage with one `AskUserQuestion` at a time, per the User
- Interaction Protocol. The agent must not invent answers here;
- the WHY and WHO require user input.
-
- Question A - Is this a real new user-facing capability, or is
- it a technical byproduct? If technical byproduct: skip dialog,
- just add to code. If user-facing: continue.
-
- Question B - For which Persona? Pick from the BA's current
- persona list, or select "Other" and supply name + short
- description.
-
- Question C - Which Job-to-be-Done is solved? Free text. The
- agent does not infer from code paths; user articulates.
-
- Question D - Which measurable outcome do we expect? Free text.
- If the user cannot answer now, accept `[AWAITING BA Nachtrag]`
- and continue (the Feature will carry the placeholder).
-
-3. Write the FEATURE-spec draft now, not after the code. Use
- `skills/requirements-engineering/templates/FEATURE-TEMPLATE.md`.
- Frontmatter: `status: Draft (User-Input {date})`,
- `source: capability-capture during /coding`. Fill Capability
- line (observable SC-01), Persona, JTBD, outcome-placeholder.
-
-4. Write a BA-Nachtrag. Two options depending on what fits the
-   capability:
-   a) **Project-wide concern (cross-cutting persona, value).** Append
-      to the Project-BA `_devprocess/analysis/BA-{PROJECT}.md` under
-      a `## User-Input-Capture ({date})` section. Mark `unvalidated`.
-   b) **Item-scoped concern (single feature).** Create a stub Item-BA
-      at `_devprocess/analysis/BA-FEAT-{ee}-{ff}-{slug}.md` from
-      `BA-MINI-TEMPLATE.md`, marked `status: Draft (capability-capture
-      {date})`. The corresponding FEATURE artefact gets `ba-ref:`
-      pointing at this stub.
-
-   Never edit validated BA sections silently; appendix-only on the
-   Project-BA, and stubs on the Item-BA carry their own status marker.
-
-5. Update the Epic assignment. If the capability fits an existing
- Epic, add a row to that Epic's MVP-Features table. If not,
- create a new Epic with `status: Draft (User-Input {date})` and
- a placeholder Hypothesis Statement.
-
-6. Add a FIX/IMP to the backlog under the relevant Epic section.
- Phase = Building if user provided all four answers;
- Phase = Candidates with `needs refinement: BA-Anchor fehlt` if
- Question D was deferred.
-
-7. Run `/consistency-check` to verify the new Feature/Epic/BA
- links hold.
-
-8. NOW continue the code edit. Commit message cites the new
- FEATURE-ID and FIX/IMP
- (e.g. `Refs: FEAT-08-17, PLAN-18`).
-
-9. At the end of the session, the Final Synchronization block
- promotes the FEATURE status from Draft to Implemented if the
- capability is fully realised.
-```
-
-Why this matters: this is where the graph stays honest. Agents alone
-cannot write a useful Persona or Business-Outcome for a capability
-they did not conceive. The user is the only source for those; the
-agent captures, does not invent. Without this trigger the code
-outruns the graph and the consistency-check produces a growing list
-of orphan-feature BL-items that nobody understands later.
-
-**When this trigger is skipped.** If the user explicitly says "this
-is a scratch change, no feature yet", the agent may bypass the
-dialog for that one commit. The commit message then carries
-`[no-capture: scratch]` and `/consistency-check` will later flag the
-orphan for a retroactive capture. Deliberate bypass is a recorded
-action, not a hidden one.
+Why this matters: bugs and design pivots that ship in code without an
+artefact trail produce backlog drift within days. The Change Log entry
+is the audit hook that lets a future reviewer (human or
+`/consistency-check`) reconstruct what changed and why.
 
 ### Final synchronization (cross-artifact)
 
-After implementation is verified, run the writeback in this order
-(backlog FIRST, artifacts follow):
+After verification, run writeback in this order. Backlog FIRST,
+artifacts follow. **Per-commit gate (binding):** the backlog reflects
+post-implementation state BEFORE every commit that references a
+FEATURE, FIX, IMP, ADR, or PLAN id. Every such commit message cites
+the artifacts touched (`Refs: FEAT-01-03, FIX-013, PLAN-07`).
 
-```
-MANDATORY -- backlog row reflects the actual state BEFORE the artifact
-bodies are touched:
+| # | Layer            | Action                                                                                                  |
+|---|------------------|---------------------------------------------------------------------------------------------------------|
+| 1 | Backlog          | Update status/phase/SHA/claim/refs for every Feature, ADR, PLAN, FIX, IMP touched. Refresh dashboard.   |
+| 2 | Wayfinder        | `src/ARCHITECTURE.map` rows, JSDoc headers in new entry-points, module READMEs; in the SAME commit as the code. |
+| 3 | FEATURE specs    | Substance only; SC accuracy. Status lives in the backlog row.                                           |
+| 4 | ADRs             | Add `## Implementation Notes` appendix with actual outcome. Document architecturally relevant deviations in Consequences. |
+| 5 | PLAN-{nn}        | Fill `## Implementation Notes`: per-task SHA, deviations, test-count delta, cycle time. Change Log appended, never rewritten. |
+| 6 | FIX artefacts    | BACKLOG row resolved; FIX detail file's `## Fix` and `## Regression test` sections filled.              |
+| 7 | METRICS          | Append rows: "Cycle time per FEATURE", "Phase transition counts", "Cross-phase trigger counts".         |
 
-1. Backlog (single source of truth for state and the relation graph):
- - Update _devprocess/context/BACKLOG.md per the binding format
- in skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md
- - For every Feature, ADR, PLAN, FIX, IMP touched this session:
- set status (Done / Review / Active / Superseded), phase, commit
- SHA, claim cleared if work is done
- - Add new findings (improvements, tech debt, follow-ups) as new
- rows in the matching Epic section or Standalone Items
- - Refresh dashboard counts (status + phase + priority) and the
- "Last update" header
- - Update the Refs column for parent and child relations
- - **Per-commit gate (binding):** The backlog reflects the
- post-implementation state BEFORE every commit that references
- a FEATURE, FIX, IMP, ADR, or PLAN ID. Stricter than "before
- handoff ritual" because phase-end writeback drifts when phases
- stretch across multiple commits.
- - **Commit message cites the artifacts touched:**
- `Refs: FEAT-01-03, FIX-013, PLAN-07` (or similar). This
- creates a searchable trail from code back to backlog, so a
- future query `git log --grep="FEAT-01-03"` lists every
- commit that claimed to move that item forward.
-
-2. Wayfinder layer:
- - src/ARCHITECTURE.map: update rows for new, renamed, or removed
- entry-points
- - JSDoc headers in new entry-point files: written
- - Module READMEs: written or updated for new modules
- - This step lands in the SAME commit as the code, never as a
- separate doc commit
-
-3. Feature specs (substance, not status):
- - Substance unchanged unless a Mid-course requirements trigger
- fired (in which case the trigger already updated the spec)
- - NO status field changes here. Status lives in the backlog row.
- - Verify Success Criteria are still accurate; if reality differs,
- the Mid-course trigger should already have amended them.
-
-4. ADRs (substance, not status):
- - Status field finalized in the BACKLOG ROW. The ADR file does not
- carry a status field in frontmatter.
- - Add Implementation Notes appendix with the actual outcome
- (allowed to go stale; the wayfinder is the source of truth).
- - Document deviations from the original proposal in the
- Consequences section if architecturally relevant.
-
-5. Implementation plan (PLAN-{nn}):
- - Status (Done, Superseded) is set in the backlog row, not the
- PLAN frontmatter.
- - Fill "Implementation Notes" section: per-task commit SHA (short
- form), deviations summary, test count delta, cycle time
- (first-commit -> last-commit), wayfinder updates landed.
- - Every task either has a commit SHA or an explicit "Not executed
- because ..." note. No task silently dropped.
- - The Change Log keeps every mid-course entry appended during the
- run. Never rewrite past entries.
-
-6. FIX artefacts:
- - Every FIX-{ee}-{ff}-{nn} touched this session has its BACKLOG row
- updated (status resolved, commit SHA, claim cleared)
- - Every FIX detail file at
- `_devprocess/requirements/fixes/FIX-{ee}-{ff}-{nn}-{slug}.md` has
- its `## Fix` and `## Regression test` sections filled
- - No bug-log aggregation file. The BACKLOG is the index, the FIX
- file is the substance.
-
-7. Metrics (signal layer):
- - Append a row to _devprocess/context/METRICS.md under the
- "Cycle time per FEATURE" table for each FEATURE that reached
- status Done this session
- - Columns: FEATURE ID, Started (first commit with Refs:FEATURE-NNN),
- Completed (latest commit with Refs:FEATURE-NNN), Cycle time,
- Scope, Notes
- - Append a row to "Phase transition counts" under "Coding -> Testing"
- (or the next phase) if this session ended a phase
- - Append a row to "Cross-phase trigger counts" for every
- mid-course trigger that fired during this session
-
-IF APPLICABLE:
-8. plan-context.md: update if tech stack has changed
-9. arc42: update affected sections
-10. _devprocess/rules/technical.md (or design.md, domain.md): update
- if a stable convention emerged or shifted during the session
-11. memory/MEMORY.md: if architecture key facts have changed
-12. CLAUDE.md: if new project conventions emerged
-```
+If applicable: plan-context.md (tech stack changed), arc42 sections,
+`_devprocess/rules/{technical,design,domain}.md` (new convention),
+memory/MEMORY.md, CLAUDE.md.
 
 ### Completion summary
 
 ```
-Implementation complete!
-
-Artifact status:
-- {N} Plans closed (Status: Implemented, {N} superseded)
-- {N} Features updated (Status: Implemented)
-- {N} ADRs finalized ({N} accepted, {N} modified, {N} deprecated)
-- {N} artifacts written back during implementation
-- {N} FIX entries (resolved: {N}, open: {N}; backlog rows + FIX detail files)
-- Backlog updated
-
-Deviations from the original design:
-- {summary of most important changes, or "None"}
+Done: {what landed}.
+Deviations: {one-liner or None}.
 ```
 
 ---

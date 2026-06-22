@@ -1,171 +1,74 @@
-# Exploration Board: {Project Name}
-
-> **Project:** {Project Name}
-> **Created:** {Date}
-> **Phase:** EXPLORE
-
+<!-- See skills/business-analysis/SKILL.md for how to fill -->
+---
+id: EXPLORE-{PROJECT}
+title: Exploration Board {PROJECT}
+date: {YYYY-MM-DD}
 ---
 
-## 1. Research Mind Map
+# Exploration Board {PROJECT}
 
-> Break the central question into research fields (Method E7)
+| Project | Created | Phase |
+|---|---|---|
+| {PROJECT} | {YYYY-MM-DD} | EXPLORE |
 
-**Central Question:** {The one question we want to answer}
+See skills/project-conventions/SKILL.md#canonical-specs (Reader budget, Writing style, Priority/Effort legend).
 
-| Research Field | Guiding Questions | Priority |
-|----------------|-------------------|----------|
-| Users & User Groups | {Who are the users? How do they live/work?} | {H/M/L} |
-| Market & Competition | {Who solves this problem today? How big is the market?} | {H/M/L} |
-| Technology & Trends | {Which technologies enable new solutions?} | {H/M/L} |
-| Regulation & Constraints | {What regulatory conditions exist?} | {H/M/L} |
+## Central research question
 
----
+{The one question this board answers}
 
-## 2. Trends & Technology
+Research fields:
 
-> Megatrends, sociocultural trends, consumer and zeitgeist trends that may
-> impact the project. Technology trends and developments. (Method E9)
+- Users: {who they are, how they live or work}
+- Market: {who solves it today, market size}
+- Tech and regulation: {enabling tech, constraints}
 
-- {Trend 1}: {Relevance for the project}
-- {Trend 2}: {Relevance for the project}
+## Trends
 
----
+- {Trend 1}: {relevance, plus key figure with source}
+- {Trend 2}: {relevance, plus key figure with source}
 
-## 3. Potential Partners & Competitors
+## Market players
 
-> Relevant partners and competitors in the market we want to innovate in.
+| Name | Role | Offering | Strengths | Weaknesses or synergy |
+|---|---|---|---|---|
+| {Name} | Competitor | {What they offer} | {Strong points} | {Weak points} |
+| {Name} | Partner | {Competency} | {Strong points} | {How they complement us} |
 
-### Competitors
+## Potential fields
 
-| Competitor | Solution | Strengths | Weaknesses |
-|------------|----------|-----------|------------|
-| {Name} | {What do they offer?} | {What do they do well?} | {Where are they weak?} |
+1. **{Field 1}**: {Pain or pattern emerging}
+2. **{Field 2}**: {Pain or pattern emerging}
+3. **{Field 3}**: {Pain or pattern emerging}
 
-### Potential Partners
+## Persona
 
-| Partner | Competency | Synergy |
-|---------|-----------|---------|
-| {Name} | {What do they bring?} | {How do they complement us?} |
+- **Role**: {Job title, segment, age}
+- **Goals**: {What they want to achieve}
+- **Frustrations**: {What annoys them}
+- **Context**: {When, where, how often the problem occurs; quote optional}
 
----
+## Needs
 
-## 4. Facts & Figures
+| ID | Need | Type | Priority |
+|---|---|---|---|
+| N-01 | {Need} | Functional or Emotional or Social | P0 or P1 or P2 |
+| N-02 | {Need} | Functional or Emotional or Social | P0 or P1 or P2 |
 
-> Quantitative data that cannot be assigned to the other fields
-> but is related to the research topic.
+## Insights
 
-- {Fact 1}: {Source}
-- {Fact 2}: {Source}
+| Type | Insight | Source |
+|---|---|---|
+| Functional | {What users actually do, workarounds} | {Interview, observation, source} |
+| Emotional | {How users feel} | {Source} |
+| Social | {Interactions, dynamics} | {Source} |
+| Analogy | {Pattern from another domain we can transfer} | {Source} |
 
----
+## How might we
 
-## 5. Potential Fields
+**Primary**: How might we help {persona} achieve {need} despite {obstacle}?
 
-> Recurring themes that concern our users.
-> Indicators of concrete needs. Precursors to ideas for the IDEATION phase.
-
-1. **{Potential Field 1}**: {Description. What pain or pattern is emerging?}
-2. **{Potential Field 2}**: {Description}
-
----
-
-## 6. User(s)
-
-> Characteristics of our future users. (Methods E1, E3, E5.2)
-
-### Persona 1: {Name}
-
-- **Role/Occupation:** {Job title, context}
-- **Age/Segment:** {Demographic essentials}
-- **Goals:** {What does this person want to achieve?}
-- **Frustrations:** {What annoys them the most?}
-- **Typical Quote:** "{In the user's own words}"
-- **Usage Context:** {When, where, how often does the problem occur?}
-
-### Persona 2: {Name}
-
-- **Role/Occupation:** {Job title, context}
-- **Age/Segment:** {Demographic essentials}
-- **Goals:** {What does this person want to achieve?}
-- **Frustrations:** {What annoys them the most?}
-- **Typical Quote:** "{In the user's own words}"
-- **Usage Context:** {When, where, how often does the problem occur?}
-
----
-
-## 7. Needs
-
-> What is noted under "Needs" is what we must solve with our innovation.
-> The combination of user and need is the anchor point for digital products/services.
-
-| Need ID | Need | Type | Priority | Addressed for Persona |
-|---------|------|------|----------|-----------------------|
-| N-01 | {Need description} | {Functional / Emotional / Social} | {H/M/L} | {Persona name} |
-| N-02 | {Need description} | {Functional / Emotional / Social} | {H/M/L} | {Persona name} |
-
----
-
-## 8. Insights
-
-> Information about both the physical and emotional world of the user.
-> Also analogies that offer a new perspective or deepen empathy.
-
-### General / Contextual
-- {Insight about the context in which the problem occurs}
-
-### Functional Insights
-> User actions. How do they reach their goal?
-- {What do users actually do? What workarounds do they use?}
-
-### Emotional Insights
-> User experiences and feelings
-- {How do users feel? What frustrates or delights them?}
-
-### Social Insights
-> Social behavior in the context of the problem
-- {How do users interact with each other? What social dynamics exist?}
-
-### Analogies
-> Solutions validated in other domains
-- {Analogy from another industry/context}: {What can we transfer?}
-
----
-
-## 9. Touchpoints
-
-> All points of contact the user has with the product or service.
-
-| Touchpoint | Phase | Channel | Experience (positive/neutral/negative) |
-|------------|-------|---------|----------------------------------------|
-| {Contact point} | {Before/During/After usage} | {Digital/Physical/Hybrid} | {Rating + brief description} |
-
----
-
-## 10. How Might We?
-
-> The HMW question bundles the findings of the EXPLORE module into a problem hypothesis.
-> It is the starting point for the IDEATION module.
->
-> Format: "How might we help [user] achieve [need], despite [obstacle]?"
-
-### Primary HMW Question
-
-**How might we** help {user/persona} **achieve** {need/goal},
-**despite** {obstacle/constraint}?
-
-### Alternative HMW Questions
+Alternatives:
 
 1. How might we {variant 1}?
 2. How might we {variant 2}?
-
----
-
-## Transition to IDEATION
-
-The Explore phase is complete when:
-- [ ] At least 1 persona fully described
-- [ ] At least 3 validated needs identified
-- [ ] At least 2 insights per category (functional, emotional)
-- [ ] Primary how-might-we question formulated
-- [ ] Potential fields identified
-- [ ] Trends and competitors researched
