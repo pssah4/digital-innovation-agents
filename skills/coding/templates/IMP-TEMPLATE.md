@@ -1,16 +1,4 @@
-<!--
-Instructions for the agent: produce this file as
-`_devprocess/requirements/improvements/IMP-{ee}-{ff}-{nn}-{slug}.md` for any
-non-bugfix change to existing behavior (refactor, performance, doc
-drift, tests, configuration). Write the prose in the user's working
-language. Keep keywords in English.
-
-Status, phase, claim, and last-change live in the backlog row, not in
-this file's frontmatter.
-
-Cap: 30 lines of prose.
--->
-
+<!-- See skills/coding/SKILL.md for how to fill -->
 ---
 id: IMP-{ee}-{ff}-{nn}
 feature: FEAT-{ee}-{ff}
@@ -25,12 +13,11 @@ created: {YYYY-MM-DD}
 
 ## Description
 
-{What changes about existing behavior? 2 to 3 sentences.}
+{What changes about existing behavior? 1 to 2 sentences.}
 
 ## Reason
 
-{Why is the change needed? Concrete trigger or signal that motivated
-the work.}
+{Concrete trigger or signal that motivated the work.}
 
 ## Success criteria
 
@@ -39,10 +26,4 @@ the work.}
 
 ## Scope
 
-{What this improvement does NOT change. Important when the boundary
-is fuzzy.}
-
-## Status
-
-See the backlog row for IMP-{ee}-{ff}-{nn} in `_devprocess/context/BACKLOG.md`
-(status, phase, claim, commit SHA).
+{Optional. Boundary clarification only; omit when empty.}

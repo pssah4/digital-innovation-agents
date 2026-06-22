@@ -25,6 +25,293 @@ Summary: Before any work, read existing code, recognize patterns, understand
 dependencies, check reference implementations. The project's `CLAUDE.md`
 takes PRECEDENCE over generic skill instructions.
 
+## Canonical Specs (single home; other skills link here)
+
+These specs are the canonical source for every V-Model skill (BA, RE,
+Architecture, Coding, Testing, Security-Audit, Consistency-Check,
+Reverse-Engineering). Phase skills do not restate them; they link
+back to this section. Templates do not pre-render them; they leave
+placeholders that the producing skill fills based on the rules here.
+
+### 1. Reader budget (the under-2-minute rule)
+
+Every produced artifact must be scannable by a human reader in under
+two minutes. The number that operationalizes this is a per-artifact
+hard line cap. Skills measure with `wc -l` against the cap before
+handoff.
+
+**Exceeding the cap.** A cap may be exceeded only with a one-line
+justification at the top of the file:
+
+```markdown
+## Reasoned exception
+
+Cap raised from <N> to <M> lines: <one-sentence reason>.
+```
+
+Without that block, `/consistency-check` flags the artifact as
+over-cap. The exception block is read during review; agents do not
+add it routinely.
+
+**Hard caps (binding).**
+
+| Artifact | Cap | Notes |
+|---|---|---|
+| Project-BA | 200 lines | Initial discovery only |
+| EPIC-BA | 120 lines | Item-BA at epic scope |
+| FEAT-BA | 60 lines | Item-BA at feature scope |
+| BA-MINI (IMP/FIX) | 40 lines | |
+| EXPLORATION-BOARD | 70 lines | Scratchpad |
+| EPIC | 40 lines | |
+| FEATURE | 65 lines | |
+| BACKLOG | 80 lines + rows | Header+vocab leg+pointers cap; rows uncapped |
+| ARCHITECT-HANDOFF | 60 lines | Dialog grows in-place |
+| ADR | 60 lines | Excluding optional Implementation Notes; includes 7-line German-variant translation note |
+| arc42 | 65 lines (PoC) / 100 (MVP) | |
+| plan-context | 55 lines | |
+| PLAN | 50 lines | Plus uncapped Change Log tail |
+| FIX | 32 lines | |
+| IMP | 30 lines | |
+| AUDIT | 65 lines | Plus uncapped finding tables |
+| METRICS | 50 lines | |
+| ARCHITECTURE-MAP, MODULE-README, JSDOC-HEADER, RULES-* | per-template caps in template comments | |
+
+### 2. Frontmatter spec
+
+Artifact frontmatter carries identity and relations only. No state.
+
+**Allowed keys.**
+
+- Identity: `id`, `title`, `date` (creation date)
+- Relations (only present when populated):
+  - `epic`: parent epic id (string), used by FEAT/IMP/FIX/PLAN
+  - `feature`: parent feature id (string), used by IMP/FIX/PLAN
+  - `ba-ref`: relative path to the Item-BA (string), used by EPIC/FEAT/IMP/FIX
+  - `project-ba-ref`: relative path to `BA-{PROJECT}.md` (string), MANDATORY on every Item-BA
+  - `hmw-ref`: link to the HMW question this artifact answers (string, optional)
+  - `adr-refs`: list of ADR ids (used by FEAT/PLAN)
+  - `feature-refs`: list of FEAT ids (used by ADR)
+  - `supersedes`, `superseded-by`: ADR linkage (strings)
+  - `subtype`: `user-facing` or `library` (FEATURE only)
+  - `depends-on`: list of artifact ids (cross-cutting dependency)
+
+**Forbidden keys.** `status`, `phase`, `last_updated`, `last-updated`,
+`lastUpdated`, `author`, `owner`, `claim`. State lives in the BACKLOG
+row. Frontmatter status is stripped by
+`tools/migration/strip_frontmatter_status.py` and flagged as N-15
+by `/consistency-check`.
+
+**Empty refs are omitted, never stubbed as `[]`.** If a feature has no
+ADRs, omit `adr-refs`; do not write `adr-refs: []`. Stub keys add
+noise and trigger false-positive graph edges.
+
+### 3. Backlog vocabulary
+
+The BACKLOG.md table column order is binding (parsed by index in
+four tools): `| ID | Type | Title | Status | Phase | Prio | Refs | Source | Commit | Claim | Last change | Notes |`.
+
+**Status (artifact lifecycle).** Aligned 1:1 with GitHub Projects so
+`flow.py sync-status` stays consistent.
+
+- `Backlog`: captured, not yet prioritized. Also the resting place for
+  blocked or deferred items.
+- `Ready`: prioritized, scheduled, free to be claimed.
+- `In Progress`: someone is actively working on it.
+- `In Review`: PR open, awaiting review or quality gates.
+- `Done`: merged. Row stays under its Epic for traceability.
+
+Legacy status values (migrated by
+`tools/migration/migrate_status_vocabulary.py`): `Planned -> Ready`,
+`Active -> In Progress`, `Review -> In Review`, `Waiting -> Backlog`,
+`Deferred -> Backlog`. `Done` stays `Done`.
+
+**Phase tags (git annotated tags, format `<id>/<phase>-done`).** Set
+via `python3 tools/github-integration/flow.py tag-phase
+--item <ID> --phase <phase>`.
+
+- `ba-done`, `re-done`, `arch-done`, `plan-done`, `code-done`,
+  `test-done`, `sec-done`
+
+Legacy `audit-done` is still accepted as an alias for `sec-done`.
+
+**Type union.** `BA`, `EPIC`, `FEAT`, `ADR`, `PLAN`, `IMP`, `FIX`.
+Backlog rows additionally use `Security`, `Bug-Followup`, `BL-Item`
+for items that do not bind to a detail-file type.
+
+**Source union.** `manual`, `derived`, `reverse-engineered`. Backlog
+rows additionally carry the producing skill: `BA`, `RE`, `REV`,
+`SEC`, `USER`, `BUG`, `CONSISTENCY-CHECK`.
+
+**Priority.** `P0` (blocker, immediate), `P1` (short-term), `P2`
+(mid-term). `P3` exists in GitHub labels for idea-stage items but
+does not enter the implementation queue.
+
+**ID schema.**
+
+| Type | Pattern | Example |
+|------|---------|---------|
+| Project-BA | `BA-{PROJECT}` | `BA-myapp` |
+| Epic | `EPIC-{ee}` | `EPIC-04` |
+| Feature | `FEAT-{ee}-{ff}` | `FEAT-04-02` |
+| ADR | `ADR-{ee}-{nn}` | `ADR-04-03` |
+| Improvement | `IMP-{ee}-{ff}-{nn}` | `IMP-04-02-01` |
+| Fix | `FIX-{ee}-{ff}-{nn}` | `FIX-04-02-03` |
+| Plan | `PLAN-{ee}-{ff}-{nn}` | `PLAN-04-02-01` |
+
+IDs are monotonic and never reused. `{ee}` is the parent epic
+counter, `{ff}` the feature counter local to that epic, `{nn}` the
+artifact counter local to that feature (or epic for ADR).
+
+**Claim column.** Format `{pair-id} @ {YYYY-MM-DD}`. Empty cell means
+free. Example: `sebastian-opus-4.7 @ 2026-04-19`. The Claim
+protocol is documented in `skills/dia-guide/SKILL.md`.
+
+**Refs column.** Comma-separated artifact ids forming the relation
+graph. Examples: `EPIC-04, ADR-04-03, PLAN-04-02-01`. Edges in the
+artifact graph derive from this column;
+`/consistency-check` uses it for orphan and cycle detection.
+
+### 4. Writing style (canonical home)
+
+The writing style applies to every artifact produced by every
+V-Model skill (BA, EXPLORE, EPIC, FEATURE, ADR, arc42,
+plan-context, architect-handoff, backlog rows, FIX, IMP,
+audit reports, release notes, CHANGELOG, METRICS). It applies to
+prose written at runtime, not only to templates.
+
+**Zero em dashes, zero en dashes.** No U+2014, no U+2013, no
+double-hyphen substitute written as two ASCII hyphens to fake an em
+dash. Use a period, a comma, parentheses, or a plain `and` / `but`.
+
+**Pre-save scan (binding).** Before writing or editing an artifact,
+the producing skill mentally greps the output for:
+
+- U+2014 (em dash), U+2013 (en dash): zero hits required.
+- AI vocabulary: `landscape`, `nuanced`, `delve`, `leverage`,
+  `utilize`, `intricate`, `crucial`, `pivotal`, `robust`,
+  `seamless`, `game-changing`, `revolutionary`, `unlock`,
+  `empower`, `comprehensive`, `holistic`, `foster`, `ensuring`,
+  `highlighting`, `underscoring`, `emphasizing`, `reflecting`,
+  `symbolizing`.
+- Negative parallelisms: `not X but Y`, `it is not about A, it is
+  about B`, `more than just X`. Rewrite to the positive form.
+- Filler phrases: `in order to`, `it is important to note`,
+  `needless to say`, `due to the fact that`.
+- Inflated symbolism: `at its core`, `fundamentally`, `the real
+  question is`, `this matters because`.
+- Copula avoidance: `X serves as Y`, `X stands as Y`. Write `X is Y`.
+- Superficial -ing tails: `highlighting the importance of X`,
+  `reflecting the commitment to Y`.
+- Rule-of-three padding: if a default list has exactly three parallel
+  items, drop to two, add a fourth, or rewrite.
+- Vague attributions: `it is often said`, `many believe`, `experts
+  argue` (unless a source is named).
+- Meta-signposting: `let me break this down`, `here is what you need
+  to know`. Write the content instead.
+
+**Active voice by default. Sentence case in headings.** No title case.
+
+Any hit is rewritten before the artifact is saved. This applies
+equally to brand-new artifacts, edits, and promotions from draft to
+validated.
+
+### 5. Activation Path format (canonical)
+
+Every FEATURE spec carries an `## Activation Path` section.
+`/consistency-check` rule N-18 parses it via the anchored regex
+`^## Activation Path\s*$`; the heading text is fixed and untranslated.
+
+**Format (user-facing subtype, default):**
+
+```markdown
+## Activation Path
+
+- Type: command | route | UI-element | endpoint | scheduled-job | tool | hotkey | public-API
+- Identifier: <command name | route path | URL | symbol name>
+- Where it lives: <file or section pointer>
+- How a user (or caller) reaches it: <one sentence>
+```
+
+**Format (library subtype):**
+
+```markdown
+## Activation Path
+
+- Type: public-API
+- Identifier: `<exported function or class name>`
+- Where it lives: <module path or package export>
+- How a caller reaches it: imported and called as documented in <doc reference>
+```
+
+The `Type:` and `Identifier:` sub-bullets are parsed by
+`/consistency-check`; renaming or translating either breaks N-18.
+
+### 6. Priority / Effort legend
+
+**Priority.**
+
+- `P0`: blocker. Drop other work. Ship today or tomorrow.
+- `P1`: short-term. Next iteration.
+- `P2`: mid-term. Backlog with intent. Revisit at next planning.
+- `P3` (labels only): idea stage. Not committed.
+
+**Effort scale.** Coarse, relative, set at FEAT or PLAN scope.
+
+| Scale | Rough size | Typical artifact |
+|-------|------------|------------------|
+| XS | under 1 hour | FIX, doc tweak |
+| S  | half a day  | IMP, small FEAT |
+| M  | one to two days | typical FEAT |
+| L  | one week | multi-FEAT change, ADR with prototype |
+| XL | over one week | epic-scope; split into FEATs first |
+
+XL is a smell at FEAT scope. If a FEAT scopes XL, split it before
+implementation starts.
+
+### 7. Three-layer model boundaries
+
+| Layer            | Purpose                                                                                                          | Lives in                                                                                                          | Owner                                                              |
+|------------------|------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
+| Wayfinder        | Concept-to-file lookup, navigational, grep-friendly                                                              | `src/ARCHITECTURE.map`, JSDoc headers in entry-point files, module READMEs                                        | `/coding` on every entry-point change                              |
+| Rule sets        | Stable truths: stack, conventions, design rules, domain glossary. Hard cap 500 lines total.                      | `_devprocess/rules/technical.md`, `_devprocess/rules/design.md` (if UI), `_devprocess/rules/domain.md`            | `/architecture`, `/coding`                                         |
+| Backlog          | Single source of truth for state and the artifact relation graph                                                 | `_devprocess/context/BACKLOG.md`                                                                                  | Every status-changing skill writes the row BEFORE the artifact     |
+| Detail artifacts | Audit trail of the engineering process: BA, Epics, Features, Plans, Fixes, ADR detail                            | `_devprocess/analysis/`, `_devprocess/requirements/`, `_devprocess/architecture/`, `_devprocess/implementation/`  | `/business-analysis`, `/requirements-engineering`, `/architecture`, `/coding` |
+
+**ADR abstraction rule.** ADR core sections (`## Kontext` / `## Context`,
+`## Decision Drivers` / `## Begründung`, `## Considered Options`,
+`## Entscheidung` / `## Decision`, `## Konsequenzen` /
+`## Consequences`) contain NO code paths, file names, line numbers,
+or method signatures. Code-level hints belong in the optional
+`## Implementation Notes` appendix at the bottom of the ADR, which
+is allowed to go stale. The wayfinder (`src/ARCHITECTURE.map` plus
+the JSDoc header of the entry-point) is the canonical source for
+current paths. `/consistency-check` rule A-1 enforces this against
+the German and English heading variants.
+
+**ADR / FEATURE / PLAN separation.**
+
+- **ADR** answers "what is the architectural decision and why?". No
+  tasks, no code paths in core sections.
+- **FEATURE** answers "what should the user be able to do?". No
+  tasks, no implementation details.
+- **PLAN** answers "how is it concretely implemented?". Tasks with
+  file paths and verify commands live HERE and only here.
+
+### 8. Section policy
+
+Sections are emitted only when they carry decision content. Optional
+sections live in this convention (or in the relevant template
+comment), not as pre-rendered `TBD` placeholders in the saved
+artifact. A FEATURE without ADRs omits the ADR section entirely; it
+does not write `## ADRs\n\nTBD`.
+
+This applies to every template under `skills/*/templates/`. Templates
+list optional sections in HTML comments at the top so the producing
+skill knows what is available; the skill writes a section only when
+it has substance.
+
+---
+
 ## Three-layer documentation model
 
 Every project organizes its V-Model documentation in three layers. Each

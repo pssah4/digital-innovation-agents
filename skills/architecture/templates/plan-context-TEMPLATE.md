@@ -1,134 +1,55 @@
 # Plan Context: {Project/Feature Name}
 
-> **Purpose:** Technische Zusammenfassung fuer Claude Code
-> **Created by:** Architect
-> **Date:** {Datum}
+<!-- See skills/architecture/SKILL.md for how to fill. Style + caps: skills/project-conventions/SKILL.md#canonical-specs -->
 
----
+## Technical stack
 
-## Technical Stack
+| Layer | Choice | ADR-Ref |
+|---|---|---|
+| Backend | {language, framework} | ADR-{nn} |
+| Data | {database, ORM} | ADR-{nn} |
+| Frontend | {framework, state} | ADR-{nn} |
+| Infrastructure | {cloud, deploy, CI/CD} | ADR-{nn} |
+| API and auth | {style, auth method} | ADR-{nn} |
 
-**Backend:**
-- Language: {aus ADR-{nn}}
-- Framework: {aus ADR-{nn}}
-- Database: {aus ADR-{nn}}
-- ORM: {aus ADR-{nn}}
+## Architecture style
 
-**Frontend:** (falls applicable)
-- Framework: {aus ADR-{nn}}
-- State Management: {aus ADR-{nn}}
+- Pattern: {Modular Monolith | Microservices | Serverless}
+- Top quality goals: 1) {goal} 2) {goal} 3) {goal}
 
-**Infrastructure:**
-- Cloud Provider: {aus ADR-{nn}}
-- Deployment: {aus ADR-{nn}}
-- CI/CD: {aus ADR-{nn}}
+## ADR summary
 
-**API & Integration:**
-- API Style: {REST/GraphQL}
-- Authentication: {aus ADR-{nn}}
+| ADR | Title | Decision | Impact |
+|---|---|---|---|
+| ADR-{nn} | {title} | {decision} | High |
+| ADR-{nn} | {title} | {decision} | Medium |
 
-## Architecture Style
+## External integrations
 
-- Pattern: {Modular Monolith / Microservices / Serverless}
-- Key Quality Goals:
-  1. {Quality Goal 1}
-  2. {Quality Goal 2}
-  3. {Quality Goal 3}
+| System | Direction | Protocol | Purpose |
+|---|---|---|---|
+| {system} | Inbound \| Outbound | REST \| Events \| gRPC | {purpose} |
 
-## Key Architecture Decisions (ADR Summary)
+## Performance and security
 
-| ADR | Title | Vorgeschlagene Entscheidung | Impact |
-|-----|-------|-----------------------------|--------|
-| ADR-01 | {Title} | {Decision} | High |
-| ADR-02 | {Title} | {Decision} | High |
-| ADR-03 | {Title} | {Decision} | Medium |
-
-**Detail pro ADR:**
-
-1. **{ADR-01 Title}:** {Decision}
-   - Rationale: {Kurze Begruendung}
-
-2. **{ADR-02 Title}:** {Decision}
-   - Rationale: {Kurze Begruendung}
-
-3. **{ADR-03 Title}:** {Decision}
-   - Rationale: {Kurze Begruendung}
-
-## Data Model (Core Entities)
-
-```
-{Entity 1}
-  {attribute}: {type}
-  relations: [{related}]
-
-{Entity 2}
-  {attribute}: {type}
-  relations: [{related}]
-```
-
-## External Integrations
-
-| System | Type | Protocol | Purpose |
-|--------|------|----------|---------|
-| {System 1} | Inbound/Outbound | REST/Events | {Purpose} |
-
-## Performance & Security
-
-**Performance:**
-- Response Time: {X}ms for {Y}th percentile
-- Throughput: {Z} req/sec
-- Concurrent Users: {N}
-
-**Security:**
-- Authentication: {Method}
-- Authorization: {Model}
-- Encryption: {At rest / In transit}
-
----
-
-## Kontext-Dokumente fuer Claude Code
-
-Claude Code sollte folgende Dokumente als Kontext lesen:
-
-1. `_devprocess/architecture/ADR-*.md` (alle ADR-Vorschlaege)
-2. `_devprocess/architecture/arc42.md` (Architektur-Entwurf)
-3. `_devprocess/requirements/features/FEATURE-*.md` (alle Features)
-4. `_devprocess/requirements/epics/EPIC-*.md` (wenn vorhanden)
-
----
+| Aspect | Target | Source-ADR |
+|---|---|---|
+| Response time | {X} ms @ p{Y} | ADR-{nn} |
+| Throughput | {Z} req/sec | ADR-{nn} |
+| Authentication | {method} | ADR-{nn} |
+| Authorization | {model} | ADR-{nn} |
+| Encryption | at rest, in transit | ADR-{nn} |
 
 ## Dialog
 
-> Bidirectional channel between Coder and Architect. NOT a blocker:
-> the Coder proceeds with implementation that does not depend on
-> pending questions. Only the specific change that needs clarification
-> waits.
+Bidirectional channel between Coder and Architect. Not a blocker; only the change that depends on a pending question waits.
 
 ### Questions from Coder to Architect
 
 | ID | Date | Question | Addressed by | Status |
 |---|---|---|---|---|
-| Q-001 | 2026-04-19 | {concrete question about an ADR or a stack choice} | ADR-07 | Pending |
 
 ### Answers from Architect
 
 | ID | Date | Answer | Affected artifacts | Status |
 |---|---|---|---|---|
-| A-001 | 2026-04-20 | {concrete answer; if the Architect updates an ADR, cite it here} | ADR-07 (amended) | Resolved |
-
-### Dialog rules
-
-- **Not a blocker.** Pending entries do not stop unrelated
-  implementation work. Only the code change that depends on the
-  pending question waits.
-- **Try to self-answer first.** When the Coder (or Architect on a
-  return pass) starts a new session and sees pending dialog entries,
-  it attempts to answer from existing artifacts (ADRs, arc42, code)
-  BEFORE asking the user.
-- **One question per session to the user.** If self-answering fails,
-  the skill surfaces ALL unresolved entries in a single
-  `AskUserQuestion` at session start: "N questions from Coder could
-  not be answered from existing artifacts. Address now, defer to end
-  of session, or record as open issues?"
-- **Entries are append-only.** Answers supersede questions by setting
-  Status to Resolved. Rows are never deleted.
