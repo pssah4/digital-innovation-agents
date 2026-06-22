@@ -116,6 +116,20 @@ Cap overshoots in legacy artefacts are warnings, not failures. Add a
 top-of-file `## Reasoned exception` block (2-3 lines explaining why)
 to suppress the warning permanently.
 
+### Fixed
+
+- `tools/consistency-check.py` (from PR #20): ID-parsing regexes
+  hardcoded two-digit number components (`ADR-\d{2}`, `EPIC-\d{2}`,
+  `FEAT-\d{2}-\d{2}`, `FIX/IMP-\d{2}-...`, `PLAN-\d{2}`, the `BA-*`
+  file-name patterns and the backlog-row ID matchers). A downstream
+  project with 100+ ADRs (`ADR-100`..`ADR-117`) hit this: every
+  three-digit ADR row was flagged `orphan-backlog-row` even though
+  the files existed, because the row ID never parsed. Widened the
+  epic-number component to `\d{2,3}` everywhere. The pre-commit hook
+  copy (`.git/hooks-data/consistency-check.py`) has the same patterns;
+  the installer copies the fixed driver, but existing installs should
+  re-run `tools/install-git-hooks.sh`.
+
 ### Not in this release
 
 - No semantic change to flow.py, GitHub sync, or marketplace structure.

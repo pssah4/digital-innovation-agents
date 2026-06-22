@@ -337,7 +337,7 @@ def check_adr_abstraction(adr_files: Iterable[Path]) -> list[Finding]:
 
 
 BACKLOG_ROW_RE = re.compile(r"^\|\s*([A-Z]+(?:-\d+){1,3})\s*\|", re.MULTILINE)
-BACKLOG_EPIC_HEADER_RE = re.compile(r"^###\s+(EPIC-\d{2})", re.MULTILINE)
+BACKLOG_EPIC_HEADER_RE = re.compile(r"^###\s+(EPIC-\d{2,3})", re.MULTILINE)
 
 
 def parse_backlog_ids() -> set[str]:
@@ -352,12 +352,12 @@ def parse_backlog_ids() -> set[str]:
 
 
 ID_PATTERNS = [
-    ("FIX", re.compile(r"^(FIX-\d{2}-\d{2}-\d{2})(?:-|$)")),
-    ("IMP", re.compile(r"^(IMP-\d{2}-\d{2}-\d{2})(?:-|$)")),
-    ("FEAT", re.compile(r"^(FEAT-\d{2}-\d{2})(?:-|$)")),
-    ("EPIC", re.compile(r"^(EPIC-\d{2})(?:-|$)")),
-    ("ADR", re.compile(r"^(ADR-\d{2})(?:-|$)")),
-    ("PLAN", re.compile(r"^(PLAN-\d{2})(?:-|$)")),
+    ("FIX", re.compile(r"^(FIX-\d{2,3}-\d{2}-\d{2})(?:-|$)")),
+    ("IMP", re.compile(r"^(IMP-\d{2,3}-\d{2}-\d{2})(?:-|$)")),
+    ("FEAT", re.compile(r"^(FEAT-\d{2,3}-\d{2})(?:-|$)")),
+    ("EPIC", re.compile(r"^(EPIC-\d{2,3})(?:-|$)")),
+    ("ADR", re.compile(r"^(ADR-\d{2,3})(?:-|$)")),
+    ("PLAN", re.compile(r"^(PLAN-\d{2,3})(?:-|$)")),
 ]
 
 
@@ -452,7 +452,7 @@ def _backlog_done_features() -> set[str]:
     out: set[str] = set()
     text = BACKLOG.read_text(encoding="utf-8")
     for line in text.splitlines():
-        m = re.match(r"^\|\s*(FEAT-\d{2}-\d{2})\s*\|", line)
+        m = re.match(r"^\|\s*(FEAT-\d{2,3}-\d{2})\s*\|", line)
         if not m:
             continue
         if "Done" in line:
@@ -528,7 +528,7 @@ def check_feature_activation_path() -> list[Finding]:
 
 
 FIXME_STUB_RE = re.compile(
-    r"(?://|#)\s*FIXME\(stub\)\s*:\s*(.+?)(?:\s+--\s+see\s+(FIX-\d{2}-\d{2}-\d{2}))?\s*$",
+    r"(?://|#)\s*FIXME\(stub\)\s*:\s*(.+?)(?:\s+--\s+see\s+(FIX-\d{2,3}-\d{2}-\d{2}))?\s*$",
     re.MULTILINE,
 )
 
@@ -543,7 +543,7 @@ def _backlog_fix_rows_with_stub_notes() -> dict[str, str]:
     out: dict[str, str] = {}
     text = BACKLOG.read_text(encoding="utf-8")
     for line in text.splitlines():
-        m = re.match(r"^\|\s*(FIX-\d{2}-\d{2}-\d{2})\s*\|", line)
+        m = re.match(r"^\|\s*(FIX-\d{2,3}-\d{2}-\d{2})\s*\|", line)
         if not m:
             continue
         low = line.lower()
@@ -642,19 +642,19 @@ def check_stub_fix_binding() -> list[Finding]:
 
 
 ITEM_BA_PATTERNS = {
-    "EPIC": (re.compile(r"^BA-EPIC-(\d{2})-(.+)\.md$"), EPICS, "EPIC-{ee:02d}-"),
+    "EPIC": (re.compile(r"^BA-EPIC-(\d{2,3})-(.+)\.md$"), EPICS, "EPIC-{ee:02d}-"),
     "FEAT": (
-        re.compile(r"^BA-FEAT-(\d{2})-(\d{2})([a-z]?)-(.+)\.md$"),
+        re.compile(r"^BA-FEAT-(\d{2,3})-(\d{2})([a-z]?)-(.+)\.md$"),
         FEATURES,
         "FEAT-{ee:02d}-{ff:02d}{suffix}-",
     ),
     "IMP": (
-        re.compile(r"^BA-IMP-(\d{2})-(\d{2})-(\d{2})-(.+)\.md$"),
+        re.compile(r"^BA-IMP-(\d{2,3})-(\d{2})-(\d{2})-(.+)\.md$"),
         IMPROVEMENTS,
         "IMP-{ee:02d}-{ff:02d}-{nn:02d}-",
     ),
     "FIX": (
-        re.compile(r"^BA-FIX-(\d{2})-(\d{2})-(\d{2})-(.+)\.md$"),
+        re.compile(r"^BA-FIX-(\d{2,3})-(\d{2})-(\d{2})-(.+)\.md$"),
         FIXES,
         "FIX-{ee:02d}-{ff:02d}-{nn:02d}-",
     ),
@@ -821,7 +821,7 @@ def _backlog_status_index() -> dict[str, dict[str, str]]:
         if len(cells) < 5:
             continue
         item_id = cells[0]
-        if not re.match(r"^(FEAT|FIX|IMP)-\d{2}(?:-\d{2}){1,2}$", item_id):
+        if not re.match(r"^(FEAT|FIX|IMP)-\d{2,3}(?:-\d{2}){1,2}$", item_id):
             continue
         out[item_id] = {"status": cells[3], "phase": cells[4]}
     return out
@@ -830,7 +830,7 @@ def _backlog_status_index() -> dict[str, dict[str, str]]:
 _DETAIL_FEATURES_HEADER_RE = re.compile(
     r"^##\s+(MVP\s+Features|Features)\s*$", re.MULTILINE | re.IGNORECASE,
 )
-_DETAIL_ROW_ID_RE = re.compile(r"^\|\s*((?:FEAT|IMP|FIX)-\d{2}(?:-\d{2}){1,2})\s*\|")
+_DETAIL_ROW_ID_RE = re.compile(r"^\|\s*((?:FEAT|IMP|FIX)-\d{2,3}(?:-\d{2}){1,2})\s*\|")
 
 
 def _iter_detail_status_rows(text: str):
@@ -902,7 +902,7 @@ def check_detail_file_status_drift() -> list[Finding]:
 
 
 BACKLOG_ID_ROW_RE = re.compile(
-    r"^\|\s*((?:FEAT|FIX|IMP|ADR|PLAN)-\d{2}(?:-\d{2}){0,2})\s*\|"
+    r"^\|\s*((?:FEAT|FIX|IMP|ADR|PLAN)-\d{2,3}(?:-\d{2}){0,2})\s*\|"
 )
 
 
