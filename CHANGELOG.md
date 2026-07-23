@@ -5,6 +5,62 @@ All notable changes to digital-innovation-agents are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.0] - 2026-07-23
+
+Security-audit skill rework: from a manual, static, generic OWASP/CWE
+sweep to a deterministic, projekttyp-adaptive audit with a self-refreshing
+threat baseline. The skill now drives its phases from committed scripts
+instead of hand grep, recognises the project type (electron / obsidian-plugin
+/ web-app / cli / library) and applies matching references, verifies findings
+source-to-sink before Confirmed, and keeps its OWASP/CWE/LLM checklists
+current from official sources via a fail-closed weekly refresh. No breaking
+changes; the skill stays backward compatible and the scripts are additive.
+
+### Added
+
+- `skills/security-audit/tools/`: deterministic scan layer (stdlib Python
+  + one Node probe). `audit_scan.py` orchestrator with subcommands
+  `detect | surface | sast | secrets | sca | all`; `report_assembler.py`
+  (`fill` pre-fills the AUDIT template with an honest tools ledger + a
+  mandatory coverage/limitations section, `delta` computes the re-audit
+  diff by finding fingerprint); `lib/` (findings with line/timestamp-
+  independent fingerprints + secret redaction + `.git`-baseline IO, scope
+  resolution via git, project-type + attack-surface detection);
+  `poc/redos_probe.mjs` (opt-in isolated ReDoS measurement in a
+  worker_thread with a hard deadline). 38 assertion-based tests.
+- `skills/security-audit/references/`: `desktop-runtime.md` (Electron/
+  Chromium, gated on detection), `attack-surface.md`, `threat-modeling.md`
+  (STRIDE-per-boundary + attack chains), `agent-approval-gate.md`,
+  `prompt-injection-boundaries.md`, `local-dast.md`.
+- `scripts/security-refresh/`: fail-closed auto-refresh pipeline
+  (`refresh_references.py` model regenerate + adversarial verify restricted
+  to official domains, `verify_refresh.py` deterministic fixture gate,
+  `bump_version.py` consistent patch-bump of both manifests,
+  `currency_fixtures.json` regression seed) + `.github/workflows/
+  security-refresh.yml` (weekly schedule, commits to develop only on a
+  passing gate). 10 tests.
+
+### Changed
+
+- `skills/security-audit/SKILL.md`: scope selector asked before any scan
+  (full / branch / commit / working / staged / range); new Phase 0 live
+  threat currency (official-domain WebSearch, taxonomy snapshot, offline
+  fallback recorded); phases 1-6 driven by `audit_scan.py`; new Phase 4b
+  desktop runtime; finding format gains `FP` / `CVSS` (mandatory High+) /
+  `Evidence` and an `Unverified` status; source-to-sink verification
+  required before `Confirmed`; fix-loop proof-of-closure by re-detection
+  and a script-driven delta.
+- `skills/security-audit/references/cwe-patterns.md`: added CWE-362/367
+  (race/TOCTOU), CWE-918 bypass classes, CWE-400 runtime measurement,
+  CWE-532, CWE-74/116, a stack-adaptive block; unpinned from a fixed
+  10-CWE set to a MITRE CWE Top 25 basis.
+- `skills/security-audit/references/owasp-checklist.md` and
+  `owasp-llm-checklist.md`: raised to a 2025 baseline, marked as the
+  offline baseline that Phase 0 live-currency supersedes.
+- `skills/security-audit/templates/AUDIT-TEMPLATE.md`: `FP`/`CVSS`/
+  `Evidence` in the inline finding format; mandatory "Coverage and
+  limitations" section.
+
 ## [3.6.0] - 2026-06-22
 
 Artifact shrink: every output template, every owning SKILL.md, and the
