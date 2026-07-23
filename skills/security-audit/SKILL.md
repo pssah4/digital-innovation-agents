@@ -48,39 +48,99 @@ Full rules: `skills/project-conventions/references/team-workflow.md`.
 
 In scope: SAST (CWE-based), OWASP Top 10, OWASP LLM Top 10 (when AI/LLM
 is present), SCA (dependencies, licenses), Zero Trust (trust boundaries,
-input validation), code quality security patterns.
+input validation), code quality security patterns. Desktop/Electron
+runtime when detected. Safe local PoC verification (isolated).
 
-Out of scope: penetration testing, compliance certification, architecture
-design (done by `/architecture`).
+Out of scope: penetration testing against systems you do not own,
+compliance certification, architecture design (done by `/architecture`).
+
+## Ask the scope first (before any scan)
+
+Before running, ask the user WHAT to audit (AskUserQuestion). The scan
+scripts take a matching `--scope`:
+
+| Scope | What | Use when |
+|-------|------|----------|
+| `full` | whole codebase | first audit, release gate, periodic (recommended default when no prior baseline) |
+| `branch` | branch vs merge-base with `--base` | before a PR / merge (common gate) |
+| `commit` | last commit | quick post-commit check |
+| `working` | uncommitted + untracked | mid-development |
+| `staged` | staged only | pre-commit |
+| `range` | free `A..B` | targeted investigation |
+
+A diff scope narrows WHERE findings are reported, never the reachability
+context: trace source->sink through the full tree even for a diff scan.
+Only `full` advances the delta baseline.
+
+## The scan layer (deterministic)
+
+Phases 1-6 are driven by `tools/` (see `tools/README.md`), not manual
+grep. Resolve `tools/...` against `$DIA_PLUGIN_ROOT`. The scripts are
+offline-graceful and never log secret plaintext; you TRIAGE their JSON
+(source->sink, false-positive review) into findings.
+
+```
+python3 skills/security-audit/tools/audit_scan.py all --scope <S> [--base main] \
+    --taxonomy '{"owasp":"...","owasp-llm":"...","cwe-top-25":"..."}'
+```
+
+## Phase 0: Live threat currency (always)
+
+The bundled `references/*.md` are the OFFLINE BASELINE. Before scanning,
+fetch the CURRENT editions and reconcile:
+
+1. WebSearch/WebFetch the current OWASP Top 10, OWASP Top 10 for LLM
+   Apps, and MITRE CWE Top 25 (official domains: owasp.org,
+   genai.owasp.org, cwe.mitre.org). Note new categories vs the baseline.
+2. SCA CVEs come live from `npm audit` / `osv-scanner` in Phase 5.
+3. SNAPSHOT the taxonomy set you used (editions + date) and pass it to
+   `--taxonomy`; it lands in the report and the delta baseline. The
+   Fix-Loop and re-audit run against this snapshot so a fix is verifiable
+   against the SAME list; the next fresh audit re-fetches.
+4. If offline: fall back to the bundled baseline and record
+   `currency: offline` in the report. Never silently claim currency.
 
 ## Audit Phases
 
+Feed each from `audit_scan.py` output; triage into findings.
+
 | Phase | Activity | Reference |
 |---|---|---|
-| 1. Reconnaissance | Identify stack, framework, runtime, dependency count, existing measures. Internal analysis only; nothing from this phase appears as a standalone report section. | -- |
-| 2. SAST | Grep and analyze code per CWE patterns. | `references/cwe-patterns.md` |
-| 3. OWASP Top 10 | Check A01-A10. | `references/owasp-checklist.md` |
-| 4. OWASP LLM Top 10 | Only if LLM APIs are used. Check LLM01-LLM10. | `references/owasp-llm-checklist.md` |
-| 5. SCA | `npm audit --json` or `pip-audit --format json`; license check. Classify by Runtime / Dev / Transitive. | -- |
-| 6. Zero Trust + Quality | Input validation, least privilege, defense in depth, fail-closed defaults, audit trail, error handling, resource management, race conditions, hardcoded credentials, debug code. | -- |
+| 1. Reconnaissance | `audit_scan.py detect` + `surface`. Map entry points, data flows, trust boundaries. Read the project's own threat doc if present (`REVIEWER_NOTES.md`, `SECURITY.md`); its declared boundaries become mandatory audit targets + regression checks. Internal analysis only. | `references/attack-surface.md`, `references/threat-modeling.md` |
+| 2. SAST | `audit_scan.py sast` (semgrep or grep fallback). Triage source->sink. | `references/cwe-patterns.md` |
+| 3. OWASP Top 10 | Check the Phase-0 current edition (baseline A01-A10). | `references/owasp-checklist.md` |
+| 4. OWASP LLM Top 10 | Only if `detect` reports LLM APIs. Deepen with the agent/injection refs. | `references/owasp-llm-checklist.md`, `references/agent-approval-gate.md`, `references/prompt-injection-boundaries.md` |
+| 4b. Desktop runtime | Only if `detect` reports `electron`. | `references/desktop-runtime.md` |
+| 5. SCA | `audit_scan.py sca` (npm/pip audit + osv-scanner; license). Classify Runtime / Dev / Transitive. Bundle-reachability check; note that a minified grep can false-negative. | -- |
+| 6. Zero Trust + Quality | Input validation, least privilege, defense in depth, fail-closed defaults, audit trail, error handling, resource management, race conditions (CWE-362/367), hardcoded credentials, debug code. Optional isolated PoC. | `references/local-dast.md` |
 
 ## Finding format (binding)
 
-Each finding caps at five fields. Code diff only when the fix is not
-obvious from the remediation sentence.
+Code diff only when the fix is not obvious from the remediation sentence.
 
 ```
 H-N: <title>
 - Severity: Critical | High | Medium | Low | Info
 - CWE-ID:   CWE-XXX
+- CVSS:     <v3.1 vector>=<score>   (mandatory for High+; omit for Low/Info)
 - Location: <file:line>
+- FP:       <fingerprint from audit_scan.py>
+- Evidence: <snippet / source->sink trace / PoC result>
 - Risk:     <one sentence>
 - Remediation: <one sentence with concrete action>
 ```
 
-Status values: `Confirmed`, `Mitigated`, `False Positive`, `Resolved`.
-State the status, never leave a false positive silent. Consider context
-(DevDependency vs. Runtime).
+Status values: `Confirmed`, `Unverified`, `Mitigated`, `False Positive`,
+`Resolved`. State the status, never leave a false positive silent.
+Consider context (DevDependency vs. Runtime).
+
+**Verification before `Confirmed` (binding).** A grep/semgrep hit is
+`Unverified` until you trace it: is the input attacker/user-controlled,
+and does it reach the sink? Record the source->sink path in Evidence,
+then set `Confirmed`. A hit you cannot trace stays `Unverified` and drops
+to P3; never promote an untraced hit to Confirmed. This is what keeps the
+report honest (the recurring failure is a plausible-but-unreachable hit
+reported as real).
 
 **Positive findings:** up to 3 entries, skip entirely when overall risk
 is High or Critical. The team needs the negative list, not encouragement.
@@ -120,8 +180,19 @@ periodically (monthly for active projects), after dependency updates
 
 ## Create the report
 
-Read `templates/AUDIT-TEMPLATE.md`, fill it, save to
-`_devprocess/analysis/AUDIT-{PROJECT}-{YYYY-MM-DD}.md`.
+Pre-fill the template deterministically from the scan JSON, then write
+the narrative (Risk/Remediation prose, executive summary) on top:
+
+```
+python3 skills/security-audit/tools/report_assembler.py fill \
+    --findings <scan.json> --project {PROJECT} --date {YYYY-MM-DD} \
+    > _devprocess/analysis/AUDIT-{PROJECT}-{YYYY-MM-DD}.md
+```
+
+`fill` produces the count matrix, P1/P2/P3 buckets, an HONEST tools
+ledger (only tools that ran; kills the semgrep-overclaim), and the
+mandatory "Coverage and limitations" section. Keep the report within the
+`audit` artefact cap; move detail to child FIX/IMP rows if it grows.
 
 ---
 
@@ -147,24 +218,37 @@ D) Nothing to fix, report only. All findings go to backlog.
 ### Step 3: Fix implementation
 
 For each finding to be fixed: implement the concrete remediation, run
-affected tests (no regressions), flip status `Confirmed -> Resolved` in
-the report. On Option C: show each fix before continuing.
+affected tests (no regressions). Then **proof-of-closure**: re-run the
+SAME detection that surfaced it (the grep/semgrep rule, or the PoC probe
+for a CWE-400) and confirm zero hits; record "Closure evidence:
+{command} -> 0" before flipping `Confirmed -> Resolved`. A fix without a
+re-detection that comes back clean stays `Confirmed`. On Option C: show
+each fix before continuing.
 
-### Step 4: Re-audit (automatic)
+### Step 4: Re-audit (automatic, script-driven delta)
 
-Re-run affected audit phases. Report deltas only:
+Re-run affected phases against the SAME taxonomy snapshot, then compute
+the delta by fingerprint (not by eye):
+
+```
+python3 skills/security-audit/tools/report_assembler.py delta \
+    --before .git/security-audit/prev-run.json \
+    --after  .git/security-audit/last-run.json
+```
 
 ```
 === Re-Audit Delta ===
 
 Before: {N} P1, {N} P2, {N} P3
 After:  {N} P1, {N} P2, {N} P3
-Resolved: {list}
+Resolved: {fingerprints}
 New: {if a fix introduced new findings}
 ```
 
-Loop until all in-scope findings resolve or the user aborts. Do not
-re-render the full summary block.
+Adversarial check on any NEW finding a fix introduced: try to refute it
+(is it reachable?) before reporting it, so a fix-bypass is caught. Loop
+until all in-scope findings resolve or the user aborts. Do not re-render
+the full summary block.
 
 ### Step 5: Deferred findings -> Backlog
 

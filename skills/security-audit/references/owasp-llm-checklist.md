@@ -1,63 +1,83 @@
-# OWASP LLM Top 10 Checklist
+---
+edition: "2025"
+authority: >
+  Offline baseline. Phase 0 live-currency fetches the current OWASP Top
+  10 for LLM Applications from genai.owasp.org, reconciles, and snapshots
+  the edition used. Live snapshot wins when it ran; else this applies and
+  the report says so.
+---
 
-Nur relevant wenn das Projekt LLM-APIs nutzt (z.B. Anthropic, OpenAI).
+# OWASP Top 10 for LLM Applications (baseline edition 2025)
+
+Relevant only when the project uses LLM/agent APIs (`detect` reports
+`reference_gates.owasp-llm = true`). The 2025 list adds System Prompt
+Leakage (LLM07) and Vector/Embedding Weaknesses (LLM08); confirm the
+exact set via Phase 0.
 
 ## LLM01: Prompt Injection
 
-- System-Prompt geschuetzt?
-- User-Input wird gefiltert bevor er an LLM geht?
-- Indirect Prompt Injection (via Dokumente/Web) bedacht?
+- Is the system prompt protected?
+- Is user input filtered before it reaches the LLM?
+- Indirect injection via documents/web/tool metadata considered?
+- Defang iterates to a fixpoint (not single-pass); markers line-anchored?
+  (see prompt-injection-boundaries.md)
+- Emitter direction: if this app is an MCP/agent server, are its exposed
+  tool descriptions/responses free of coercive text, PII, internal IDs?
 
-## LLM02: Insecure Output Handling
+## LLM02: Sensitive Information Disclosure
 
-- LLM-Output wird vor Nutzung in Code/UI validiert?
-- Keine direkte Ausfuehrung von LLM-generiertem Code?
-- Output-Sanitization fuer HTML/DOM?
+- PII kept out of prompts?
+- API keys never in logs?
+- Conversation history retention policy?
 
-## LLM03: Training Data Poisoning
+## LLM03: Supply Chain
 
-- Meist nicht direkt relevant (nutzen Pre-trained Models)
-- Falls Fine-Tuning: Trainingsdaten-Integrity pruefen
+- API keys stored securely (not in code)?
+- Model versions pinned?
+- Fallback on provider outage?
+- Third-party model/plugin provenance checked?
 
-## LLM04: Model Denial of Service
+## LLM04: Data and Model Poisoning
 
-- Rate Limiting auf LLM-API-Calls?
-- Token-Limits gesetzt?
-- Timeout-Handling fuer LLM-Requests?
-- Cost Controls (Max-Spend)?
+- Pre-trained models: usually not directly relevant
+- If fine-tuning: training-data integrity checked?
 
-## LLM05: Supply Chain Vulnerabilities
+## LLM05: Improper Output Handling
 
-- API-Keys sicher gespeichert (nicht im Code)?
-- Modell-Versionen gepinnt?
-- Fallback bei Provider-Ausfall?
+- LLM output validated before use in code/UI?
+- No direct execution of LLM-generated code?
+- HTML/DOM output sanitized?
 
-## LLM06: Sensitive Information Disclosure
+## LLM06: Excessive Agency
 
-- PII wird nicht in Prompts gesendet?
-- API-Keys nicht in Logs?
-- Conversation History Retention Policy?
+- Tools scoped to least privilege?
+- Destructive operations require confirmation?
+- Rate limits on tool execution + task-wide cost budget?
+- Every mutating sink gated on all reachable paths?
+  (see agent-approval-gate.md)
 
-## LLM07: Insecure Plugin Design
+## LLM07: System Prompt Leakage
 
-- Tool/Plugin-Execution mit Least Privilege?
-- File System Access eingeschraenkt?
-- Network Access kontrolliert?
+- System prompt not recoverable via crafted input?
+- No secrets/credentials embedded in the system prompt?
+- Prompt content that leaks is treated as disclosed?
 
-## LLM08: Excessive Agency
+## LLM08: Vector and Embedding Weaknesses
 
-- Tools haben minimale Berechtigungen?
-- Destructive Operations brauchen Bestaetigung?
-- Rate Limits auf Tool-Ausfuehrung?
+- RAG sources access-controlled (no cross-tenant leakage)?
+- Embedded/retrieved content treated as untrusted (indirect injection)?
+- Poisoned-document detection where feasible?
 
-## LLM09: Overreliance
+## LLM09: Misinformation / Overreliance
 
-- LLM-Output wird validiert (nicht blind vertraut)?
-- Kritische Entscheidungen brauchen Human Review?
-- Hallucination-Detection wo moeglich?
+- LLM output validated (not blindly trusted)?
+- Critical decisions gated on human review?
+- Hallucination detection where possible?
 
-## LLM10: Model Theft
+## LLM10: Unbounded Consumption
 
-- API-Keys rotiert?
-- Rate Limiting verhindert Extraction?
-- Zugriffsprotokollierung vorhanden?
+- Rate limiting on LLM API calls?
+- Token/output limits set?
+- Timeout handling for LLM requests?
+- Cost controls (max spend) across the subtask tree?
+- Model-extraction / theft via bulk querying mitigated?
