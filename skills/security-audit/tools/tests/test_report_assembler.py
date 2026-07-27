@@ -123,6 +123,62 @@ def test_delta_from_baselines() -> None:
         print("OK: delta from baseline files")
 
 
+def test_limitations_names_codeql_when_ran() -> None:
+    m = _load()
+    template = TOOLS_DIR.parent / "templates" / "AUDIT-TEMPLATE.md"
+    result = _sample_result()
+    # Replace semgrep-only tool set with a CodeQL-ran ledger.
+    result["tools"] = [
+        {"name": "codeql/javascript-queries", "status": "ran",
+         "pack_version": "2.3.2", "pack_age_days": 47},
+        {"name": "semgrep", "status": "unavailable", "reason": "not on PATH"},
+        {"name": "pattern-redact", "status": "ran"},
+    ]
+    out = m.fill(result, template.read_text(encoding="utf-8"),
+                 project="p", date="2026-07-27")
+    lower = out.lower()
+    assert "codeql taint analysis" in lower, out
+    assert "javascript" in lower, "CodeQL language must be named"
+    # A fresh (47-day) pack must NOT trigger the stale-pack line.
+    assert "days old" not in lower, "fresh pack incorrectly flagged as stale"
+    print("OK: limitations names CodeQL runner + language when it ran")
+
+
+def test_limitations_names_codeql_missing_as_blindspot() -> None:
+    m = _load()
+    template = TOOLS_DIR.parent / "templates" / "AUDIT-TEMPLATE.md"
+    result = _sample_result()
+    # Semgrep ran but CodeQL did not: coverage line must name the gap.
+    result["tools"] = [
+        {"name": "codeql", "status": "unavailable", "reason": "not on PATH"},
+        {"name": "semgrep", "status": "ran", "ruleset": "auto"},
+        {"name": "pattern-redact", "status": "ran"},
+    ]
+    out = m.fill(result, template.read_text(encoding="utf-8"),
+                 project="p", date="2026-07-27")
+    lower = out.lower()
+    assert "no codeql taint" in lower, out
+    assert "install codeql" in lower, "missing actionable hint to install codeql"
+    print("OK: limitations flags missing CodeQL as a blindspot")
+
+
+def test_limitations_names_stale_pack() -> None:
+    m = _load()
+    template = TOOLS_DIR.parent / "templates" / "AUDIT-TEMPLATE.md"
+    result = _sample_result()
+    # 151-day-old pack: the currency signal must fire with the upgrade command.
+    result["tools"] = [
+        {"name": "codeql/javascript-queries", "status": "ran",
+         "pack_version": "2.3.2", "pack_age_days": 151},
+        {"name": "pattern-redact", "status": "ran"},
+    ]
+    out = m.fill(result, template.read_text(encoding="utf-8"),
+                 project="p", date="2026-07-27")
+    assert "151 days old" in out, out
+    assert "codeql pack upgrade codeql/javascript-queries" in out, out
+    print("OK: limitations flags 151-day-old pack + names upgrade command")
+
+
 def test_fill_no_findings_clean() -> None:
     m = _load()
     template = TOOLS_DIR.parent / "templates" / "AUDIT-TEMPLATE.md"
@@ -140,6 +196,9 @@ ALL_TESTS = [
     test_fill_tools_are_honest,
     test_fill_has_limitations_section,
     test_delta_from_baselines,
+    test_limitations_names_codeql_when_ran,
+    test_limitations_names_codeql_missing_as_blindspot,
+    test_limitations_names_stale_pack,
     test_fill_no_findings_clean,
 ]
 

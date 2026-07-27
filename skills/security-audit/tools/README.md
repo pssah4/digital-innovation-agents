@@ -41,6 +41,60 @@ network for threat lists (that is the skill's live-currency step).
 | `poc/redos_probe.mjs` | Opt-in isolated ReDoS measurement of ONE suspect regex (worker_thread + hard deadline). |
 | `tests/` | Assertion-based tests, runnable without pytest, also pytest-discoverable. |
 
+## CodeQL setup (optional, recommended)
+
+Without CodeQL the SAST layer runs semgrep (if installed) plus the
+bundled grep-fallback. That covers pattern-level bugs but misses ones
+that require real source-to-sink taint analysis. Installing CodeQL
+adds a third layer that catches the taint-only class.
+
+The skill never breaks when CodeQL is absent: the tool ledger records
+`codeql: unavailable` and the cascade falls through to semgrep and
+grep. If CodeQL is on PATH but the language pack is not cached, the
+ledger records `pack-missing` with the exact download command as its
+reason.
+
+```bash
+# One-time install (macOS)
+brew install --cask codeql
+
+# Download the language packs the project needs
+codeql pack download codeql/javascript-queries    # JS + TS
+codeql pack download codeql/python-queries        # Python
+codeql pack download codeql/go-queries            # Go
+codeql pack download codeql/rust-queries          # Rust
+
+# Refresh periodically; the report flags packs older than 90 days
+codeql pack upgrade codeql/javascript-queries
+```
+
+The per-language CodeQL DB lives at
+`.git/security-audit/codeql-db-<lang>/`. The scan orchestrator
+idempotently adds the pattern to `.git/info/exclude` on first run so
+these directories never show up as untracked.
+
+### Grep-fallback limits
+
+The pattern-based grep-fallback in [audit_scan.py](audit_scan.py) is
+intentionally broad: it flags any occurrence of `\.\./`, `path.join(...,
+req...)`, `eval(...)`, `.innerHTML =`, etc., without checking whether the
+input is actually attacker-controlled. That is fine when CodeQL runs
+alongside (the taint layer rejects unreachable hits), but on
+CodeQL-less runs the grep layer will produce known false positives for
+path-manipulation code (`path.join(homeDir, 'foo')`) and for
+documentation strings that contain a literal `../`. Two mechanisms
+reduce the noise:
+
+* [`lib/skip_rules.py`](lib/skip_rules.py) skips test fixtures,
+  minified/bundled assets, and `dist/`/`build/` outputs by path glob.
+* A per-file header `# security-audit-scan: skip` opts a specific file
+  out (used by the detector modules that store the CWE patterns as data
+  literals and would otherwise self-match).
+
+Beyond these, path-manipulation false positives on grep-only runs are
+the known trade-off for pattern breadth. Install CodeQL to remove the
+false-positive class entirely for supported languages.
+
 ## Path resolution
 
 Skill text uses `python3 skills/security-audit/tools/audit_scan.py ...`;
