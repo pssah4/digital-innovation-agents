@@ -18,6 +18,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 
 TOOLS_DIR = Path(__file__).resolve().parents[1]
@@ -108,6 +109,9 @@ def test_sca_graceful_without_npm(monkeypatch_env=None) -> None:
 
 def test_run_all_shape_and_honest_tools() -> None:
     m = _load()
+    # CodeQL forced off for this test: a real DB build would take 30+s
+    # and make the suite non-deterministic across machines. CodeQL-on
+    # cascade is covered by test_run_all_sast_cascade_with_codeql below.
     with tempfile.TemporaryDirectory() as raw:
         tmp = Path(raw)
         subprocess.run(["git", "init", "-q", "-b", "main"], cwd=tmp, check=True)
@@ -118,7 +122,8 @@ def test_run_all_shape_and_honest_tools() -> None:
         subprocess.run(["git", "add", "-A"], cwd=tmp, check=True)
         subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp, check=True)
 
-        result = m.run_all(tmp, scope="full")
+        with patch.object(m.CQ, "codeql_available", return_value=False):
+            result = m.run_all(tmp, scope="full")
         # Envelope shape.
         for key in ("schema", "scope", "project_type", "tools", "findings", "meta"):
             assert key in result, f"missing {key}: {list(result)}"
@@ -129,10 +134,95 @@ def test_run_all_shape_and_honest_tools() -> None:
         statuses = {t["name"]: t["status"] for t in result["tools"]}
         assert statuses, "tools ledger empty"
         for name, st in statuses.items():
-            assert st in ("ran", "unavailable", "offline-skipped", "error"), (name, st)
+            assert st in ("ran", "unavailable", "offline-skipped", "error",
+                          "pack-missing"), (name, st)
+        # codeql is now part of the ledger, even when unavailable.
+        assert "codeql" in statuses, statuses
+        assert statuses["codeql"] == "unavailable", statuses
         # findings are JSON-serializable.
         json.dumps(result)
         print("OK: run_all shape + honest tools ledger")
+
+
+def test_run_all_sast_cascade_with_codeql() -> None:
+    """CodeQL-on path uses mocked ensure_pack + run_codeql so the test
+    stays fast and does not depend on a real query pack. Verifies:
+      * codeql tool entry lands in the ledger with pack age metadata
+      * semgrep + grep still run alongside (three-layer cascade)
+      * pack-missing status is surfaced when a language pack is absent
+    """
+    m = _load()
+    with tempfile.TemporaryDirectory() as raw:
+        tmp = Path(raw)
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=tmp, check=True)
+        subprocess.run(["git", "config", "user.email", "t@t.t"], cwd=tmp, check=True)
+        subprocess.run(["git", "config", "user.name", "t"], cwd=tmp, check=True)
+        _write(tmp, "package.json", json.dumps({"name": "x", "dependencies": {}}))
+        _write(tmp, "src/v.ts", "eval(x)\n")
+        subprocess.run(["git", "add", "-A"], cwd=tmp, check=True)
+        subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp, check=True)
+
+        fake_finding = m.F.Finding(
+            fp="deadbeef", phase="sast", cwe="CWE-94", severity="high",
+            file="src/v.ts", line=1, engine="codeql",
+            message="Code injection (mock)",
+        )
+
+        def fake_run_codeql(root, lang, db_dir, timeout=1800):
+            return [fake_finding], {"name": f"codeql/{lang}-queries", "status": "ran"}
+
+        def fake_pack_age(name):
+            return {"pack_version": "2.3.2", "pack_age_days": 47, "stale": False}
+
+        with patch.object(m.CQ, "codeql_available", return_value=True), \
+             patch.object(m.CQ, "run_codeql", side_effect=fake_run_codeql), \
+             patch.object(m.CQ, "pack_age_check", side_effect=fake_pack_age):
+            result = m.run_all(tmp, scope="full")
+
+        statuses = {t["name"]: t["status"] for t in result["tools"]}
+        # CodeQL tool entry present with the ran status.
+        assert "codeql/javascript-queries" in statuses, statuses
+        assert statuses["codeql/javascript-queries"] == "ran", statuses
+        # Pack age metadata carried through to the ledger.
+        codeql_entry = next(t for t in result["tools"]
+                            if t["name"] == "codeql/javascript-queries")
+        assert codeql_entry.get("pack_version") == "2.3.2", codeql_entry
+        assert codeql_entry.get("pack_age_days") == 47, codeql_entry
+        # CodeQL finding surfaced alongside grep's eval hit (both CWE-94:
+        # dedup keeps them distinct because fingerprints differ).
+        cwe_94 = [f for f in result["findings"] if f["cwe"] == "CWE-94"]
+        assert any(f["engine"] == "codeql" for f in cwe_94), cwe_94
+        assert any(f["engine"] == "grep-fallback" for f in cwe_94), cwe_94
+        print("OK: run_all runs CodeQL alongside semgrep+grep, pack age surfaced")
+
+
+def test_run_all_sast_pack_missing_falls_back() -> None:
+    """CodeQL is available but the pack is not cached: pack-missing is
+    reported, no findings from CodeQL, semgrep+grep continue normally."""
+    m = _load()
+    with tempfile.TemporaryDirectory() as raw:
+        tmp = Path(raw)
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=tmp, check=True)
+        subprocess.run(["git", "config", "user.email", "t@t.t"], cwd=tmp, check=True)
+        subprocess.run(["git", "config", "user.name", "t"], cwd=tmp, check=True)
+        _write(tmp, "package.json", json.dumps({"name": "x", "dependencies": {}}))
+        _write(tmp, "src/v.ts", "eval(x)\n")
+        subprocess.run(["git", "add", "-A"], cwd=tmp, check=True)
+        subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp, check=True)
+
+        with patch.object(m.CQ, "codeql_available", return_value=True), \
+             patch.object(m.CQ, "ensure_pack", return_value=False):
+            result = m.run_all(tmp, scope="full")
+
+        statuses = {t["name"]: t["status"] for t in result["tools"]}
+        assert statuses.get("codeql/javascript-queries") == "pack-missing", statuses
+        pack_tool = next(t for t in result["tools"]
+                         if t["name"] == "codeql/javascript-queries")
+        assert "codeql pack download" in pack_tool["reason"], pack_tool
+        # Grep still surfaces the eval finding.
+        assert any(f["cwe"] == "CWE-94" and f["engine"] == "grep-fallback"
+                   for f in result["findings"]), result["findings"]
+        print("OK: pack-missing falls back to lower layers cleanly")
 
 
 def test_run_all_records_taxonomy_snapshot() -> None:
@@ -182,6 +272,8 @@ ALL_TESTS = [
     test_secrets_scan_redacts,
     test_sca_graceful_without_npm,
     test_run_all_shape_and_honest_tools,
+    test_run_all_sast_cascade_with_codeql,
+    test_run_all_sast_pack_missing_falls_back,
     test_run_all_records_taxonomy_snapshot,
     test_run_all_diff_scope_limits_files,
 ]

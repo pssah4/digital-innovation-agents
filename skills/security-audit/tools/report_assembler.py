@@ -98,11 +98,30 @@ def _limitations_block(result: dict) -> str:
     project = result.get("project_type", {})
     taxonomy = result.get("taxonomy", {}) or {}
     lines = ["## Coverage and limitations", ""]
-    # SAST depth
-    if "semgrep" in ran:
-        lines.append("- SAST: semgrep AST rules + grep patterns (source->sink triage still manual).")
+    # SAST depth: three-layer cascade honesty. CodeQL beats semgrep beats grep.
+    codeql_ran = [t for t in tools
+                  if t.get("status") == "ran" and t.get("name", "").startswith("codeql/")]
+    if codeql_ran:
+        langs = sorted({t["name"].split("/", 1)[1].split("-", 1)[0]
+                        for t in codeql_ran})
+        base = f"- SAST: CodeQL taint analysis ({', '.join(langs)})"
+        if "semgrep" in ran:
+            base += " + semgrep AST rules + grep patterns."
+        else:
+            base += " + grep patterns (semgrep not on PATH)."
+        lines.append(base)
+    elif "semgrep" in ran:
+        lines.append("- SAST: semgrep AST rules + grep patterns (no CodeQL taint analysis)."
+                     " Install codeql for source->sink verification.")
     else:
-        lines.append("- SAST: grep patterns only, NO AST/taint analysis. Higher false-negative risk.")
+        lines.append("- SAST: grep patterns only, NO AST/taint analysis. Higher false-negative risk."
+                     " Install codeql or semgrep.")
+    # Stale CodeQL query pack currency: name each pack older than 90 days.
+    for t in codeql_ran:
+        age = t.get("pack_age_days")
+        if isinstance(age, int) and age > 90:
+            lines.append(f"- Query pack currency: {t['name']} is {age} days old."
+                         f" Run `codeql pack upgrade {t['name']}` for the latest rules.")
     # Secrets
     if "gitleaks" in ran or "trufflehog" in ran:
         lines.append("- Secrets: dedicated scanner ran.")
@@ -224,7 +243,20 @@ def fill(result: dict, template: str, project: str = "{Projektname}",
         "- Excluded: see Coverage and limitations below.",
     )
 
-    # Append the mandatory limitations section.
+    # Replace the template's Coverage-and-limitations stub with the
+    # generated block. The template stub only exists so the section
+    # is visible when someone opens the raw template; at fill time
+    # `_limitations_block` produces the honest, project-specific content
+    # and the stub would just be a duplicate.
+    marker = "## Coverage and limitations"
+    idx = out.find(marker)
+    if idx != -1:
+        out = out[:idx].rstrip()
+        # Drop the separator that used to divide the previous section
+        # from the (now removed) template stub; otherwise the appended
+        # block below would double up the horizontal rule.
+        if out.endswith("---"):
+            out = out[:-3].rstrip()
     out = out.rstrip() + "\n\n---\n\n" + _limitations_block(result) + "\n"
     return out
 
