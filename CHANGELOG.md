@@ -5,6 +5,69 @@ All notable changes to digital-innovation-agents are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+security-audit skill: CodeQL becomes the preferred SAST engine when
+installed, with a three-layer fallback cascade (CodeQL -> semgrep ->
+grep) that keeps the skill fully functional on machines without CodeQL.
+Pack currency and grep-fallback noise reduction are handled at the same
+time so the resulting report is honest and low-signal-to-noise.
+
+### Added
+
+- `skills/security-audit/tools/lib/codeql_runner.py`: CodeQL wrapper
+  (`codeql_available`, `ensure_pack` with no auto-download,
+  `pack_age_check` for the 90-day currency signal, `run_codeql`
+  end-to-end DB build + analyze + SARIF -> Finding mapping). stdlib-only.
+- `skills/security-audit/tools/lib/skip_rules.py`: path globs (tests/,
+  minified, dist/build, node_modules) plus per-file opt-out header
+  `# security-audit-scan: skip` for detector modules that store CWE
+  patterns as data literals.
+- `skills/security-audit/tools/tests/test_codeql_runner.py` (5 tests)
+  and `test_skip_rules.py` (6 tests). Two new cascade tests in
+  `test_audit_scan.py` cover the CodeQL-on and pack-missing paths.
+- `tools/README.md`: "CodeQL setup" section with install + pack-download
+  commands and a "Grep-fallback limits" section documenting the known
+  path-manipulation false-positive class as the reason to install CodeQL.
+- SKILL.md Phase 0 gains a fifth step recommending `codeql pack upgrade`
+  before scanning; the report flags packs older than 90 days.
+
+### Changed
+
+- `skills/security-audit/tools/audit_scan.py` `run_sast` becomes a
+  three-layer cascade: CodeQL when available with a cached language pack,
+  semgrep when installed, grep-fallback always. Layers are additive and
+  deduped by fingerprint. The tools ledger records `codeql: unavailable`,
+  `pack-missing`, or `ran` (with `pack_version` + `pack_age_days`).
+- `skills/security-audit/tools/lib/detectors.py` `detect_project`
+  returns a new `codeql_languages` field mapped from detected runtimes.
+- `skills/security-audit/tools/report_assembler.py` `_limitations_block`
+  names the SAST cascade honestly (CodeQL taint / semgrep-only / grep-only)
+  and flags stale CodeQL query packs with the exact `codeql pack upgrade`
+  command.
+- CodeQL databases are written under `.git/security-audit/codeql-db-<lang>/`;
+  the scan orchestrator idempotently adds the pattern to `.git/info/exclude`
+  on first run so 53 MB DBs never appear as untracked files.
+
+### Fixed
+
+- `report_assembler.fill()` no longer duplicates the "Coverage and
+  limitations" section. Before this fix the template stub with
+  `{...}` placeholders was left in the report and the generated block
+  was appended below it. The stub is now stripped at fill time.
+
+### Design notes
+
+- The skill never breaks when CodeQL is absent. The cascade fall-through
+  is verified by `test_run_all_shape_and_honest_tools` (CodeQL-off) and
+  by a live run in a codeql-free environment (grep + semgrep cover the
+  layer). CodeQL query packs are never auto-downloaded; a missing pack
+  produces a `pack-missing` ledger entry with the exact download command
+  as its reason.
+- The three-layer cascade does not touch the finding fingerprint
+  (`sha1(cwe | path | normalized-snippet)[:8]`), so all existing
+  baselines remain compatible and the re-audit delta still works.
+
 ## [3.7.0] - 2026-07-23
 
 Security-audit skill rework: from a manual, static, generic OWASP/CWE

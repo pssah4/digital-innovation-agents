@@ -24,6 +24,9 @@ Usage:
 Default root: git repo root (via git rev-parse), else cwd.
 Exit codes: 0 no findings, 1 findings present, 2 usage error.
 """
+# security-audit-scan: skip -- this module stores CWE-detection regexes as
+# data literals; scanning it against those same regexes only produces
+# self-referential false positives.
 from __future__ import annotations
 import argparse
 import json
@@ -39,6 +42,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib import findings as F          # noqa: E402
 from lib import scope as SCOPE          # noqa: E402
 from lib import detectors as DET        # noqa: E402
+from lib import codeql_runner as CQ     # noqa: E402
+from lib import skip_rules as SKIP      # noqa: E402
 
 
 def find_repo_root(start: Path | None = None) -> Path:
@@ -96,11 +101,16 @@ _TEXT_EXT = DET._TEXT_EXT
 
 
 def grep_sast(root: Path, files) -> list:
-    """CWE-pattern grep fallback. One Finding per (rule, file, line)."""
+    """CWE-pattern grep fallback. One Finding per (rule, file, line).
+    Files that match a skip glob or carry the `security-audit-scan: skip`
+    header are excluded from the pattern scan (test fixtures, bundled
+    assets, detector modules that store the patterns as data)."""
     out: list = []
     for rel in files:
         path = root / rel
         if path.suffix not in _TEXT_EXT:
+            continue
+        if not SKIP.should_scan(rel, root):
             continue
         try:
             text = path.read_text(encoding="utf-8")
@@ -160,23 +170,62 @@ def _semgrep_sast(root: Path, files, rulesets) -> list:
     return out
 
 
+def _codeql_db_dir(root: Path, language: str) -> Path:
+    """Where the per-language CodeQL DB lives. Kept out of the repo via
+    .git/info/exclude on first run (Phase 3)."""
+    return root / ".git" / "security-audit" / f"codeql-db-{language}"
+
+
 def run_sast(root: Path, files, project) -> tuple:
-    """SAST: prefer semgrep, fall back to grep. Returns (findings, tools)."""
+    """SAST cascade: CodeQL (if available and pack present) -> semgrep ->
+    grep. All three engines run additively when available; findings are
+    deduped by fingerprint. Returns (findings, tools).
+
+    The cascade never breaks: a missing tool is recorded honestly in the
+    tools ledger and the next engine takes over. Grep always runs as a
+    cheap third layer because it covers CWE patterns (CWE-312, TOCTOU)
+    that the higher-tier engines may not include.
+    """
     tools: list = []
+    findings: list = []
+    codeql_langs = project.get("codeql_languages", []) or []
+
+    # Layer 1: CodeQL, if available and at least one language matches.
+    if CQ.codeql_available() and codeql_langs:
+        for lang in codeql_langs:
+            cq_findings, cq_tool = CQ.run_codeql(
+                root, lang, _codeql_db_dir(root, lang),
+            )
+            age = CQ.pack_age_check(f"codeql/{lang}-queries")
+            if age is not None:
+                cq_tool["pack_version"] = age["pack_version"]
+                cq_tool["pack_age_days"] = age["pack_age_days"]
+            findings.extend(cq_findings)
+            tools.append(cq_tool)
+    else:
+        reason = ("not on PATH" if not CQ.codeql_available()
+                  else "no CodeQL-supported languages detected")
+        tools.append({"name": "codeql", "status": "unavailable",
+                      "reason": reason})
+
+    # Layer 2: semgrep, if available. Complement to CodeQL, primary when
+    # CodeQL is absent.
     rulesets = project.get("applicable_tools", {}).get("sast", [])
     if tool_available("semgrep"):
         sem = _semgrep_sast(root, files, rulesets)
         if sem is not None:
+            findings.extend(sem)
             tools.append({"name": "semgrep", "status": "ran",
                           "ruleset": ",".join(rulesets) or "auto"})
-            # Grep still runs as a cheap complement for patterns semgrep's
-            # ruleset may not cover; de-duped by fingerprint.
-            grep = grep_sast(root, files)
-            merged = _dedupe_findings(sem + grep)
-            return merged, tools
-    tools.append({"name": "semgrep", "status": "unavailable",
-                  "reason": "not on PATH; used grep fallback"})
-    return grep_sast(root, files), tools
+    else:
+        tools.append({"name": "semgrep", "status": "unavailable",
+                      "reason": "not on PATH"})
+
+    # Layer 3: grep. Cheap and always available, covers patterns the
+    # higher tiers may not include.
+    findings.extend(grep_sast(root, files))
+
+    return _dedupe_findings(findings), tools
 
 
 # ---------- secret scan ----------------------------------------------------
@@ -217,6 +266,8 @@ def run_secrets(root: Path, files) -> tuple:
     for rel in files:
         path = root / rel
         if path.suffix not in _TEXT_EXT and path.suffix not in {".json", ".env", ".yaml", ".yml", ".toml", ".pem", ".txt", ""}:
+            continue
+        if not SKIP.should_scan(rel, root):
             continue
         try:
             text = path.read_text(encoding="utf-8")
@@ -326,6 +377,30 @@ def _dedupe_findings(items) -> list:
     return out
 
 
+def _ensure_git_exclude(root: Path) -> None:
+    """Idempotently add the CodeQL DB directory pattern to
+    .git/info/exclude so 53 MB DBs don't show up as untracked.
+
+    Uses .git/info/exclude (local-only, per-clone) instead of .gitignore
+    which belongs to the user's repo. Best-effort: silent no-op if the
+    file cannot be written (bare repo, submodule, permission issue).
+    """
+    marker = "security-audit/codeql-db-*/"
+    info_dir = root / ".git" / "info"
+    exclude = info_dir / "exclude"
+    try:
+        if not info_dir.is_dir():
+            return
+        existing = exclude.read_text(encoding="utf-8") if exclude.exists() else ""
+        if marker in existing:
+            return
+        header = "\n# added by security-audit skill (CodeQL DBs)\n"
+        exclude.write_text(existing.rstrip() + header + marker + "\n",
+                           encoding="utf-8")
+    except Exception:
+        return
+
+
 def _git_head(root: Path) -> str:
     try:
         return subprocess.check_output(
@@ -352,6 +427,10 @@ def run_all(root: Path, scope: str = "full", base: str = "main",
     project = DET.detect_project(root)
     sr = SCOPE.resolve_scope(root, scope, base=base, rng=rng)
     files = sr.files
+
+    # Keep CodeQL DBs out of git status. Idempotent, silent no-op if
+    # the .git/info/ directory is not writable or not present.
+    _ensure_git_exclude(root)
 
     surfaces = DET.enumerate_surfaces(root, files)
     sast_findings, sast_tools = run_sast(root, files, project)

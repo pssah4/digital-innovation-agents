@@ -99,6 +99,11 @@ fetch the CURRENT editions and reconcile:
    against the SAME list; the next fresh audit re-fetches.
 4. If offline: fall back to the bundled baseline and record
    `currency: offline` in the report. Never silently claim currency.
+5. If CodeQL is installed, refresh the query packs before scanning:
+   `codeql pack upgrade codeql/javascript-queries` (plus `python-queries`,
+   `go-queries`, `rust-queries` as the project's runtimes demand). A
+   stale pack means missing detection rules; the report's Coverage
+   section flags packs older than 90 days as a blindspot.
 
 ## Audit Phases
 
@@ -107,7 +112,7 @@ Feed each from `audit_scan.py` output; triage into findings.
 | Phase | Activity | Reference |
 |---|---|---|
 | 1. Reconnaissance | `audit_scan.py detect` + `surface`. Map entry points, data flows, trust boundaries. Read the project's own threat doc if present (`REVIEWER_NOTES.md`, `SECURITY.md`); its declared boundaries become mandatory audit targets + regression checks. Internal analysis only. | `references/attack-surface.md`, `references/threat-modeling.md` |
-| 2. SAST | `audit_scan.py sast` (semgrep or grep fallback). Triage source->sink. | `references/cwe-patterns.md` |
+| 2. SAST | `audit_scan.py sast`. Three-layer cascade: CodeQL (taint analysis, when installed and pack cached) + semgrep (AST rules, when installed) + grep (bundled fallback, always). Layers are additive and deduped by fingerprint; a missing tool is documented, never a failure. Triage source->sink. | `references/cwe-patterns.md`, `tools/README.md#codeql-setup-optional-recommended` |
 | 3. OWASP Top 10 | Check the Phase-0 current edition (baseline A01-A10). | `references/owasp-checklist.md` |
 | 4. OWASP LLM Top 10 | Only if `detect` reports LLM APIs. Deepen with the agent/injection refs. | `references/owasp-llm-checklist.md`, `references/agent-approval-gate.md`, `references/prompt-injection-boundaries.md` |
 | 4b. Desktop runtime | Only if `detect` reports `electron`. | `references/desktop-runtime.md` |

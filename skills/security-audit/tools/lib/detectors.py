@@ -14,6 +14,9 @@ enumerate_surfaces(root, files) -> list[dict]
     files. Feeds the attack-surface reference section. Not findings --
     context. Output is sorted so two runs match byte-for-byte.
 """
+# security-audit-scan: skip -- this module stores surface-detection
+# regexes as data literals; scanning it against those same regexes only
+# produces self-referential false positives.
 from __future__ import annotations
 import json
 import re
@@ -94,10 +97,12 @@ def detect_project(root: Path) -> dict:
     llm_api = any(d in all_deps for d in _LLM_DEPS)
 
     applicable_tools = _applicable_tools(runtimes, kinds)
+    codeql_languages = _codeql_languages(runtimes)
 
     return {
         "runtimes": runtimes,
         "project_kinds": kinds,
+        "codeql_languages": codeql_languages,
         "signals": {
             "package_json": has_pkg,
             "obsidian_manifest": is_obsidian_manifest,
@@ -114,6 +119,24 @@ def detect_project(root: Path) -> dict:
         "applicable_tools": applicable_tools,
         "reference_gates": _reference_gates(kinds, llm_api),
     }
+
+
+def _codeql_languages(runtimes: list) -> list:
+    """Map detected runtimes to CodeQL extractor names.
+    The `javascript` extractor covers both JS and TS.
+    """
+    mapping = {
+        "node": "javascript",
+        "python": "python",
+        "go": "go",
+        "rust": "rust",
+    }
+    langs = []
+    for rt in runtimes:
+        lang = mapping.get(rt)
+        if lang and lang not in langs:
+            langs.append(lang)
+    return langs
 
 
 def _applicable_tools(runtimes: list, kinds: list) -> dict:
