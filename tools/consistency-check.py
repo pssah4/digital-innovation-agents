@@ -65,32 +65,51 @@ DEFAULTS = {
 }
 
 
-# N-20 line caps. Source of truth:
-# skills/project-conventions/SKILL.md#canonical-specs (Reader budget).
-# Hand-aligned with that table; update both together.
-ARTIFACT_CAPS: dict[str, int] = {
-    "project-ba": 200,
-    "epic-ba": 120,
-    "feat-ba": 60,
-    "ba-mini": 40,
-    "exploration-board": 70,
-    "epic": 40,
-    "feature": 65,
-    "backlog-header": 80,     # header + vocab + pointers; rows uncapped
-    "architect-handoff": 60,
-    "adr": 60,                # includes 7-line German-variant translation note
-    "arc42-poc": 65,
-    "arc42-mvp": 100,
-    "plan-context": 55,
-    "plan": 50,               # excludes uncapped Change Log tail
-    "fix": 32,
-    "imp": 30,
-    "audit": 65,
-    "metrics": 50,
-}
+# N-20 line caps. Single source of truth:
+# skills/project-conventions/references/artifact-caps.json. This loader
+# is the ONLY consumer-side copy; there is deliberately no embedded
+# fallback dict (an embedded fallback would be the next drift source).
+_CAPS_FILENAME = "artifact-caps.json"
+_CAPS_REL = Path("skills/project-conventions/references") / _CAPS_FILENAME
 
-# N-20 tolerance: warn only above cap * (1 + N20_TOLERANCE).
-N20_TOLERANCE = 0.10
+
+def _caps_candidates() -> list[Path]:
+    here = Path(__file__).resolve().parent
+    candidates = []
+    plugin_root = os.environ.get("DIA_PLUGIN_ROOT") or os.environ.get(
+        "CLAUDE_PLUGIN_ROOT")
+    if plugin_root:
+        candidates.append(Path(plugin_root) / _CAPS_REL)
+    # Repo checkout: tools/consistency-check.py -> ../skills/...
+    candidates.append(here.parent / _CAPS_REL)
+    # Standalone copy in <target>/.git/hooks-data/ (install-git-hooks.sh
+    # places the JSON right next to the script).
+    candidates.append(here / _CAPS_FILENAME)
+    return candidates
+
+
+def load_artifact_caps() -> tuple[dict, float]:
+    """Read caps + tolerance from artifact-caps.json. Fails loudly when
+    the file is missing everywhere: a silent default would let the caps
+    drift apart again, which is the failure mode this file removes."""
+    for path in _caps_candidates():
+        if path.is_file():
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                caps = {k: int(v["lines"]) for k, v in data["caps"].items()}
+                return caps, float(data.get("tolerance", 0.10))
+            except Exception as exc:  # noqa: BLE001
+                sys.stderr.write(
+                    f"[consistency-check] unreadable caps file {path}: {exc}\n")
+                sys.exit(2)
+    sys.stderr.write(
+        "[consistency-check] artifact-caps.json not found (searched: "
+        + ", ".join(str(p) for p in _caps_candidates())
+        + "). For hook installs, re-run tools/install-git-hooks.sh.\n")
+    sys.exit(2)
+
+
+ARTIFACT_CAPS, N20_TOLERANCE = load_artifact_caps()
 
 # N-21 forbidden frontmatter keys (state lives in the BACKLOG row).
 N21_FORBIDDEN_FRONTMATTER_KEYS = (

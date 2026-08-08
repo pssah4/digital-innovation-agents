@@ -53,28 +53,12 @@ Without that block, `/consistency-check` flags the artifact as
 over-cap. The exception block is read during review; agents do not
 add it routinely.
 
-**Hard caps (binding).**
-
-| Artifact | Cap | Notes |
-|---|---|---|
-| Project-BA | 200 lines | Initial discovery only |
-| EPIC-BA | 120 lines | Item-BA at epic scope |
-| FEAT-BA | 60 lines | Item-BA at feature scope |
-| BA-MINI (IMP/FIX) | 40 lines | |
-| EXPLORATION-BOARD | 70 lines | Scratchpad |
-| EPIC | 40 lines | |
-| FEATURE | 65 lines | |
-| BACKLOG | 80 lines + rows | Header+vocab leg+pointers cap; rows uncapped |
-| ARCHITECT-HANDOFF | 60 lines | Dialog grows in-place |
-| ADR | 60 lines | Excluding optional Implementation Notes; includes 7-line German-variant translation note |
-| arc42 | 65 lines (PoC) / 100 (MVP) | |
-| plan-context | 55 lines | |
-| PLAN | 50 lines | Plus uncapped Change Log tail |
-| FIX | 32 lines | |
-| IMP | 30 lines | |
-| AUDIT | 65 lines | Plus uncapped finding tables |
-| METRICS | 50 lines | |
-| ARCHITECTURE-MAP, MODULE-README, JSDOC-HEADER, RULES-* | per-template caps in template comments | |
+**Hard caps (binding).** The per-artifact line caps live in ONE machine-
+readable file: `references/artifact-caps.json` (single source; the
+consistency-check script reads it at runtime). Read that file before
+measuring with `wc -l`; never mirror its values into prose or tables.
+ARCHITECTURE-MAP, MODULE-README, JSDOC-HEADER and RULES-* carry their
+caps in their template comments.
 
 ### 2. Frontmatter spec
 

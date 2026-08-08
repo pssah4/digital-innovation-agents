@@ -291,36 +291,12 @@ inside Claude Code by this skill, not by the script.
 
 ## Caps
 
-N-20 reads the per-artefact line caps from this table. The single
-source of truth is
-`skills/project-conventions/SKILL.md#canonical-specs` (Reader
-budget); the table below is a mirror and must be kept hand-aligned
-with the source. The script holds the same values in
-`ARTIFACT_CAPS` near the top of `tools/consistency-check.py`.
-
-| Cap key | Cap (lines) | Counting boundary |
-|---|---|---|
-| project-ba | 200 | full file |
-| epic-ba | 120 | full file |
-| feat-ba | 60 | full file |
-| ba-mini | 40 | full file |
-| exploration-board | 70 | full file |
-| epic | 35 | full file |
-| feature | 65 | full file |
-| backlog-header | 80 | up to `## Active Epics` |
-| architect-handoff | 60 | full file |
-| adr | 50 | full file (Implementation Notes appendix exempt by convention) |
-| arc42-poc | 65 | full file |
-| arc42-mvp | 100 | full file |
-| plan-context | 55 | full file |
-| plan | 50 | up to `## Change Log` |
-| fix | 28 | full file |
-| imp | 26 | full file |
-| audit | 55 | full file (finding tables exempt by convention) |
-| metrics | 50 | full file |
-
-Tolerance: a file is flagged only when it exceeds `cap * 1.10`. A
-top-level `## Reasoned exception` heading suppresses the finding.
+N-20 reads the per-artefact line caps at runtime from the single
+source `skills/project-conventions/references/artifact-caps.json`
+(caps, counting boundaries, and the tolerance factor). There is no
+mirror table anywhere; the script exits loudly when the JSON is
+missing. A top-level `## Reasoned exception` heading suppresses an
+over-cap finding.
 
 ## Viewer tool (for team meetings and navigation)
 
