@@ -92,7 +92,6 @@ git clone https://github.com/pssah4/digital-innovation-agents.git /tmp/dia
 cp -r /tmp/dia/.github/agents .github/agents
 cp -r /tmp/dia/.github/chatmodes .github/chatmodes
 cp -r /tmp/dia/.github/instructions .github/instructions
-cp -r /tmp/dia/.github/templates .github/templates
 cp /tmp/dia/.github/copilot-instructions.md .github/copilot-instructions.md
 ```
 
