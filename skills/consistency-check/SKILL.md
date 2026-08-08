@@ -1,17 +1,14 @@
 ---
 name: consistency-check
 description: >
-  Verifies the V-Model artifact graph is intact: BA sections, Epics,
-  Features, Success Criteria, ADRs, arc42 sections, PLANs, Backlog,
-  Wayfinder rows, and code references. Two modes: syntactic (links,
-  IDs, Refs) and semantic (content coherence via an agent). Default
-  syntactic at the end of every skill phase. Semantic before release
-  or on explicit request. Use this skill when the user mentions
-  "consistency check", "graph check", "check references", "dead
-  links", "orphan features", "graph-health", or when another V-Model
-  skill completes a phase and wants to verify the artifact graph
-  before handoff.
-disable-model-invocation: false
+  Verifies the V-Model artifact graph is intact: Epics, Features,
+  Success Criteria, ADRs, PLANs, Backlog, Wayfinder rows, and code
+  references. Syntactic mode (links, IDs, Refs) and semantic mode
+  (content coherence). Explicit user command: invoke for "consistency
+  check", "graph check", "dead links", "orphan features",
+  "graph-health", or before a release. Routine enforcement runs via
+  the pre-commit hook, not per phase.
+disable-model-invocation: true
 ---
 
 # Consistency Check
@@ -24,8 +21,11 @@ paths, BL-Item→Feature, and so on). The check answers one question:
 **is the graph complete and consistent, or do we have orphans, dead
 links, and semantic drift?**
 
-The skill is called by other skills at the end of each phase, or
-directly by the user when a health check is due.
+The skill is an explicit user command. It runs mandatorily once per
+cycle before release (security-audit Step 7 / Closing Handoff) and on
+demand any time. Between those points, the pre-commit hook enforces
+the drift-critical invariants (script-only, no skill load); phase
+skills do NOT invoke this skill at their boundaries.
 
 **Writing style:** Every artifact this skill writes follows the
 rules in `skills/project-conventions/SKILL.md` under "Writing style".
