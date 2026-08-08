@@ -262,7 +262,20 @@ skill.
 <one-line summary of what the phase delivered>
 
 Refs: <ITEM-ID>[, <other ids touched>]
+DIA-Phase: <phase>-done
+DIA-Handoff: <ITEM-ID> -> <next-skill>
+DIA-Triage: <ITEM-ID> <kind>
 ```
+
+The three `DIA-*` trailers are the phase-transition record; they
+replace the retired HANDOFFS.md log. `DIA-Phase` mirrors the phase-tag
+vocabulary (`ba|re|arch|plan|code|test|sec`-done). `DIA-Handoff` names
+the item and the recommended next skill. `DIA-Triage` (only on the
+commit where triage happened) carries the item kind
+(`feature|imp|fix|adr`); the next skill reads it via
+`git log --format='%(trailers:key=DIA-Triage,valueonly)'` and skips
+its Phase-0 triage question. Open questions, assumptions, and risks
+for the next phase go into the commit BODY as short bullets.
 
 Conventional prefixes per phase: `chore` (BA, RE, ARCH, AUDIT, RE-ENG),
 `feat` or `fix` (CODING, depending on the artefact category from
