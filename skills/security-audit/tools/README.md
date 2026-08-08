@@ -33,11 +33,13 @@ network for threat lists (that is the skill's live-currency step).
 
 | File | Role |
 |------|------|
-| `audit_scan.py` | Orchestrator. Subcommands `detect`, `surface`, `sast`, `secrets`, `sca`, `all`. |
+| `audit_scan.py` | Orchestrator. Subcommands `detect`, `surface`, `sast`, `secrets`, `sca`, `supply-chain`, `all`. |
 | `report_assembler.py` | `fill` (pre-fill AUDIT-TEMPLATE from findings JSON) + `delta` (re-audit set diff by fingerprint). |
 | `lib/findings.py` | `Finding` dataclass, `fingerprint`, `redact`, baseline read/write/rotate, `delta`. |
 | `lib/scope.py` | Resolve a scope category (`full`/`working`/`commit`/`staged`/`branch`/`range`) to a file list via git. |
 | `lib/detectors.py` | Project-type detection (electron/obsidian-plugin/web-app/cli/library, node/python/...) + attack-surface enumeration. |
+| `lib/supply_chain.py` | Static supply-chain checks: lockfile provenance, action pinning, install-script inventory, manifest hygiene, python pins. Offline, no subprocesses. |
+| `lib/cleanroom.py` | Opt-in stages: clean-room rebuild (scratch clone, scrubbed env, hash compare) + `gh attestation verify` of release assets. |
 | `poc/redos_probe.mjs` | Opt-in isolated ReDoS measurement of ONE suspect regex (worker_thread + hard deadline). |
 | `tests/` | Assertion-based tests, runnable without pytest, also pytest-discoverable. |
 
@@ -94,6 +96,39 @@ reduce the noise:
 Beyond these, path-manipulation false positives on grep-only runs are
 the known trade-off for pattern breadth. Install CodeQL to remove the
 false-positive class entirely for supported languages.
+
+## Supply-chain checks
+
+Stage 1 is static and part of every `all` run: lockfile provenance
+(registry host allowlist, sha512 integrity, git/http dependencies),
+GitHub Action pinning (mutable tag vs commit SHA, permissions blocks,
+persist-credentials, `npm install` vs `npm ci`, unpinned pip installs),
+install-script inventory (delta-able info findings), manifest hygiene
+(`.npmrc` ignore-scripts policy, stale overrides), and Python
+requirement pins.
+
+Stages 2 and 3 execute external commands and are opt-in only:
+
+```bash
+# Static checks (also included in `all`)
+python3 audit_scan.py supply-chain
+
+# Stage 2: clean-room rebuild (runs the project's build in a scratch clone)
+python3 audit_scan.py supply-chain --rebuild \
+    --build-cmd "node esbuild.config.mjs production" \
+    --artifact main.js --artifact styles.css
+
+# Stage 3: verify provenance attestations of the latest release assets
+python3 audit_scan.py supply-chain --release-verify
+```
+
+Config precedence: CLI flags > `[audit.supply_chain]` in the target
+repo's `.dia/config.toml` > defaults. See
+`references/supply-chain.md` for what each stage proves, the triage
+guidance, and the safety notes for the rebuild (allowlist env,
+`--ignore-scripts`, scratch clone). Workflow/lockfile YAML checks are
+regex-based; exotic syntax can slip through and the report's
+limitations block says so honestly.
 
 ## Path resolution
 

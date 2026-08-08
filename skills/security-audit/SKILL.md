@@ -72,6 +72,13 @@ A diff scope narrows WHERE findings are reported, never the reachability
 context: trace source->sink through the full tree even for a diff scan.
 Only `full` advances the delta baseline.
 
+For a release-gate or `full` audit, additionally offer the opt-in
+supply-chain stages via AskUserQuestion: the clean-room rebuild executes
+the project's build command in a scratch clone (needs
+`[audit.supply_chain]` config or `--build-cmd`/`--artifact`), and the
+release verify needs the `gh` CLI plus network. Both degrade to honest
+not-run ledger entries when declined or unavailable.
+
 ## The scan layer (deterministic)
 
 Phases 1-6 are driven by `tools/` (see `tools/README.md`), not manual
@@ -117,6 +124,7 @@ Feed each from `audit_scan.py` output; triage into findings.
 | 4. OWASP LLM Top 10 | Only if `detect` reports LLM APIs. Deepen with the agent/injection refs. | `references/owasp-llm-checklist.md`, `references/agent-approval-gate.md`, `references/prompt-injection-boundaries.md` |
 | 4b. Desktop runtime | Only if `detect` reports `electron`. | `references/desktop-runtime.md` |
 | 5. SCA | `audit_scan.py sca` (npm/pip audit + osv-scanner; license). Classify Runtime / Dev / Transitive. Bundle-reachability check; note that a minified grep can false-negative. | -- |
+| 5b. Supply chain | `audit_scan.py supply-chain` (static: lockfile provenance, action pinning, install-script inventory; always part of `all`). Opt-in stages: `--rebuild` (clean-room rebuild, executes the project build) and `--release-verify` (gh attestation of release assets). Stages that did not run appear as not-run in the ledger. | `references/supply-chain.md`, `tools/README.md#supply-chain-checks` |
 | 6. Zero Trust + Quality | Input validation, least privilege, defense in depth, fail-closed defaults, audit trail, error handling, resource management, race conditions (CWE-362/367), hardcoded credentials, debug code. Optional isolated PoC. | `references/local-dast.md` |
 
 ## Finding format (binding)

@@ -156,6 +156,20 @@ def test_surface_skips_binary_and_missing() -> None:
         print("OK: surface skips missing files gracefully")
 
 
+def test_applicable_tools_include_supply_chain() -> None:
+    m = _load("detectors")
+    node = m._applicable_tools(["node"], [])
+    assert "supply_chain" in node, node
+    assert "action-pinning" in node["supply_chain"], node
+    assert "lockfile-provenance" in node["supply_chain"], node
+    py = m._applicable_tools(["python"], [])
+    assert "python-pins" in py["supply_chain"], py
+    assert "lockfile-provenance" not in py["supply_chain"], py
+    bare = m._applicable_tools([], [])
+    assert bare["supply_chain"] == ["action-pinning"], bare
+    print("OK: applicable_tools gates supply-chain checks per runtime")
+
+
 ALL_TESTS = [
     test_detect_electron_obsidian_plugin,
     test_detect_cli_vs_library,
@@ -164,6 +178,7 @@ ALL_TESTS = [
     test_surface_finds_entry_points,
     test_surface_is_deterministic_sorted,
     test_surface_skips_binary_and_missing,
+    test_applicable_tools_include_supply_chain,
 ]
 
 

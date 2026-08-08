@@ -18,8 +18,16 @@ Usage:
     audit_scan.py sast    [root] [--scope S] [--base B] [--range A..B]
     audit_scan.py secrets [root] [--scope S] ...
     audit_scan.py sca     [root]
+    audit_scan.py supply-chain [root] [--rebuild] [--release-verify]
+                                 [--build-cmd CMD] [--artifact P ...]
+                                 [--registry-host H ...]
     audit_scan.py all     [root] [--scope S] [--base B] [--range A..B]
                                  [--taxonomy JSON] [--no-baseline]
+
+`all` stays offline-deterministic: the supply-chain phase runs its static
+checks only; the clean-room rebuild (--rebuild) and release attestation
+verify (--release-verify) execute external commands and are opt-in on the
+supply-chain subcommand, with honest not-run ledger entries otherwise.
 
 Default root: git repo root (via git rev-parse), else cwd.
 Exit codes: 0 no findings, 1 findings present, 2 usage error.
@@ -44,6 +52,8 @@ from lib import scope as SCOPE          # noqa: E402
 from lib import detectors as DET        # noqa: E402
 from lib import codeql_runner as CQ     # noqa: E402
 from lib import skip_rules as SKIP      # noqa: E402
+from lib import supply_chain as SC      # noqa: E402
+from lib import cleanroom as CR         # noqa: E402
 
 
 def find_repo_root(start: Path | None = None) -> Path:
@@ -364,6 +374,41 @@ def _osv_scanner(root: Path, tools: list) -> list:
     return out
 
 
+# ---------- supply chain ---------------------------------------------------
+
+def run_supply_chain(root: Path, rebuild: bool = False,
+                     release_verify: bool = False,
+                     cli_cfg: dict | None = None) -> tuple:
+    """Supply-chain phase. Stage 1 (static file checks) always runs;
+    stage 2 (clean-room rebuild) and stage 3 (release attestation verify)
+    execute external commands and only run when explicitly requested.
+    The stages that did not run appear in the tools ledger with an
+    honest not-run entry. Returns (findings, tools)."""
+    cfg = CR.read_supply_chain_config(root, cli_overrides=cli_cfg)
+    findings, tools = SC.run_supply_chain_static(root, config=cfg)
+
+    rebuilt_hashes = None
+    if rebuild:
+        rb_findings, rb_tool = CR.run_cleanroom_rebuild(root, cfg)
+        findings.extend(rb_findings)
+        rebuilt_hashes = rb_tool.pop("built_hashes", None)
+        tools.append(rb_tool)
+    else:
+        tools.append({"name": "cleanroom-rebuild", "status": "not-run",
+                      "reason": "opt-in; pass --rebuild"})
+
+    if release_verify:
+        rv_findings, rv_tools = CR.run_release_verify(
+            root, rebuilt_hashes=rebuilt_hashes)
+        findings.extend(rv_findings)
+        tools.extend(rv_tools)
+    else:
+        tools.append({"name": "gh-attestation", "status": "not-run",
+                      "reason": "opt-in; pass --release-verify"})
+
+    return _dedupe_findings(findings), tools
+
+
 # ---------- helpers --------------------------------------------------------
 
 def _dedupe_findings(items) -> list:
@@ -436,9 +481,11 @@ def run_all(root: Path, scope: str = "full", base: str = "main",
     sast_findings, sast_tools = run_sast(root, files, project)
     secret_findings, secret_tools = run_secrets(root, files)
     sca_findings, sca_tools = run_sca(root)
+    supply_findings, supply_tools = run_supply_chain(root)
 
-    all_findings = _dedupe_findings(sast_findings + secret_findings + sca_findings)
-    tools = sast_tools + secret_tools + sca_tools
+    all_findings = _dedupe_findings(
+        sast_findings + secret_findings + sca_findings + supply_findings)
+    tools = sast_tools + secret_tools + sca_tools + supply_tools
 
     result = {
         "schema": 1,
@@ -498,6 +545,18 @@ def main(argv=None) -> int:
     p_sca = sub.add_parser("sca")
     p_sca.add_argument("root", nargs="?", default=None)
 
+    p_supply = sub.add_parser("supply-chain")
+    p_supply.add_argument("root", nargs="?", default=None)
+    p_supply.add_argument("--rebuild", action="store_true",
+                          help="opt-in clean-room rebuild (runs the project build)")
+    p_supply.add_argument("--release-verify", action="store_true",
+                          help="opt-in gh attestation verify of latest release assets")
+    p_supply.add_argument("--build-cmd", default=None)
+    p_supply.add_argument("--artifact", action="append", default=None,
+                          help="tracked artifact path (repeatable)")
+    p_supply.add_argument("--registry-host", action="append", default=None,
+                          help="additional allowed registry host (repeatable)")
+
     p_all = sub.add_parser("all")
     _add_scope_args(p_all)
     p_all.add_argument("--taxonomy", default=None,
@@ -535,6 +594,17 @@ def main(argv=None) -> int:
 
     if args.cmd == "sca":
         fs, tools = run_sca(root)
+        print(json.dumps({"tools": tools, "findings": [f.to_dict() for f in fs]},
+                         indent=2, ensure_ascii=False))
+        return 1 if fs else 0
+
+    if args.cmd == "supply-chain":
+        cli_cfg = {"build_command": args.build_cmd,
+                   "artifacts": args.artifact,
+                   "registry_hosts": args.registry_host}
+        fs, tools = run_supply_chain(root, rebuild=args.rebuild,
+                                     release_verify=args.release_verify,
+                                     cli_cfg=cli_cfg)
         print(json.dumps({"tools": tools, "findings": [f.to_dict() for f in fs]},
                          indent=2, ensure_ascii=False))
         return 1 if fs else 0
