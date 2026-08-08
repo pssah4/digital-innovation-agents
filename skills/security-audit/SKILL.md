@@ -278,10 +278,13 @@ dashboard counts. Audit report keeps status `Confirmed` with note
 Audit report (final version), feature specs (security-relevant changes),
 ADRs (when fixes affect decisions), backlog (open findings).
 
-### Step 7: Run `/consistency-check` mode A
+### Step 7: Pre-release consistency check
 
-Catches deferred findings without backlog rows, FIX rows missing
-`feature:`/`epic:` frontmatter, drifted dashboard counts, dead links.
+The audit is the release gate, so the full graph check runs HERE (the
+one mandatory run per cycle): `python3 tools/consistency-check.py
+--check` (resolve against `$DIA_PLUGIN_ROOT`). Catches deferred
+findings without backlog rows, FIX rows missing `feature:`/`epic:`
+frontmatter, drifted dashboard counts, dead links.
 
 ---
 
@@ -299,8 +302,8 @@ Produced / updated:
 
 ### Part 2: Handoff context
 
-Append a new entry to `_devprocess/context/HANDOFFS.md`. Reference the
-audit summary block by file path; do not restate it. Add:
+Goes into the phase-end commit BODY (reference the audit summary block
+by file path; do not restate it):
 
 - **Unresolved P0/P1**: open high-severity findings and why.
 - **Architectural concerns**: patterns for a future `/architecture`
@@ -316,8 +319,11 @@ Per `skills/project-conventions/references/team-workflow.md` section
 chore(audit): <ITEM-ID> audit complete
 
 <one-line: risk verdict, N findings (P1/P2/P3), release recommendation>
+<unresolved P0/P1 and architectural concerns as short bullets>
 
 Refs: <ITEM-ID>[, FIX-..., FIX-...]
+DIA-Phase: sec-done
+DIA-Handoff: <ITEM-ID> -> release
 ```
 
 After the commit:
@@ -336,12 +342,13 @@ Skip the commit silently if the working tree has no changes.
 > "Security audit complete. Report: `_devprocess/analysis/AUDIT-{PROJECT}-{DATE}.md`.
 > Release readiness: {green/yellow/red}.
 > Recommended next: `/consistency-check` mode B finalises the artifact
-> graph and returns a Release-Ready verdict.
+> graph and returns a Release-Ready verdict (user command; the skill
+> is explicit-only).
 > Run `/consistency-check` mode B now, or review the audit first?"
 
-On agreement (or when running inside `/dia-guide`): run
-`/consistency-check` mode B; on Release-Ready: yes the `/dia-guide`
-Closing Handoff fires. On rejection: pause.
+On agreement: ask the user to invoke `/consistency-check` (mode B);
+on Release-Ready: yes the `/dia-guide` Closing Handoff fires. On
+rejection: pause.
 
 ## Keywords
 Security Audit, Security Review, OWASP, SAST, SCA, Vulnerability, CVE,

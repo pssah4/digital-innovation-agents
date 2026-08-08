@@ -21,21 +21,13 @@ Frontmatter spec).
 
 ## MANDATORY Pre-Phase 0: Branch and item check
 
-Tests bind to a specific backlog item. Run the team-workflow check (full
-rules: `skills/project-conventions/references/team-workflow.md`):
-
-1. Identify the active item from the prompt or via AskUserQuestion;
-   tests usually continue on the same FEAT/FIX/IMP item branch.
-2. Verify the branch matches `feature/<item-id-lower>-<slug>`. On a
-   wrong branch, AskUserQuestion to switch.
-3. Skill-triggered GitHub integration (idempotent):
-   ```
-   python3 tools/github-integration/flow.py create-issue --item <ID>
-   python3 tools/github-integration/flow.py open-draft-pr --item <ID>
-   ```
-4. At Handoff Ritual end, tag the phase via
-   `python3 tools/github-integration/flow.py tag-phase --item <ID> --phase test`.
-5. Write `.git/dia-active-skill` so subsequent invocations stay silent.
+Standard ritual, full rules in
+`skills/project-conventions/references/team-workflow.md`: identify the
+active item (tests usually continue on the same FEAT/FIX/IMP branch),
+verify the branch matches `<type>/<item-id-lower>-<slug>`
+(AskUserQuestion on mismatch), run `flow.py create-issue` +
+`open-draft-pr` when GitHub sync is on, tag the phase at ritual end
+(`--phase test`), and write `.git/dia-active-skill`.
 
 ## MANDATORY Phase 0: Artifact triage
 
@@ -214,7 +206,8 @@ A) Fix all findings automatically
 B) Approve fixes one by one
    -> I show each fix before implementation
 
-C) Only adjust tests (the code is correct, the tests are wrong)
+C) Adjust tests because the FEATURE spec changed
+   -> Allowed ONLY with all three pieces of evidence (see Step 3)
 
 D) Abort -- I want to look at findings manually first
 ```
@@ -226,6 +219,19 @@ For each fix:
 2. Implement fix
 3. Run affected tests
 4. On Option B: show fix to user before continuing
+
+**Option C gate (binding).** Weakening or changing a test is only
+legitimate when the requirement itself changed. Before any test edit
+under Option C, all three must exist:
+
+(a) the Success Criterion in the referenced FEATURE spec is amended
+    (with a one-line comment explaining the change),
+(b) the active PLAN gets a Change Log entry referencing the test path,
+(c) the diff of the test is shown to the user BEFORE the edit.
+
+Without all three, `/testing` blocks Option C and returns to A/B/D.
+"The test is inconvenient" is never a reason; that case is a code bug
+(Option A/B).
 
 ### Step 4: Re-test (automatic)
 
@@ -246,9 +252,10 @@ After a successful test run:
    add the row to `src/ARCHITECTURE.map` and write the JSDoc header.
 4. **Living Documents writeback (per `/coding` rules)** if code fixes
    were needed during the test run.
-5. **`/consistency-check` mode A** at phase end. Catches orphan tests,
-   missing coverage entries, dashboard mismatches, dead links. The
-   Handoff Ritual reports the result.
+
+The pre-commit hook enforces the drift-critical invariants on the
+phase-end commit; the full `/consistency-check` runs before release,
+not per phase.
 
 ---
 
@@ -272,13 +279,14 @@ Produced / updated:
 
 ### Part 2: Handoff context
 
-Append a new entry to `_devprocess/context/HANDOFFS.md` with:
+Goes into the phase-end commit BODY as short bullets (the trailers
+carry the machine-readable transition):
 
 - Coverage gaps that the user accepted (with justification)
 - Open test cases deferred to the next cycle
 - Brittle tests or flaky patterns noted during the fix-loop
-- Any security-adjacent concerns (e.g. input validation holes noticed while
-  writing tests) for the security-audit phase
+- Any security-adjacent concerns (e.g. input validation holes noticed
+  while writing tests) for the security-audit phase
 
 ### Part 3: Phase-end commit
 
@@ -294,8 +302,11 @@ Canonical commit message for TESTING:
 test: <ITEM-ID> testing complete
 
 <one-line summary: N tests added, coverage L%/B%/F%>
+<accepted gaps / deferred cases / flaky notes as short bullets>
 
 Refs: <ITEM-ID>
+DIA-Phase: test-done
+DIA-Handoff: <ITEM-ID> -> security-audit
 ```
 
 After the commit lands:
