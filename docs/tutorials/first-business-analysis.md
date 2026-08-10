@@ -239,8 +239,9 @@ Both follow the templates in `skills/business-analysis/templates/`.
 `/business-analysis` ends with the mandatory 3-part Handoff Ritual:
 
 1. **Artifact report**: lists the produced files and the HMW question
-2. **Handoff context**: appends an entry to `_devprocess/context/HANDOFFS.md`
-   with scope, personas, critical hypotheses, and open assumptions
+2. **Phase-end commit**: `chore(ba): {ITEM-ID} BA complete` with the
+   `DIA-Phase: ba-done` and `DIA-Handoff` trailers; scope, critical
+   hypotheses, and open assumptions go into the commit body
 3. **Transition question**: "BA complete. Shall I start `/requirements-engineering` now?"
 
 If you say "yes", the next phase starts automatically. If you say "stop",

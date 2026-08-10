@@ -71,9 +71,9 @@ with `claude --version`.
 4. If using the manual fallback, verify `~/.claude/skills/` contains
    all **thirteen** skill directories: `architecture`,
    `business-analysis`, `coding`, `consistency-check`, `dia-bootstrap`,
-   `dia-guide`, `dia-migration`, `dia-setup`, `humanizer`,
+   `dia-guide`, `dia-realign`, `dia-setup`, `humanizer`,
    `project-conventions`, `requirements-engineering`,
-   `reverse-engineering`, `security-audit`, `testing`.
+   `security-audit`, `testing`.
 
 ### Cursor: plugin not recognized
 
@@ -92,7 +92,6 @@ git clone https://github.com/pssah4/digital-innovation-agents.git /tmp/dia
 cp -r /tmp/dia/.github/agents .github/agents
 cp -r /tmp/dia/.github/chatmodes .github/chatmodes
 cp -r /tmp/dia/.github/instructions .github/instructions
-cp -r /tmp/dia/.github/templates .github/templates
 cp /tmp/dia/.github/copilot-instructions.md .github/copilot-instructions.md
 ```
 
@@ -165,7 +164,7 @@ Initialize manually:
 
 ```bash
 mkdir -p _devprocess/{analysis/sources,requirements/{epics,features,fixes,improvements,handoff},architecture,rules,implementation/plans,context}
-touch _devprocess/context/HANDOFFS.md
+touch _devprocess/context/BACKLOG-HISTORY.md
 cp skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md \
    _devprocess/context/BACKLOG.md
 cp skills/dia-guide/templates/METRICS-TEMPLATE.md \
@@ -184,10 +183,24 @@ Run `/consistency-check` Mode A. It compares the backlog row of every
 artifact against the artifact body and flags drift. Mode B adds a
 semantic agent pass that checks reasoning coherence.
 
-Status drift is the most common doc-vs-code drift class. The v3
+Status drift is the most common doc-vs-code drift class. The
 three-layer model is the structural fix: status, phase, last-change,
 and claim live in the backlog row only, never in the artifact
 frontmatter.
+
+### consistency-check reports "artifact-caps.json not found"
+
+The per-artifact line caps live in a single source file,
+`skills/project-conventions/references/artifact-caps.json`. The hook
+installer copies it into your project's `.git/hooks-data/` so the
+standalone pre-commit script works without the plugin checkout. If
+the file is missing there (fresh clone, `.git` recreated, or hooks
+installed before the caps file existed), re-run the installer from
+the target project:
+
+```bash
+bash tools/install-git-hooks.sh
+```
 
 ## Version mismatch
 
@@ -200,8 +213,9 @@ git clone --branch v2.4.0 https://github.com/pssah4/digital-innovation-agents.gi
 ```
 
 These checkouts are read-only references. v1 and v2 are no longer
-maintained. To upgrade an existing v1 or v2 project to v3 conventions,
-use `/dia-migration`. It is idempotent and branch-safe.
+maintained. To upgrade an existing v1 or v2 project to current
+conventions, use `/dia-realign` (Mode B). The script pass is
+idempotent and branch-safe.
 
 ## Still stuck?
 

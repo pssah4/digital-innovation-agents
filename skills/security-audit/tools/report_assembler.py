@@ -34,20 +34,23 @@ def _load_json(path: Path) -> dict:
 
 
 def _count_matrix(findings: list) -> dict:
-    """{domain: {severity: n}} for code / sca / total."""
+    """{domain: {severity: n}} for code / sca / supply / total."""
     zero = {s: 0 for s in SEVERITIES}
     code = dict(zero)
     sca = dict(zero)
+    supply = dict(zero)
     for f in findings:
         sev = f.get("severity", "low")
         if sev not in code:
             sev = "low"
         if f.get("phase") == "sca":
             sca[sev] += 1
+        elif f.get("phase") == "supply-chain":
+            supply[sev] += 1
         else:
             code[sev] += 1
-    total = {s: code[s] + sca[s] for s in SEVERITIES}
-    return {"code": code, "sca": sca, "total": total}
+    total = {s: code[s] + sca[s] + supply[s] for s in SEVERITIES}
+    return {"code": code, "sca": sca, "supply": supply, "total": total}
 
 
 def _finding_line(f: dict) -> str:
@@ -135,6 +138,40 @@ def _limitations_block(result: dict) -> str:
         lines.append("- SCA: no dependency scanner ran; vendored/WASM/native deps unscanned.")
     else:
         lines.append(f"- SCA: {', '.join(sorted(sca_ran))} ran; vendored/WASM/git-embedded deps still unscanned.")
+    # Supply chain: name what each stage actually did.
+    by_name = {t.get("name"): t for t in tools}
+    static_names = {"lockfile-provenance", "action-pinning", "install-scripts",
+                    "manifest-hygiene", "python-pins"}
+    static_ran = sorted(n for n in static_names
+                        if by_name.get(n, {}).get("status") == "ran")
+    if static_ran:
+        lines.append(f"- Supply chain (static): {', '.join(static_ran)} ran;"
+                     " YAML checks are regex-based, exotic workflow syntax may"
+                     " slip through.")
+    elif static_names & set(by_name):
+        lines.append("- Supply chain (static): no applicable manifests; checks"
+                     " recorded as not-applicable.")
+    rebuild = by_name.get("cleanroom-rebuild", {})
+    if rebuild.get("status") == "ran":
+        if rebuild.get("mismatches", 0):
+            lines.append(f"- Clean-room rebuild: MISMATCH in"
+                         f" {rebuild['mismatches']} artifact(s); the committed"
+                         " artifact does not fall out of the committed sources.")
+        else:
+            lines.append(f"- Clean-room rebuild: byte-identical"
+                         f" ({rebuild.get('artifacts', '?')} artifact(s))."
+                         " Proves mapping fidelity, not benignity.")
+    elif rebuild:
+        lines.append(f"- Clean-room rebuild: not run"
+                     f" ({rebuild.get('reason', 'opt-in')}).")
+    attest = by_name.get("gh-attestation", {})
+    if attest.get("status") == "ran":
+        lines.append(f"- Release attestation: verified against release"
+                     f" {attest.get('release', '?')}"
+                     f" ({attest.get('assets', '?')} asset(s)).")
+    elif attest:
+        lines.append(f"- Release attestation: not run"
+                     f" ({attest.get('reason', 'opt-in')}).")
     # No DAST
     lines.append("- No DAST/runtime testing (except opt-in isolated PoC probes); this is static analysis.")
     # Scope
@@ -183,6 +220,7 @@ def fill(result: dict, template: str, project: str = "{Projektname}",
         return " | ".join(str(c) for c in cells)
 
     code = matrix["code"]; sca = matrix["sca"]; tot = matrix["total"]
+    supply = matrix["supply"]
     out = out.replace(
         "| Code findings (SAST, OWASP, Zero Trust, Quality) | {n} | {n} | {n} | {n} | {n} |",
         f"| Code findings (SAST, OWASP, Zero Trust, Quality) | {code['critical']} | {code['high']} | {code['medium']} | {code['low']} | {code['info']} |",
@@ -190,6 +228,10 @@ def fill(result: dict, template: str, project: str = "{Projektname}",
     out = out.replace(
         "| SCA (Dependencies) | {n} | {n} | {n} | {n} | {n} |",
         f"| SCA (Dependencies) | {sca['critical']} | {sca['high']} | {sca['medium']} | {sca['low']} | {sca['info']} |",
+    )
+    out = out.replace(
+        "| Supply chain (provenance, build integrity) | {n} | {n} | {n} | {n} | {n} |",
+        f"| Supply chain (provenance, build integrity) | {supply['critical']} | {supply['high']} | {supply['medium']} | {supply['low']} | {supply['info']} |",
     )
     out = out.replace(
         "| License Compliance | {n} | {n} | {n} | {n} | {n} |",
@@ -225,6 +267,16 @@ def fill(result: dict, template: str, project: str = "{Projektname}",
             for f in sca_rows
         )
         out = out.replace("| {pkg} | {ver} | {CVE-ID} | {sev} | {fix} |", rows)
+
+    # Supply-chain table rows.
+    supply_rows = [f for f in findings if f.get("phase") == "supply-chain"]
+    if supply_rows:
+        rows = "\n".join(
+            f"| {f.get('message', '?')} | {f.get('severity')} | {f.get('cwe') or '-'} | "
+            f"`{f.get('file', '?')}` |"
+            for f in supply_rows
+        )
+        out = out.replace("| {finding} | {sev} | {cwe} | {loc} |", rows)
 
     # Honest tools + files + limitations in the Scope and Tools section.
     ran = _ran_tool_names(result.get("tools", []))

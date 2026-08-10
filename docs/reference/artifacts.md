@@ -52,9 +52,20 @@ status fields stuck at "Planned" while the code shipped. See the
         architect-handoff.md       Phase 2 -> 3: aggregated ASRs + NFRs
         plan-context.md            Phase 3 -> 4: tech stack + integrations
     architecture/
-      ADR-{nn}-{slug}.md           Phase 3: Architecture Decision Record (MADR)
-      arc42.md                     Phase 3: arc42 documentation
+      ADR-{nn}-{slug}.md           Phase 3: Architecture Decision Record
+                                   (kind: constraint | choice | post-hoc)
+      decisions/README.md          Router table over all ADRs
+                                   (Applies when | Read when columns)
+      arc42.md                     Phase 3: arc42 constraints doc
+                                   (pre-code, cap 40, scope: constraints)
+      arc42-REFERENCE.md           Post-code arc42 reference (optional,
+                                   cap-exempt, may lag behind the code)
+    SYSTEM-MAP.md                  Navigation map with fast paths into the
+                                   code (mandatory in the lean profile,
+                                   recommended in full; cap 120)
     rules/                         Stable rule sets, hard cap 500 lines TOTAL
+                                   (full profile; the lean profile keeps its
+                                   rules in AGENTS.md instead)
       technical.md                 Stack, conventions, library choices
       design.md                    UI rules (only if project has UI)
       domain.md                    Domain glossary, business invariants
@@ -65,7 +76,8 @@ status fields stuck at "Planned" while the code shipped. See the
       BACKLOG.md                   Single source of truth for project state
                                    (per BACKLOG-TEMPLATE.md). Status, phase,
                                    last-change, and claim live HERE.
-      HANDOFFS.md                  Append-only phase handoffs log (all phases)
+      BACKLOG-HISTORY.md           Append-only session history (one line
+                                   per backlog change)
       METRICS.md                   Signal layer (per METRICS-TEMPLATE.md):
                                    cycle time, drift count, hypothesis status,
                                    phase transitions, cross-phase triggers
@@ -163,7 +175,7 @@ See [Living Documents](../concepts/living-documents).
 
 ## The three context files
 
-`BACKLOG.md`, `HANDOFFS.md`, and `METRICS.md` serve different
+`BACKLOG.md`, `BACKLOG-HISTORY.md`, and `METRICS.md` serve different
 purposes:
 
 - **`BACKLOG.md`** is the **single source of truth for project
@@ -178,11 +190,16 @@ purposes:
   multiple human-agent pairs work the backlog concurrently without a
   central lock service. The pair-id convention is
   `{human-handle}-{model}`, for example `seb-opus-4-7`.
-- **`HANDOFFS.md`** is an append-only phase handoffs log. Each phase
-  skill appends one entry at the end of its run with artifacts
-  produced, handoff context (open questions, assumptions, risks), and
-  the next phase. the Closing Handoff also appends a
-  `release-to-ba` entry that queues the BA Post-Release Review.
+- **`BACKLOG-HISTORY.md`** is an append-only session history: one
+  line per backlog change. The backlog itself never accumulates
+  `Last update` / `[Previous]` blocks; it points at the history
+  file instead. Phase transitions are NOT logged here; they live as
+  DIA commit trailers (`DIA-Phase`, `DIA-Handoff`, `DIA-Triage`) on
+  the phase-end commits, readable via
+  `git log --format='%(trailers:key=DIA-Handoff,valueonly)'`. See
+  [Handoff Rituals](../concepts/handoff-rituals). Legacy
+  `HANDOFFS.md` files from pre-v4 projects stay untouched;
+  `/dia-realign` offers an archive move.
 - **`METRICS.md`** is the signal layer. Five append-additive tables
   seeded from
   [`skills/dia-guide/templates/METRICS-TEMPLATE.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/dia-guide/templates/METRICS-TEMPLATE.md):
@@ -218,7 +235,7 @@ When starting a new project, initialize the structure:
 
 ```bash
 mkdir -p _devprocess/{analysis/sources,requirements/{epics,features,fixes,improvements,handoff},architecture,rules,implementation/plans,context}
-touch _devprocess/context/HANDOFFS.md
+touch _devprocess/context/BACKLOG-HISTORY.md
 cp skills/requirements-engineering/templates/BACKLOG-TEMPLATE.md \
    _devprocess/context/BACKLOG.md
 cp skills/dia-guide/templates/METRICS-TEMPLATE.md \
@@ -248,7 +265,7 @@ carries one configuration file at the repo root:
 ```
 {project}/
   .dia/
-    config.toml                      Mode, anchor files, source branch, GitHub project
+    config.toml                      Mode, profile, anchor files, source branch, GitHub project
 ```
 
 This file is written by `/dia-setup` and committed to the repo so
@@ -256,6 +273,10 @@ the team shares the active mode. Schema:
 
 ```toml
 mode = "git-only"                    # "off" | "git-only" | "github-sync"
+
+profile = "full"                     # "full" | "lean"; lean makes only
+                                     # decisions, navigation, and backlog
+                                     # state binding
 
 anchor_files = [                     # files that carry a managed
   "CLAUDE.md",                       # anchor block; managed by
@@ -292,8 +313,9 @@ field share one vocabulary:
 Projects that predate the stage-3 migration may still carry the
 legacy values (`Planned`, `Active`, `Review`, `Waiting`,
 `Deferred`). Run
-`tools/migration/migrate_status_vocabulary.py` (or `/dia-migration`,
-which calls it as Phase 5b) to migrate. `flow.py sync-status`
+`tools/migration/migrate_status_vocabulary.py` (or `/dia-realign`,
+which calls it as step 5b of the script pass) to migrate.
+`flow.py sync-status`
 includes a legacy translation table that resolves the old values
 until the migration runs.
 

@@ -4,17 +4,26 @@ This project uses the DIA V-Model workflow for AI-augmented innovation
 and development.
 
 - Mode: `{{mode}}`
+- Profile: `{{profile}}`
 - Settings: `.dia/config.toml`
 - Bootstrap skill: `skills/dia-bootstrap/SKILL.md`
 
-For non-trivial work, default to `/dia-guide` for an orientation read.
-Phase skills (`/business-analysis`, `/requirements-engineering`,
-`/architecture`, `/coding`, `/testing`, `/security-audit`) are
-autonomous and own their handoffs.
+For non-trivial work, `/dia-guide` (explicit command) gives an
+orientation read. Phase skills (`/business-analysis`,
+`/requirements-engineering`, `/architecture`, `/coding`, `/testing`,
+`/security-audit`) are autonomous and own their handoffs; phase
+transitions live in DIA commit trailers.
+
+In the `lean` profile, only durable decisions and stable navigation
+are binding: rules live in AGENTS.md (this file stays a pointer),
+navigation in `_devprocess/SYSTEM-MAP.md`, decisions as post-hoc ADRs
+behind `decisions/README.md`, status in GitHub Issues or a thin
+BACKLOG. Do not document what code, tests, git, PRs, or issues
+already carry.
 
 Hotfix lane: small bug fixes (max 3 files, no breaking change, fits
 an existing FEAT, under 15 minutes) may bypass the full cycle as
-long as a FIX-Row in `BACKLOG.md` and a GitHub issue are created
+long as a FIX row in `BACKLOG.md` and a GitHub issue are created
 afterwards.
 
-To change the mode or remove this anchor, run `/dia-setup`.
+To change mode or profile, or remove this anchor, run `/dia-setup`.

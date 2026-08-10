@@ -56,7 +56,7 @@ concept page for the full rationale.
 | Handoff (RE -> Arch) | `architect-handoff.md` | Fixed name |
 | Handoff (Arch -> Code) | `plan-context.md` | Fixed name |
 | Backlog | `BACKLOG.md` | Fixed name |
-| Handoffs log | `HANDOFFS.md` | Fixed name (append-only) |
+| Backlog history | `BACKLOG-HISTORY.md` | Fixed name (append-only) |
 | Signal layer | `METRICS.md` | Fixed name (per METRICS-TEMPLATE.md) |
 | Wayfinder root | `src/ARCHITECTURE.map` | Fixed name |
 | Module wayfinder | `src/{module}/README.md` | One per substantive module |

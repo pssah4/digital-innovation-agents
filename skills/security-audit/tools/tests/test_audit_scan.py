@@ -135,7 +135,8 @@ def test_run_all_shape_and_honest_tools() -> None:
         assert statuses, "tools ledger empty"
         for name, st in statuses.items():
             assert st in ("ran", "unavailable", "offline-skipped", "error",
-                          "pack-missing"), (name, st)
+                          "pack-missing", "not-run", "not-applicable",
+                          "not-configured"), (name, st)
         # codeql is now part of the ledger, even when unavailable.
         assert "codeql" in statuses, statuses
         assert statuses["codeql"] == "unavailable", statuses
@@ -265,6 +266,62 @@ def test_run_all_diff_scope_limits_files() -> None:
         print("OK: diff scope limits reported SAST files")
 
 
+def test_run_all_supply_chain_static_only() -> None:
+    """`all` must include the supply-chain ledger but never execute the
+    opt-in stages (no clean-room build, no gh calls)."""
+    m = _load()
+    with tempfile.TemporaryDirectory() as raw:
+        tmp = Path(raw)
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=tmp, check=True)
+        subprocess.run(["git", "config", "user.email", "t@t.t"], cwd=tmp, check=True)
+        subprocess.run(["git", "config", "user.name", "t"], cwd=tmp, check=True)
+        _write(tmp, "package.json", json.dumps({"name": "x"}))
+        subprocess.run(["git", "add", "-A"], cwd=tmp, check=True)
+        subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=tmp, check=True)
+
+        with patch.object(m.CQ, "codeql_available", return_value=False), \
+                patch.object(m.CR, "run_cleanroom_rebuild") as rb, \
+                patch.object(m.CR, "run_release_verify") as rv:
+            result = m.run_all(tmp, scope="full")
+        rb.assert_not_called()
+        rv.assert_not_called()
+    statuses = {t["name"]: t["status"] for t in result["tools"]}
+    assert statuses.get("cleanroom-rebuild") == "not-run", statuses
+    assert statuses.get("gh-attestation") == "not-run", statuses
+    assert "manifest-hygiene" in statuses, statuses
+    print("OK: run_all carries supply ledger, opt-in stages never execute")
+
+
+def test_supply_chain_runner_findings_and_overrides() -> None:
+    m = _load()
+    with tempfile.TemporaryDirectory() as raw:
+        tmp = Path(raw)
+        _write(tmp, "package-lock.json", json.dumps({
+            "name": "x", "lockfileVersion": 3,
+            "packages": {
+                "": {"name": "x"},
+                "node_modules/evil": {"version": "1",
+                                      "resolved": "git+https://g/x.git"},
+                "node_modules/mirror": {
+                    "version": "1",
+                    "resolved": "https://npm.corp.example/m.tgz",
+                    "integrity": "sha512-x"},
+            },
+        }))
+        fs, tools = m.run_supply_chain(tmp)
+        assert any(f.phase == "supply-chain" and f.severity == "high"
+                   for f in fs), fs
+        assert any("mirror" in f.message for f in fs), fs
+
+        fs2, _ = m.run_supply_chain(
+            tmp, cli_cfg={"registry_hosts": ["registry.npmjs.org",
+                                             "npm.corp.example"]})
+        assert not any("mirror" in f.message for f in fs2), fs2
+    names = {t["name"] for t in tools}
+    assert {"lockfile-provenance", "cleanroom-rebuild", "gh-attestation"} <= names, tools
+    print("OK: supply-chain runner finds git dep, CLI registry override works")
+
+
 ALL_TESTS = [
     test_grep_sast_finds_cwe_patterns,
     test_grep_sast_skips_comments_optional,
@@ -276,6 +333,8 @@ ALL_TESTS = [
     test_run_all_sast_pack_missing_falls_back,
     test_run_all_records_taxonomy_snapshot,
     test_run_all_diff_scope_limits_files,
+    test_run_all_supply_chain_static_only,
+    test_supply_chain_runner_findings_and_overrides,
 ]
 
 

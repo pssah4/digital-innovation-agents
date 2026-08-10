@@ -191,6 +191,56 @@ def test_fill_no_findings_clean() -> None:
     print("OK: fill handles zero findings")
 
 
+def _supply_result() -> dict:
+    result = _sample_result()
+    result["tools"] += [
+        {"name": "lockfile-provenance", "status": "ran", "packages": 3},
+        {"name": "action-pinning", "status": "ran", "workflows": 2},
+        {"name": "cleanroom-rebuild", "status": "not-run",
+         "reason": "opt-in; pass --rebuild"},
+        {"name": "gh-attestation", "status": "not-run",
+         "reason": "opt-in; pass --release-verify"},
+    ]
+    result["findings"].append(
+        {"fp": "ee", "phase": "supply-chain", "cwe": "CWE-829",
+         "severity": "high", "file": ".github/workflows/x.yml", "line": 7,
+         "engine": "supply-chain",
+         "message": "Action pinned to mutable ref: actions/checkout@v4",
+         "status": "unconfirmed", "cvss": "", "evidence": ""})
+    return result
+
+
+def test_fill_supply_chain_matrix_and_section() -> None:
+    m = _load()
+    template = TOOLS_DIR.parent / "templates" / "AUDIT-TEMPLATE.md"
+    out = m.fill(_supply_result(), template.read_text(encoding="utf-8"),
+                 project="p", date="2026-08-08")
+    # Matrix row filled with the one high supply finding.
+    assert "| Supply chain (provenance, build integrity) | 0 | 1 | 0 | 0 | 0 |" in out, out
+    assert "{n}" not in out.split("License Compliance")[0], "unfilled matrix cells"
+    # Supply section carries the finding row.
+    section = out.split("Supply Chain: Provenance and Build Integrity")[1]
+    assert "actions/checkout@v4" in section.split("## License")[0], out
+    print("OK: supply-chain matrix row + report section filled")
+
+
+def test_limitations_name_supply_chain_stages() -> None:
+    m = _load()
+    block = m._limitations_block(_supply_result())
+    assert "Supply chain (static)" in block, block
+    assert "action-pinning" in block, block
+    assert "Clean-room rebuild: not run" in block, block
+    assert "Release attestation: not run" in block, block
+    ran = dict(_supply_result())
+    ran["tools"] = [t for t in ran["tools"]
+                    if t["name"] not in ("cleanroom-rebuild",)]
+    ran["tools"].append({"name": "cleanroom-rebuild", "status": "ran",
+                         "artifacts": 2, "mismatches": 1})
+    block2 = m._limitations_block(ran)
+    assert "MISMATCH in 1 artifact" in block2, block2
+    print("OK: limitations block names all three supply-chain stages honestly")
+
+
 ALL_TESTS = [
     test_fill_counts_and_buckets,
     test_fill_tools_are_honest,
@@ -200,6 +250,8 @@ ALL_TESTS = [
     test_limitations_names_codeql_missing_as_blindspot,
     test_limitations_names_stale_pack,
     test_fill_no_findings_clean,
+    test_fill_supply_chain_matrix_and_section,
+    test_limitations_name_supply_chain_stages,
 ]
 
 

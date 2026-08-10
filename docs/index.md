@@ -23,10 +23,10 @@ hero:
     <p>Walk the AI through structured discovery: personas, Jobs to be Done, How-Might-We questions. Thirty-two proven innovation methods before a single line of code.</p>
     <span class="arrow">Run your first Business Analysis →</span>
   </a>
-  <a class="tile" href="/digital-innovation-agents/guides/reverse-engineering">
+  <a class="tile" href="/digital-innovation-agents/guides/dia-realign">
     <h3>Starting with an existing project?</h3>
     <p>Walk the V backwards. Reverse-engineer a wayfinder, ADRs, an arc42 snapshot, a FEAT inventory, and an evidence-based BA draft from your code. Every claim sourced, nothing invented.</p>
-    <span class="arrow">Run Reverse Engineering →</span>
+    <span class="arrow">Run DIA Realign →</span>
   </a>
 </div>
 

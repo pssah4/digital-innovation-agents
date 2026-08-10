@@ -1,17 +1,12 @@
 ---
 name: consistency-check
 description: >
-  Verifies the V-Model artifact graph is intact: BA sections, Epics,
-  Features, Success Criteria, ADRs, arc42 sections, PLANs, Backlog,
-  Wayfinder rows, and code references. Two modes: syntactic (links,
-  IDs, Refs) and semantic (content coherence via an agent). Default
-  syntactic at the end of every skill phase. Semantic before release
-  or on explicit request. Use this skill when the user mentions
-  "consistency check", "graph check", "check references", "dead
-  links", "orphan features", "graph-health", or when another V-Model
-  skill completes a phase and wants to verify the artifact graph
-  before handoff.
-disable-model-invocation: false
+  Verifies the V-Model artifact graph: Epics, Features, ADRs, PLANs,
+  Backlog, Wayfinder rows, code refs. Syntactic and semantic modes.
+  Explicit user command for "consistency check", "graph check", "dead
+  links", "orphan features", or before a release; routine enforcement
+  runs via the pre-commit hook, not per phase.
+disable-model-invocation: true
 ---
 
 # Consistency Check
@@ -24,8 +19,11 @@ paths, BL-Item→Feature, and so on). The check answers one question:
 **is the graph complete and consistent, or do we have orphans, dead
 links, and semantic drift?**
 
-The skill is called by other skills at the end of each phase, or
-directly by the user when a health check is due.
+The skill is an explicit user command. It runs mandatorily once per
+cycle before release (security-audit Step 7 / Closing Handoff) and on
+demand any time. Between those points, the pre-commit hook enforces
+the drift-critical invariants (script-only, no skill load); phase
+skills do NOT invoke this skill at their boundaries.
 
 **Writing style:** Every artifact this skill writes follows the
 rules in `skills/project-conventions/SKILL.md` under "Writing style".
@@ -34,8 +32,8 @@ project convention uses ASCII.
 
 ## Three modes
 
-- **Mode A (syntactic, default):** fast, no LLM, runs on phase-end
-  triggers and pre-commit hooks.
+- **Mode A (syntactic, default):** fast, no LLM, runs via the
+  pre-commit hook, before release, and on demand.
 - **Mode B (semantic, on-demand):** agent-based, runs before release
   or on explicit `--deep`.
 - **Mode C (interactive fix-loop):** guided fix workflow with
@@ -47,7 +45,8 @@ project convention uses ASCII.
 
 ### Mode A: Syntactic check (default, fast, no LLM)
 
-Runs on every Phase-End trigger. Uses Grep + filesystem probes
+Runs via the pre-commit hook, before release, and on demand. Uses
+Grep + filesystem probes
 only. Costs near zero.
 
 Checks (8 quick-check items):
@@ -291,36 +290,12 @@ inside Claude Code by this skill, not by the script.
 
 ## Caps
 
-N-20 reads the per-artefact line caps from this table. The single
-source of truth is
-`skills/project-conventions/SKILL.md#canonical-specs` (Reader
-budget); the table below is a mirror and must be kept hand-aligned
-with the source. The script holds the same values in
-`ARTIFACT_CAPS` near the top of `tools/consistency-check.py`.
-
-| Cap key | Cap (lines) | Counting boundary |
-|---|---|---|
-| project-ba | 200 | full file |
-| epic-ba | 120 | full file |
-| feat-ba | 60 | full file |
-| ba-mini | 40 | full file |
-| exploration-board | 70 | full file |
-| epic | 35 | full file |
-| feature | 65 | full file |
-| backlog-header | 80 | up to `## Active Epics` |
-| architect-handoff | 60 | full file |
-| adr | 50 | full file (Implementation Notes appendix exempt by convention) |
-| arc42-poc | 65 | full file |
-| arc42-mvp | 100 | full file |
-| plan-context | 55 | full file |
-| plan | 50 | up to `## Change Log` |
-| fix | 28 | full file |
-| imp | 26 | full file |
-| audit | 55 | full file (finding tables exempt by convention) |
-| metrics | 50 | full file |
-
-Tolerance: a file is flagged only when it exceeds `cap * 1.10`. A
-top-level `## Reasoned exception` heading suppresses the finding.
+N-20 reads the per-artefact line caps at runtime from the single
+source `skills/project-conventions/references/artifact-caps.json`
+(caps, counting boundaries, and the tolerance factor). There is no
+mirror table anywhere; the script exits loudly when the JSON is
+missing. A top-level `## Reasoned exception` heading suppresses an
+over-cap finding.
 
 ## Viewer tool (for team meetings and navigation)
 
@@ -446,7 +421,7 @@ Findings:
 
 ## Workflow
 
-1. **Detect project structure.** Same rules as `/reverse-engineering`:
+1. **Detect project structure.** Same rules as `/dia-realign`:
    `docs/` or `_devprocess/` as root. Abort with a clear message if
    neither is found.
 2. **Build the node set.** Grep for:
@@ -646,7 +621,7 @@ Before this skill reports completion:
 - Active refactoring where artifacts are intentionally in flux.
   Wait for the refactor to settle, then run the check.
 - Greenfield projects without V-Model artifacts. Bootstrap via
-  `/dia-guide` or `/reverse-engineering` first.
+  `/dia-guide` or `/dia-realign` first.
 
 ## Keywords
 

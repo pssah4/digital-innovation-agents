@@ -48,6 +48,10 @@ fi
 mkdir -p "$DATA_DIR"
 cp "$DIA_ROOT/tools/consistency-check.py" "$DATA_DIR/consistency-check.py"
 chmod +x "$DATA_DIR/consistency-check.py"
+# The standalone copy reads the N-20 caps from a JSON that lives next to
+# it (single source: skills/project-conventions/references/).
+cp "$DIA_ROOT/skills/project-conventions/references/artifact-caps.json" \
+   "$DATA_DIR/artifact-caps.json"
 cp "$DIA_ROOT/tools/renumber-for-merge.py" "$DATA_DIR/renumber-for-merge.py"
 chmod +x "$DATA_DIR/renumber-for-merge.py"
 

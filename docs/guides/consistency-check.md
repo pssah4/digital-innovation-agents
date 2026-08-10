@@ -12,18 +12,26 @@ files), edges are references between them. The skill answers one
 question: **is the graph complete and consistent, or do we have
 orphans, dead links, and semantic drift?**
 
-It runs at every phase boundary in the V-Model, on demand from the
-user, and from the pre-commit hook. It is the structural counter-
-weight to the [three-layer documentation model](../concepts/three-layer-documentation):
+The skill is an explicit user command (marked
+`disable-model-invocation`; the model never auto-loads it). It runs
+mandatorily once per cycle before release (security-audit Step 7 /
+Closing Handoff) and on demand any time. Between those points, the
+pre-commit hook enforces the drift-critical invariants with a
+standalone script (no skill load); phase skills do NOT invoke this
+skill at their boundaries. It is the structural counterweight to the
+[three-layer documentation model](../concepts/three-layer-documentation):
 the model defines where state lives, this skill verifies that
 nobody let state escape.
 
 ## When to use
 
-- The guide runs Mode A automatically at every phase
-  boundary. You see a green "graph healthy" or a list of findings.
-- Run `/consistency-check` before a release. Mode A is fast; Mode B
-  catches semantic drift that the syntactic check cannot see.
+- Run `/consistency-check` before a release. This run is mandatory
+  once per cycle (security-audit Step 7 / Closing Handoff). Mode A
+  is fast; Mode B catches semantic drift that the syntactic check
+  cannot see.
+- Day to day, the pre-commit hook covers the drift-critical
+  invariants automatically. You see a green "graph healthy" or a
+  block with findings at commit time.
 - Run `/consistency-check --fix-interactive` after a Mode A run
   produced findings you want to walk through one by one.
 - Run `/consistency-check --view` in a backlog grooming meeting.
@@ -37,8 +45,9 @@ Trigger phrases that route to the skill: "consistency check",
 
 ### Mode A: syntactic (default, fast, no LLM)
 
-Runs on every phase-end trigger and pre-commit hook. Pure
-filesystem and grep, costs near zero. Twelve quick-check items:
+Runs on explicit invocation and (as a standalone script) from the
+pre-commit hook. Pure filesystem and grep, costs near zero. Twelve
+quick-check items:
 
 1. **Dead links.** Every Markdown link to a project-internal path
    resolves to an existing file.
@@ -225,7 +234,7 @@ row.
 - Active refactoring where artifacts are intentionally in flux.
   Wait for the refactor to settle.
 - Greenfield projects without V-Model artifacts. Bootstrap via
-  `/dia-guide` or `/reverse-engineering` first.
+  `/dia-guide` or `/dia-realign` first.
 
 ## Read the skill file
 
@@ -239,4 +248,4 @@ on GitHub.
 - [Project Conventions guide](./project-conventions): graph
   invariants reference
 - [V-Model workflow guide](./dia-guide): the guide
-  that runs Mode A at every phase boundary
+  that recommends the pre-release run

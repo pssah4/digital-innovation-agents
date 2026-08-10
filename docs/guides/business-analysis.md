@@ -9,6 +9,8 @@ description: The first phase of the V-Model. Understand the problem before you d
 
 This skill is the slowdown. It runs an innovation interview with you, spots the gaps in your understanding of the user and the problem, and tells you which research method will close each gap fastest. The actual field work stays with you. No agent can replace a real conversation with a real user.
 
+**The value is the dialog, not the document.** Since v4 the BA record is a 40-line template that condenses the interview into five questions: the observed problem, who has it, the solution hypothesis and its strongest assumption, the scope, and the success signal with the top risk. The skill writes only what was actually said or evidenced. It never invents personas, percentages, or baselines to fill a table; "unknown" is a valid value. Long-form sections (personas table, market context, competitor analysis) live in an optional BA-EXTENDED document that is cap-exempt, written only on request for a stakeholder audience, and never a gate.
+
 ## What the skill actually does
 
 The session walks through three internal phases:
@@ -190,10 +192,12 @@ and N-9).
 
 **Templates:**
 
-- Full discovery (Project-BA, EPIC and FEAT Item-BAs):
-  `templates/BA-TEMPLATE.md`
-- Mini discovery (IMP and FIX Item-BAs, capped at 80 lines):
+- Core discovery (Project-BA, EPIC and FEAT Item-BAs):
+  `templates/BA-TEMPLATE.md` (five questions, cap 40 lines)
+- Mini discovery (IMP and FIX Item-BAs, cap 40 lines):
   `templates/BA-MINI-TEMPLATE.md`
+- Optional long form for stakeholder audiences:
+  `templates/BA-EXTENDED-TEMPLATE.md` (cap-exempt, on request only)
 
 **Scope mapping per item type:**
 
@@ -210,22 +214,24 @@ archives, not in the active Project-BA.
 
 ## Handoff
 
-`/business-analysis` ends with the mandatory four-part
+`/business-analysis` ends with the mandatory three-part
 [Handoff Ritual](../concepts/handoff-rituals):
 
 1. Artifact report. Which sections filled, which deferred, which
    hypotheses still open.
-2. Handoff context entry in `_devprocess/context/HANDOFFS.md`.
-3. Phase-end commit (`chore(ba): {ITEM-ID} BA complete`) plus
+2. Phase-end commit (`chore(ba): {ITEM-ID} BA complete` with the
+   `DIA-Phase: ba-done` and
+   `DIA-Handoff: {ITEM-ID} -> requirements-engineering` trailers;
+   open questions and assumptions go into the commit body) plus
    `tag-phase --phase ba` and `sync-status --item {ITEM-ID}`. The
    sync-status step mirrors the BACKLOG Status to GitHub when the
    project runs in `mode = "github-sync"`; it is a no-op in the
    other modes.
-4. Transition question. "Shall I start `/requirements-engineering`
+3. Transition question. "Shall I start `/requirements-engineering`
    now?"
 
-The guide runs `/consistency-check` Mode A on the changed
-artifacts at the boundary.
+The pre-commit hook enforces the drift-critical graph invariants at
+every commit; the full `/consistency-check` runs before release.
 
 ## Phase 8: Post-Release Review (BA as living document)
 
@@ -248,17 +254,17 @@ The hypothesis status is also written to
 `_devprocess/context/METRICS.md` so the signal layer accumulates a
 trace of what the team predicted versus what actually happened.
 
-Phase 8 is queued automatically. `/dia-guide` the Closing Handoff (
-Closure) appends a `release-to-ba` entry to `HANDOFFS.md`. The
-next time `/business-analysis` runs, it picks up that handoff and runs
-Phase 8 before any new exploration work.
+Phase 8 is queued automatically. The Closing Handoff in `/dia-guide`
+queues a post-release-review BL-Item row in the BACKLOG. The next
+time `/business-analysis` runs after the revisit date has passed, it
+picks up that row and runs Phase 8 before any new exploration work.
 
 This closes the BA-to-release loop. The BA file ages with the product
 instead of becoming a stale document from the first sprint.
 
 ## Validation Mode for brownfield projects
 
-When `/business-analysis` detects a BA draft created by [`/reverse-engineering`](./reverse-engineering), it enters Validation Mode. Instead of starting a new interview from scratch, it walks through each section of the existing draft, confirms the evidence-backed claims with you, and fills the `[NEEDS USER INPUT]` placeholders through the normal interview cycle. Each section gets promoted from `Draft` to `Validated` as you confirm it.
+When `/business-analysis` detects a BA draft created by [`/dia-realign`](./dia-realign), it enters Validation Mode. Instead of starting a new interview from scratch, it walks through each section of the existing draft, confirms the evidence-backed claims with you, and fills the `[NEEDS USER INPUT]` placeholders through the normal interview cycle. Each section gets promoted from `Draft` to `Validated` as you confirm it.
 
 This is how the backward walk through the V joins the forward walk. Same file, same path, same downstream phases.
 

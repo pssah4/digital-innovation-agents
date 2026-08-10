@@ -4,12 +4,19 @@
 Rewrites references to the old skill names:
 - /business-analyse -> /business-analysis
 - /v-model-workflow -> /dia-guide
+- /reverse-engineering -> /dia-realign
+- /dia-migration -> /dia-realign
 - skills/business-analyse/ -> skills/business-analysis/
 - skills/v-model-workflow/ -> skills/dia-guide/
+- skills/reverse-engineering/ -> skills/dia-realign/
+- skills/dia-migration/ -> skills/dia-realign/
 - bare names: business-analyse -> business-analysis,
   v-model-workflow -> dia-guide,
-  dia-orchestrator -> dia-guide (skill-name only;
-  "V-Model" the methodology stays untouched)
+  dia-orchestrator -> dia-guide,
+  dia-migration -> dia-realign (skill-name only;
+  "V-Model" the methodology stays untouched; the bare word
+  "reverse-engineering" is NOT rewritten because it also names the
+  activity, only the /-prefixed and skills/-prefixed forms are)
 
 Idempotent. No-op for repos that already use the new names.
 
@@ -32,12 +39,19 @@ def transform(content: str) -> str:
     content = content.replace("skills/business-analyse/", "skills/business-analysis/")
     content = content.replace("skills/v-model-workflow/", "skills/dia-guide/")
     content = content.replace("skills/dia-orchestrator/", "skills/dia-guide/")
+    content = content.replace("skills/reverse-engineering/", "skills/dia-realign/")
+    content = content.replace("skills/dia-migration/", "skills/dia-realign/")
     content = content.replace("/business-analyse", "/business-analysis")
     content = content.replace("/v-model-workflow", "/dia-guide")
     content = content.replace("/dia-orchestrator", "/dia-guide")
+    content = content.replace("/reverse-engineering", "/dia-realign")
+    content = content.replace("/dia-migration", "/dia-realign")
     content = re.sub(r"\bbusiness-analyse\b", "business-analysis", content)
     content = re.sub(r"\bv-model-workflow\b(?!-imp)", "dia-guide", content)
     content = re.sub(r"\bdia-orchestrator\b", "dia-guide", content)
+    content = re.sub(r"\bdia-migration\b", "dia-realign", content)
+    # Bare "reverse-engineering" is deliberately not rewritten: it names
+    # the activity in prose, not only the retired skill.
     return content
 
 

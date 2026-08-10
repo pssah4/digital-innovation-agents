@@ -1,18 +1,12 @@
 ---
 name: security-audit
 description: >
-  Performs a COMPREHENSIVE, formal security audit of an entire codebase
-  and produces a written audit report (AUDIT-{PROJECT}-{DATE}.md) with
-  prioritized findings (H/M/L) and a remediation plan. Covers SAST, OWASP
-  Top 10, OWASP LLM Top 10, SCA (dependency analysis), Zero Trust
-  validation, code quality. Takes 30+ minutes. TRIGGER ONLY when the user
-  explicitly requests a formal full-codebase audit producing a report:
-  "security audit", "OWASP audit", "full security review", "AUDIT-Report
-  erstellen", "Codebase auditieren", "SCA audit", "dependency audit",
-  "CVE audit", "Sicherheitsaudit". DO NOT trigger for: PR-level security
-  checks (use the built-in security-review skill), one-off security
-  questions, threat-modeling discussions without an audit report,
-  individual finding fixes, or generic mentions of "secure" / "security".
+  Formal full-codebase security audit producing a written report with
+  prioritized findings: SAST, OWASP (incl. LLM Top 10), SCA, supply
+  chain, Zero Trust. Trigger ONLY on explicit requests like "security
+  audit", "OWASP audit", "Sicherheitsaudit", "dependency audit". NOT
+  for PR-level checks, one-off questions, or generic "security"
+  mentions.
 disable-model-invocation: false
 ---
 
@@ -72,6 +66,13 @@ A diff scope narrows WHERE findings are reported, never the reachability
 context: trace source->sink through the full tree even for a diff scan.
 Only `full` advances the delta baseline.
 
+For a release-gate or `full` audit, additionally offer the opt-in
+supply-chain stages via AskUserQuestion: the clean-room rebuild executes
+the project's build command in a scratch clone (needs
+`[audit.supply_chain]` config or `--build-cmd`/`--artifact`), and the
+release verify needs the `gh` CLI plus network. Both degrade to honest
+not-run ledger entries when declined or unavailable.
+
 ## The scan layer (deterministic)
 
 Phases 1-6 are driven by `tools/` (see `tools/README.md`), not manual
@@ -117,6 +118,7 @@ Feed each from `audit_scan.py` output; triage into findings.
 | 4. OWASP LLM Top 10 | Only if `detect` reports LLM APIs. Deepen with the agent/injection refs. | `references/owasp-llm-checklist.md`, `references/agent-approval-gate.md`, `references/prompt-injection-boundaries.md` |
 | 4b. Desktop runtime | Only if `detect` reports `electron`. | `references/desktop-runtime.md` |
 | 5. SCA | `audit_scan.py sca` (npm/pip audit + osv-scanner; license). Classify Runtime / Dev / Transitive. Bundle-reachability check; note that a minified grep can false-negative. | -- |
+| 5b. Supply chain | `audit_scan.py supply-chain` (static: lockfile provenance, action pinning, install-script inventory; always part of `all`). Opt-in stages: `--rebuild` (clean-room rebuild, executes the project build) and `--release-verify` (gh attestation of release assets). Stages that did not run appear as not-run in the ledger. | `references/supply-chain.md`, `tools/README.md#supply-chain-checks` |
 | 6. Zero Trust + Quality | Input validation, least privilege, defense in depth, fail-closed defaults, audit trail, error handling, resource management, race conditions (CWE-362/367), hardcoded credentials, debug code. Optional isolated PoC. | `references/local-dast.md` |
 
 ## Finding format (binding)
@@ -270,10 +272,13 @@ dashboard counts. Audit report keeps status `Confirmed` with note
 Audit report (final version), feature specs (security-relevant changes),
 ADRs (when fixes affect decisions), backlog (open findings).
 
-### Step 7: Run `/consistency-check` mode A
+### Step 7: Pre-release consistency check
 
-Catches deferred findings without backlog rows, FIX rows missing
-`feature:`/`epic:` frontmatter, drifted dashboard counts, dead links.
+The audit is the release gate, so the full graph check runs HERE (the
+one mandatory run per cycle): `python3 tools/consistency-check.py
+--check` (resolve against `$DIA_PLUGIN_ROOT`). Catches deferred
+findings without backlog rows, FIX rows missing `feature:`/`epic:`
+frontmatter, drifted dashboard counts, dead links.
 
 ---
 
@@ -291,8 +296,8 @@ Produced / updated:
 
 ### Part 2: Handoff context
 
-Append a new entry to `_devprocess/context/HANDOFFS.md`. Reference the
-audit summary block by file path; do not restate it. Add:
+Goes into the phase-end commit BODY (reference the audit summary block
+by file path; do not restate it):
 
 - **Unresolved P0/P1**: open high-severity findings and why.
 - **Architectural concerns**: patterns for a future `/architecture`
@@ -308,8 +313,11 @@ Per `skills/project-conventions/references/team-workflow.md` section
 chore(audit): <ITEM-ID> audit complete
 
 <one-line: risk verdict, N findings (P1/P2/P3), release recommendation>
+<unresolved P0/P1 and architectural concerns as short bullets>
 
 Refs: <ITEM-ID>[, FIX-..., FIX-...]
+DIA-Phase: sec-done
+DIA-Handoff: <ITEM-ID> -> release
 ```
 
 After the commit:
@@ -328,12 +336,13 @@ Skip the commit silently if the working tree has no changes.
 > "Security audit complete. Report: `_devprocess/analysis/AUDIT-{PROJECT}-{DATE}.md`.
 > Release readiness: {green/yellow/red}.
 > Recommended next: `/consistency-check` mode B finalises the artifact
-> graph and returns a Release-Ready verdict.
+> graph and returns a Release-Ready verdict (user command; the skill
+> is explicit-only).
 > Run `/consistency-check` mode B now, or review the audit first?"
 
-On agreement (or when running inside `/dia-guide`): run
-`/consistency-check` mode B; on Release-Ready: yes the `/dia-guide`
-Closing Handoff fires. On rejection: pause.
+On agreement: ask the user to invoke `/consistency-check` (mode B);
+on Release-Ready: yes the `/dia-guide` Closing Handoff fires. On
+rejection: pause.
 
 ## Keywords
 Security Audit, Security Review, OWASP, SAST, SCA, Vulnerability, CVE,

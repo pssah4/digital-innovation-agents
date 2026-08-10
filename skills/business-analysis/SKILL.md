@@ -1,24 +1,21 @@
 ---
 name: business-analysis
 description: >
- Conducts structured business analyses: problem and stakeholder analysis,
- as-is/to-be gap analysis, user personas, scope definition. Creates BA documents
- as the foundation for requirements engineering. Uses innovation phases
- EXPLORATION, IDEATION, and VALIDATION. Use this skill when the user mentions
- "Business Analysis", "BA", "Stakeholder Analysis", "Problem Analysis",
- "As-Is Analysis", "Gap Analysis", "User Personas", "Define Scope",
- "Analyze Project", "Explore", "How might we", "Value Proposition",
- "Idea Potential", "Innovation", or similar. Also when the user wants to start
- a new project and does not yet have a clear requirement. This skill helps
- understand the problem before discussing solutions.
+ Condenses a structured dialog about problem, users, and scope into a
+ short BA record that feeds requirements engineering. Use when the user
+ mentions "Business Analysis", "BA", "Problem Analysis", "Personas",
+ "Define Scope", "Explore", "How might we", "Value Proposition", or
+ starts a new project without a clear requirement.
 disable-model-invocation: false
 ---
 
 # Business Analyst
 
-You conduct a structured interview to understand the business problem and
-stakeholder needs. The output is a BA document that feeds Requirements
-Engineering.
+**The value is the dialog, not the document.** You conduct a structured
+interview to understand the business problem and stakeholder needs; the
+BA record condenses that dialog into the 40-line template. Write only
+what was said or evidenced; never invent personas, percentages, or
+baselines to fill a table.
 
 **Conventions linked once.** Reader budget, frontmatter spec, backlog
 vocabulary, writing style, and section policy all live in
@@ -26,26 +23,13 @@ vocabulary, writing style, and section policy all live in
 
 ## MANDATORY Pre-Phase 0: Branch and item check
 
-Before any artefact write, run the team-workflow check (full rules:
-`skills/project-conventions/references/team-workflow.md`).
-
-1. Identify the active backlog item from the prompt; for new items
-   write the BACKLOG row first. Ask once if unclear.
-2. Verify branch: `feature/<id>-<slug>` (FEAT/EPIC), `fix/<id>-<slug>`
-   (FIX), `chore/<id>-<slug>` (IMP). On main/master/dev or wrong
-   item-branch: ask to switch.
-3. Skill-triggered GitHub integration (idempotent, no-op without `gh`):
-
-   ```
-   python3 tools/github-integration/flow.py create-issue --item <ID>
-   python3 tools/github-integration/flow.py open-draft-pr --item <ID>
-   ```
-
-4. Phase tag at the end of Handoff:
-   `python3 tools/github-integration/flow.py tag-phase --item <ID> --phase ba`
-5. Write `.git/dia-active-skill` so subsequent invocations stay silent.
-
-The check fires once per skill invocation. Overrides in team-workflow.md.
+Standard ritual, full rules in
+`skills/project-conventions/references/team-workflow.md`: identify the
+active item (BACKLOG row first for new items), verify the branch
+matches `<type>/<item-id-lower>-<slug>` (AskUserQuestion on mismatch),
+run `flow.py create-issue` + `open-draft-pr` when GitHub sync is on,
+tag the phase at ritual end (`--phase ba`), and write
+`.git/dia-active-skill`. Fires once per invocation.
 
 ## MANDATORY Phase 0: BA target triage
 
@@ -229,7 +213,8 @@ Goal: how viable is the solution?
 - **Assessment Radar** (6 axes 0-10): Brand Fit, Investment, Asset Fit, Viral Potential, New Customer, Market Size
 - **Price Point and Willingness to Pay:** range, model, references
 - **Channels, Unfair Advantage, Revenue Stream**
-- **KPIs:** metrics with baseline and target
+- **Success signals:** numbers only where a measured baseline exists;
+  "baseline unknown" is a valid, honest value
 
 For PoC: focus on critical hypotheses, test methods, success criteria,
 and expert validation. For MVP: full market assessment as above.
@@ -249,8 +234,9 @@ reasoning. Real usage data has to flow back, otherwise the BA becomes
 historical fiction.
 
 **Trigger:** user invokes `/business-analysis` on an existing BA at
-`status: Validated` AFTER a release, OR `/coding` flags the release as
-"Ready for BA Post-Release Review" in `_devprocess/context/HANDOFFS.md`.
+`status: Validated` AFTER a release, OR the Closing Handoff queued a
+post-release-review BL-Item row in the BACKLOG (Deferred / Ideas) whose
+revisit date has passed.
 
 **Process:**
 
@@ -287,14 +273,17 @@ explicit, critical hypotheses documented, acceptable shortcuts noted.
 **MVP** (at least 9 of 12): Exploration Board complete, business
 context (As-Is/To-Be/Gap), stakeholder map, two personas with needs and
 insights, HMW as synthesis, idea potential (3 axes), value proposition,
-critical hypotheses, KPIs with baseline+target, scope explicit,
+critical hypotheses, success signals defined, scope explicit,
 constraints, risks.
 
 ## Anti-patterns (one-liners; detail examples in `references/anti-patterns.md`)
 
 - No technical prescriptions in the BA (no "React + PostgreSQL").
-- No vague problem statements; quantify duration, frequency, error rate.
-- KPIs always carry baseline and target with a timeframe.
+- No vague problem statements; quantify with real observations.
+- Never invent numbers: a signal without a measured baseline says
+  "baseline unknown", it does not get a fabricated percentage.
+- No speculative personas; a persona without a real source does not
+  enter any document.
 - Do not jump to solutions before EXPLORE is complete.
 - HMW is mandatory; it bridges EXPLORATION to IDEATION.
 
@@ -330,28 +319,23 @@ Produced / updated:
 - Key output: HMW, Value Proposition, referenced Personas (by ID)
 ```
 
-### Part 2: Handoff context
+### Part 2: Phase-end commit
 
-Append to `_devprocess/context/HANDOFFS.md`: Scope, Personas (primary
-marked), HMW question, Critical Hypotheses, Assumptions, Open questions.
-
-### Part 3: Run `/consistency-check` mode A
-
-Catches missing backlog rows, broken `project-ba-ref` and
-`project-kpi-ref`, dead persona refs, missing `ba-ref:` on EPIC/FEAT
-artefacts with a corresponding BA file, dashboard drift.
-
-### Part 4: Phase-end commit
-
-Run per `skills/project-conventions/references/team-workflow.md` section
-"Phase-end commit (binding)". Canonical message:
+Run per `skills/project-conventions/references/team-workflow.md`
+section "Phase-end commit (binding)". Scope, HMW, critical hypotheses,
+assumptions, and open questions go into the commit BODY as short
+bullets. Canonical message:
 
 ```
 chore(ba): <ITEM-ID> BA complete
 
 <one-line summary of HMW + scope>
+<assumptions and open questions as short bullets>
 
 Refs: <ITEM-ID>
+DIA-Phase: ba-done
+DIA-Handoff: <ITEM-ID> -> requirements-engineering
+DIA-Triage: <ITEM-ID> <kind>
 ```
 
 After the commit:
@@ -363,7 +347,7 @@ python3 tools/github-integration/flow.py sync-status --item <ID>
 
 `sync-status` is a no-op outside `mode = "github-sync"`.
 
-### Part 5: Transition question
+### Part 3: Transition question
 
 > "Business Analysis is complete. Documents saved.
 > Recommended next: `/requirements-engineering` promotes the BA into the

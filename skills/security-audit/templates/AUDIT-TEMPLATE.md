@@ -17,6 +17,7 @@
 |-----------------|----------|------|--------|-----|------|
 | Code findings (SAST, OWASP, Zero Trust, Quality) | {n} | {n} | {n} | {n} | {n} |
 | SCA (Dependencies) | {n} | {n} | {n} | {n} | {n} |
+| Supply chain (provenance, build integrity) | {n} | {n} | {n} | {n} | {n} |
 | License Compliance | {n} | {n} | {n} | {n} | {n} |
 | Total | {n} | {n} | {n} | {n} | {n} |
 
@@ -47,6 +48,12 @@ Inline format pro Finding: `**{FP}** - Severity / CWE-{n} / CVSS {vector}={score
 | Package | Version | CVE | Severity | Fix Version |
 |---------|---------|-----|----------|-------------|
 | {pkg} | {ver} | {CVE-ID} | {sev} | {fix} |
+
+## Supply Chain: Provenance and Build Integrity
+
+| Finding | Severity | CWE | Location |
+|---------|----------|-----|----------|
+| {finding} | {sev} | {cwe} | {loc} |
 
 ## License Compliance
 

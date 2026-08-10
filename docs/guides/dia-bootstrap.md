@@ -36,8 +36,8 @@ foundation skills. The full list is in
 | User context | Suggested entry |
 |---|---|
 | Starting something new, problem space unclear | `/dia-guide` |
-| Existing codebase, no V-Model artifacts | `/reverse-engineering`, then `/business-analysis` for the WHY |
-| Existing DIA project on v1 or v2 | `/dia-migration` |
+| Existing codebase, no V-Model artifacts | `/dia-realign` (Mode A), then `/business-analysis` for the WHY |
+| Existing DIA project on v1 or v2 | `/dia-realign` (Mode B) |
 | Clear problem, no solution yet | `/business-analysis` |
 | Features defined, no architecture | `/architecture` |
 | Ready to implement | `/coding` |
@@ -65,7 +65,7 @@ Project artifacts live under `_devprocess/`:
   domain)
 - `_devprocess/implementation/plans/` for PLAN-NN files
 - `_devprocess/context/` for `BACKLOG.md` (single source of truth
-  for state), `HANDOFFS.md`, `METRICS.md`
+  for state), `BACKLOG-HISTORY.md`, `METRICS.md`
 - `src/ARCHITECTURE.map` for the wayfinder root
 - `src/{module}/README.md` for module wayfinders
 

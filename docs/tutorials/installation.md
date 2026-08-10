@@ -106,7 +106,6 @@ git clone https://github.com/pssah4/digital-innovation-agents.git /tmp/dia
 cp -r /tmp/dia/.github/agents .github/agents
 cp -r /tmp/dia/.github/chatmodes .github/chatmodes
 cp -r /tmp/dia/.github/instructions .github/instructions
-cp -r /tmp/dia/.github/templates .github/templates
 cp /tmp/dia/.github/copilot-instructions.md .github/copilot-instructions.md
 ```
 
@@ -165,7 +164,7 @@ gemini extensions update digital-innovation-agents
 
 If you need a specific older release for reproducibility (v1.0.0 or
 v2.4.0), clone the tag directly. v1 and v2 are no longer maintained;
-for active development upgrade to v3 through `/dia-migration`.
+for active development upgrade through `/dia-realign` (Mode B).
 
 ```bash
 git clone --branch v1.0.0 https://github.com/pssah4/digital-innovation-agents.git   # Classic
@@ -185,8 +184,7 @@ Start a new session on your platform and try one of these:
 /dia-setup                 Activate the workflow in this project
 /dia-guide                 Guide for the full cycle
 /business-analysis         Problem exploration, ideation, validation
-/reverse-engineering       Brownfield entry for an existing codebase
-/dia-migration             Upgrade an older DIA project to v3 conventions
+/dia-realign               Brownfield entry and legacy DIA upgrade
 ```
 
 Or ask a natural-language question like "help me analyze this

@@ -95,6 +95,35 @@ def read_dia_mode() -> str:
     return "git-only"
 
 
+def read_dia_profile() -> str:
+    """Read profile from .dia/config.toml. Default full when missing.
+
+    `full` keeps every phase skill binding as written; `lean` makes
+    only architecture artifacts and backlog state binding (all other
+    skills advisory). A missing field or file means full, so existing
+    projects see zero behavior change.
+    """
+    try:
+        cfg = repo_root() / ".dia" / "config.toml"
+    except subprocess.CalledProcessError:
+        return "full"
+    if not cfg.exists():
+        return "full"
+    text = cfg.read_text(encoding="utf-8")
+    try:
+        import tomllib  # type: ignore[import-not-found]
+
+        data = tomllib.loads(text)
+        profile = data.get("profile", "full")
+        if profile in ("full", "lean"):
+            return profile
+    except ModuleNotFoundError:
+        value = _toml_string_fallback("profile", text)
+        if value in ("full", "lean"):
+            return value
+    return "full"
+
+
 # TOML allows both `key = "value"` (basic) and `key = 'value'` (literal).
 # /dia-setup writes double quotes, but the template explicitly invites
 # hand edits. The fallback parsers below need to match both shapes.
@@ -1926,6 +1955,12 @@ def cmd_status(args: argparse.Namespace) -> int:
         return 0
     print(f"=== Status for {item} ===")
     cur = current_branch()
+    profile = read_dia_profile()
+    profile_label = profile if "profile" in (
+        (repo_root() / ".dia" / "config.toml").read_text(encoding="utf-8")
+        if (repo_root() / ".dia" / "config.toml").exists() else ""
+    ) else f"{profile} (implicit)"
+    print(f"Profile:                {profile_label}")
     print(f"Branch (current):       {cur}")
     print(f"Branch matches item:    {branch_matches_item(cur, item)}")
     print()

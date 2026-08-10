@@ -2,7 +2,6 @@
 .DS_Store
 
 # Backup
-backup/
 
 # Node / VitePress
 node_modules/
