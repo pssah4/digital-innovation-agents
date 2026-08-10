@@ -5,6 +5,15 @@ All notable changes to digital-innovation-agents are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.1] - 2026-08-10
+
+### Added
+
+- Writing-style reference: German-umlaut rule for German artifacts
+  (real umlauts in prose, ASCII exceptions for identifiers and names)
+  and the "concise, not publication-ready" principle. Recovered from a
+  hand-edit in a local plugin clone that predated the v4 split.
+
 ## [4.0.0] - 2026-08-10
 
 Major overhaul: supply-chain security phase, workflow diet, lean
