@@ -4,9 +4,8 @@ description: >
  Condenses a structured dialog about problem, users, and scope into a
  short BA record that feeds requirements engineering. Use when the user
  mentions "Business Analysis", "BA", "Problem Analysis", "Personas",
- "Define Scope", "Explore", "How might we", "Value Proposition",
- "Innovation", or starts a new project without a clear requirement.
- Understand the problem before discussing solutions.
+ "Define Scope", "Explore", "How might we", "Value Proposition", or
+ starts a new project without a clear requirement.
 disable-model-invocation: false
 ---
 

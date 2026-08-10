@@ -3,10 +3,9 @@ name: dia-guide
 description: >
  Guides users through the V-Model workflow: takes stock of the project
  state, recommends the next phase skill, audits handoff state, and runs
- the Closing Handoff after a green security audit. Explicit user command:
- invoke for "where do I start", "what comes next", "wo bin ich gerade",
- "was kommt jetzt", or the V-Model overview. Never for individual phase
- work.
+ the Closing Handoff after a green security audit. Explicit user
+ command for "where do I start", "what comes next", "wo bin ich
+ gerade", "was kommt jetzt". Never for individual phase work.
 disable-model-invocation: true
 ---
 

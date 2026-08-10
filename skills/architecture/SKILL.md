@@ -3,10 +3,9 @@ name: architecture
 description: >
  Creates architecture decision records (post-hoc by default, full MADR
  for constraints), the arc42 constraints doc, navigation artifacts
- (SYSTEM-MAP, decisions router), and plan-context.md as ref index. Use
- when the user mentions "architecture", "ADR", "arc42", "tech stack",
- "solution design", "system design", or "plan-context". Creates
- PROPOSALS; /coding decides against the real codebase.
+ (SYSTEM-MAP, decisions router), and plan-context.md as ref index.
+ Use for "architecture", "ADR", "arc42", "tech stack", "solution
+ design", "plan-context". Proposals only; /coding decides.
 disable-model-invocation: false
 ---
 

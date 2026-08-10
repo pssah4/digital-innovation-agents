@@ -1,12 +1,11 @@
 ---
 name: requirements-engineering
 description: >
- Transforms business analyses into epics, features, and tech-agnostic success
- criteria. Creates handoff documents for the architect. Use this skill when
- the user mentions "Requirements", "RE", "Define Features", "Create Epics",
- "User Stories", "Requirements", "Success Criteria", "NFRs", "ASRs",
- "Acceptance Criteria", or similar. Also when a BA document exists and the
- next step is the formalization of requirements.
+ Transforms business analyses into epics, features, and tech-agnostic
+ success criteria; creates the architect handoff. Use when the user
+ mentions "Requirements", "RE", "Define Features", "Create Epics",
+ "User Stories", "Success Criteria", "NFRs", "ASRs", "Acceptance
+ Criteria", or when a BA exists and needs formalization.
 disable-model-invocation: false
 ---
 

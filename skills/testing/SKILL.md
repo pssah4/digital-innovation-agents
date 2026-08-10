@@ -1,12 +1,11 @@
 ---
 name: testing
 description: >
-  Creates and manages unit tests and integration tests. Analyzes the existing
-  codebase, auto-detects the test framework, and generates tests that follow
-  project conventions. Use this skill when the user mentions "write tests",
-  "unit tests", "integration tests", "test coverage", "testing", "tests
-  missing", "TDD" or similar. Also after implementation when tests need to
-  be created or updated.
+  Creates and manages unit and integration tests: detects the test
+  framework, follows project conventions, runs the fix-loop. Use when
+  the user mentions "write tests", "unit tests", "integration tests",
+  "test coverage", "tests missing", "TDD", or after implementation
+  when tests need creating or updating.
 disable-model-invocation: false
 ---
 

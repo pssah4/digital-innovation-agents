@@ -3,9 +3,9 @@ name: coding
 description: >
  Handoff and bug-capture skill: loads plan-context and design artifacts,
  reviews them critically against the real codebase, and keeps artifacts in
- sync during and after implementation. TDD is the default. Use when the
- user mentions "implement", "code", "build feature", "realize
- plan-context", "Bug gefunden", "es gibt einen Fehler", or "Fix erfassen".
+ sync during and after implementation. TDD is the default. Use for
+ "implement", "code", "build feature", "realize plan-context", "Bug
+ gefunden", "es gibt einen Fehler", "Fix erfassen".
 disable-model-invocation: false
 ---
 

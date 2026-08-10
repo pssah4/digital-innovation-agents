@@ -1,13 +1,11 @@
 ---
 name: consistency-check
 description: >
-  Verifies the V-Model artifact graph is intact: Epics, Features,
-  Success Criteria, ADRs, PLANs, Backlog, Wayfinder rows, and code
-  references. Syntactic mode (links, IDs, Refs) and semantic mode
-  (content coherence). Explicit user command: invoke for "consistency
-  check", "graph check", "dead links", "orphan features",
-  "graph-health", or before a release. Routine enforcement runs via
-  the pre-commit hook, not per phase.
+  Verifies the V-Model artifact graph: Epics, Features, ADRs, PLANs,
+  Backlog, Wayfinder rows, code refs. Syntactic and semantic modes.
+  Explicit user command for "consistency check", "graph check", "dead
+  links", "orphan features", or before a release; routine enforcement
+  runs via the pre-commit hook, not per phase.
 disable-model-invocation: true
 ---
 
@@ -34,8 +32,8 @@ project convention uses ASCII.
 
 ## Three modes
 
-- **Mode A (syntactic, default):** fast, no LLM, runs on phase-end
-  triggers and pre-commit hooks.
+- **Mode A (syntactic, default):** fast, no LLM, runs via the
+  pre-commit hook, before release, and on demand.
 - **Mode B (semantic, on-demand):** agent-based, runs before release
   or on explicit `--deep`.
 - **Mode C (interactive fix-loop):** guided fix workflow with
@@ -47,7 +45,8 @@ project convention uses ASCII.
 
 ### Mode A: Syntactic check (default, fast, no LLM)
 
-Runs on every Phase-End trigger. Uses Grep + filesystem probes
+Runs via the pre-commit hook, before release, and on demand. Uses
+Grep + filesystem probes
 only. Costs near zero.
 
 Checks (8 quick-check items):

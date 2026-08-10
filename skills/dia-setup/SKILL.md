@@ -1,6 +1,6 @@
 ---
 name: dia-setup
-description: Activates, reconfigures, or deactivates the Digital Innovation Agents workflow in a project. Writes the .dia/config.toml settings file and manages anchor blocks in agent-facing files (CLAUDE.md, AGENTS.md, GEMINI.md, .cursorrules, .github/copilot-instructions.md, .windsurfrules). Use this skill when the user mentions "DIA aktivieren", "DIA installieren", "DIA initialisieren", "DIA setup", "DIA settings", "Workflow-Modus", "Modus wechseln", "DIA off", "DIA deaktivieren", "Plugin aktivieren". Single skill that covers both first-time activation and later reconfiguration; the skill detects which path applies from the presence of .dia/config.toml.
+description: Activates, reconfigures, or deactivates the DIA workflow in a project. Writes .dia/config.toml (mode + profile) and manages anchor blocks in agent files (CLAUDE.md, AGENTS.md, ...). Use for "DIA aktivieren", "DIA setup", "DIA settings", "Modus wechseln", "Profil wechseln", "DIA off". Covers first-time activation and later reconfiguration.
 ---
 
 # DIA Setup

@@ -1,18 +1,12 @@
 ---
 name: security-audit
 description: >
-  Performs a COMPREHENSIVE, formal security audit of an entire codebase
-  and produces a written audit report (AUDIT-{PROJECT}-{DATE}.md) with
-  prioritized findings (H/M/L) and a remediation plan. Covers SAST, OWASP
-  Top 10, OWASP LLM Top 10, SCA (dependency analysis), Zero Trust
-  validation, code quality. Takes 30+ minutes. TRIGGER ONLY when the user
-  explicitly requests a formal full-codebase audit producing a report:
-  "security audit", "OWASP audit", "full security review", "AUDIT-Report
-  erstellen", "Codebase auditieren", "SCA audit", "dependency audit",
-  "CVE audit", "Sicherheitsaudit". DO NOT trigger for: PR-level security
-  checks (use the built-in security-review skill), one-off security
-  questions, threat-modeling discussions without an audit report,
-  individual finding fixes, or generic mentions of "secure" / "security".
+  Formal full-codebase security audit producing a written report with
+  prioritized findings: SAST, OWASP (incl. LLM Top 10), SCA, supply
+  chain, Zero Trust. Trigger ONLY on explicit requests like "security
+  audit", "OWASP audit", "Sicherheitsaudit", "dependency audit". NOT
+  for PR-level checks, one-off questions, or generic "security"
+  mentions.
 disable-model-invocation: false
 ---
 

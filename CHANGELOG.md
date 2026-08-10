@@ -5,6 +5,85 @@ All notable changes to digital-innovation-agents are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-08-10
+
+Major overhaul: supply-chain security phase, workflow diet, lean
+profile. Based on the 2026-08-07 skill-set review (18 findings) and
+the agent-isolation / artifact-integrity analysis.
+
+### Breaking
+
+- `/reverse-engineering` and `/dia-migration` are merged into
+  `/dia-realign` (one entry point for brownfield walks and legacy DIA
+  upgrades; `tools/migration/migrate_skill_names.py` maps the old
+  commands, legacy git tags stay valid).
+- `HANDOFFS.md` is retired. Phase transitions live in DIA commit
+  trailers (`DIA-Phase`, `DIA-Handoff`, `DIA-Triage`); handoff context
+  goes into the phase-end commit body. Existing HANDOFFS.md files stay
+  untouched; `/dia-realign` offers a deprecation header.
+- `/dia-guide` and `/consistency-check` are explicit user commands
+  (`disable-model-invocation: true`). The full consistency check is
+  mandatory only before release; the pre-commit hook enforces the
+  drift-critical invariants per commit.
+- TDD is the DEFAULT in `/coding` (`--no-tdd` opts out; the three
+  exceptions need explicit user confirmation logged in the PLAN Change
+  Log). Verify RED requires quoting the observed failure verbatim.
+- arc42 splits into a 40-line pre-code CONSTRAINTS document and an
+  optional cap-exempt post-code REFERENCE document; `plan-context.md`
+  becomes a 20-line pure ref index without a Dialog section. Legacy
+  files keep their old caps via scope detection.
+
+### Added
+
+- **Supply-chain phase in `/security-audit`** (three stages): static
+  checks always (lockfile provenance against a registry allowlist,
+  GitHub Action pinning with write-permission severity escalation,
+  install-script inventory as delta-able findings, manifest hygiene,
+  Python pins); opt-in `--rebuild` clean-room rebuild (scratch clone,
+  allowlist-scrubbed env, `--ignore-scripts`, artifact hash compare);
+  opt-in `--release-verify` (`gh attestation verify` per release
+  asset plus rebuild cross-check). Honest not-run/not-applicable
+  ledger entries; 24 new offline tests.
+- **`profile = "full" | "lean"`** in `.dia/config.toml`. Lean makes
+  only durable decisions and stable navigation binding: rules
+  consolidated in AGENTS.md (CLAUDE.md as pointer), SYSTEM-MAP.md,
+  post-hoc ADRs behind a `decisions/README.md` router table, status
+  in GitHub Issues or a thin BACKLOG. Modeled on the a downstream project
+  practice. Absent field = full, zero migration.
+- ADR frontmatter: `kind: constraint | choice | post-hoc` (post-hoc
+  is the documented normal case), `reversal-cost`, `applies-to`,
+  `read-when`; new SYSTEM-MAP and DECISIONS-README templates; post-hoc
+  ADR sweep in `/coding` final sync.
+- Single-source artifact caps in
+  `skills/project-conventions/references/artifact-caps.json`, read at
+  runtime by `tools/consistency-check.py` (three diverged mirror
+  copies removed).
+- BA-EXTENDED template (optional, cap-exempt long form); the BA
+  template shrinks to five questions (40 lines) and bans invented
+  personas and numbers.
+- `/testing` fix-loop option C ("adjust tests") now requires three
+  pieces of evidence (SC bump, PLAN change-log entry, diff shown
+  before the edit).
+
+### Changed
+
+- Session context diet: SKILL bodies shrink from ~7100 to ~4800
+  lines; the SessionStart injection (dia-bootstrap) from 210 to ~110
+  lines; all skill descriptions capped at 350 characters; duplicated
+  pre-phase-0 / backlog-SoT / writing-style / three-layer blocks live
+  once under `skills/project-conventions/references/`.
+- Repo self-hardening: checkout/setup-python pinned to commit SHAs in
+  the write-permission workflows, `npm ci` + `persist-credentials:
+  false` in the Pages deploy, pinned anthropic SDK install, and a
+  fail-closed `.npmrc` (`ignore-scripts=true`).
+- BACKLOG session log replaced by an append-only
+  `BACKLOG-HISTORY.md` pointer.
+
+### Removed
+
+- Legacy `.github/templates/` (5 files, 1655 lines, colliding
+  BUGFIX-XXX/FEATURE-XXX ID scheme) and dangling template references.
+
 ## [3.8.0] - 2026-07-27
 
 security-audit skill: CodeQL becomes the preferred SAST engine when
