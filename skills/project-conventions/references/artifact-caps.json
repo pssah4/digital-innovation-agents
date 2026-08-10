@@ -9,25 +9,95 @@
       "skills/consistency-check/SKILL.md"
     ]
   },
-  "tolerance": 0.10,
+  "tolerance": 0.1,
   "caps": {
-    "project-ba":        { "lines": 200, "boundary": "full file", "note": "Initial discovery only" },
-    "epic-ba":           { "lines": 120, "boundary": "full file", "note": "Item-BA at epic scope" },
-    "feat-ba":           { "lines": 60,  "boundary": "full file", "note": "Item-BA at feature scope" },
-    "ba-mini":           { "lines": 40,  "boundary": "full file", "note": "IMP/FIX scope" },
-    "exploration-board": { "lines": 70,  "boundary": "full file", "note": "Scratchpad" },
-    "epic":              { "lines": 40,  "boundary": "full file" },
-    "feature":           { "lines": 65,  "boundary": "full file" },
-    "backlog-header":    { "lines": 80,  "boundary": "up to ## Active Epics", "note": "header + vocab + pointers; rows uncapped" },
-    "architect-handoff": { "lines": 60,  "boundary": "full file", "note": "Dialog grows in-place" },
-    "adr":               { "lines": 60,  "boundary": "full file", "note": "Implementation Notes appendix exempt; includes 7-line German-variant translation note" },
-    "arc42-poc":         { "lines": 65,  "boundary": "full file" },
-    "arc42-mvp":         { "lines": 100, "boundary": "full file" },
-    "plan-context":      { "lines": 55,  "boundary": "full file" },
-    "plan":              { "lines": 50,  "boundary": "up to ## Change Log", "note": "Change Log tail uncapped" },
-    "fix":               { "lines": 32,  "boundary": "full file" },
-    "imp":               { "lines": 30,  "boundary": "full file" },
-    "audit":             { "lines": 65,  "boundary": "full file", "note": "finding tables exempt by convention" },
-    "metrics":           { "lines": 50,  "boundary": "full file" }
+    "project-ba": {
+      "lines": 200,
+      "boundary": "full file",
+      "note": "Initial discovery only"
+    },
+    "epic-ba": {
+      "lines": 120,
+      "boundary": "full file",
+      "note": "Item-BA at epic scope"
+    },
+    "feat-ba": {
+      "lines": 60,
+      "boundary": "full file",
+      "note": "Item-BA at feature scope"
+    },
+    "ba-mini": {
+      "lines": 40,
+      "boundary": "full file",
+      "note": "IMP/FIX scope"
+    },
+    "exploration-board": {
+      "lines": 70,
+      "boundary": "full file",
+      "note": "Scratchpad"
+    },
+    "epic": {
+      "lines": 40,
+      "boundary": "full file"
+    },
+    "feature": {
+      "lines": 65,
+      "boundary": "full file"
+    },
+    "backlog-header": {
+      "lines": 80,
+      "boundary": "up to ## Active Epics",
+      "note": "header + vocab + pointers; rows uncapped"
+    },
+    "architect-handoff": {
+      "lines": 60,
+      "boundary": "full file",
+      "note": "Dialog grows in-place"
+    },
+    "adr": {
+      "lines": 60,
+      "boundary": "full file",
+      "note": "Implementation Notes appendix exempt; includes 7-line German-variant translation note"
+    },
+    "arc42-poc": {
+      "lines": 65,
+      "boundary": "full file"
+    },
+    "arc42-mvp": {
+      "lines": 100,
+      "boundary": "full file"
+    },
+    "plan-context": {
+      "lines": 20,
+      "boundary": "full file",
+      "note": "pure ref index since v4; legacy 55-line files need a Reasoned exception or a rebuild"
+    },
+    "plan": {
+      "lines": 50,
+      "boundary": "up to ## Change Log",
+      "note": "Change Log tail uncapped"
+    },
+    "fix": {
+      "lines": 32,
+      "boundary": "full file"
+    },
+    "imp": {
+      "lines": 30,
+      "boundary": "full file"
+    },
+    "audit": {
+      "lines": 65,
+      "boundary": "full file",
+      "note": "finding tables exempt by convention"
+    },
+    "metrics": {
+      "lines": 50,
+      "boundary": "full file"
+    },
+    "arc42-constraints": {
+      "lines": 40,
+      "boundary": "full file",
+      "note": "pre-code constraints doc (v4); legacy arc42-poc/mvp keys stay for existing files"
+    }
   }
 }

@@ -1012,10 +1012,14 @@ BACKLOG_ACTIVE_EPICS_RE = re.compile(r"^##\s+Active Epics\s*$", re.MULTILINE)
 
 
 def _arc42_cap_key(path: Path, fm: dict[str, str]) -> str:
-    """Pick arc42-poc vs arc42-mvp based on a `scope:` frontmatter hint
-    or a fallback path heuristic. Defaults to mvp (the looser cap).
+    """Pick the arc42 cap key from a `scope:` frontmatter hint or a
+    fallback path heuristic. New projects use the CONSTRAINTS template
+    (`scope: constraints`); legacy poc/mvp files keep their looser caps.
+    Defaults to mvp (the loosest cap, protects existing projects).
     """
     scope = fm.get("scope", "").lower()
+    if "constraints" in scope:
+        return "arc42-constraints"
     if "poc" in scope:
         return "arc42-poc"
     return "arc42-mvp"
@@ -1031,6 +1035,13 @@ def classify_artifact(path: Path, fm: dict[str, str]) -> str | None:
     target_type = fm.get("target-type", "").lower()
     fm_type = fm.get("type", "").lower()
     fm_id = fm.get("id", "")
+
+    # Cap-exempt long forms: BA-EXTENDED and the post-code arc42
+    # reference document are explicitly outside the reader budget.
+    if "-extended" in name.lower() or fm_id.lower().endswith("-extended"):
+        return None
+    if name == "arc42-REFERENCE.md":
+        return None
 
     # BAs are classified by target-type (Project / Epic / Feat / Mini).
     if name.startswith("BA-") or fm_type == "ba" or target_type:
