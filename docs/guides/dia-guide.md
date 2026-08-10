@@ -5,17 +5,22 @@ description: "The guide that helps users navigate the V-Model: state audit, next
 
 # V-Model workflow guide
 
-`/dia-guide` is the navigational layer of DIA. It does not perform
-CRUD work on artifacts. It reads project state, audits the last
-handoff, recommends the next phase skill, and runs the Closing
-Handoff after a successful security audit. Every concrete change
-lives in the phase skill the guide dispatches to.
+`/dia-guide` is the read-only orientation layer of DIA, invoked
+explicitly by the user (the skill is marked explicit-only; the model
+never auto-loads it). It reads project state, audits the last
+phase-end commit for the binding DIA trailers, recommends the next
+phase skill, and runs the Closing Handoff after a successful
+security audit. Almost every concrete change lives in the phase
+skill the guide dispatches to; the guide owns only two narrow CRUD
+moments at workflow boundaries: the post-`/dia-realign` item
+promotion (issues, tags) and the item-start branch creation.
 
 The phase skills (`/business-analysis`, `/requirements-engineering`,
 `/architecture`, `/coding`, `/testing`, `/security-audit`) are
-autonomous. They run their own triage, their own `/consistency-check`
-mode A at phase end, and their own handoff ritual. The guide is the
-on-demand orientation layer above them.
+autonomous. They run their own triage and their own handoff ritual.
+The pre-commit hook enforces the drift-critical graph invariants
+between boundaries; the full `/consistency-check` runs before
+release. The guide is the on-demand orientation layer above them.
 
 ## When to use the guide
 
@@ -45,9 +50,9 @@ Three responsibilities, all on demand:
 
 | Responsibility | Trigger | Output |
 |---|---|---|
-| Orientation interview | "Where do I start?" / "I am lost" | One recommended phase skill, with one or two alternatives, based on the state of `BACKLOG.md`, the latest `HANDOFFS.md` entry, and the current branch |
-| Handoff audit | After any phase, on user request | Read of last `HANDOFFS.md` entry; check for required fields (`triage:`, `triage_kind:`, `epic:`, `feature:`); report any gap and name the responsible skill |
-| Closing Handoff | After `/security-audit` returns green or yellow | Recommend `/consistency-check` mode B; on Release-Ready: yes, output the closing report and the `release-to-ba` template |
+| Orientation interview | "Where do I start?" / "I am lost" | One recommended phase skill, with one or two alternatives, based on the state of `BACKLOG.md`, the latest DIA commit trailers, and the current branch |
+| Handoff audit | After any phase, on user request | Read of the last phase-end commit; check for the binding trailers (`DIA-Phase`, `DIA-Handoff`, plus `DIA-Triage` where triage happened); report any gap and name the responsible skill |
+| Closing Handoff | After `/security-audit` returns green or yellow | Recommend `/consistency-check` mode B; on Release-Ready: yes, output the closing report and queue the post-release review as a BACKLOG row |
 
 The guide does not write to artifacts. It reads, recommends, and
 hands off.
@@ -56,8 +61,9 @@ hands off.
 
 The artifact triage (FEAT / IMP / FIX / ADR) is owned by every
 phase skill at its own entry. The guide does not run the triage; it
-checks that the most recent handoff entry carries a `triage:` field
-and reports the gap if missing.
+checks that the commit where triage happened carries a `DIA-Triage`
+trailer and reports the gap if missing. A skill that finds a
+`DIA-Triage` trailer for its item skips its own triage question.
 
 Triage details live in [graph-invariants.md, section "Artifact
 triage at entry point"](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/project-conventions/references/graph-invariants.md).
@@ -78,12 +84,15 @@ E)  Implementation done                -> /testing
 F)  Tests passed                       -> /security-audit
 G)  Audit done                         -> Closing Handoff (consistency-check mode B + optional /release)
 H)  Unsure                             -> short orientation interview
-I)  Brownfield (existing code)         -> /reverse-engineering
+I)  Brownfield or legacy DIA repo      -> /dia-realign
 ```
 
-The scan reads `BACKLOG.md`, the latest `HANDOFFS.md` entry, and
+The scan reads `BACKLOG.md`, the latest DIA commit trailers
+(`git log --format='%(trailers:key=DIA-Handoff,valueonly)'`), and
 git phase-done tags. The recommendation is the proposed default;
-the user can pick anything.
+the user can pick anything. In the lean profile the guide recommends
+`/architecture` or `/coding` directly and skips BA/RE
+recommendations unless the user asks for them.
 
 ## The six phases plus Closing Handoff
 
@@ -126,12 +135,12 @@ logic; it just observes the state and recommends what to do next.
 The boundary mechanics live in the phase skills, not in the guide.
 The guide only reads their output. Each phase skill runs at its end:
 
-1. **`/consistency-check` mode A** on the changed artifacts:
-   syntactic check for dead links, orphan refs, ID mismatches.
-2. **4-part Handoff Ritual** (artifact report, handoff context in
-   `HANDOFFS.md`, phase-end commit plus `tag-phase`, transition
-   question). See [Handoff Rituals](../concepts/handoff-rituals).
-3. **Plan-gate** (only at the start of `/coding`): SC coverage map,
+1. **3-part Handoff Ritual** (artifact report, phase-end commit
+   with DIA trailers and handoff context in the commit body, plus
+   `tag-phase`, transition question). See
+   [Handoff Rituals](../concepts/handoff-rituals). The pre-commit
+   hook checks the drift-critical graph invariants on every commit.
+2. **Plan-gate** (only at the start of `/coding`): SC coverage map,
    ADR alignment, codebase anchoring, verify commands ready. The
    plan must close every Critical ASR. This gate lives in the
    `/coding` entry block.
@@ -202,19 +211,24 @@ The Closing Handoff is a short guide output, not a phase. It fires
 after `/security-audit` has produced a non-red verdict and the
 fix-loop is closed.
 
-Three steps:
+Four steps:
 
-1. **Suggest `/consistency-check` mode B** (semantic). Mode B
+1. **Suggest `/consistency-check` mode B** (semantic; the check is
+   an explicit user command). Mode B
    confirms BA Validation is filled, all Feature/ADR statuses are
    final, arc42 reflects the actual decisions, and plan-context
    matches the real tech stack. Mode B returns a Release-Ready
    verdict.
 2. **On Release-Ready: yes**: output the closing report (Feature /
-   bug / security counts, finalised artifacts) plus the
-   `release-to-ba` HANDOFFS template. The user can then run a
-   private release skill (the public DIA plugin does not own a
-   release mechanism, since release pipelines are project-specific).
-3. **On Release-Ready: no**: name the responsible skill and the
+   bug / security counts, finalised artifacts). The user can then
+   run a private release skill (the public DIA plugin does not own
+   a release mechanism, since release pipelines are
+   project-specific).
+3. **Queue the post-release review as a BACKLOG row** under
+   Deferred / Ideas: type `BL-Item`, with a revisit date scaled to
+   scope and refs to the hypotheses to re-validate. No separate
+   handoff file.
+4. **On Release-Ready: no**: name the responsible skill and the
    items to fix. Cycle closure resumes after the fix.
 
 The Closing Handoff does not invoke any skill. It is a handoff
@@ -248,8 +262,8 @@ on GitHub.
 - [V-Model concept](../concepts/v-model): why this shape?
 - [Handoff Rituals concept](../concepts/handoff-rituals): how
   transitions work
-- [Consistency Check guide](./consistency-check): the boundary
-  check that runs at every phase end
+- [Consistency Check guide](./consistency-check): the explicit
+  graph check that runs before release
 - [Three-layer documentation model](../concepts/three-layer-documentation):
   why state lives in the backlog row
 - [Drift defense](../concepts/drift-defense): the full catalog of

@@ -142,13 +142,19 @@ def _codeql_languages(runtimes: list) -> list:
 def _applicable_tools(runtimes: list, kinds: list) -> dict:
     sast = []
     sca = []
+    # Action-pinning applies to every project with workflows; the runner
+    # itself degrades to not-applicable when .github/workflows is absent.
+    supply = ["action-pinning"]
     if "node" in runtimes:
         sast.append("semgrep:p/typescript")
         sast.append("semgrep:p/javascript")
         sca.extend(["npm-audit", "osv-scanner"])
+        supply.extend(["lockfile-provenance", "install-scripts",
+                       "manifest-hygiene"])
     if "python" in runtimes:
         sast.append("semgrep:p/python")
         sca.extend(["pip-audit", "osv-scanner"])
+        supply.append("python-pins")
     if "go" in runtimes:
         sca.append("osv-scanner")
     if "rust" in runtimes:
@@ -157,7 +163,9 @@ def _applicable_tools(runtimes: list, kinds: list) -> dict:
     def _dedupe(xs):
         s = set()
         return [x for x in xs if not (x in s or s.add(x))]
-    return {"sast": _dedupe(sast), "sca": _dedupe(sca), "secrets": ["gitleaks", "trufflehog"]}
+    return {"sast": _dedupe(sast), "sca": _dedupe(sca),
+            "secrets": ["gitleaks", "trufflehog"],
+            "supply_chain": _dedupe(supply)}
 
 
 def _reference_gates(kinds: list, llm_api: bool) -> dict:

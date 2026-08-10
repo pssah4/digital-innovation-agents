@@ -45,7 +45,7 @@ in a specific skill or convention file, with a clear owner and trigger.
 | D2 | Backlog as single source of truth | `_devprocess/context/BACKLOG.md` is the only place that carries `status`, `phase`, `last-change`, `claim`. Artifact frontmatter carries identity and relations only. Enforced by every skill that updates state | Every status change writes the backlog row first, then the artifact body |
 | D3 | ADR abstraction rule + wayfinder | `/architecture` writes ADR core sections without code paths. Code-level hints belong in optional `## Implementation Notes` appendix. Current paths live in `src/ARCHITECTURE.map`, JSDoc headers, module READMEs | Every ADR write, every entry-point edit |
 | D4 | Continuous writeback during `/coding` | `/coding` Phase 4 lists explicit triggers: ADR deviation, Success Criterion gap, new pattern, scope change, unexpected constraint. On any trigger, the agent updates the artifact BEFORE the next code edit | During implementation, on every detected deviation |
-| D5 | `/consistency-check` mode A at phase end | Every phase skill (`/business-analysis`, `/requirements-engineering`, `/architecture`, `/coding`, `/testing`, `/security-audit`, `/reverse-engineering`, `/dia-migration`) runs mode A in its handoff ritual | Phase end, before commit |
+| D5 | Pre-commit hook plus the mandatory pre-release check | The pre-commit hook runs the drift-critical Mode A invariants as a standalone script on every commit; the full `/consistency-check` runs once per cycle before release (security-audit Step 7 / Closing Handoff) and on demand | Every commit (hook), before release (full check) |
 | D6 | ADR consolidation duty in `/architecture` | When proposing a new ADR, the skill first checks whether an existing ADR can be merged or extended. ADR inflation is reported as a warning. Mode B of `/consistency-check` runs the full pairwise check on demand | Every new ADR proposal, on demand for the cross-check |
 | D7 | Verification gate in `/coding` and `/testing` | No completion claim without fresh verification evidence in the current message. Hard threshold: 0 test failures, 0 lint errors, 0 build errors, coverage not regressed. Forbidden phrases like "should work" trigger a re-run | After every implementation step, before every completion claim |
 | D8 | Eliminated by D2 | When status lives only in the backlog row, frontmatter cannot drift because it does not carry the field | Structural, not enforced |
@@ -62,7 +62,7 @@ drift and the cost of the defense.
 |---|---|---|
 | Hard gate | Skill stops before the first content change until the rule is satisfied | D1 (in `/coding` Phase 1a only), D7 (verify gate is a hard stop on completion claims), D9 (Phase 4a steps 6 and 7 lock Done-status until reachability and activation-path are confirmed) |
 | Soft rule | `MANDATORY` block in the skill body. Agent compliance, no technical block | D1 (in other phase skills), D3, D4, D6 |
-| Phase-end check | `/consistency-check` mode A runs at end of every phase, surfaces violations | D2, D3, D5, D8, D9 (N-18 catches the breach if Phase 4a was skipped), D10 (E-14) |
+| Commit-time and pre-release check | The pre-commit hook runs the drift-critical Mode A invariants on every commit; the full `/consistency-check` runs before release and surfaces the rest | D2, D3, D5, D8, D9 (N-18 catches the breach if Phase 4a was skipped), D10 (E-14) |
 | Structural elimination | Schema makes the drift impossible to express | D8 (frontmatter does not carry status), D3 (ADR core sections do not carry code paths) |
 
 The intentional design choice: hard gates are reserved for the two
@@ -97,8 +97,8 @@ Two drift sources retain residual exposure:
 For a project owner, the map is the audit checklist. After every
 release cycle, verify the eight defenses are still active:
 
-- D1: triage IDs in HANDOFFS entries for every code change since the
-  last release
+- D1: `DIA-Triage` trailers on the phase-end commits for every code
+  change since the last release
 - D2: spot-check three artifacts, confirm no `status` field in the
   body, only in the backlog row
 - D3: spot-check three ADRs, confirm no code paths in core sections

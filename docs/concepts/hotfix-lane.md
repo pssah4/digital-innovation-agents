@@ -93,9 +93,9 @@ consistency. Four mechanisms keep the lane safe:
 
 ## Closing the consistency gap with `validate-fix`
 
-`/consistency-check` mode A normally fires at the end of every
-phase. Hotfixes have no phase boundary, so the check has no
-automatic trigger. To close the gap, the hotfix flow ends with
+The pre-commit hook covers the drift-critical invariants on every
+commit, but a hotfix needs its scoped graph check to be explicit.
+To close the gap, the hotfix flow ends with
 `flow.py validate-fix --item FIX-{ee}-{ff}-{nn}`. The subcommand
 performs a hotfix-scoped mode-A check:
 

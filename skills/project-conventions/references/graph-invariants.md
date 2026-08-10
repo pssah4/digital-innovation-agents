@@ -139,7 +139,7 @@ mit explizitem Versionierungshinweis.
 
 - `Draft (...)` matcht den Praefix `Draft` mit beliebigem Klammer-
  Inhalt (z. B. `Draft (reverse-engineered, 2026-04-12)`). Zweck:
- BAs aus `/reverse-engineering` werden gleich behandelt wie roh
+ BAs aus `/dia-realign` werden gleich behandelt wie roh
  angelegte Drafts.
 - `Validated`, `Confirmed by usage`, `Accepted`, `Superseded`,
  `Deprecated` zaehlen NICHT als Pre-Validation und triggern N-17
@@ -278,7 +278,7 @@ Backlog auftauchen.
 5. Epic-KPI-Referenzen (falls betroffen) pruefen.
 
 Diese Sync-Kette wird in Skills `requirements-engineering`,
-`architecture`, `coding`, `reverse-engineering` ohne Rueckfrage
+`architecture`, `coding`, `dia-realign` ohne Rueckfrage
 ausgefuehrt. `/consistency-check` pruft sie ueber N-10, N-11, N-12,
 E-7, E-8, E-9.
 
@@ -332,7 +332,7 @@ durch `/consistency-check` und den Graph-Viewer gemappt):
 
 ## Wie Skills mit diesen Invarianten umgehen
 
-- `/reverse-engineering` Phase 8: ruft `/consistency-check` im Mode A
+- `/dia-realign` Phase 8: ruft `/consistency-check` im Mode A
  auf, behandelt gefundene Luecken als Phase-8-Output.
 - `/requirements-engineering`: erzeugt Features so, dass N-1, N-4
  eingehalten werden. Verweist auf Epic-ID und legt SCs an (mind. als
@@ -464,7 +464,7 @@ ueber mehrere Entscheidungen.
   Triage.
 - `/consistency-check` prueft und fixt bestehende Artefakte, erzeugt
   keine neuen.
-- `/reverse-engineering` triagiert rueckwaertsgerichtet: existierender
+- `/dia-realign` triagiert rueckwaertsgerichtet: existierender
   Code wird in Features, Epics, ADRs, FIXes, IMPs zerlegt.
 
 **Wo der Einstieg triagiert wird:**

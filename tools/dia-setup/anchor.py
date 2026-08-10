@@ -120,8 +120,9 @@ def load_template(target: TargetFile) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def render(template: str, mode: str, repo_root: Path) -> str:
-    """Replace {{mode}} and {{repo_name}} placeholders.
+def render(template: str, mode: str, repo_root: Path,
+           profile: str = "full") -> str:
+    """Replace {{mode}}, {{profile}} and {{repo_name}} placeholders.
 
     Keeps it deliberately simple: no Jinja, no escaping. Templates are
     plain text and trusted.
@@ -129,12 +130,14 @@ def render(template: str, mode: str, repo_root: Path) -> str:
     return (
         template
         .replace("{{mode}}", mode)
+        .replace("{{profile}}", profile)
         .replace("{{repo_name}}", repo_root.name)
     )
 
 
-def build_block(target: TargetFile, mode: str, repo_root: Path) -> str:
-    body = render(load_template(target), mode, repo_root).rstrip()
+def build_block(target: TargetFile, mode: str, repo_root: Path,
+                profile: str = "full") -> str:
+    body = render(load_template(target), mode, repo_root, profile).rstrip()
     return f"{target.start_marker}\n{body}\n{target.end_marker}\n"
 
 
@@ -196,7 +199,7 @@ def cmd_write(args: argparse.Namespace) -> int:
                 changes.append({"path": str(target.relative_path), "status": "skipped (missing)"})
                 continue
         original = path.read_text(encoding="utf-8")
-        block = build_block(target, args.mode, repo_root)
+        block = build_block(target, args.mode, repo_root, args.profile)
         updated = replace_or_append_block(original, block, target)
         if original == updated:
             changes.append({"path": str(target.relative_path), "status": "unchanged"})
@@ -209,7 +212,7 @@ def cmd_write(args: argparse.Namespace) -> int:
             "path": str(target.relative_path),
             "status": "wrote" if not has_block(original, target) else "replaced",
         })
-    print(json.dumps({"mode": args.mode, "changes": changes}, indent=2))
+    print(json.dumps({"mode": args.mode, "profile": args.profile, "changes": changes}, indent=2))
     return 0
 
 
@@ -334,6 +337,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_write = sub.add_parser("write", help="write or refresh anchor blocks")
     p_write.add_argument("--mode", choices=("off", "git-only", "github-sync"), required=True)
+    p_write.add_argument("--profile", choices=("full", "lean"), default="full")
     p_write.add_argument("--files", nargs="*", default=[], help="explicit list of agent files")
     p_write.add_argument("--create-missing", action="store_true", help="create the file if missing")
     p_write.add_argument("--dry-run", action="store_true")

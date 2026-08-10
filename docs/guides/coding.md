@@ -142,14 +142,22 @@ The Default agent is told:
 - Self-review after plan creation: spec coverage, placeholder scan,
   type consistency, wayfinder anchoring.
 
-### Phase 3c: TDD mode (optional)
+### Phase 3c: TDD (default: active)
 
-Opt-in. When the user enables TDD, `/coding` hands this rule to the
-Default agent: "No production code without a failing test first."
-RED, verify RED, GREEN, verify GREEN, REFACTOR.
+TDD is the default for every implementation task. `/coding` hands
+this rule to the Default agent: "No production code without a
+failing test first." RED, verify RED, GREEN, verify GREEN, REFACTOR.
 
-Exceptions (with user confirmation): throwaway prototypes, generated
-code, configuration files.
+The Verify-RED step has a binding evidence format: state the
+expected failure signature BEFORE the run, quote the observed
+output verbatim, give a verdict (Expected / Observed / Verdict). A
+test that fails for the wrong reason (import error instead of the
+asserted behavior) does not count as RED.
+
+Opt-out is explicit: the three exceptions (throwaway prototypes,
+generated code, configuration files) each require user confirmation
+logged in the PLAN Change Log, and `--no-tdd` opts out for a whole
+session, also only with user confirmation.
 
 ### Phase 3d: Debugging protocol
 
@@ -308,19 +316,25 @@ for the full pattern.
 
 ## Handoff
 
-`/coding` ends with the 4-part [Handoff Ritual](../concepts/handoff-rituals):
-artifact report, handoff context in `HANDOFFS.md` with references
-to the new FIX rows and PLAN ids, phase-end commit
-(`feat(code): {ITEM-ID} implementation complete`) plus
-`tag-phase --phase code` and `sync-status --item {ITEM-ID}` (no-op outside `mode = "github-sync"`), transition question for `/testing`.
-The guide runs `/consistency-check` Mode A on the changed
-artifacts at the boundary.
+`/coding` ends with the 3-part [Handoff Ritual](../concepts/handoff-rituals):
+artifact report, phase-end commit
+(`feat(code): {ITEM-ID} implementation complete` with the
+`DIA-Phase: code-done` and `DIA-Handoff: {ITEM-ID} -> testing`
+trailers, plus references to the new FIX rows and PLAN ids in the
+body) followed by `tag-phase --phase code` and
+`sync-status --item {ITEM-ID}` (no-op outside `mode = "github-sync"`),
+transition question for `/testing`. The pre-commit hook enforces the
+drift-critical graph invariants; the full `/consistency-check` runs
+before release, not per phase.
 
 ## Read the skill file
 
 Want to see the exact instructions the agent follows? The skill
 file is [`skills/coding/SKILL.md`](https://github.com/pssah4/digital-innovation-agents/blob/main/skills/coding/SKILL.md)
-on GitHub.
+on GitHub. Since v4 the skill body is a slim dispatcher (about 320
+lines); the detailed protocols (TDD cycle, debugging, bug capture,
+hotfix lane, coverage gate) live in `skills/coding/references/` and
+are loaded on demand.
 
 ## What's next
 

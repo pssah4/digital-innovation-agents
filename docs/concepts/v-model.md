@@ -72,11 +72,11 @@ SCA, Zero Trust. Fix-loop until all critical findings are resolved or
 explicitly deferred.
 
 **Closing Handoff (not a phase).** After a green `/security-audit`,
-the guide runs `/consistency-check` mode B, outputs a closing report
-(Feature/bug/security counts, finalised artifacts), and emits the
-`release-to-ba` HANDOFFS template. The actual release act
-(version bump, merge, tag, publish) is delegated to a project-
-specific release skill outside the public DIA plugin.
+the guide recommends `/consistency-check` mode B, outputs a closing
+report (Feature/bug/security counts, finalised artifacts), and
+queues the post-release BA review as a BACKLOG row. The actual
+release act (version bump, merge, tag, publish) is delegated to a
+project-specific release skill outside the public DIA plugin.
 
 ## The traceability chain
 
@@ -118,10 +118,11 @@ the detail artifact, never both.
 
 ## Phase transitions
 
-Every phase ends with a mandatory 4-part [Handoff Ritual](./handoff-rituals)
-(artifact report, handoff context, phase-end commit plus
-`tag-phase`, transition question), followed by `/consistency-check`
-Mode A at the phase boundary. The
+Every phase ends with a mandatory 3-part [Handoff Ritual](./handoff-rituals)
+(artifact report, phase-end commit with DIA trailers plus
+`tag-phase`, transition question). The pre-commit hook enforces the
+drift-critical graph invariants on every commit; the full
+`/consistency-check` runs before release. The
 [V-Model workflow guide](../guides/dia-guide) drives
 transitions when you run `/dia-guide`. Individual phase skills
 run the ritual too when invoked directly.

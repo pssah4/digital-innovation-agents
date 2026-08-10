@@ -5,206 +5,107 @@ description: Bootstrap context for the Digital Innovation Agents V-Model workflo
 
 # DIA Bootstrap
 
-You have access to a structured V-Model workflow for AI-augmented innovation
-and development. These skills guide projects from initial business concept
-through requirements engineering, architecture design, implementation,
-testing, and security audit.
+You have access to a structured V-Model workflow for AI-augmented
+innovation and development, from business concept through requirements,
+architecture, implementation, testing, and security audit.
 
 ## Helper script paths (binding for every phase skill)
 
-Phase skills call helper scripts that ship with the plugin: `flow.py`
-under `tools/github-integration/`, `anchor.py` under `tools/dia-setup/`,
-the migration scripts under `tools/migration/`,
-`tools/consistency-check.py`, `tools/renumber-for-merge.py`, and the
-merge wrappers under `scripts/`. These scripts live in the plugin
-bundle, NOT in the user project, so the relative path `tools/...`
-that the skill text uses must be resolved against the plugin root,
-not against the user's working directory.
+Plugin helper scripts (`tools/github-integration/flow.py`,
+`tools/dia-setup/anchor.py`, `tools/migration/*`,
+`tools/consistency-check.py`, `scripts/*`) live in the plugin bundle,
+NOT in the user project. Resolve every `tools/...` and `scripts/...`
+path in skill text against the plugin root, in this priority:
 
-Resolution priority:
+1. `$DIA_PLUGIN_ROOT` (preferred; printed by the SessionStart hook)
+2. `$CLAUDE_PLUGIN_ROOT` (Claude Code)
+3. `$CURSOR_PLUGIN_ROOT` (Cursor)
+4. Working directory (last resort, plugin checkout only)
 
-1. **`$DIA_PLUGIN_ROOT`** (preferred). The SessionStart hook prints
-   this value at session start, manual installs export it from
-   `~/.zshrc`, and the OpenCode plugin sets it on plugin load.
-2. **`$CLAUDE_PLUGIN_ROOT`** when running under Claude Code.
-3. **`$CURSOR_PLUGIN_ROOT`** when running under Cursor.
-4. **Working directory** as last resort. This only succeeds when the
-   user happens to run the agent from inside the plugin checkout.
-
-Concrete: when a phase skill writes
-`python3 tools/github-integration/flow.py create-issue --item FEAT-04-09`,
-expand it before invoking to
-`python3 "$DIA_PLUGIN_ROOT/tools/github-integration/flow.py" create-issue --item FEAT-04-09`.
-The same rule applies to every `tools/...` and `scripts/...` path
-in any skill text.
-
-If `$DIA_PLUGIN_ROOT` is unset and no platform variable resolves
-the path, surface a clear error to the user and link them to the
+Example: `python3 tools/github-integration/flow.py ...` expands to
+`python3 "$DIA_PLUGIN_ROOT/tools/github-integration/flow.py" ...`.
+If no variable resolves, surface a clear error and link the
 [installation tutorial](https://pssah4.github.io/digital-innovation-agents/tutorials/installation).
 Do not guess.
 
 ## Activation
 
-If this project does not yet have `.dia/config.toml`, run `/dia-setup`
-first. The setup skill asks for the mode (`off`, `git-only`,
-`github-sync`), creates `.dia/config.toml`, and writes anchor blocks
-into the agent files (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`,
-`.cursorrules`, ...). Re-run `/dia-setup` any time to change the
-mode or remove the anchors.
+No `.dia/config.toml` yet? Run `/dia-setup` first. It asks for the
+mode (`off`: hooks silent, skills advisory only; `git-only`: local
+commits, tags, merge scripts; `github-sync`: backlog mirrored to
+GitHub issues via flow.py) and the profile (below), then writes the
+config and the anchor blocks. Re-run `/dia-setup` any time.
 
-When `mode = "off"`, the SessionStart hook stays silent and phase
-skills do not run. When `mode = "git-only"`, the workflow runs
-locally (commits, tags, merge scripts) without GitHub sync. When
-`mode = "github-sync"`, phase skills mirror backlog state to GitHub
-issues via `tools/github-integration/flow.py`.
+## Profiles
+
+`profile` in `.dia/config.toml` controls how much of the V-Model is
+binding. A missing field means `full`.
+
+- **`full`**: every phase skill is binding as written.
+- **`lean`**: only durable decisions and stable navigation are
+  binding: rules consolidated in AGENTS.md (CLAUDE.md stays a
+  pointer), `_devprocess/SYSTEM-MAP.md` for code navigation, post-hoc
+  ADRs (`kind: post-hoc`) behind `decisions/README.md` as a router
+  table, and backlog state (GitHub Issues in `github-sync`, a thin
+  BACKLOG.md in `git-only`). All other phase skills stay available as
+  advisory tools; no gate blocks, no BA/FEATURE artifacts are
+  required, handoffs reduce to phase-end commits with DIA trailers.
+  Guiding rule in lean: never document what code, tests, git, PRs, or
+  issues already carry.
 
 ## Entry points
 
-- `/dia-setup` -- Activation, mode change, deactivation. Run this
-  in a fresh project before any other DIA skill
-- `/dia-guide` -- Guided cycle through all phases (recommended for
-  new projects or when unsure where to start)
-- `/reverse-engineering` -- Brownfield entry point: walk the V backwards
-  over an existing codebase to produce plan-context, ADRs, arc42
-  snapshot, FEATURE inventory, and an evidence-based BA draft
-- `/business-analysis` -- Problem exploration, ideation, validation
-- `/requirements-engineering` -- Epics, features, tech-agnostic success criteria
-- `/architecture` -- ADRs (MADR), arc42, plan-context.md
-- `/coding` -- Context handoff + critical review + implementation
-- `/testing` -- Unit and integration tests with fix-loop
-- `/security-audit` -- OWASP, SAST, SCA, Zero Trust
-- `/project-conventions` -- Project structure and naming standards
+- `/dia-setup` -- activation, mode/profile change, deactivation
+- `/dia-guide` -- orientation and next-step recommendation (explicit
+  user command)
+- `/dia-realign` -- brownfield entry AND version upgrades: walks an
+  existing codebase backwards into V-Model artifacts, migrates legacy
+  DIA conventions
+- `/business-analysis` -- problem exploration, ideation, validation
+- `/requirements-engineering` -- epics, features, success criteria
+- `/architecture` -- decisions (ADR), rules, navigation, plan-context
+- `/coding` -- context handoff, critical review, implementation
+- `/testing` -- unit and integration tests with fix-loop
+- `/security-audit` -- OWASP, SAST, SCA, supply chain, Zero Trust
+- `/consistency-check` -- artifact graph check (explicit user command;
+  runs automatically only via the pre-commit hook and before release)
+- `/project-conventions` -- structure and naming standards
+
+These are suggestions, not rules. The user is in charge.
 
 ## Language in dialog
 
-The skill content is written in English so it is portable across language
-contexts. **In the dialog with the user, always respond in the user's
-language.** If the user writes in German, reply in German. If Spanish,
-reply in Spanish. The skill instructions stay English internally; the
-user-facing messages adapt automatically.
+Skill content is English for portability. In dialog, always respond
+in the user's language; artifacts follow the artifact-language rule
+in `skills/project-conventions/references/canonical-specs.md`.
 
 ## Artifact locations
 
-All project artifacts live under `_devprocess/`:
+All project artifacts live under `_devprocess/` (full map:
+`skills/project-conventions/references/directory-structure.md`).
+State lives in `_devprocess/context/BACKLOG.md`; phase transitions
+live in DIA commit trailers.
 
-- `_devprocess/analysis/BA-*.md`, `EXPLORE-*.md`
-- `_devprocess/requirements/epics/EPIC-*.md`, `features/FEAT-*.md`
-- `_devprocess/requirements/fixes/FIX-*.md`, `improvements/IMP-*.md`
-- `_devprocess/requirements/handoff/architect-handoff.md`, `plan-context.md`
-- `_devprocess/architecture/ADR-*.md`, `arc42.md`
-- `_devprocess/context/BACKLOG.md` (living backlog, incl. FIX-{ee}-{ff}-{nn} rows)
-- `_devprocess/context/HANDOFFS.md` (append-only phase handoffs log)
-- `_devprocess/analysis/AUDIT-*.md`
-- `_devprocess/analysis/sources/` (Quellen, die der User als Kontext bereitstellt)
+## Opting out
 
-## When to invoke which skill
-
-- If the user is starting something new and the problem space is unclear
-  -> suggest `/dia-guide` for an orientation interview that recommends
-  the right entry point
-- If the user has an existing codebase but no V-Model artifacts
-  -> `/reverse-engineering` to walk the V backwards, then
-  `/business-analysis` to validate the WHY
-- If the user has a clear problem but no solution yet -> `/business-analysis`
-- If the user has features defined but no architecture -> `/architecture`
-- If the user is ready to implement -> `/coding`
-
-These are **suggestions**, not rules. The user is in charge.
-
-## Opting out of the workflow
-
-The Digital Innovation Agents skill set is **advisory**. The user can leave
-the workflow at any time, and you should respect that immediately.
-
-### Leaving the `/dia-guide` loop
-
-If the user is mid-workflow (for example, between phases) and says something
-like "stop", "exit", "I want to do something else", "let's pause this",
-or simply asks an unrelated question:
-
-- **Exit the workflow immediately.** Do not ask "are you sure" or push back.
-- Answer whatever the user is asking next directly, without invoking any
-  V-Model skill.
-- The workflow state is preserved in `_devprocess/` -- the user can resume
-  later by re-invoking `/dia-guide`.
-
-### Temporarily disabling the skills
-
-If the user explicitly says "ignore V-Model today", "I just want a quick fix",
-"no skills needed for this", "just help me with X without the workflow",
-or uses similar opt-out language:
-
-- **Do not invoke any of the skills listed above**, even if the task seems
-  like it would match (e.g. "fix this bug" would normally match /coding).
-- Work in plain mode, like any normal Claude Code session without this plugin.
-- Do not remind the user that the skills exist. Do not suggest re-enabling.
-- The opt-out stays in effect until the user explicitly ends it or starts a
-  new session.
-
-### Permanently disabling
-
-For longer-term disable, the user can run `/plugin disable digital-innovation-agents`
-in Claude Code (standard plugin management). This removes the SessionStart
-hook entirely. Mention this only if the user asks how to disable permanently.
+The skill set is advisory. If the user says "stop", "exit", asks an
+unrelated question, or opts out ("no skills for this", "ignore
+V-Model today"): exit the workflow immediately, answer directly, do
+not push back, do not suggest re-enabling. State is preserved under
+`_devprocess/`; `/dia-guide` resumes later. Permanent disable:
+`/plugin disable digital-innovation-agents` (mention only if asked).
 
 ## Principles
 
-- **Living documents**: every phase writes back into its source artifacts
-  so documentation always reflects the current state
-- **Tech-agnostic success criteria**: no OAuth, REST, PostgreSQL in Success
-  Criteria -- technology details belong in Technical NFRs
-- **Quality gates**: each skill verifies its own output before handoff
-- **User in control**: no autonomous generation, always propose and confirm
-- **Advisory, not enforcing**: if the user doesn't want the workflow, don't
-  force it -- they know their task better than we do
+- Living documents: every phase writes back into its source artifacts
+- Tech-agnostic success criteria; technology belongs in NFRs
+- Quality gates: each skill verifies its own output before handoff
+- User in control: propose and confirm, never generate autonomously
+- Advisory, not enforcing
 
-## User Interaction Protocol (binding across every V-Model skill)
+## User Interaction Protocol (binding)
 
-When any phase-skill or the guide needs a decision from the user,
-the following rules are mandatory. They apply inside `/dia-guide`
-and when any phase-skill is invoked standalone.
-
-1. **One question per turn.** Never batch multiple open decisions into a
-   single message. Ask Q1, wait for the answer, then ask Q2.
-2. **Use the `AskUserQuestion` tool.** Plain markdown lists force the user
-   to type back; the tool offers clickable options plus a free-text
-   "Other" slot. Free-form prose questions in chat are only for quick
-   factual confirmations, not for decisions between alternatives.
-3. **Each option must list BOTH a Pro and a Con, explicitly labelled.**
-   Format the `description` with two lines so the trade-off reads at a
-   glance:
-   ```
-   + Pro: one short sentence stating the main upside.
-   - Con: one short sentence stating the main downside or cost.
-   ```
-   The user must be able to see both sides without opening anything else.
-   A description that lists only advantages is a bug.
-4. **Mark the recommended option as the first entry** with "(Recommended)"
-   in its label. If the rationale for the recommendation is not obvious
-   from the Pros/Cons, add a one-line "Empfehlung: ... weil ..." sentence
-   in the turn text BEFORE the `AskUserQuestion` call.
-5. **No "dealer's choice" framing.** If you genuinely have no preference,
-   say so in the lead-in text; do not silently drop the recommendation.
-
-These rules bind regardless of project language. Pros/Cons stay
-labelled with "+ Pro:" / "- Con:" so both sides are visually identifiable
-at a glance.
-
-## Scope adaptation
-
-The V-Model workflow adapts to project scope:
-
-- **Simple Test / Feature** (hours to 1-2 days): Minimal exploration,
-  skip validation, focus on definition of done
-- **Proof of Concept** (1-4 weeks): Shortened exploration, full ideation,
-  hypothesis-driven validation
-- **Minimum Viable Product** (2-6 months): Full exploration, full ideation,
-  complete market assessment
-
-The `business-analysis` skill asks the user which scope applies and
-calibrates depth accordingly.
-
-## Getting help
-
-- Repository: https://github.com/pssah4/digital-innovation-agents
-- Issues: https://github.com/pssah4/digital-innovation-agents/issues
+One question per turn. Use `AskUserQuestion`. Every option carries
+`+ Pro:` and `- Con:` lines. Recommended option first, labelled
+"(Recommended)". No dealer's-choice framing. Full protocol:
+`skills/project-conventions/references/user-interaction-protocol.md`.

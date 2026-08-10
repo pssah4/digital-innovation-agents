@@ -1,24 +1,26 @@
 ---
 name: architecture
 description: >
- Creates Architecture Decision Records (ADRs) in MADR format and arc42
- documentation. Generates plan-context.md as the context bridge to
- Claude Code. Use this skill when the user mentions "architecture",
- "ADR", "arc42", "Architecture Decision", "tech stack", "solution
- design", "system design", "architecture review", "plan-context", or
- similar. Also when requirements exist and the next step is technical
- structuring. This skill creates PROPOSALS. Claude Code makes the
- final decisions based on the real state of the codebase.
+ Creates architecture decision records (post-hoc by default, full MADR
+ for constraints), the arc42 constraints doc, navigation artifacts
+ (SYSTEM-MAP, decisions router), and plan-context.md as ref index.
+ Use for "architecture", "ADR", "arc42", "tech stack", "solution
+ design", "plan-context". Proposals only; /coding decides.
 disable-model-invocation: false
 ---
 
 # Architect
 
-You turn requirements into architecture proposals: ADRs, an arc42
-sketch, and a compact `plan-context.md` for Claude Code.
+You turn requirements into architecture proposals: ADRs, the arc42
+constraints doc, and a compact `plan-context.md` ref index for
+`/coding`. In the **lean profile** this skill is the core of the
+workflow: it owns the rules in AGENTS.md, `SYSTEM-MAP.md`, and the
+post-hoc decision records behind `decisions/README.md`.
 
-**Input:** Epics, Features, ASRs, NFRs from Requirements Engineering.
-**Output:** ADR proposals, arc42 draft, `plan-context.md`.
+**Input:** Epics, Features, ASRs, NFRs from Requirements Engineering
+(full profile), or the running codebase (lean, post-hoc).
+**Output:** ADRs, arc42 constraints, `plan-context.md`, navigation
+artifacts.
 
 ## Hard rules
 
@@ -55,31 +57,56 @@ sketch, and a compact `plan-context.md` for Claude Code.
     skills/project-conventions/SKILL.md#canonical-specs (Writing
     style). Scan the artifact before save.
 
-## ADR completeness
+## ADR completeness (by kind)
 
-Decision plus one-paragraph context, a two-option Pros/Cons table,
-and labeled consequences bullets (Positive, Negative, Risks).
-50-line cap. Every Critical ASR maps to exactly one ADR.
+Every ADR carries `kind`, `reversal-cost`, `applies-to`, and
+`read-when` in frontmatter (`templates/ADR-TEMPLATE.md`).
 
-Filename: `ADR-{nn}-{slug}.md`, 2-digit, kebab-case. Template:
-`templates/ADR-TEMPLATE.md`.
+- **`post-hoc` (the normal case):** decision documented AFTER the
+  implementation that embodies it. Context, Decision, Consequences,
+  Sources (code paths allowed there). Short, like a CDR.
+- **`choice`:** a real pre-code choice. Adds Decision drivers;
+  Considered Options recommended.
+- **`constraint` (the exception):** pre-decided (compliance, hard to
+  reverse). Full MADR with a mandatory Considered Options table.
 
-## arc42 scope
+Cap per artifact-caps.json. Every Critical ASR maps to exactly one
+ADR. A missing `kind` on legacy ADRs means `choice`; never rewrite
+old ADRs just to add the field. The abstraction rule (no code paths
+in core sections) holds for every kind; `## Sources` and
+`## Implementation Notes` are the sanctioned homes for paths.
 
-Always-required: section 1.2 (Quality Goals), 4 (Solution
-Strategy), 9 (Architecture Decisions). Other sections only when
-they carry a decision worth recording. Caps: 100 lines (MVP),
-60 lines (PoC), 30 lines (Simple Test). Template:
-`templates/arc42-TEMPLATE.md`.
+Filename: `ADR-{nn}-{slug}.md`, 2-digit, kebab-case. Keep
+`decisions/README.md` (router table,
+`templates/DECISIONS-README-TEMPLATE.md`) in sync with the
+`applies-to`/`read-when` fields.
+
+## arc42 scope (split since v4)
+
+Pre-code, always: `arc42.md` from
+`templates/arc42-CONSTRAINTS-TEMPLATE.md` (quality goals,
+constraints, quality scenarios, risks; cap 40, `scope: constraints`).
+
+Post-code, optional: `arc42-REFERENCE.md` from
+`templates/arc42-REFERENCE-TEMPLATE.md`, written only when an
+auditor or customer audience needs the formal document. Cap-exempt,
+allowed to lag; the wayfinder and the ADR catalog stay canonical.
+Legacy single-file arc42.md documents keep their old poc/mvp caps.
 
 ## plan-context.md
 
-Compact handoff to Claude Code. Cap 55 lines. Contains tech stack,
-architecture style and quality goals, ADR summary table, external
-integrations, and concrete performance / security values. Data
-Model only when entities were actually designed. ADR summary floor
-gated by scope: 1 for Simple Test, 2 for PoC, 3 for MVP.
-Template: `templates/plan-context-TEMPLATE.md`.
+Pure reference index, cap 20 lines
+(`templates/plan-context-TEMPLATE.md`): stack refs, ADR impact,
+quality refs, and a read-next pointer. It names WHERE decisions live
+and never restates them. ADR floor gated by scope: 1 for Simple
+Test, 2 for PoC, 3 for MVP. Coder questions travel via BACKLOG-row
+notes or PR comments, not via a Dialog section.
+
+## Navigation artifacts
+
+`SYSTEM-MAP.md` (`templates/SYSTEM-MAP-TEMPLATE.md`) with fast paths
+into the code, and `src/ARCHITECTURE.map` rows for new concepts.
+Mandatory in the lean profile, recommended in full.
 
 ## What you do NOT create
 
@@ -108,14 +135,15 @@ AskUserQuestion: address now, defer, or record as open issues.
 
 One ADR per Critical ASR, capped per the completeness rule above.
 
-### Phase 3: arc42
+### Phase 3: arc42 constraints
 
-Write the always-required sections. Add any further section only
-when a real decision needs a home. Respect the scope caps.
+Write `arc42.md` from the CONSTRAINTS template (cap 40). The
+REFERENCE document is a post-code deliverable and never blocks this
+phase.
 
 ### Phase 4: plan-context.md
 
-Write the compact handoff per the rules above.
+Write the ref index per the rules above (cap 20).
 
 ### Mid-course requirements discovery
 
@@ -129,10 +157,12 @@ broken spec carries the fault into the code.
 ## Quality gates
 
 - Every Critical ASR has a matching ADR.
-- `plan-context.md` tech stack matches every ADR Decision.
-- ADRs offer real alternatives with Pros / Cons, not single-option
-  rationalisation.
-- `plan-context.md` carries concrete numbers, not vague qualifiers.
+- Ref integrity: every Accepted ADR appears exactly once in
+  `plan-context.md`, and every ref there resolves to an existing ADR.
+- `constraint`/`choice` ADRs offer real alternatives with Pros /
+  Cons, not single-option rationalisation.
+- `decisions/README.md` rows match the ADRs' `applies-to`/`read-when`
+  frontmatter.
 
 ## Handoff Ritual
 
@@ -147,11 +177,10 @@ Produced / updated:
 
 ### Part 2: Handoff context
 
-Append an entry to `_devprocess/context/HANDOFFS.md` with tech
-stack justification, rejected alternatives, known architectural
-risks, open items deferred to `/coding`, and the
-plan-context-vs-ADR consistency confirmation. Report ADR
-consolidation moves explicitly.
+Goes into the phase-end commit BODY as short bullets: rejected
+alternatives worth remembering, known architectural risks, open
+items deferred to `/coding`, ADR consolidation moves, and the
+ref-integrity confirmation.
 
 ### Part 3: Phase-end commit
 
@@ -162,9 +191,12 @@ Run the phase-end commit per
 ```
 chore(arch): <ITEM-ID> ARCH complete
 
-<one-line summary: N ADRs, arc42 sections X.Y, plan-context tech-stack>
+<one-line summary: N ADRs, arc42 constraints, plan-context refs>
+<risks and deferred items as short bullets>
 
 Refs: <ITEM-ID>[, ADR-NN, ADR-NN]
+DIA-Phase: arch-done
+DIA-Handoff: <ITEM-ID> -> coding
 ```
 
 After the commit lands:

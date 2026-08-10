@@ -1,14 +1,14 @@
 ---
 title: Architecture
-description: Transform tech-agnostic requirements into Architecture Decision Records, arc42 documentation, and the plan-context bridge to implementation.
+description: Transform tech-agnostic requirements into Architecture Decision Records, the arc42 constraints doc, navigation artifacts, and the plan-context ref index.
 ---
 
 # Architecture
 
 `/architecture` transforms requirements into architecture proposals. The final decisions get made during `/coding` when the actual codebase state is known. This distinction matters because a greenfield ADR written against an abstract RE document is a hypothesis about how to build. A `/coding` decision is a commitment against real constraints.
 
-**Input:** Epics, Features, ASRs, NFRs from [`/requirements-engineering`](./requirements-engineering)
-**Output:** ADRs, arc42, `plan-context.md`
+**Input:** Epics, Features, ASRs, NFRs from [`/requirements-engineering`](./requirements-engineering) (full profile), or the running codebase (lean profile, post-hoc)
+**Output:** ADRs, the arc42 constraints doc, `plan-context.md` as a ref index, navigation artifacts (`SYSTEM-MAP.md`, `decisions/README.md`)
 
 ## The role of Architecture in the V-Model
 
@@ -20,17 +20,42 @@ Every Critical ASR from Requirements Engineering gets turned into a proposed Arc
 
 The output is not a binding document. It is a proposal that `/coding` critically reviews against the real codebase before committing. This separation is deliberate. It avoids the classic waterfall failure mode where an architecture designed against imagined constraints discovers at implementation time that reality disagrees.
 
-## ADRs in MADR format
+## ADRs and their kinds
 
-The skill uses the MADR (Markdown Architecture Decision Records) format. Every Critical ASR from RE produces exactly one ADR.
+Every ADR carries a `kind` field in its frontmatter, and the kind
+determines how much MADR ceremony the record needs:
 
-### The MADR structure
+- **`post-hoc` (the normal case):** the decision is documented AFTER
+  the implementation that embodies it. Sections: Context, Decision,
+  Consequences, Sources (code paths allowed there). Short, like a
+  commit-style decision record. Considered Options are omitted; the
+  code already chose.
+- **`choice`:** a real pre-code choice. Adds Decision Drivers;
+  Considered Options are recommended.
+- **`constraint` (the exception):** pre-decided (compliance, hard to
+  reverse). Full MADR with a mandatory Considered Options table.
+
+Every ADR additionally carries `reversal-cost`, `applies-to`, and
+`read-when` router fields. The router fields feed the
+`decisions/README.md` router table (from
+`DECISIONS-README-TEMPLATE.md`), which tells agents WHEN a decision
+file is relevant without reading it. The skill keeps the router
+table in sync with the frontmatter.
+
+A missing `kind` on a legacy ADR means `choice`; old ADRs are never
+rewritten just to add the field.
+
+### The full MADR structure (constraint kind)
 
 ```markdown
 ---
 id: ADR-NN
 title: {short title of the decision}
 created: 2026-04-30
+kind: constraint
+reversal-cost: high
+applies-to: {module or concern}
+read-when: {trigger condition for reading this ADR}
 adr-refs: [ADR-MM]
 feature-refs: [FEAT-EE-FF]
 ---
@@ -156,9 +181,9 @@ with a hard cap of **500 lines total** across the three files.
 If you cross the cap, condense or move detail to an ADR. The cap
 forces the rules to stay focused.
 
-### No ADR without real alternatives
+### No choice ADR without real alternatives
 
-The skill enforces a hard rule on every ADR: at least two considered options with pros and cons each. "We chose React because it's popular" is not a decision, it is a default. If you cannot name two alternatives you seriously considered, you did not make a decision at all, and the ADR gets sent back.
+For `constraint` and `choice` ADRs the skill enforces a hard rule: real alternatives with pros and cons each. "We chose React because it's popular" is not a decision, it is a default. If you cannot name two alternatives you seriously considered, you did not make a decision at all, and the ADR gets sent back. `post-hoc` ADRs are exempt: they record a decision the code already made, and inventing alternatives after the fact would be fiction.
 
 ### ASR to ADR traceability
 
@@ -171,80 +196,66 @@ The traceability goes both directions:
 - **RE to Architecture:** every Critical ASR gets at least one ADR.
 - **Architecture to RE:** every ADR's `Context` section cites the triggering ASR.
 
-## arc42 snapshot
+## arc42, split into constraints and reference
 
-The skill produces an arc42-formatted architecture document, tailored to the project scope. arc42 is a 12-section template from Gernot Starke and Peter Hruschka, widely used in the German-speaking software architecture community. It is not a process, it is a table of contents that lets teams document what they know and deliberately leave blank what they do not.
+arc42 is a 12-section template from Gernot Starke and Peter Hruschka, widely used in the German-speaking software architecture community. It is not a process, it is a table of contents that lets teams document what they know and deliberately leave blank what they do not.
 
-### The 12 arc42 sections
+Since v4, the single arc42 document is split into two artifacts with different cadences:
 
-| # | Section | Purpose |
-|---|---|---|
-| §1 | Introduction and Goals | Why does this system exist? Primary quality goals. |
-| §2 | Architecture Constraints | Technical, organisational, political, legal constraints. |
-| §3 | System Scope and Context | Black-box view: users, neighbouring systems, interfaces. |
-| §4 | Solution Strategy | The high-level approach. Usually a set of ADR references. |
-| §5 | Building Block View | White-box decomposition into components and modules. |
-| §6 | Runtime View | Sequence and collaboration views for important scenarios. |
-| §7 | Deployment View | Where does this run? Environments, infrastructure. |
-| §8 | Crosscutting Concepts | Auth, logging, error handling, i18n. Things that touch every module. |
-| §9 | Architecture Decisions | Back-references to all ADRs. |
-| §10 | Quality Requirements | The quality tree and scenarios. |
-| §11 | Risks and Technical Debt | Known pain that will hurt us later. |
-| §12 | Glossary | Project-specific terms. |
+- **`arc42.md` (CONSTRAINTS, pre-code, always).** Written from
+  `arc42-CONSTRAINTS-TEMPLATE.md` before implementation: quality
+  goals, constraints, quality scenarios, risks. Hard cap of 40
+  lines, `scope: constraints` in frontmatter. This is the part of
+  arc42 that shapes code that does not exist yet, so it must exist
+  before `/coding` starts.
+- **`arc42-REFERENCE.md` (post-code, optional, cap-exempt).**
+  Written from `arc42-REFERENCE-TEMPLATE.md` only when an auditor
+  or customer audience needs the formal 12-section document. It is
+  allowed to lag behind the code; the wayfinder and the ADR catalog
+  stay canonical for current structure. `/dia-realign` produces this
+  document when it reverse-engineers an existing codebase.
 
-### Scope-dependent depth
-
-arc42 lets you leave sections empty when you have nothing to say. The skill matches the depth to the scope.
-
-| Scope | arc42 sections filled |
-|---|---|
-| Simple Test | §1, §3, §4 |
-| Proof of Concept | §1 to §5 and §8 |
-| MVP | §1 to §12 (full template) |
-
-A Simple Test scope project does not need a Risks section. An MVP absolutely does. Over-producing arc42 on a small project is a common waste. The skill is aggressive about preventing it.
-
-### Why arc42 instead of a single Architecture.md
-
-Teams usually reach for a single `ARCHITECTURE.md` file, which turns into a 5,000-word wall of prose nobody reads. arc42 is different in three ways.
-
-It is a checklist, not a narrative. You know when you are done: all 12 sections have either content or an explicit "N/A."
-
-It separates views. The Building Block View (static structure) is in §5. The Runtime View (dynamic collaboration) is in §6. A reader looking for one of them does not have to wade through the other.
-
-It is standard. Two teams using arc42 can swap documents and find what they need immediately. A custom structure makes every handoff cost context-switching tax.
-
-The skill writes arc42 in the same repository as the code, under `_devprocess/architecture/arc42.md`, so the architecture stays version-controlled alongside the implementation it describes.
+The split fixes a drift problem: the pre-code sections of arc42 age
+slowly (constraints rarely change), while the descriptive sections
+age at code speed. Keeping them in one file meant the whole document
+was always partially stale. Legacy single-file arc42 documents keep
+their old scope caps and stay valid.
 
 Further reading: [arc42.org](https://arc42.org), [arc42 template download](https://arc42.org/download).
 
-## plan-context.md
+## plan-context.md: a 20-line ref index
 
-`plan-context.md` is the handoff artifact from `/architecture` to `/coding`. It is not a summary of arc42. It is the minimum AI-readable context a `/coding` agent needs to make correct implementation decisions on day one.
+`plan-context.md` is the handoff artifact from `/architecture` to `/coding`. Since v4 it is a pure reference index with a hard cap of 20 lines: stack refs, ADR impact, quality refs, and a read-next pointer. It names WHERE decisions live and never restates them.
 
-### What plan-context.md contains
+- Stack facts live in `_devprocess/rules/technical.md`, not in
+  plan-context.
+- Decisions live in the ADRs; plan-context lists which ADRs affect
+  the item.
+- Current code paths live in the wayfinder
+  (`src/ARCHITECTURE.map`).
 
-| Section | What it holds |
-|---|---|
-| Technical Stack | Runtime, language, framework, DB, auth, testing, CI, with versions |
-| Architecture Style | Monolith, modulith, microservices, serverless, hybrid |
-| ADR summary table | ID, title, status, one-line decision |
-| Data Model | Entities, relationships, key constraints |
-| External Integrations | APIs, queues, third-party services |
-| Performance and Security | Concrete numbers from NFRs |
-| Conventions | Naming, error handling, logging, testing style |
-| Existing Patterns | How the codebase currently does X (if not greenfield) |
-| Rejected Alternatives | What `/coding` should NOT reopen without new reasons |
-
-### Why a separate plan-context.md
-
-arc42 is a human document. It has prose, diagrams, and sections that only make sense if you read them in order. An AI coding agent reading arc42 as its only context has to extract structured facts from sections written for a human audience, which is expensive and error-prone.
-
-plan-context.md is the machine counterpart. It holds the same information as arc42, compressed into structured, scannable form: tables, lists, explicit name-value pairs. A `/coding` agent can parse it in one pass and know immediately which language and framework to write in, which libraries are already blessed, which patterns the existing code follows, which alternatives were rejected, and which numbers it must hit for latency, security, and data model.
-
-This dual representation (arc42 for humans, plan-context.md for agents) is a deliberate structural choice. It is why `/architecture` ends with two artifacts instead of one.
+Earlier versions carried a prose summary and a `## Dialog` section
+for coder questions. Both are gone: restated facts drifted from
+their sources, and questions now travel via BACKLOG-row notes or PR
+comments. The ADR floor is gated by scope: 1 ADR for Simple Test, 2
+for PoC, 3 for MVP.
 
 See also: [Living Documents](../concepts/living-documents).
+
+## Navigation artifacts
+
+Two templates support the navigation layer:
+
+- **`SYSTEM-MAP.md`** (`SYSTEM-MAP-TEMPLATE.md`): a compact
+  navigation file with fast paths into the code, read before any
+  formal architecture document. Mandatory in the lean profile,
+  recommended in full.
+- **`decisions/README.md`** (`DECISIONS-README-TEMPLATE.md`): the
+  router table over all ADRs with *Applies when* and *Read when*
+  columns, generated from the ADRs' `applies-to`/`read-when`
+  frontmatter.
+
+In the lean profile (see [Three modes](../concepts/three-modes#mode-vs-profile)) these two artifacts replace the three rules files as the primary structure seed, and `/architecture` becomes the core skill of the workflow: it owns the rules in AGENTS.md, `SYSTEM-MAP.md`, and the post-hoc decision records behind `decisions/README.md`.
 
 ## Rejected Alternatives
 
@@ -264,23 +275,24 @@ materially different query patterns. (ADR-004)
 
 ## Quality gates
 
-The skill checks all three of the following before handing off.
+The skill checks all four of the following before handing off.
 
 1. **ADR to ASR traceability.** Every Critical ASR from RE has a matching ADR. No orphans.
-2. **plan-context.md consistency.** The tech stack in plan-context matches the Decisions in the ADRs. If ADR-002 says "Postgres" and plan-context says "MongoDB," the gate fails.
-3. **No ADR without real alternatives.** Every ADR has at least two Considered Options with Pros and Cons. "We chose React because it's popular" is rejected.
+2. **Ref integrity.** Every Accepted ADR appears exactly once in `plan-context.md`, and every ref there resolves to an existing ADR.
+3. **No choice ADR without real alternatives.** `constraint` and `choice` ADRs offer real alternatives with Pros and Cons, not single-option rationalisation.
+4. **Router consistency.** The `decisions/README.md` rows match the ADRs' `applies-to`/`read-when` frontmatter.
 
 Gate failures are never suppressed. The skill reopens the failing section instead of handing off with a silently-broken link. See [Verification Gates](../concepts/verification-gates) for the full mechanic.
 
 ## Handoff
 
-`/architecture` ends with the standard four-part [Handoff Ritual](../concepts/handoff-rituals): artifact report, handoff context appended to `HANDOFFS.md`, phase-end commit (`chore(arch): {ITEM-ID} ARCH complete`) plus `tag-phase --phase arch` and `sync-status --item {ITEM-ID}` (no-op outside `mode = "github-sync"`), transition question. The guide runs `/consistency-check` Mode A on the changed artifacts at the boundary.
+`/architecture` ends with the standard three-part [Handoff Ritual](../concepts/handoff-rituals): artifact report, phase-end commit (`chore(arch): {ITEM-ID} ARCH complete` with the `DIA-Phase: arch-done` and `DIA-Handoff: {ITEM-ID} -> coding` trailers) plus `tag-phase --phase arch` and `sync-status --item {ITEM-ID}` (no-op outside `mode = "github-sync"`), transition question. Between phase boundaries the pre-commit hook enforces the graph invariants.
 
-The handoff context entry in `_devprocess/context/HANDOFFS.md` is particularly rich because it captures decisions the next phase must not re-litigate:
+The commit body is particularly rich because it captures decisions the next phase must not re-litigate:
 
-- Tech-stack justification, which helps `/coding` understand why without re-reading all ADRs.
-- Rejected alternatives with reasons.
-- Known risks that `/coding` should watch for during implementation.
+- Rejected alternatives worth remembering.
+- Known architectural risks that `/coding` should watch for during implementation.
+- Open items deferred to `/coding`, and ADR consolidation moves.
 
 The next phase is [`/coding`](./coding), which will critically review plan-context.md and the wayfinder against the real codebase and either confirm the proposal, adjust it, or (in the rare case) push back to architecture with new evidence. When `/coding` discovers a capability the architecture never planned (a new library, a new infrastructure component), the **mid-course capability discovery** trigger pauses implementation and routes back here for an ADR before the code continues.
 
@@ -294,4 +306,4 @@ The next phase is [`/coding`](./coding), which will critically review plan-conte
 - [arc42](https://arc42.org). The structural documentation template.
 - [Living Documents concept](../concepts/living-documents). Why architecture artifacts are meant to evolve.
 - [Coding guide](./coding). The next phase.
-- [Reverse Engineering guide](./reverse-engineering). How this same structure is reached from an existing codebase.
+- [DIA Realign guide](./dia-realign). How this same structure is reached from an existing codebase.

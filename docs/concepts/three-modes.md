@@ -114,7 +114,7 @@ Some pieces of DIA run independently of the mode:
 - `scripts/merge-to-dev.sh`. The safe-merge wrapper is a shell
   script, not a flow.py call.
 - The migration scripts under `tools/migration/`. They are
-  invoked by `/dia-migration`, which always runs locally.
+  invoked by `/dia-realign`, which always runs locally.
 - The `/consistency-check` skill, which only touches files inside
   `_devprocess/` and `src/`.
 
@@ -130,10 +130,38 @@ skills delegate to `flow.py` and inherit the mode-awareness from
 there, so a phase ritual under `git-only` cleanly separates the
 local steps (commit, tag) from the skipped GitHub steps.
 
+## Mode vs. profile
+
+Besides `mode`, `.dia/config.toml` carries a second, independent
+axis: `profile`, either `full` (the default) or `lean`. The mode
+answers "how much git and GitHub integration?"; the profile answers
+"how much V-Model ceremony?".
+
+- **`full`**: all phase skills are first-class citizens. BA, RE,
+  architecture, coding, testing, and security audit each produce
+  their artifacts, and the complete artifact graph is binding.
+- **`lean`**: only durable decisions, stable navigation, and
+  backlog state are binding. The rules live consolidated in
+  AGENTS.md (with CLAUDE.md as a pointer), navigation lives in
+  `_devprocess/SYSTEM-MAP.md`, decisions are post-hoc ADRs behind
+  the `decisions/README.md` router table, and status lives in
+  GitHub Issues (`github-sync`) or a thin BACKLOG (`git-only`).
+  All other phase skills stay available but advisory:
+  `/architecture` becomes the core skill of the workflow, and
+  `/dia-guide` recommends `/architecture` or `/coding` directly.
+
+The lean profile is modeled on the practice of a downstream project. Pick it
+when the team will not run BA/RE ceremony anyway; a thin layer that
+is actually maintained beats a full layer that drifts. `/dia-setup`
+asks for the profile at activation and can switch it later
+(full <-> lean); in the lean profile the structure seed uses the
+SYSTEM-MAP and DECISIONS-README templates instead of the three
+rules files.
+
 ## Defaults if `.dia/config.toml` is missing
 
 For backwards compatibility with setups that predate `/dia-setup`,
 flow.py defaults to `git-only` when no `.dia/config.toml` exists
-and the SessionStart hook uses its legacy injection path. New
-projects should always run `/dia-setup` first to make the choice
-explicit.
+and the SessionStart hook uses its legacy injection path. A missing
+`profile` field means `full`. New projects should always run
+`/dia-setup` first to make the choice explicit.

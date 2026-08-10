@@ -72,7 +72,7 @@ concept page for the rationale.
       plans/                  PLAN-{nn}-{slug}.md
     context/
       BACKLOG.md              Single source of truth for state
-      HANDOFFS.md             Append-only phase log
+      BACKLOG-HISTORY.md      Append-only session history
       METRICS.md              Signal layer (per METRICS-TEMPLATE.md)
   docs/                       Public documentation (English)
   scripts/                    Build / deploy / utility scripts
@@ -104,7 +104,7 @@ under `analysis/`. There is no `20_bugs.md` file; bugs are
 | Improvement detail | `IMP-{ee}-{ff}-{nn}-{slug}.md` | `IMP-01-02-01-cache-warmup.md` |
 | Security Audit | `AUDIT-{PROJECT}-{YYYY-MM-DD}.md` | `AUDIT-myapp-2026-03-22.md` |
 | Backlog | `BACKLOG.md` | Fixed name |
-| Handoffs log | `HANDOFFS.md` | Fixed name |
+| Backlog history | `BACKLOG-HISTORY.md` | Fixed name (append-only) |
 | Signal layer | `METRICS.md` | Fixed name |
 
 Rules:
@@ -129,8 +129,11 @@ Rules:
   with a dashboard on top and rows grouped by epic. Every phase
   skill that changes project state updates this file in the same
   edit pass, **before** touching the artifact body.
-- **`HANDOFFS.md`** is an append-only phase handoffs log, written by
-  each phase skill at the end of its run.
+- **`BACKLOG-HISTORY.md`** is an append-only session history, one
+  line per backlog change. The backlog itself never accumulates
+  `[Previous]` blocks; history lives here. Phase transitions are
+  recorded as DIA commit trailers, not in a log file (see
+  [Handoff Rituals](../concepts/handoff-rituals)).
 - **`METRICS.md`** is the signal layer (cycle time, drift count,
   hypothesis status, phase transitions, cross-phase trigger counts).
   Append-additive, written from inside existing phase actions.

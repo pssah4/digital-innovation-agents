@@ -415,7 +415,7 @@ def render(art: list[dict], project_name: str) -> str:
            "> Single source of truth for state and the artifact relation graph.",
            "> Status fields live HERE, not in artifact frontmatter.",
            "",
-           "Last update: by /dia-migration",
+           "History: BACKLOG-HISTORY.md (append-only; git log is authoritative)",
            "",
            "---",
            "",

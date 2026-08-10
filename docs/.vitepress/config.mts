@@ -32,15 +32,9 @@ const guidesSidebar = [
     ],
   },
   {
-    text: 'Brownfield entry',
+    text: 'Brownfield entry and migration',
     items: [
-      { text: 'Reverse Engineering', link: '/guides/reverse-engineering' },
-    ],
-  },
-  {
-    text: 'Migration',
-    items: [
-      { text: 'DIA Migration', link: '/guides/dia-migration' },
+      { text: 'DIA Realign', link: '/guides/dia-realign' },
     ],
   },
   {

@@ -1,12 +1,11 @@
 ---
 name: requirements-engineering
 description: >
- Transforms business analyses into epics, features, and tech-agnostic success
- criteria. Creates handoff documents for the architect. Use this skill when
- the user mentions "Requirements", "RE", "Define Features", "Create Epics",
- "User Stories", "Requirements", "Success Criteria", "NFRs", "ASRs",
- "Acceptance Criteria", or similar. Also when a BA document exists and the
- next step is the formalization of requirements.
+ Transforms business analyses into epics, features, and tech-agnostic
+ success criteria; creates the architect handoff. Use when the user
+ mentions "Requirements", "RE", "Define Features", "Create Epics",
+ "User Stories", "Success Criteria", "NFRs", "ASRs", "Acceptance
+ Criteria", or when a BA exists and needs formalization.
 disable-model-invocation: false
 ---
 
@@ -24,21 +23,13 @@ Hard caps: EPIC 35 lines, FEATURE 65 lines, ARCHITECT-HANDOFF 60 lines.
 
 ## Pre-Phase 0: Branch and item check
 
-RE writes a spec for one specific backlog item. Full rules in
-`skills/project-conventions/references/team-workflow.md`.
-
-1. Identify the active item from the prompt or via AskUserQuestion. For
-   new items, write the BACKLOG row first.
-2. Verify branch matches `feature/<item-id-lower>-<slug>` (or
-   `fix/...` / `chore/...`). On a wrong branch, AskUserQuestion to switch.
-3. In `mode = "github-sync"`:
-
-   ```
-   python3 tools/github-integration/flow.py create-issue --item <ID>
-   python3 tools/github-integration/flow.py open-draft-pr --item <ID>
-   ```
-
-4. Write `.git/dia-active-skill` so subsequent invocations stay silent.
+Standard ritual, full rules in
+`skills/project-conventions/references/team-workflow.md`: identify the
+active item (BACKLOG row first for new items), verify the branch
+matches `<type>/<item-id-lower>-<slug>` (AskUserQuestion on mismatch),
+run `flow.py create-issue` + `open-draft-pr` when GitHub sync is on,
+tag the phase at ritual end (`--phase re`), and write
+`.git/dia-active-skill`.
 
 ## Phase 0: Artifact triage
 
@@ -62,24 +53,12 @@ FIX and IMP require `feature:` and `epic:` in the frontmatter. Details:
 
 ## Backlog as single source of truth
 
-Whenever this skill creates or modifies a Feature, Epic, or IMP/FIX, it
-writes the backlog row in `_devprocess/context/BACKLOG.md` BEFORE
-touching the artifact body. Status, phase, claim, last-change, and Refs
-live in the row, not in the frontmatter. Frontmatter spec:
-`skills/project-conventions/SKILL.md#canonical-specs` (Frontmatter spec).
-
-Defaults when no better value exists:
-
-- Feature: status Ready, phase Building
-- Epic: phase Building (worst-wins once features exist)
-- IMP: status Ready, phase Candidates
-
-Sync chain (binding order):
-
-1. Update the backlog row (status, phase, claim, last-change, refs).
-2. Update the artifact body.
-3. Recompute dashboard counts at the bottom of the backlog.
-4. Run `/consistency-check` mode A at the end of the skill phase.
+Backlog row BEFORE artifact body, always. Sync chain and lifecycle:
+`skills/project-conventions/references/backlog-sot.md`. Defaults when
+no better value exists: Feature status Ready / phase Building; Epic
+phase Building (worst-wins once features exist); IMP status Ready /
+phase Candidates. The pre-commit hook enforces the drift-critical
+invariants; the full `/consistency-check` runs before release.
 
 ## Inputs and outputs
 
@@ -293,9 +272,11 @@ each part lives in `references/handoff-snippets.md`.
 1. **Artifact report.** List produced/updated files (epics, features,
    architect-handoff, BACKLOG rows, ASR counts) plus one Parent-BA
    status line from the promotion step above.
-2. **HANDOFFS.md entry.** Append NFR summary, critical ASRs, open
-   architecture questions, constraints, forbidden-terms check
-   confirmation.
+2. **Handoff context.** NFR summary, critical ASRs, open architecture
+   questions, constraints, and the forbidden-terms confirmation go
+   into the phase-end commit BODY as short bullets; the trailers
+   (`DIA-Phase: re-done`, `DIA-Handoff: <ITEM-ID> -> architecture`)
+   carry the machine-readable transition.
 3. **Phase-end commit.** Per
    `skills/project-conventions/references/team-workflow.md`. Message
    starts `chore(re): <ITEM-ID> RE complete`. After commit:

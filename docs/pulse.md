@@ -162,12 +162,15 @@ in `_devprocess/`:
   decisions and the architecture document that survives individual
   iterations.
 - `architect-handoff.md` and `plan-context.md`: the connective tissue
-  between phases, with [Dialog sections](/concepts/handoff-rituals#dialog-handoffs-not-blockers)
-  for questions a pair cannot answer alone.
+  between phases, with [dialog handoffs](/concepts/handoff-rituals#dialog-handoffs-not-blockers)
+  for questions a pair cannot answer alone (coder questions travel
+  via BACKLOG-row notes or PR comments).
 - `BACKLOG.md`: the source of truth for project state, with the
   [Claim column](/reference/conventions#pair-ids-concurrent-agent-coordination)
   that lets pairs work concurrently without a central lock service.
-- `HANDOFFS.md`: append-only log of every phase transition.
+- DIA commit trailers (`DIA-Phase`, `DIA-Handoff`, `DIA-Triage`): the
+  machine-readable record of every phase transition, carried on the
+  phase-end commits themselves.
 - `METRICS.md`: the [signal layer](/reference/artifacts#the-four-context-files).
   Cycle time, drift count, hypothesis status, phase transitions,
   cross-phase trigger counts. Append-additive, no rituals.
@@ -254,7 +257,7 @@ mid-course requirements) that close the iteration loop.
 
 The team layer (PULSE) consumes the artifacts the pair layer
 produces. The Direction Session reads `METRICS.md`. The Sync Call
-reads `HANDOFFS.md` and pending Dialog entries. The conscious
+reads the latest DIA commit trailers and pending Dialog entries. The conscious
 filter reads against the BA. Nothing in PULSE asks pairs to produce
 extra artifacts. Every artifact PULSE relies on is already produced
 by the V-Model.
@@ -336,7 +339,7 @@ A mobile engineering lead asked:
 > Direction Session can react?
 
 Reply. Two mechanisms close this gap.
-[`/reverse-engineering`](/guides/reverse-engineering) discovers
+[`/dia-realign`](/guides/dia-realign) discovers
 implicit and explicit design decisions that already exist in the
 codebase, surfaces them as `ADR-NNN-{slug}.md` files marked
 `Inferred`, and folds them into the architecture record so the next
@@ -363,8 +366,8 @@ Mark Zimmermann (second comment):
 
 Reply. Not yet. The constraint is real. The V-Model is built so the
 agents read the artifacts in full and the humans can read summaries.
-Specifically: every Sync Call reads only `HANDOFFS.md` (the latest
-entries) and pending Dialog entries, not the full FEATURE specs.
+Specifically: every Sync Call reads only the latest DIA commit trailers
+and pending Dialog entries, not the full FEATURE specs.
 Direction Sessions read `METRICS.md` for the trend, not the
 underlying detail.
 
