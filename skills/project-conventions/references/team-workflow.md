@@ -209,7 +209,7 @@ rollback path.
 
 The Handoff Ritual of every phase skill (`/business-analysis`,
 `/requirements-engineering`, `/architecture`, `/coding`, `/testing`,
-`/security-audit`, `/reverse-engineering`) runs the commit between
+`/security-audit`, `/dia-realign`) runs the commit between
 Part 2 (Handoff context) and the phase-tag step.
 
 Triggers:
@@ -371,7 +371,7 @@ When invoked, the guide reads the current project state and
 
 The guide owns two narrow CRUD moments at workflow boundaries
 that no single phase skill covers (item-start branch creation
-when the user enters at A/B/C, post-`/reverse-engineering` item
+when the user enters at A/B/C, post-`/dia-realign` item
 promotion). Everything else is read-only.
 
 The guide is the consistency layer that prevents drift

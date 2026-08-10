@@ -40,7 +40,7 @@ the item walks through the V-Model phases.
 
 ## Skills that MUST run this check
 
-- `/reverse-engineering` -- before Phase -1 (special: bootstraps
+- `/dia-realign` -- before Phase -1 (special: bootstraps
   many items at once, see exception below)
 - `/business-analysis` -- before Phase 0
 - `/requirements-engineering` -- before any FEATURE write
@@ -48,7 +48,7 @@ the item walks through the V-Model phases.
 - `/coding` -- before any code or artefact edit
 - `/testing` -- before any test write
 - `/security-audit` -- before any AUDIT report write
-- `/dia-migration` -- before any migration step
+- `/dia-realign` -- before any migration step
 - `/release` -- exception: this skill runs on `dev` / `main` and
   skips the check.
 
@@ -161,13 +161,13 @@ item mid-flow, the marker mismatches and the question fires again.
 
 The marker is removed at skill end.
 
-## Exception: /reverse-engineering
+## Exception: /dia-realign (full realign run)
 
-`/reverse-engineering` bootstraps an entire backlog at once
+`/dia-realign` bootstraps an entire backlog at once
 (potentially 20+ items). Branching per-item would force the user to
 juggle 20 branches before any work is done. The exception:
 
-- `/reverse-engineering` runs on a single feature branch
+- `/dia-realign` runs on a single feature branch
   `feature/reverse-engineer-<repo-name>`.
 - All artefacts produced (FEATURE specs, ADRs, BA draft, backlog
   rows) land in that one branch.

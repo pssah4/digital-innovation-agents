@@ -114,7 +114,10 @@ def detect(root: Path) -> dict:
     if not findings["has_devprocess"] and not findings["has_src"]:
         findings["recommendation"] = "empty-repo"
     elif not findings["has_devprocess"]:
-        findings["recommendation"] = "brownfield-call-reverse-engineering-first"
+        # Historic alias: "brownfield-call-reverse-engineering-first".
+        # No tool parses the old string (checked 2026-08); consumers read
+        # the recommendation as prose. /dia-realign maps this to Mode A.
+        findings["recommendation"] = "brownfield-call-dia-realign-first"
     else:
         v1_total = (
             int(findings["v1_signals"]["fixes_under_context"])

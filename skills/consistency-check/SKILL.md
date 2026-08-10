@@ -422,7 +422,7 @@ Findings:
 
 ## Workflow
 
-1. **Detect project structure.** Same rules as `/reverse-engineering`:
+1. **Detect project structure.** Same rules as `/dia-realign`:
    `docs/` or `_devprocess/` as root. Abort with a clear message if
    neither is found.
 2. **Build the node set.** Grep for:
@@ -622,7 +622,7 @@ Before this skill reports completion:
 - Active refactoring where artifacts are intentionally in flux.
   Wait for the refactor to settle, then run the check.
 - Greenfield projects without V-Model artifacts. Bootstrap via
-  `/dia-guide` or `/reverse-engineering` first.
+  `/dia-guide` or `/dia-realign` first.
 
 ## Keywords
 
