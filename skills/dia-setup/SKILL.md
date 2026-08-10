@@ -45,6 +45,23 @@ the field `mode`:
    option must list a `+ Pro:` line and a `- Con:` line in its
    description per the project User Interaction Protocol.
 
+1b. **Profile question (only if mode != off).** Use
+   `AskUserQuestion` with two options:
+   - `full` (Recommended for a complete V-Model cycle): every phase
+     skill is binding as written.
+   - `lean` ("only durable decisions and stable navigation"): rules
+     consolidated in AGENTS.md with CLAUDE.md as pointer,
+     `_devprocess/SYSTEM-MAP.md`, post-hoc ADRs behind
+     `decisions/README.md`, status in GitHub Issues (github-sync) or
+     a thin BACKLOG (git-only). All other phase skills stay
+     available but advisory. Modeled on the practice of a downstream project;
+     pick it when the team will not run BA/RE ceremony anyway.
+
+   In the lean profile, step 6 (structure seed) uses the SYSTEM-MAP
+   and DECISIONS-README templates from `skills/architecture/templates/`
+   instead of the three RULES files, and the anchor block carries the
+   anti-duplication rule.
+
 2. **Anchor file detection.** Scan the repo root for the known agent
    files. Show the user which files were detected and ask
    (single `AskUserQuestion`, multiSelect) which ones should carry
@@ -120,14 +137,17 @@ the field `mode`:
 
 ## Reconfigure flow (`.dia/config.toml` exists)
 
-1. **Read current state.** Parse `.dia/config.toml`, extract `mode`
-   and `anchor_files`. Print the current state to the user.
+1. **Read current state.** Parse `.dia/config.toml`, extract `mode`,
+   `profile` (print `full (implicit)` when the field is absent), and
+   `anchor_files`. Print the current state to the user.
 
 2. **Action question.** Use `AskUserQuestion` with these options:
    - **Change mode** (Recommended if user invoked the skill to
      toggle behavior).
+   - **Change profile** (full <-> lean; updates the config field and
+     refreshes the anchor blocks with the new profile).
    - **Refresh anchor blocks** (rewrites blocks against the current
-     mode, useful after a template update).
+     mode and profile, useful after a template update).
    - **Add or remove anchor files** (multi-step, see below).
    - **Deactivate (set mode to off and remove all anchor blocks)**.
    - **Cancel**.
@@ -192,6 +212,7 @@ The skill never touches files outside this list.
 
 ```toml
 mode = "git-only"
+profile = "full"
 
 anchor_files = [
   "CLAUDE.md",
@@ -208,9 +229,14 @@ status_field = "Status"
 project_owner = ""
 ```
 
-`mode` is the only mandatory field. `anchor_files` defaults to the
-list of files that carry a managed anchor block. `source_branch`
-controls the base for new feature branches `/dia-guide` creates.
+`mode` is the only mandatory field. `profile` defaults to `full`
+when absent (zero behavior change for existing configs); `lean`
+makes only architecture artifacts and backlog state binding.
+`anchor_files` defaults to the list of files that carry a managed
+anchor block. `source_branch` controls the base for new feature
+branches `/dia-guide` creates. Pass the profile to
+`anchor.py write --mode <m> --profile <p>` so the anchor block
+renders it.
 
 The `[github]` section is honored only when `mode = "github-sync"`:
 

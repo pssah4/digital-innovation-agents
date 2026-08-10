@@ -7,10 +7,12 @@ Vocabulary, writing rules, and the relation-graph spec: see
 `skills/project-conventions/SKILL.md#canonical-specs` (Backlog vocabulary,
 Priority/Effort legend, Three-layer model boundaries). Row columns are
 fixed, see `### EPIC-NN` table below. Bug substance lives in
-`_devprocess/requirements/fixes/FIX-*.md`; handoffs in `HANDOFFS.md`;
-metrics in `METRICS.md`.
+`_devprocess/requirements/fixes/FIX-*.md`; handoffs in DIA commit
+trailers; metrics in `METRICS.md`.
 
-Last update: {YYYY-MM-DD} by {skill-or-user}
+History: `BACKLOG-HISTORY.md` (append-only, one line per entry:
+`## {YYYY-MM-DD} {skill}: {one line}`; git log is authoritative).
+Never accumulate `[Previous]` blocks in this file.
 
 ---
 
