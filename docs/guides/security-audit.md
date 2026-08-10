@@ -53,6 +53,29 @@ differs.
    privilege, fail-closed defaults, audit trail, hardcoded
    credentials, debug code in production.
 
+## Supply-chain phase
+
+Between SCA and Zero Trust, the audit runs a supply-chain phase
+(`audit_scan.py supply-chain`) in up to three stages:
+
+- **Static checks (always part of a full audit).** Lockfile
+  provenance, CI action pinning, and an inventory of install
+  scripts. No network, no build execution.
+- **Clean-room rebuild (opt-in, `--rebuild`).** Rebuilds the
+  project in a scratch clone and compares the artifact against the
+  distributed one. It executes the project's build command, so it
+  runs only after explicit confirmation and needs a configured
+  build command (`[audit.supply_chain]` in the config or
+  `--build-cmd`/`--artifact`).
+- **Release verification (opt-in, `--release-verify`).** Verifies
+  the GitHub attestation of release assets via the `gh` CLI; needs
+  network access.
+
+The report keeps an honest ledger: only tools and stages that
+actually ran are claimed, and declined or unavailable stages appear
+explicitly as not-run instead of silently vanishing. A skipped
+rebuild is a documented gap, not a passed check.
+
 ## Severity schema
 
 - **H (High)**: exploitable, significant impact, fix immediately
@@ -91,17 +114,17 @@ with fresh output before claiming the finding is closed. See
 
 ## Handoff
 
-Ends with the 4-part [Handoff Ritual](../concepts/handoff-rituals):
-artifact report, handoff context appended to `HANDOFFS.md`,
-phase-end commit (`chore(sec): {ITEM-ID} security complete`) plus
-`tag-phase --phase sec` and `sync-status --item {ITEM-ID}` (no-op outside `mode = "github-sync"`), transition question. The guide runs
-`/consistency-check` Mode A on the changed artifacts at the
-boundary.
+Ends with the 3-part [Handoff Ritual](../concepts/handoff-rituals):
+artifact report, phase-end commit (`chore(sec): {ITEM-ID} security
+complete` with the `DIA-Phase: sec-done` trailer) plus
+`tag-phase --phase sec` and `sync-status --item {ITEM-ID}` (no-op
+outside `mode = "github-sync"`), transition question. Before the
+handoff, Step 7 runs the mandatory pre-release `/consistency-check`;
+this is the once-per-cycle full graph check.
 
-The next phase is the Closing Handoff via
-`/dia-guide`. The handoff context includes the release
-readiness verdict (green, yellow, or red) and any deferred findings
-that the release ships with.
+The next phase is the Closing Handoff via `/dia-guide`. The commit
+body includes the release readiness verdict (green, yellow, or red)
+and any deferred findings that the release ships with.
 
 ## Read the skill file
 

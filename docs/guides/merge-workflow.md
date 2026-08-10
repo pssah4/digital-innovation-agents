@@ -111,7 +111,8 @@ old id appears:
 
 - ADR and PLAN ids (they have their own numbering, semantically
   decoupled from the EPIC/FEAT graph)
-- `_devprocess/context/HANDOFFS.md` (append-only audit trail)
+- Legacy `_devprocess/context/HANDOFFS.md` files (retired
+  append-only audit trail, kept untouched)
 
 ## Mapping rule
 
@@ -158,9 +159,9 @@ the merge through.
 **Multiple parallel feature branches.** Each merge handles only
 the branch being merged. Other branches stay untouched and may
 need their own renumber when they merge later.
-[`/dia-migration` Phase 8](./dia-migration#what-it-does) and
-[`/reverse-engineering` Phase 6.5](./reverse-engineering#phase-6-5-parallel-branch-alignment-advisory)
-list all parallel branches with collision status, so the
+The advisory parallel-branch alignment step in
+[`/dia-realign`](./dia-realign#quality-gates-and-closing-sequence)
+lists all parallel branches with collision status, so the
 maintainer can plan ahead.
 
 ## Test the workflow
@@ -210,5 +211,4 @@ Tool source on GitHub:
 
 Skill integrations:
 
-- [`/dia-migration` Phase 8](./dia-migration#what-it-does)
-- [`/reverse-engineering` Phase 6.5](./reverse-engineering#phase-6-5-parallel-branch-alignment-advisory)
+- [`/dia-realign` parallel-branch alignment](./dia-realign#quality-gates-and-closing-sequence)

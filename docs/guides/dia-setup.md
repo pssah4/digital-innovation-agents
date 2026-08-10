@@ -35,8 +35,9 @@ existing block in place rather than appending.
 
 | Situation | What you do |
 |---|---|
-| First DIA-aware session in a new project | Run `/dia-setup`, pick a mode, accept the detected agent files |
+| First DIA-aware session in a new project | Run `/dia-setup`, pick a mode and a profile, accept the detected agent files |
 | You want to change the mode | Re-run `/dia-setup`, pick "Change mode" |
+| You want to switch between full and lean | Re-run `/dia-setup`, pick "Change profile" |
 | You added a new agent file (e.g. `.cursorrules`) | Re-run `/dia-setup`, pick "Add or remove anchor files" |
 | You upgraded the plugin and the templates changed | Re-run `/dia-setup`, pick "Refresh anchor blocks" |
 | You want the plugin to leave this project alone | Re-run `/dia-setup`, pick "Deactivate" |
@@ -56,6 +57,12 @@ When `.dia/config.toml` does not yet exist:
    recommendation depends on your situation: solo work without
    GitHub Issues -> `git-only`, team with GitHub Issues / Projects
    -> `github-sync`, plugin should stay neutral -> `off`.
+   The same step asks for the profile: `full` (all phase skills
+   binding) or `lean` (only decisions, navigation, and backlog
+   state binding; see
+   [Mode vs. profile](../concepts/three-modes#mode-vs-profile)).
+   In the lean profile the structure seed uses the SYSTEM-MAP and
+   DECISIONS-README templates instead of the three rules files.
 2. **Agent file detection.** The skill scans the repo root for the
    six known agent files and lists them. You confirm or adjust the
    selection. Pre-selected: every detected file.
@@ -65,7 +72,8 @@ When `.dia/config.toml` does not yet exist:
 4. **Write `.dia/config.toml`.** The skill renders the template
    `skills/dia-setup/templates/dia-config.toml.tmpl` with your
    chosen values and writes it to `.dia/config.toml`. The file is
-   committed alongside your code so the team shares the mode.
+   committed alongside your code so the team shares the mode and
+   profile.
 5. **Write anchor blocks** (skipped in `off`). The skill calls
    `tools/dia-setup/anchor.py write --mode <mode> --files <list>`,
    which renders one template per agent file (full block in
@@ -80,10 +88,12 @@ When `.dia/config.toml` does not yet exist:
 
 When `.dia/config.toml` already exists:
 
-1. **Read current state.** The skill prints the active mode and
-   the anchored files.
-2. **Action question.** AskUserQuestion with five options:
+1. **Read current state.** The skill prints the active mode, the
+   profile (`full (implicit)` when the field is absent), and the
+   anchored files.
+2. **Action question.** AskUserQuestion with six options:
    - **Change mode** (the most common case)
+   - **Change profile** (full <-> lean)
    - **Refresh anchor blocks** (after a plugin update)
    - **Add or remove anchor files**
    - **Deactivate** (sets mode to `off` and removes all blocks)

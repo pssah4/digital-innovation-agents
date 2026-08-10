@@ -214,9 +214,9 @@ The cycle closes with the guide's three-step Closing Handoff:
    matches the real tech stack. State changes go through the
    backlog row first. Mode B returns a Release-Ready verdict.
 2. **On Release-Ready: yes**: closing report (Feature / bug /
-   security counts, finalised artifacts) plus the `release-to-ba`
-   HANDOFFS template that queues the BA Post-Release Review for the
-   next BA session.
+   security counts, finalised artifacts) plus a post-release-review
+   BL-Item row in the BACKLOG that queues the BA Post-Release
+   Review for the next BA session.
 3. **On Release-Ready: yes**: optional run of a project-specific
    release skill (version bump, merge, tag, publish). The public
    DIA plugin does not own a release mechanism, since release
@@ -254,7 +254,7 @@ _devprocess/
     PLAN-04-*.md
   context/
     BACKLOG.md         (single source of truth for state)
-    HANDOFFS.md        (full audit trail of phase transitions)
+    BACKLOG-HISTORY.md (append-only session history)
     METRICS.md         (signal layer: cycle time, drift, hypothesis status)
 ```
 

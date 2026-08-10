@@ -7,9 +7,9 @@ description: Complete list of commands that Digital Innovation Agents provides.
 
 All commands work the same way across Claude Code (CLI), Cursor,
 Codex, OpenCode, Gemini CLI, and GitHub Copilot. Type `/` in your
-coding tool to see autocomplete suggestions. The thirteen skills
-group into guide, brownfield entries, V-Model phase skills,
-and foundation skills.
+coding tool to see autocomplete suggestions. The skills group into
+guide, brownfield entry, V-Model phase skills, and foundation
+skills.
 
 ## Activation
 
@@ -23,13 +23,11 @@ See [dia-setup guide](../guides/dia-setup) and [Three modes](../concepts/three-m
 
 | Command | When to use |
 |---|---|
-| `/dia-guide` | Starting a new project, running the full cycle, or resuming an interrupted workflow. Drives phase transitions, mandatory phase-boundary consistency checks, GitHub flow.py integration, and ends with the Closing Handoff. |
-| `/reverse-engineering` | Brownfield entry. Walks the V backwards over an existing codebase. Produces wayfinder, ADRs, arc42, FEAT inventory, backlog seed, evidence-based BA draft. Every claim sourced. |
-| `/dia-migration` | Existing DIA users upgrading between versions (v1 -> v2 -> v3). Renames `FEATURE-NNNN` to `FEAT-EE-FF`, flattens analysis, regenerates the backlog, runs graph-health. Stage 5b migrates the BACKLOG status vocabulary to the GitHub-aligned set. Idempotent, branch-safe. |
+| `/dia-guide` | Explicit orientation command ("where do I start?", "what comes next?"). Reads backlog, DIA commit trailers, and git state; recommends the next phase skill; audits the last phase-end commit for the binding trailers; runs the Closing Handoff after a green audit. Never auto-invoked by the model. |
+| `/dia-realign` | One entry point for repos that predate current DIA conventions. Detects the repo state via `detect_state.py`, then runs Mode A (full reverse walk over a brownfield codebase), Mode B (migration script pass plus gap walk for legacy DIA repos), or Mode C (gap walk and deprecation offers). Successor of the retired `/reverse-engineering` and `/dia-migration` skills. Every claim sourced, idempotent script pass, branch-safe. |
 
-See [V-Model workflow guide](../guides/dia-guide),
-[Reverse Engineering guide](../guides/reverse-engineering), and
-[DIA Migration guide](../guides/dia-migration).
+See [V-Model workflow guide](../guides/dia-guide) and
+[DIA Realign guide](../guides/dia-realign).
 
 ## Phase skills (in V-Model order)
 
@@ -37,15 +35,17 @@ See [V-Model workflow guide](../guides/dia-guide),
 |---|---|---|
 | 1 | `/business-analysis` | Exploration, Ideation, Validation. Produces the Project-BA `BA-{PROJECT}.md` (singleton, optional but recommended) plus one Item-BA per backlog item that needs discovery depth: `BA-EPIC-{nn}-{slug}.md` (mandatory before EPIC), `BA-FEAT-{ee}-{ff}-{slug}.md` (mandatory before FEAT), `BA-IMP-*.md` and `BA-FIX-*.md` (optional). All BAs live flat in `_devprocess/analysis/` and feed the EPIC/FEAT/IMP/FIX artefact via `ba-ref:` in the artefact frontmatter. |
 | 2 | `/requirements-engineering` | Transforms BA into Epics, `FEAT-{ee}-{ff}` features, tech-agnostic Success Criteria, hypothesis statements as full prose. |
-| 3 | `/architecture` | Creates ADRs (MADR) with the abstraction rule, arc42, `plan-context.md`. Maintains the wayfinder layer. |
+| 3 | `/architecture` | Creates ADRs (kind: constraint, choice, or post-hoc) with the abstraction rule, the arc42 constraints doc, the `plan-context.md` ref index, and the navigation artifacts (`SYSTEM-MAP.md`, `decisions/README.md`). Maintains the wayfinder layer. |
 | 4 | `/coding` | Critical review, PLAN-NN persistence with coverage gate, bug-capture entry, writeback to backlog and wayfinder. Bugs land as `FIX-{ee}-{ff}-{nn}` rows plus detail files. |
 | 5 | `/testing` | Unit and integration tests with AAA, FIRST principles, coverage targets, fix-loop. |
 | 6 | `/security-audit` | OWASP Top 10 + LLM Top 10 + SAST + SCA + Zero Trust. Two modes: per-item audit, periodic full-codebase audit on a `feature/audit-{date}` branch. |
 
-Each phase skill ends with a **4-part Handoff Ritual**: artifact
-report, handoff context appended to `HANDOFFS.md`, phase-end commit
-(canonical `{type}({phase}): {ITEM-ID} {phase} complete`) plus
-`tag-phase` followed by `sync-status`, transition question.
+Each phase skill ends with a **3-part Handoff Ritual**: artifact
+report, phase-end commit (canonical
+`{type}({phase}): {ITEM-ID} {phase} complete` with the `DIA-Phase`,
+`DIA-Handoff`, and where applicable `DIA-Triage` trailers) plus
+`tag-phase` followed by `sync-status`, transition question. See
+[Handoff Rituals](../concepts/handoff-rituals).
 
 ## flow.py subcommands (mode-aware GitHub integration)
 
@@ -73,7 +73,7 @@ issue check is gated on `github-sync`.
 | Command | When to use |
 |---|---|
 | `/project-conventions` | Initializing a new project, checking the three-layer documentation model, or verifying directory and naming conventions. Referenced by all other skills. |
-| `/consistency-check` | Verifying the V-Model artifact graph at phase boundaries. Mode A (syntactic: links, IDs, refs), Mode B (semantic via agent), Mode C (full). Mandatory at every phase end and before release. |
+| `/consistency-check` | Explicit command for verifying the V-Model artifact graph. Mode A (syntactic: links, IDs, refs), Mode B (semantic via agent), Mode C (interactive fix-loop). Mandatory once per cycle before release (security-audit Step 7 / Closing Handoff); the pre-commit hook covers the drift-critical invariants between runs. Never auto-invoked by the model. |
 | `/humanizer` | Stripping AI vocabulary, em dashes, negative parallelisms, and filler from any artifact. Enforces sentence case and active voice. |
 
 ## Bootstrap skill

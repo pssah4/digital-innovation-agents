@@ -130,8 +130,21 @@ Failing tests trigger a fix-loop with 4 user options:
 
 - **A)** Fix all findings automatically
 - **B)** Approve fixes one by one
-- **C)** Only adjust tests (code is correct, tests are wrong)
+- **C)** Adjust tests because the FEATURE spec changed
 - **D)** Abort, review findings manually first
+
+**Option C gate (binding).** Weakening or changing a test is only
+legitimate when the requirement itself changed. Before any test edit
+under Option C, all three pieces of evidence must exist:
+
+1. The Success Criterion in the referenced FEATURE spec is amended,
+   with a one-line comment explaining the change.
+2. The active PLAN gets a Change Log entry referencing the test path.
+3. The diff of the test is shown to the user BEFORE the edit.
+
+Without all three, the skill blocks Option C and returns to A/B/D.
+"The test is inconvenient" is never a reason; that case is a code
+bug (Option A/B).
 
 Each iteration verifies that previously failing tests now pass with
 fresh command output (no caches, no "should pass now"). The loop
@@ -157,15 +170,16 @@ first, substance second):
 
 ## Handoff
 
-Ends with the 4-part [Handoff Ritual](../concepts/handoff-rituals):
-artifact report, handoff context appended to `HANDOFFS.md`,
-phase-end commit (`test: {ITEM-ID} testing complete`) plus
-`tag-phase --phase test` and `sync-status --item {ITEM-ID}` (no-op outside `mode = "github-sync"`), transition question. The guide
-runs `/consistency-check` Mode A on the changed artifacts at the
-boundary. The next phase is [`/security-audit`](./security-audit).
-The handoff context documents any accepted coverage gaps with
-justification, brittle tests, and security-adjacent observations
-noticed during test writing.
+Ends with the 3-part [Handoff Ritual](../concepts/handoff-rituals):
+artifact report, phase-end commit (`test: {ITEM-ID} testing
+complete` with the `DIA-Phase: test-done` and
+`DIA-Handoff: {ITEM-ID} -> security-audit` trailers) plus
+`tag-phase --phase test` and `sync-status --item {ITEM-ID}` (no-op
+outside `mode = "github-sync"`), transition question. The next
+phase is [`/security-audit`](./security-audit). The commit body
+documents any accepted coverage gaps with justification, brittle
+tests, and security-adjacent observations noticed during test
+writing.
 
 ## Read the skill file
 

@@ -42,7 +42,9 @@ Mixed states resolve toward B: the script pass is idempotent.
 Standard ritual, full rules in
 `skills/project-conventions/references/team-workflow.md`: Mode A runs
 on `feature/realign-<repo-name>` (multi-item exception: one branch
-bootstraps the whole backlog, per-item branches start AFTER merge);
+bootstraps the whole backlog, per-item branches start AFTER merge;
+full exception rules:
+`skills/project-conventions/references/branch-protection.md`);
 Modes B and C run on `chore/dia-realign-<YYYY-MM-DD>`. Refuse on
 `main` / `master` / `dev` (AskUserQuestion to create and switch), no
 per-item issues or phase tags during the walk, write

@@ -26,29 +26,32 @@ and **GitHub Copilot**.
 The project ships thirteen skills that run inside your AI coding
 assistant. Six are V-Model phase skills (business analysis,
 requirements engineering, architecture, coding, testing, security
-audit). Two are entry-point skills for non-greenfield projects
-(reverse engineering, dia-migration). One is the on-demand workflow
-guide (`/dia-guide`). Four are foundation skills (project conventions,
-consistency check, humanizer, dia-bootstrap). Every
-phase skill owns one part of the V-Model, has its own quality gates,
-and hands off a structured artifact to the next phase. The guide is
-called separately whenever the user wants an orientation read.
-Every decision stays traceable from a real user problem through
-requirements, architecture, code, tests, and a security audit.
+audit). One is the entry point for non-greenfield projects
+(`/dia-realign`). One is the on-demand workflow guide (`/dia-guide`,
+an explicit command the model never auto-invokes). Five are
+foundation skills (project conventions, consistency check, humanizer,
+dia-setup, dia-bootstrap). Every phase skill owns one part of the
+V-Model, has its own quality gates, and hands off a structured
+artifact to the next phase; the transition record lives as DIA
+trailers (`DIA-Phase`, `DIA-Handoff`, `DIA-Triage`) on the phase-end
+commits, readable with plain git. Every decision stays traceable
+from a real user problem through requirements, architecture, code,
+tests, and a security audit.
 
-Three entry points cover greenfield, brownfield, and migration projects:
+Two entry points cover greenfield and everything else:
 
 - **Greenfield:** `/business-analysis` starts with structured discovery
   (users, needs, insights, critical hypotheses) and walks forward
   through the V-Model.
-- **Brownfield:** `/reverse-engineering` walks the V backwards over an
-  existing codebase and produces plan-context, ADRs, an arc42 snapshot,
-  a FEATURE inventory, a backlog seed, and an evidence-based BA draft.
-  Every claim is sourced to a file path or doc section. Nothing invented.
-- **Migration:** `/dia-migration` brings an older DIA project (v1) or a
-  pre-existing V-Model variant up to current conventions: cleans
-  status drift, normalises ID schemas, flattens analysis/, regenerates
-  the backlog as single source of truth.
+- **Brownfield and legacy DIA:** `/dia-realign` detects the repo state
+  and picks the fitting mode. For a codebase without artifacts it
+  walks the V backwards and produces a wayfinder, post-hoc ADRs, an
+  arc42 reference, a FEATURE inventory, a backlog seed, and an
+  evidence-based BA draft (every claim sourced to a file path or doc
+  section, nothing invented). For an older DIA project it runs the
+  idempotent migration script pass (status drift, ID schemas,
+  analysis/ flattening, backlog regeneration) and then fills the
+  remaining gaps.
 
 ## Innovation methodology, not just automation
 
@@ -135,15 +138,15 @@ fi
 mkdir -p ~/.claude/skills
 
 # Remove legacy DIA skills that were renamed or dropped
-for legacy in dia-orchestrator; do
+for legacy in dia-orchestrator reverse-engineering dia-migration; do
   rm -rf "$HOME/.claude/skills/$legacy"
 done
 
 # Symlink the current DIA skill set (covers future renames automatically)
-for skill in project-conventions reverse-engineering business-analysis \
+for skill in project-conventions dia-realign business-analysis \
              requirements-engineering architecture coding testing \
              security-audit consistency-check humanizer dia-guide \
-             dia-migration dia-setup dia-bootstrap; do
+             dia-setup dia-bootstrap; do
   rm -rf "$HOME/.claude/skills/$skill"
   ln -sfn "$DIA_PLUGIN_ROOT/skills/$skill" "$HOME/.claude/skills/$skill"
 done
@@ -272,17 +275,17 @@ Start a session in your chosen platform and try one of these:
 
 ```
 /dia-setup                 Activate the workflow in this project
-/dia-guide                 Full guided cycle from idea to security audit
+/dia-guide                 Orientation read: state audit and next-phase recommendation
 /business-analysis         Start a structured business analysis
-/reverse-engineering       Brownfield entry for an existing codebase
+/dia-realign               Brownfield entry and legacy DIA upgrade
 ```
 
 `/dia-setup` is the first call in any new project. It asks for the
-mode (`off`, `git-only`, or `github-sync`), writes
-`.dia/config.toml`, and adds a managed anchor block to your
-existing `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.cursorrules`, or
-similar agent files. Re-run any time to change the mode or remove
-the anchor.
+mode (`off`, `git-only`, or `github-sync`) and the profile (`full`
+or `lean`), writes `.dia/config.toml`, and adds a managed anchor
+block to your existing `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`,
+`.cursorrules`, or similar agent files. Re-run any time to change
+the mode or profile, or to remove the anchor.
 
 Or ask a natural-language question like "help me analyse this business
 problem". The agent should invoke the matching skill.
@@ -297,24 +300,23 @@ Troubleshooting:
 
 ## The skills
 
-The thirteen skills split into three groups: V-Model phase skills (the
-ten that own a phase or move you between phases), foundation skills
-(rules and consistency), and the orientation skill (`using-digital-
-innovation-agents` loads on session start to introduce the workflow).
+The thirteen skills split into three groups: V-Model phase skills
+(the ones that own a phase or move you between phases), foundation
+skills (rules and consistency), and the bootstrap skill
+(`dia-bootstrap` loads on session start to introduce the workflow).
 
 ### V-Model phase skills
 
 | Phase | What it does | Claude Code | Copilot |
 |---|---|---|---|
-| **Reverse Engineering** | Brownfield entry. Walks the V backwards over an existing codebase and produces plan-context, ADRs, arc42, FEATURE inventory, backlog seed, and an evidence-based BA draft with every claim sourced. | `/reverse-engineering` | `@reverse-engineer` |
-| **DIA Migration** | Migrates a v1 project, an older V-Model variant, or a brownfield repo to current DIA conventions. Idempotent, branch-safe, no source-code edits. | `/dia-migration` | built-in |
-| **Business Analysis** | Exploration, Ideation, and Validation cycle with structured interviews, probing techniques, and the 32-method discovery catalog. | `/business-analysis` | `@business-analyst` |
+| **DIA Realign** | One entry point for brownfield codebases and legacy DIA repos. Detects the repo state, then runs a full reverse walk, the migration script pass, or a gap walk. Every claim sourced, idempotent, branch-safe. | `/dia-realign` | `@reverse-engineer` |
+| **Business Analysis** | Exploration, Ideation, and Validation cycle with structured interviews, probing techniques, and the 32-method discovery catalog. Condenses the dialog into a 40-line BA record. | `/business-analysis` | `@business-analyst` |
 | **Requirements Engineering** | Epics, FEAT-EE-FF features, tech-agnostic success criteria, user stories across functional / emotional / social levels, critical hypotheses. | `/requirements-engineering` | `@requirements-engineer` |
-| **Architecture** | ADRs in MADR format with the abstraction rule (no code paths in core sections), arc42 snapshot, wayfinder maintenance, plan-context bridge to implementation. | `/architecture` | `@architect` |
-| **Coding** | Context handoff, critical review against the real codebase, PLAN-NN persistence with coverage gate, bug-capture entry, artifact writeback during implementation. | `/coding` | `@developer` |
-| **Testing** | Unit and integration tests with the AAA pattern, FIRST principles, coverage targets, and a fix-loop until green. | `/testing` | built-in |
-| **Security Audit** | OWASP Top 10, LLM Top 10, SAST, SCA, Zero Trust review with a fix-loop. Two modes: per-item audit and periodic full-codebase audit. | `/security-audit` | `@security-auditor` |
-| **V-Model Workflow Guide** | On-demand orientation: reads project state, audits the latest handoff entry, recommends the next phase skill, and emits the Closing Handoff after a green security audit. The guide does not perform CRUD or drive transitions; phase skills are autonomous. | `/dia-guide` | built-in |
+| **Architecture** | ADRs with kinds (post-hoc as the normal case, choice, constraint) and the abstraction rule (no code paths in core sections), arc42 constraints doc, navigation artifacts (SYSTEM-MAP, decisions router), wayfinder maintenance, plan-context ref index. | `/architecture` | `@architect` |
+| **Coding** | Context handoff, critical review against the real codebase, PLAN-NN persistence with coverage gate, TDD by default (opt-out `--no-tdd` with user confirmation), bug-capture entry, artifact writeback during implementation. | `/coding` | `@developer` |
+| **Testing** | Unit and integration tests with the AAA pattern, FIRST principles, coverage targets, and a fix-loop until green. Test edits under "the spec changed" require three pieces of evidence. | `/testing` | built-in |
+| **Security Audit** | OWASP Top 10, LLM Top 10, SAST, SCA, supply-chain checks, Zero Trust review with a fix-loop. Two modes: per-item audit and periodic full-codebase audit. | `/security-audit` | `@security-auditor` |
+| **V-Model Workflow Guide** | Explicit orientation command (never auto-invoked): reads project state and the DIA commit trailers, recommends the next phase skill, audits the last phase-end commit, and emits the Closing Handoff after a green security audit. The guide does not drive transitions; phase skills are autonomous. | `/dia-guide` | built-in |
 | **Debugging** | Root-cause analysis, systematic error resolution, causal chain documentation. Bugs land as FIX-EE-FF-NN rows in the backlog plus detail files in `_devprocess/requirements/fixes/`. | default agent | `@debugger` |
 
 ### Foundation skills
@@ -322,7 +324,7 @@ innovation-agents` loads on session start to introduce the workflow).
 | Skill | What it does | Claude Code |
 |---|---|---|
 | **Project Conventions** | Three-layer documentation model (Wayfinder, Rule sets, Backlog, Detail artifacts), directory structure, naming standards, writing-style rules. | `/project-conventions` |
-| **Consistency Check** | Verifies the V-Model artifact graph: dead links, orphan features, status drift, missing references. Modes A (syntactic), B (semantic), C (full). Mandatory at every phase boundary. | `/consistency-check` |
+| **Consistency Check** | Explicit command that verifies the V-Model artifact graph: dead links, orphan features, status drift, missing references. Modes A (syntactic), B (semantic), C (interactive fix-loop). Mandatory once per cycle before release; the pre-commit hook covers the drift-critical invariants between runs. | `/consistency-check` |
 | **Humanizer** | Strips AI vocabulary, em dashes, negative parallelisms, and filler from every artifact. Enforces sentence case and active voice. | `/humanizer` |
 | **DIA Bootstrap** | Loads automatically on session start. Carries the entry-point catalog, helper-script path resolution rule, activation contract, opt-out behaviour. Not invoked manually. | `dia-bootstrap` |
 
@@ -339,6 +341,19 @@ the size of the question.
 
 A Simple Test does not need a stakeholder map. An MVP does not get away
 without one.
+
+## The lean profile
+
+Besides the workflow mode, `.dia/config.toml` carries a `profile`
+field: `full` (default) or `lean`. The lean profile makes only three
+things binding: durable decisions, stable navigation, and backlog
+status. Rules live consolidated in AGENTS.md (CLAUDE.md points at
+it), navigation lives in `_devprocess/SYSTEM-MAP.md`, decisions are
+post-hoc ADRs behind a `decisions/README.md` router table, and
+status lives in GitHub Issues (github-sync) or a thin BACKLOG
+(git-only). All other phase skills stay available but advisory.
+Pick lean when the team will not run BA/RE ceremony anyway; a thin
+layer that is maintained beats a full layer that drifts.
 
 ## Tech-agnostic requirements
 
@@ -382,7 +397,7 @@ Start here:
 - [Discovery methods](https://pssah4.github.io/digital-innovation-agents/reference/methods-discovery),
   [Ideation methods](https://pssah4.github.io/digital-innovation-agents/reference/methods-ideation),
   [Validation methods](https://pssah4.github.io/digital-innovation-agents/reference/methods-validation)
-- [Reverse Engineering guide](https://pssah4.github.io/digital-innovation-agents/guides/reverse-engineering)
+- [DIA Realign guide](https://pssah4.github.io/digital-innovation-agents/guides/dia-realign)
 
 ## Versions
 
@@ -393,9 +408,9 @@ Start here:
 | **v1.0.0** | Frozen snapshot, no longer maintained | `git clone --branch v1.0.0 https://github.com/pssah4/digital-innovation-agents.git` |
 
 See [CHANGELOG.md](CHANGELOG.md) for details. Existing v1 or v2 projects
-upgrade through `/dia-migration`. v1 and v2 are historical snapshots
-and not actively maintained; for current behaviour use the marketplace
-or platform-specific install on v3.
+upgrade through `/dia-realign` (Mode B). v1 and v2 are historical
+snapshots and not actively maintained; for current behaviour use the
+marketplace or platform-specific install on v3.
 
 ## License
 
