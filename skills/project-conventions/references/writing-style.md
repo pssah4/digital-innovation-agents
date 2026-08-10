@@ -46,6 +46,24 @@ Any hit is rewritten before the artifact is saved. This applies
 equally to brand-new artifacts, edits, and promotions from draft to
 validated.
 
+**German umlauts (when the artifact language is German).** Write real
+umlauts (ä, ö, ü, ß), never the ASCII fallbacks (ae, oe, ue, ss) in
+German prose. This applies to all `_devprocess/` markdown when the
+chat language is German, and the pre-save scan covers ASCII umlaut
+sequences inside German words. Exceptions stay ASCII: code,
+identifiers, file and path names, URLs, markdown link targets, and
+proper nouns (product, library, company names). When unsure whether a
+token is a German word or an identifier or name, leave it unchanged.
+
+**Concise, not publication-ready.** Artifacts capture context and
+decisions, not a polished report. The user stops reading documents
+that run long. Fill only sections that carry real substance and drop
+empty or trivial ones instead of padding them. Prefer tables and
+short bullets over prose; a decision with its one-line rationale
+beats three paragraphs. A template is a maximum outline, not a
+checklist to complete. Aim for an artifact a reader skims in a couple
+of minutes.
+
 **Templates follow the same rule.** Every `skills/*/templates/*.md`
 file is held to the same standard. When a skill copies a template into
 `_devprocess/`, it copies the clean version, and any prose it fills
