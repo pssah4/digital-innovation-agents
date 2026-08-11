@@ -567,6 +567,15 @@ FIXME_STUB_RE = re.compile(
 )
 
 
+# A row documents an unfinished implementation when it says so in those
+# words. Bare "stub" only counts as a standalone word: a test double
+# ("Modal-Stub", "tests/stubs/obsidian.ts") is a finished thing that
+# happens to share the name, and matching it as a substring reported
+# rows whose implementation was complete.
+STUB_NOTE_RE = re.compile(r"wiring offen|deferred-stub|(?<![-/\w])stubs?(?![-/\w])",
+                          re.IGNORECASE)
+
+
 def _backlog_fix_rows_with_stub_notes() -> dict[str, str]:
     """Map FIX-ID -> first matching backlog line for FIX-rows that
     document a stub. Triggered by 'Wiring offen', 'stub', or
@@ -580,8 +589,7 @@ def _backlog_fix_rows_with_stub_notes() -> dict[str, str]:
         m = re.match(r"^\|\s*(" + FIX_ID_FRAGMENT + r")\s*\|", line)
         if not m:
             continue
-        low = line.lower()
-        if "wiring offen" in low or "stub" in low or "deferred-stub" in low:
+        if STUB_NOTE_RE.search(line):
             out[m.group(1)] = line
     return out
 
