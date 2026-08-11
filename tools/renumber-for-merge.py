@@ -712,11 +712,16 @@ def main() -> int:
         # Scan the working tree for two files sharing the same id.
         from collections import defaultdict
         seen: dict[str, list[str]] = defaultdict(list)
+        # The trailing group is optional because fixes and improvements
+        # may hang off a feature (FIX-{ee}-{ff}-{nn}) or directly off
+        # their epic (FIX-{ee}-{nn}); features mirror that with an
+        # optional sub-feature level. Same two depths consistency-check
+        # accepts.
         scan_dirs = [
             (EPICS_DIR, re.compile(r"^(EPIC-\d+)-(?!ba\.md$).+\.md$")),
-            (FEATS_DIR, re.compile(r"^(FEAT-\d+-\d+[a-z]?)-.+\.md$")),
-            (IMPS_DIR, re.compile(r"^(IMP-\d+-\d+-\d+)-.+\.md$")),
-            (FIXES_DIR, re.compile(r"^(FIX-\d+-\d+-\d+)-.+\.md$")),
+            (FEATS_DIR, re.compile(r"^(FEAT-\d+-\d+[a-z]?(?:-\d+)?)-.+\.md$")),
+            (IMPS_DIR, re.compile(r"^(IMP-\d+-\d+(?:-\d+)?)-.+\.md$")),
+            (FIXES_DIR, re.compile(r"^(FIX-\d+-\d+(?:-\d+)?)-.+\.md$")),
         ]
         for d, pat in scan_dirs:
             if not d.is_dir():
