@@ -150,7 +150,7 @@ answers "how much git and GitHub integration?"; the profile answers
   `/architecture` becomes the core skill of the workflow, and
   `/dia-guide` recommends `/architecture` or `/coding` directly.
 
-The lean profile is modeled on the practice of a downstream project. Pick it
+The lean profile is modeled on a downstream project. Pick it
 when the team will not run BA/RE ceremony anyway; a thin layer that
 is actually maintained beats a full layer that drifts. `/dia-setup`
 asks for the profile at activation and can switch it later

@@ -85,8 +85,9 @@ the agent-isolation / artifact-integrity analysis.
   only durable decisions and stable navigation binding: rules
   consolidated in AGENTS.md (CLAUDE.md as pointer), SYSTEM-MAP.md,
   post-hoc ADRs behind a `decisions/README.md` router table, status
-  in GitHub Issues or a thin BACKLOG. Modeled on the a downstream project
-  practice. Absent field = full, zero migration.
+  in GitHub Issues or a thin BACKLOG. Modeled on a downstream
+  project that already worked this way. Absent field = full, zero
+  migration.
 - ADR frontmatter: `kind: constraint | choice | post-hoc` (post-hoc
   is the documented normal case), `reversal-cost`, `applies-to`,
   `read-when`; new SYSTEM-MAP and DECISIONS-README templates; post-hoc
@@ -373,8 +374,8 @@ to suppress the warning permanently.
 
 ## [3.5.4] - 2026-05-12
 
-Live-run feedback against a downstream project (a downstream project): a
-batch of `flow.py` bugs that surface during a bulk GitHub onboarding,
+Live-run feedback against a downstream project: a batch of
+`flow.py` bugs that surface during a bulk GitHub onboarding,
 plus the missing bulk-onboarding workflow itself. flow.py was built
 for the incremental Handoff Ritual (one item per phase transition);
 onboarding a freshly reverse-engineered or migrated backlog of 100+

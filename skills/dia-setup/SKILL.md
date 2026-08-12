@@ -54,7 +54,7 @@ the field `mode`:
      `_devprocess/SYSTEM-MAP.md`, post-hoc ADRs behind
      `decisions/README.md`, status in GitHub Issues (github-sync) or
      a thin BACKLOG (git-only). All other phase skills stay
-     available but advisory. Modeled on the practice of a downstream project;
+     available but advisory. Modeled on a downstream project;
      pick it when the team will not run BA/RE ceremony anyway.
 
    In the lean profile, step 6 (structure seed) uses the SYSTEM-MAP

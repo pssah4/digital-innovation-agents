@@ -18,8 +18,8 @@ superseded-by: null
 
 <!--
 Required sections by kind:
-  post-hoc (the default case: decision documented AFTER implementation,
-            the post-hoc CDR practice): Context, Decision, Consequences,
+  post-hoc (the default case: decision documented AFTER
+            implementation): Context, Decision, Consequences,
             Sources. Considered Options omitted.
   choice   (a real pre-code choice between alternatives): plus
             Decision drivers; Considered Options recommended.
