@@ -370,14 +370,29 @@ def parse_backlog_ids() -> set[str]:
     return set(BACKLOG_ROW_RE.findall(text)) | set(BACKLOG_EPIC_HEADER_RE.findall(text))
 
 
+# Artifact ids come in two depths. A fix or improvement either hangs off
+# a feature (FIX-{ee}-{ff}-{nn}) or, when there is no feature to attach
+# it to, directly off its epic (FIX-{ee}-{nn}). Features mirror that with
+# an optional sub-feature level. Both depths are valid and BACKLOG_ROW_RE
+# accepts both, so parse_artifact_id has to as well.
+#
+# Order matters: the deeper pattern is tried first, otherwise
+# FIX-19-01-01 would degrade to FIX-19-01 and collide with a real
+# epic-direct id.
 ID_PATTERNS = [
     ("FIX", re.compile(r"^(FIX-\d{2,3}-\d{2}-\d{2})(?:-|$)")),
     ("IMP", re.compile(r"^(IMP-\d{2,3}-\d{2}-\d{2})(?:-|$)")),
+    ("FEAT", re.compile(r"^(FEAT-\d{2,3}-\d{2}-\d{2})(?:-|$)")),
+    ("FIX", re.compile(r"^(FIX-\d{2,3}-\d{2})(?:-|$)")),
+    ("IMP", re.compile(r"^(IMP-\d{2,3}-\d{2})(?:-|$)")),
     ("FEAT", re.compile(r"^(FEAT-\d{2,3}-\d{2})(?:-|$)")),
     ("EPIC", re.compile(r"^(EPIC-\d{2,3})(?:-|$)")),
     ("ADR", re.compile(r"^(ADR-\d{2,3})(?:-|$)")),
     ("PLAN", re.compile(r"^(PLAN-\d{2,3})(?:-|$)")),
 ]
+
+# Same two depths, as a fragment for regexes that embed a FIX id.
+FIX_ID_FRAGMENT = r"FIX-\d{2,3}-\d{2}(?:-\d{2})?"
 
 
 def parse_artifact_id(p: Path) -> str | None:
@@ -547,9 +562,18 @@ def check_feature_activation_path() -> list[Finding]:
 
 
 FIXME_STUB_RE = re.compile(
-    r"(?://|#)\s*FIXME\(stub\)\s*:\s*(.+?)(?:\s+--\s+see\s+(FIX-\d{2,3}-\d{2}-\d{2}))?\s*$",
+    r"(?://|#)\s*FIXME\(stub\)\s*:\s*(.+?)(?:\s+--\s+see\s+(" + FIX_ID_FRAGMENT + r"))?\s*$",
     re.MULTILINE,
 )
+
+
+# A row documents an unfinished implementation when it says so in those
+# words. Bare "stub" only counts as a standalone word: a test double
+# ("Modal-Stub", "tests/stubs/obsidian.ts") is a finished thing that
+# happens to share the name, and matching it as a substring reported
+# rows whose implementation was complete.
+STUB_NOTE_RE = re.compile(r"wiring offen|deferred-stub|(?<![-/\w])stubs?(?![-/\w])",
+                          re.IGNORECASE)
 
 
 def _backlog_fix_rows_with_stub_notes() -> dict[str, str]:
@@ -562,11 +586,10 @@ def _backlog_fix_rows_with_stub_notes() -> dict[str, str]:
     out: dict[str, str] = {}
     text = BACKLOG.read_text(encoding="utf-8")
     for line in text.splitlines():
-        m = re.match(r"^\|\s*(FIX-\d{2,3}-\d{2}-\d{2})\s*\|", line)
+        m = re.match(r"^\|\s*(" + FIX_ID_FRAGMENT + r")\s*\|", line)
         if not m:
             continue
-        low = line.lower()
-        if "wiring offen" in low or "stub" in low or "deferred-stub" in low:
+        if STUB_NOTE_RE.search(line):
             out[m.group(1)] = line
     return out
 
