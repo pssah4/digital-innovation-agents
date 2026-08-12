@@ -5,6 +5,34 @@ All notable changes to digital-innovation-agents are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.2] - 2026-08-12
+
+### Fixed
+
+- `consistency-check` reads epic-direct fix and improvement ids. A fix
+  does not always hang off a feature: projects that attach one directly
+  to its epic write `FIX-{ee}-{nn}`, and the backlog scanner has always
+  accepted that shape, but `parse_artifact_id` only knew
+  `FIX-{ee}-{ff}-{nn}`. The two disagreed, so every epic-direct row was
+  reported as an orphan even when its artifact file sat right next to
+  the others, and no file could ever satisfy such a row. Both depths are
+  accepted now, deeper pattern first so `FIX-19-01-01` cannot degrade
+  into `FIX-19-01`. The sub-feature form `FEAT-{ee}-{ff}-{nn}` is
+  accepted alongside it, and `renumber-for-merge` scans the same two
+  depths so its duplicate check no longer walks past epic-direct files.
+- N-19 no longer reads a test double as unfinished work. The rule
+  recognises a backlog row that documents a stub by its wording and
+  matched a bare "stub" anywhere in the line, so a row saying
+  "Regressionstest plus Modal-Stub in tests/stubs/obsidian.ts" demanded
+  a `FIXME(stub)` marker for work that was already done. Bare "stub"
+  now counts only as a standalone word.
+
+### Added
+
+- `tools/tests/test_id_patterns.py` and `tools/tests/test_stub_notes.py`
+  cover both id depths, the precedence between them, and the wording
+  that separates unfinished work from test doubles.
+
 ## [4.0.1] - 2026-08-10
 
 ### Added
